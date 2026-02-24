@@ -1,0 +1,208 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/sales-order/list"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Order Details</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="editOrder()">
+        <ion-icon slot="icon-only" name="create-outline"></ion-icon>
+      </ion-button>
+      <ion-button (click)="showActions()">
+        <ion-icon slot="icon-only" name="ellipsis-vertical"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="detail-content">
+  @if (isLoading) {
+    <div class="loading-container">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Loading order details...</p>
+    </div>
+  } @else if (order) {
+    <!-- Order Header Card -->
+    <div class="order-header-card">
+      <div class="order-number-row">
+        <span class="order-number">{{ order.orderNumber }}</span>
+        <ion-badge [color]="getStatusColor(order.status)" class="status-badge">
+          {{ getStatusLabel(order.status) }}
+        </ion-badge>
+      </div>
+      <div class="order-total">
+        <span class="total-label">Total Amount</span>
+        <span class="total-value">{{ formatCurrency(order.total) }}</span>
+      </div>
+      <div class="order-dates">
+        <div class="date-item">
+          <ion-icon name="calendar-outline"></ion-icon>
+          <span>Order: {{ formatDate(order.orderDate) }}</span>
+        </div>
+        @if (order.deliveryDate) {
+          <div class="date-item">
+            <ion-icon name="time-outline"></ion-icon>
+            <span>Delivery: {{ formatDate(order.deliveryDate) }}</span>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Customer Section -->
+    <div class="detail-section">
+      <div class="section-header">
+        <ion-icon name="person-outline"></ion-icon>
+        <h3>Customer Information</h3>
+      </div>
+      <div class="customer-card">
+        <div class="customer-avatar">
+          <span>{{ order.customerName.charAt(0) }}</span>
+        </div>
+        <div class="customer-info">
+          <h4>{{ order.customerName }}</h4>
+          @if (order.customerEmail) {
+            <p class="customer-email">{{ order.customerEmail }}</p>
+          }
+          @if (order.customerPhone) {
+            <p class="customer-phone">{{ order.customerPhone }}</p>
+          }
+        </div>
+        <div class="customer-actions">
+          @if (order.customerPhone) {
+            <ion-button fill="clear" (click)="callCustomer()">
+              <ion-icon slot="icon-only" name="call-outline"></ion-icon>
+            </ion-button>
+          }
+          @if (order.customerEmail) {
+            <ion-button fill="clear" (click)="emailCustomer()">
+              <ion-icon slot="icon-only" name="mail-outline"></ion-icon>
+            </ion-button>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Items Section -->
+    <div class="detail-section">
+      <div class="section-header">
+        <ion-icon name="cube-outline"></ion-icon>
+        <h3>Order Items</h3>
+        <span class="items-count">{{ order.items.length }} items</span>
+      </div>
+      <div class="items-list">
+        @for (item of order.items; track item.id) {
+          <div class="item-card">
+            <div class="item-main">
+              <div class="item-info">
+                <h4>{{ item.productName }}</h4>
+                @if (item.productCode) {
+                  <span class="product-code">{{ item.productCode }}</span>
+                }
+              </div>
+              <div class="item-price">{{ formatCurrency(item.total) }}</div>
+            </div>
+            <div class="item-details">
+              <span>{{ item.quantity }} x {{ formatCurrency(item.unitPrice) }}</span>
+              @if (item.discount > 0) {
+                <span class="item-discount">-{{ formatCurrency(item.discount) }}</span>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Summary Section -->
+    <div class="detail-section">
+      <div class="section-header">
+        <ion-icon name="calculator-outline"></ion-icon>
+        <h3>Order Summary</h3>
+      </div>
+      <div class="summary-card">
+        <div class="summary-row">
+          <span>Subtotal</span>
+          <span>{{ formatCurrency(order.subtotal) }}</span>
+        </div>
+        <div class="summary-row">
+          <span>Tax</span>
+          <span>{{ formatCurrency(order.tax) }}</span>
+        </div>
+        @if (order.discount > 0) {
+          <div class="summary-row discount">
+            <span>Discount</span>
+            <span>-{{ formatCurrency(order.discount) }}</span>
+          </div>
+        }
+        <div class="summary-row total">
+          <span>Total</span>
+          <span>{{ formatCurrency(order.total) }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notes Section -->
+    @if (order.notes) {
+      <div class="detail-section">
+        <div class="section-header">
+          <ion-icon name="chatbox-outline"></ion-icon>
+          <h3>Notes</h3>
+        </div>
+        <div class="notes-card">
+          <p>{{ order.notes }}</p>
+        </div>
+      </div>
+    }
+
+    <!-- Status Update Section -->
+    <div class="detail-section">
+      <div class="section-header">
+        <ion-icon name="sync-outline"></ion-icon>
+        <h3>Update Status</h3>
+      </div>
+      <div class="status-buttons">
+        @if (order.status === 'draft') {
+          <ion-button expand="block" color="warning" (click)="updateStatus('pending')">
+            <ion-icon slot="start" name="hourglass-outline"></ion-icon>
+            Mark as Pending
+          </ion-button>
+        }
+        @if (order.status === 'pending') {
+          <ion-button expand="block" color="primary" (click)="updateStatus('confirmed')">
+            <ion-icon slot="start" name="checkmark-circle-outline"></ion-icon>
+            Confirm Order
+          </ion-button>
+        }
+        @if (order.status === 'confirmed') {
+          <ion-button expand="block" color="secondary" (click)="updateStatus('processing')">
+            <ion-icon slot="start" name="cog-outline"></ion-icon>
+            Start Processing
+          </ion-button>
+        }
+        @if (order.status === 'processing') {
+          <ion-button expand="block" color="tertiary" (click)="updateStatus('shipped')">
+            <ion-icon slot="start" name="airplane-outline"></ion-icon>
+            Mark as Shipped
+          </ion-button>
+        }
+        @if (order.status === 'shipped') {
+          <ion-button expand="block" color="success" (click)="updateStatus('delivered')">
+            <ion-icon slot="start" name="checkmark-done-outline"></ion-icon>
+            Mark as Delivered
+          </ion-button>
+        }
+        @if (order.status !== 'cancelled' && order.status !== 'delivered') {
+          <ion-button expand="block" fill="outline" color="danger" (click)="updateStatus('cancelled')">
+            <ion-icon slot="start" name="close-circle-outline"></ion-icon>
+            Cancel Order
+          </ion-button>
+        }
+      </div>
+    </div>
+
+    <!-- Metadata -->
+    <div class="metadata">
+      <p>Created: {{ formatDate(order.createdAt) }}</p>
+      <p>Last Updated: {{ formatDate(order.updatedAt) }}</p>
+    </div>
+  }
+</ion-content>

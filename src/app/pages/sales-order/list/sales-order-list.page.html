@@ -1,0 +1,152 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Sales Orders</ion-title>
+    <ion-buttons slot="end">
+      <!-- Mobile-only add button in toolbar -->
+      <ion-button (click)="createOrder()" class="mobile-add-btn">
+        <ion-icon slot="icon-only" name="add-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+
+  <!-- Search Bar -->
+  <ion-toolbar>
+    <ion-searchbar
+      [(ngModel)]="searchTerm"
+      (ionInput)="onSearchChange()"
+      placeholder="Search by order number or customer..."
+      debounce="300"
+      animated="true"
+      class="custom-searchbar">
+    </ion-searchbar>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="orders-content">
+  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+    <ion-refresher-content pullingIcon="chevron-down-outline" refreshingSpinner="crescent">
+    </ion-refresher-content>
+  </ion-refresher>
+
+  <!-- Web Page Header (hidden on mobile) -->
+  <div class="web-page-header">
+    <div class="web-page-header-inner">
+      <div class="web-title-group">
+        <h1 class="web-page-title">Sales Orders</h1>
+        @if (!isLoading) {
+          <span class="web-count-chip">{{ filteredOrders.length }}</span>
+        }
+      </div>
+      <div class="web-actions">
+        <ion-searchbar
+          [(ngModel)]="searchTerm"
+          (ionInput)="onSearchChange()"
+          placeholder="Search orders..."
+          debounce="300"
+          animated="false"
+          class="web-searchbar">
+        </ion-searchbar>
+        <ion-button (click)="createOrder()" class="web-create-btn">
+          <ion-icon slot="start" name="add-outline"></ion-icon>
+          New Order
+        </ion-button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading Skeleton -->
+  @if (isLoading) {
+    <div class="orders-list">
+      @for (i of [1, 2, 3, 4, 5, 6]; track i) {
+        <ion-card class="order-card skeleton-card">
+          <ion-card-content>
+            <ion-skeleton-text animated style="width: 40%; height: 20px"></ion-skeleton-text>
+            <ion-skeleton-text animated style="width: 60%; height: 16px; margin-top: 8px"></ion-skeleton-text>
+            <ion-skeleton-text animated style="width: 30%; height: 24px; margin-top: 12px"></ion-skeleton-text>
+          </ion-card-content>
+        </ion-card>
+      }
+    </div>
+  }
+
+  <!-- Orders List -->
+  @if (!isLoading && filteredOrders.length > 0) {
+    <div class="orders-list">
+      @for (order of filteredOrders; track order.SalesId) {
+        <ion-card class="order-card">
+          <ion-card-content>
+
+            <!-- Header: Order Number + Badges -->
+            <div class="order-header">
+              <span class="order-number">{{ order.SalesId }}</span>
+              <div class="badge-group">
+                @if (order.SalesTable_SalesStatus) {
+                  <ion-badge [color]="getStatusColor(order.SalesTable_SalesStatus)" class="status-badge">
+                    {{ order.SalesTable_SalesStatus }}
+                  </ion-badge>
+                }
+                @if (order.SalesTable_DocumentStatus) {
+                  <ion-badge [color]="getReleaseStatusColor(order.SalesTable_DocumentStatus)" class="release-badge">
+                    {{ order.SalesTable_DocumentStatus }}
+                  </ion-badge>
+                }
+              </div>
+            </div>
+
+            <!-- Fields Grid -->
+            <div class="order-fields">
+              <div class="field-item">
+                <span class="field-label">Customer Account</span>
+                <span class="field-value">{{ order.CustAccount || '—' }}</span>
+              </div>
+              <div class="field-item">
+                <span class="field-label">Customer Name</span>
+                <span class="field-value">{{ order.SalesTable_SalesName || '—' }}</span>
+              </div>
+              <div class="field-item">
+                <span class="field-label">Order Type</span>
+                <span class="field-value">{{ order.SalesType || '—' }}</span>
+              </div>
+              <div class="field-item">
+                <span class="field-label">Invoice Account</span>
+                <span class="field-value">{{ order.SalesTable_InvoiceAccount || '—' }}</span>
+              </div>
+            </div>
+
+          </ion-card-content>
+        </ion-card>
+      }
+    </div>
+  }
+
+  <!-- Empty State -->
+  @if (!isLoading && filteredOrders.length === 0) {
+    <div class="empty-state">
+      <ion-icon name="document-text-outline"></ion-icon>
+      <h3>No Orders Found</h3>
+      <p>
+        @if (searchTerm) {
+          Try adjusting your search criteria
+        } @else {
+          Create your first sales order to get started
+        }
+      </p>
+      @if (!searchTerm) {
+        <ion-button (click)="createOrder()" class="create-btn">
+          <ion-icon slot="start" name="add-outline"></ion-icon>
+          Create Order
+        </ion-button>
+      }
+    </div>
+  }
+
+  <!-- FAB Button (mobile only) -->
+  <ion-fab slot="fixed" vertical="bottom" horizontal="end" class="mobile-fab">
+    <ion-fab-button (click)="createOrder()">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+</ion-content>

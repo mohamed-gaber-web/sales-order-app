@@ -1,0 +1,131 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/sales-order/list"></ion-back-button>
+    </ion-buttons>
+    <ion-title>New Sales Order</ion-title>
+    <ion-buttons slot="end">
+      <ion-button
+        (click)="onSubmit()"
+        [disabled]="orderForm.invalid || isLoading || isSubmitting"
+        color="light">
+        <ion-icon slot="start" name="checkmark-outline"></ion-icon>
+        Save
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="form-content">
+  @if (isLoading) {
+    <div class="loading-container">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Loading data...</p>
+    </div>
+  } @else {
+    <!-- Web Page Header (desktop only) -->
+    <div class="web-form-header">
+      <div class="web-form-header-inner">
+        <div class="web-breadcrumb">
+          <a (click)="goBack()" class="breadcrumb-link">Sales Orders</a>
+          <ion-icon name="chevron-forward-outline"></ion-icon>
+          <span>New Order</span>
+        </div>
+        <h1 class="web-form-title">Create Sales Order</h1>
+      </div>
+    </div>
+
+    <form [formGroup]="orderForm">
+      <div class="form-wrapper">
+
+        <!-- Order Information -->
+        <div class="form-section">
+          <div class="section-header">
+            <ion-icon name="document-text-outline"></ion-icon>
+            <h3>Order Information</h3>
+          </div>
+
+          <ion-list lines="none">
+
+            <!-- Sales Order Number -->
+            <ion-item class="form-item">
+              <ion-input
+                formControlName="SalesOrderNumber"
+                label="Sales Order Number *"
+                labelPlacement="stacked"
+                placeholder="e.g., test-minlo2">
+              </ion-input>
+            </ion-item>
+
+            <!-- Company + Currency side by side on desktop -->
+            <div class="field-row">
+              <!-- Company (dataAreaId) -->
+              <ion-item class="form-item">
+                <ion-select
+                  formControlName="dataAreaId"
+                  label="Company *"
+                  labelPlacement="stacked"
+                  interface="popover"
+                  placeholder="Select company">
+                  @for (company of companies(); track company.DataArea) {
+                    <ion-select-option [value]="company.DataArea">
+                      {{ company.Name || company.DataArea }}
+                    </ion-select-option>
+                  }
+                </ion-select>
+              </ion-item>
+
+              <!-- Currency -->
+              <ion-item class="form-item">
+                <ion-select
+                  formControlName="CurrencyCode"
+                  label="Currency *"
+                  labelPlacement="stacked"
+                  interface="popover"
+                  placeholder="Select currency">
+                  @for (currency of currencies(); track currency.CurrencyCode) {
+                    <ion-select-option [value]="currency.CurrencyCode">
+                      {{ currency.CurrencyCode }} – {{ currency.Name }}
+                    </ion-select-option>
+                  }
+                </ion-select>
+              </ion-item>
+            </div>
+
+            <!-- Customer -->
+            <ion-item class="form-item">
+              <ion-select
+                formControlName="OrderingCustomerAccountNumber"
+                label="Customer *"
+                labelPlacement="stacked"
+                interface="popover"
+                placeholder="Select customer">
+                @for (customer of customers(); track customer.CustomerAccount) {
+                  <ion-select-option [value]="customer.CustomerAccount">
+                    {{ customer.CustomerName }} ({{ customer.CustomerAccount }})
+                  </ion-select-option>
+                }
+              </ion-select>
+            </ion-item>
+
+          </ion-list>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="form-actions">
+          <ion-button expand="block" fill="outline" (click)="goBack()">
+            Cancel
+          </ion-button>
+          <ion-button
+            expand="block"
+            (click)="onSubmit()"
+            [disabled]="orderForm.invalid || isSubmitting">
+            <ion-icon slot="start" name="checkmark-outline"></ion-icon>
+            Create Order
+          </ion-button>
+        </div>
+
+      </div>
+    </form>
+  }
+</ion-content>
