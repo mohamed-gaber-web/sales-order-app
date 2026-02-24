@@ -1,0 +1,14 @@
+{
+  "buildCommand": "npm run build -- --configuration=production",
+  "outputDirectory": "www",
+  "rewrites": [
+    {
+      "source": "/data/:path*",
+      "destination": "https://growpath.sandbox.operations.eu.dynamics.com/data/:path*"
+    },
+    {
+      "source": "/((?!api/).*)",
+      "destination": "/index.html"
+    }
+  ]
+}
