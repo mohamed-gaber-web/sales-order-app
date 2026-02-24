@@ -19,21 +19,39 @@ module.exports = async function handler(req, res) {
     return res.status(405).end('Method Not Allowed');
   }
 
-  const clientSecret = process.env.AZURE_CLIENT_SECRET;
-  if (!clientSecret) {
-    return res.status(500).json({ error: 'AZURE_CLIENT_SECRET env variable is not set' });
+  try {
+    const clientSecret = process.env.AZURE_CLIENT_SECRET;
+    if (!clientSecret) {
+      return res.status(500).json({ error: 'AZURE_CLIENT_SECRET env variable is not set in Vercel' });
+    }
+
+    // Vercel parses application/x-www-form-urlencoded into an object OR leaves it as a string.
+    // Handle both cases safely.
+    const params = new URLSearchParams();
+    const body = req.body;
+
+    if (typeof body === 'string') {
+      // Raw encoded string — parse it
+      new URLSearchParams(body).forEach((value, key) => params.set(key, value));
+    } else if (body && typeof body === 'object') {
+      // Already parsed object
+      Object.entries(body).forEach(([key, value]) => params.set(key, String(value)));
+    }
+
+    // Inject the server-side secret
+    params.set('client_secret', clientSecret);
+
+    const azureResponse = await fetch(AZURE_TOKEN_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: params.toString(),
+    });
+
+    const data = await azureResponse.json();
+    res.status(azureResponse.status).json(data);
+
+  } catch (err) {
+    console.error('[api/token] Unexpected error:', err);
+    res.status(500).json({ error: 'Internal server error', detail: err.message });
   }
-
-  // req.body is parsed by Vercel as an object for application/x-www-form-urlencoded
-  const params = new URLSearchParams(req.body);
-  params.set('client_secret', clientSecret);
-
-  const response = await fetch(AZURE_TOKEN_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: params.toString(),
-  });
-
-  const data = await response.json();
-  res.status(response.status).json(data);
 };
