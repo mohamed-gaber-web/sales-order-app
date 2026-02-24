@@ -143,6 +143,33 @@
     </div>
   }
 
+  <!-- Web Load More Button (desktop only) -->
+  @if (!isLoading && hasMore) {
+    <div class="web-load-more">
+      <ion-button
+        (click)="loadMoreWeb()"
+        [disabled]="isLoadingMore"
+        class="web-load-more-btn"
+        fill="outline">
+        @if (isLoadingMore) {
+          <ion-spinner name="crescent" slot="start"></ion-spinner>
+          Loading...
+        } @else {
+          <ion-icon slot="start" name="chevron-down-outline"></ion-icon>
+          Load More
+        }
+      </ion-button>
+    </div>
+  }
+
+  <!-- Mobile Infinite Scroll -->
+  <ion-infinite-scroll (ionInfinite)="loadMore($event)" [disabled]="!hasMore">
+    <ion-infinite-scroll-content
+      loadingSpinner="crescent"
+      loadingText="Loading more orders...">
+    </ion-infinite-scroll-content>
+  </ion-infinite-scroll>
+
   <!-- FAB Button (mobile only) -->
   <ion-fab slot="fixed" vertical="bottom" horizontal="end" class="mobile-fab">
     <ion-fab-button (click)="createOrder()">

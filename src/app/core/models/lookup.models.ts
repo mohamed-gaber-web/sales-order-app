@@ -22,4 +22,5 @@ export interface Customer {
 export interface ODataResponse<T> {
   'value': T[];
   '@odata.count'?: number;
+  '@odata.nextLink'?: string;
 }

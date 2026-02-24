@@ -16,6 +16,10 @@ export class ApiService {
     return this.http.get<T>(`${this.baseUrl}${path}`, { params: httpParams });
   }
 
+  getByUrl<T>(url: string): Observable<T> {
+    return this.http.get<T>(url);
+  }
+
   post<T>(path: string, body: unknown): Observable<T> {
     return this.http.post<T>(`${this.baseUrl}${path}`, body);
   }
