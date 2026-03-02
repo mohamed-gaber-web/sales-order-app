@@ -76,7 +76,7 @@
   @if (!isLoading && filteredOrders.length > 0) {
     <div class="orders-list">
       @for (order of filteredOrders; track order.SalesId) {
-        <ion-card class="order-card">
+        <ion-card class="order-card" button (click)="openOrderLine(order.SalesId)">
           <ion-card-content>
 
             <!-- Header: Order Number + Badges -->

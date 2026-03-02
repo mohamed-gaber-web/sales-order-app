@@ -1,0 +1,139 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/sales-order/list"></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ salesOrderNumber }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="addLine()" color="light">
+        <ion-icon slot="start" name="add-outline"></ion-icon>
+        Add Line
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="detail-content">
+  <!-- Web Page Header (desktop only) -->
+  <div class="web-page-header">
+    <div class="web-page-header-inner">
+      <div class="web-title-group">
+        <div class="web-breadcrumb">
+          <a (click)="goBack()" class="breadcrumb-link">Sales Orders</a>
+          <ion-icon name="chevron-forward-outline"></ion-icon>
+          <span>{{ salesOrderNumber }}</span>
+        </div>
+        <h1 class="web-page-title">Order Lines</h1>
+        @if (!isLoading) {
+          <span class="web-count-chip">{{ lines.length }}</span>
+        }
+      </div>
+      <ion-button (click)="addLine()" class="web-add-btn">
+        <ion-icon slot="start" name="add-outline"></ion-icon>
+        Add Line
+      </ion-button>
+    </div>
+  </div>
+
+  <!-- Loading Skeleton -->
+  @if (isLoading) {
+    <div class="lines-list">
+      @for (i of [1, 2, 3]; track i) {
+        <ion-card class="line-card skeleton-card">
+          <ion-card-content>
+            <ion-skeleton-text animated style="width: 40%; height: 18px"></ion-skeleton-text>
+            <ion-skeleton-text animated style="width: 70%; height: 14px; margin-top: 10px"></ion-skeleton-text>
+            <ion-skeleton-text animated style="width: 50%; height: 14px; margin-top: 6px"></ion-skeleton-text>
+          </ion-card-content>
+        </ion-card>
+      }
+    </div>
+  }
+
+  <!-- Lines List -->
+  @if (!isLoading && lines.length > 0) {
+    <div class="lines-list">
+      @for (line of lines; track $index) {
+        <ion-card class="line-card">
+          <ion-card-content>
+            <!-- Header -->
+            <div class="line-header">
+              <span class="line-item-number">{{ line.ItemNumber }}</span>
+              @if (line.ProductName) {
+                <span class="line-product-name">{{ line.ProductName }}</span>
+              }
+            </div>
+
+            <!-- Fields Grid -->
+            <div class="line-fields">
+              <div class="field-item">
+                <span class="field-label">Site</span>
+                <span class="field-value">{{ line.ShippingSiteId || '—' }}</span>
+              </div>
+              <div class="field-item">
+                <span class="field-label">Warehouse</span>
+                <span class="field-value">{{ line.ShippingWarehouseId || '—' }}</span>
+              </div>
+              <div class="field-item">
+                <span class="field-label">Configuration</span>
+                <span class="field-value">{{ line.ProductConfigurationId || '—' }}</span>
+              </div>
+              <div class="field-item">
+                <span class="field-label">Size</span>
+                <span class="field-value">{{ line.ProductSizeId || '—' }}</span>
+              </div>
+              <div class="field-item">
+                <span class="field-label">Color</span>
+                <span class="field-value">{{ line.ProductColorId || '—' }}</span>
+              </div>
+              <div class="field-item">
+                <span class="field-label">Quantity</span>
+                <span class="field-value">{{ line.OrderedSalesQuantity ?? '—' }}</span>
+              </div>
+            </div>
+
+            <!-- Amounts Row -->
+            <div class="line-amounts">
+              <div class="amount-item">
+                <span class="amount-label">Price</span>
+                <span class="amount-value">{{ formatCurrency(line.SalesPrice) }}</span>
+              </div>
+              <div class="amount-item">
+                <span class="amount-label">Line Amount</span>
+                <span class="amount-value highlight">{{ formatCurrency(line.LineAmount) }}</span>
+              </div>
+              <div class="amount-item">
+                <span class="amount-label">Discount</span>
+                <span class="amount-value">{{ formatCurrency(line.LineDiscountAmount) }}</span>
+              </div>
+              <div class="amount-item">
+                <span class="amount-label">Tax</span>
+                <span class="amount-value">{{ formatCurrency(line.SalesTaxAmount) }}</span>
+              </div>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      }
+    </div>
+  }
+
+  <!-- Empty State -->
+  @if (!isLoading && lines.length === 0) {
+    <div class="empty-state">
+      <ion-icon name="list-outline"></ion-icon>
+      <h3>No Order Lines</h3>
+      <p>This sales order has no lines yet. Add a line to get started.</p>
+      <ion-button (click)="addLine()" class="add-btn">
+        <ion-icon slot="start" name="add-outline"></ion-icon>
+        Add Line
+      </ion-button>
+    </div>
+  }
+
+  <!-- FAB Button (mobile only) -->
+  <ion-fab slot="fixed" vertical="bottom" horizontal="end" class="mobile-fab">
+    <ion-fab-button (click)="addLine()">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+</ion-content>

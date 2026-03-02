@@ -1,0 +1,206 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/sales-order/list"></ion-back-button>
+    </ion-buttons>
+    <ion-title>New Line – {{ salesOrderNumber }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button
+        (click)="onSubmit()"
+        [disabled]="lineForm.invalid || isLoading || isSubmitting"
+        color="light">
+        <ion-icon slot="start" name="checkmark-outline"></ion-icon>
+        Save
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="form-content">
+  @if (isLoading) {
+    <div class="loading-container">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Loading data...</p>
+    </div>
+  } @else {
+    <!-- Web Page Header (desktop only) -->
+    <div class="web-form-header">
+      <div class="web-form-header-inner">
+        <div class="web-breadcrumb">
+          <a (click)="goBack()" class="breadcrumb-link">Sales Orders</a>
+          <ion-icon name="chevron-forward-outline"></ion-icon>
+          <span>{{ salesOrderNumber }}</span>
+        </div>
+        <h1 class="web-form-title">Add Line to {{ salesOrderNumber }}</h1>
+      </div>
+    </div>
+
+    <form [formGroup]="lineForm">
+      <div class="form-wrapper">
+
+        <!-- Order Information -->
+        <div class="form-section">
+          <div class="section-header">
+            <ion-icon name="document-text-outline"></ion-icon>
+            <h3>Order Information</h3>
+          </div>
+
+          <ion-list lines="none">
+            <!-- Sales Order Number (auto-filled from selected order) -->
+            <ion-item class="form-item readonly-item">
+              <ion-input
+                formControlName="SalesOrderNumber"
+                label="Sales Order Number"
+                labelPlacement="stacked"
+                [readonly]="true">
+              </ion-input>
+            </ion-item>
+          </ion-list>
+        </div>
+
+        <!-- Shipping Information -->
+        <div class="form-section">
+          <div class="section-header">
+            <ion-icon name="cube-outline"></ion-icon>
+            <h3>Shipping Information</h3>
+          </div>
+
+          <ion-list lines="none">
+            <div class="field-row">
+              <!-- Shipping Site -->
+              <ion-item class="form-item">
+                <ion-select
+                  formControlName="ShippingSiteId"
+                  label="Shipping Site *"
+                  labelPlacement="stacked"
+                  interface="popover"
+                  placeholder="Select site"
+                  (ionChange)="onSiteChange()">
+                  @for (site of sites; track site.SiteId) {
+                    <ion-select-option [value]="site.SiteId">
+                      {{ site.SiteName || site.SiteId }}
+                    </ion-select-option>
+                  }
+                </ion-select>
+              </ion-item>
+
+              <!-- Shipping Warehouse -->
+              <ion-item class="form-item">
+                <ion-select
+                  formControlName="ShippingWarehouseId"
+                  label="Warehouse *"
+                  labelPlacement="stacked"
+                  interface="popover"
+                  placeholder="Select warehouse">
+                  @for (wh of warehouses; track wh.WarehouseId) {
+                    <ion-select-option [value]="wh.WarehouseId">
+                      {{ wh.WarehouseName || wh.WarehouseId }}
+                    </ion-select-option>
+                  }
+                </ion-select>
+              </ion-item>
+            </div>
+          </ion-list>
+        </div>
+
+        <!-- Product Variant -->
+        <div class="form-section">
+          <div class="section-header">
+            <ion-icon name="color-palette-outline"></ion-icon>
+            <h3>Product Variant</h3>
+          </div>
+
+          <ion-list lines="none">
+            <!-- Item Number + Search -->
+            <div class="item-search-row">
+              <ion-item class="form-item item-input">
+                <ion-input
+                  formControlName="ItemNumber"
+                  label="Item Number *"
+                  labelPlacement="stacked"
+                  placeholder="e.g., T-shirt">
+                </ion-input>
+              </ion-item>
+              <ion-button
+                class="search-btn"
+                (click)="searchProductVariants()"
+                [disabled]="!lineForm.get('ItemNumber')?.value || isLoadingVariants">
+                @if (isLoadingVariants) {
+                  <ion-spinner name="dots"></ion-spinner>
+                } @else {
+                  <ion-icon name="search-outline"></ion-icon>
+                }
+              </ion-button>
+            </div>
+
+            @if (variantMessage) {
+              <div class="variant-message" [class.success]="productVariants.length > 0" [class.empty]="productVariants.length === 0">
+                <ion-icon [name]="productVariants.length > 0 ? 'checkmark-circle-outline' : 'information-circle-outline'"></ion-icon>
+                <span>{{ variantMessage }}</span>
+              </div>
+            }
+
+            <!-- Configuration -->
+            <ion-item class="form-item">
+              <ion-input
+                formControlName="ProductConfigurationId"
+                label="Configuration"
+                labelPlacement="stacked"
+                placeholder="Leave empty if not applicable">
+              </ion-input>
+            </ion-item>
+
+            <div class="field-row">
+              <!-- Size -->
+              <ion-item class="form-item">
+                <ion-select
+                  formControlName="ProductSizeId"
+                  label="Size"
+                  labelPlacement="stacked"
+                  interface="popover"
+                  [placeholder]="availableSizes.length > 0 ? 'Select size' : 'Search item first'">
+                  @for (size of availableSizes; track size) {
+                    <ion-select-option [value]="size">
+                      {{ size }}
+                    </ion-select-option>
+                  }
+                </ion-select>
+              </ion-item>
+
+              <!-- Color -->
+              <ion-item class="form-item">
+                <ion-select
+                  formControlName="ProductColorId"
+                  label="Color"
+                  labelPlacement="stacked"
+                  interface="popover"
+                  [placeholder]="availableColors.length > 0 ? 'Select color' : 'Search item first'">
+                  @for (color of availableColors; track color) {
+                    <ion-select-option [value]="color">
+                      {{ color }}
+                    </ion-select-option>
+                  }
+                </ion-select>
+              </ion-item>
+            </div>
+          </ion-list>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="form-actions">
+          <ion-button expand="block" fill="outline" (click)="goBack()">
+            Cancel
+          </ion-button>
+          <ion-button
+            expand="block"
+            (click)="onSubmit()"
+            [disabled]="lineForm.invalid || isSubmitting">
+            <ion-icon slot="start" name="checkmark-outline"></ion-icon>
+            Create Line
+          </ion-button>
+        </div>
+
+      </div>
+    </form>
+  }
+</ion-content>

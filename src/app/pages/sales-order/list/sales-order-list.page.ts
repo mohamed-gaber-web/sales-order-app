@@ -135,6 +135,10 @@ export class SalesOrderListPage {
     this.router.navigate(['/sales-order/create']);
   }
 
+  openOrderLine(salesId: string) {
+    this.router.navigate(['/sales-order-line/detail', salesId]);
+  }
+
   doRefresh(event: any) {
     this.orders = [];
     this.totalCount = 0;

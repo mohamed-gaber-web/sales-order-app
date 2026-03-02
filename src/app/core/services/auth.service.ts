@@ -51,20 +51,21 @@ export class AuthService {
   private async fetchToken(): Promise<void> {
     const { clientId, clientSecret, scope, grantType } = environment.auth;
 
-    // On native: send client_secret directly to Azure AD
-    // On web: the Vercel /api/token function injects the secret server-side
-    //         so we never expose it in the browser build
+    // Build the token request body
     let body = new HttpParams()
       .set('grant_type', grantType)
       .set('client_id', clientId)
       .set('scope', scope);
 
-    if (this.isNativePlatform()) {
+    // In dev mode: include client_secret directly (it's already in environment.ts)
+    // In prod native: include client_secret (sent directly to Azure AD)
+    // In prod web: Vercel /api/token injects the secret server-side
+    if (this.isNativePlatform() || !environment.production) {
       body = body.set('client_secret', clientSecret);
     }
 
     // On native (Capacitor) → call Azure directly (no CORS issue)
-    // On web (browser) → use Vercel proxy function
+    // On web (browser) → use dev proxy or Vercel proxy function
     const tokenUrl = this.isNativePlatform()
       ? environment.auth.tokenUrl
       : '/api/token';
