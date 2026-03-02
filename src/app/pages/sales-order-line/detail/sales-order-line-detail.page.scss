@@ -297,6 +297,21 @@ ion-fab-button {
       vertical-align: middle;
     }
 
+    .web-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .web-searchbar {
+      --background: var(--gp-bg, #f0f2f5);
+      --border-radius: var(--gp-radius-md);
+      --box-shadow: none;
+      --height: 40px;
+      width: 260px;
+      padding: 0;
+    }
+
     .web-add-btn {
       --background: linear-gradient(90deg, #F24C1A 0%, #F28E26 100%);
       --border-radius: var(--gp-radius-md);

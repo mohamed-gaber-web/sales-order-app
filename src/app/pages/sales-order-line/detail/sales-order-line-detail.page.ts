@@ -14,7 +14,9 @@ import {
 })
 export class SalesOrderLineDetailPage implements OnInit {
   salesOrderNumber = '';
+  allLines: SalesOrderLineResponse[] = [];
   lines: SalesOrderLineResponse[] = [];
+  searchTerm = '';
   isLoading = false;
 
   constructor(
@@ -38,7 +40,8 @@ export class SalesOrderLineDetailPage implements OnInit {
     this.isLoading = true;
     this.orderLineService.getOrderLines(this.salesOrderNumber).subscribe({
       next: (res) => {
-        this.lines = res.value;
+        this.allLines = res.value;
+        this.filterLines();
         this.isLoading = false;
       },
       error: async () => {
@@ -52,6 +55,28 @@ export class SalesOrderLineDetailPage implements OnInit {
         await toast.present();
       },
     });
+  }
+
+  onSearchChange() {
+    this.filterLines();
+  }
+
+  private filterLines() {
+    if (!this.searchTerm.trim()) {
+      this.lines = [...this.allLines];
+      return;
+    }
+    const term = this.searchTerm.toLowerCase();
+    this.lines = this.allLines.filter((line) =>
+      (line.ItemNumber ?? '').toLowerCase().includes(term) ||
+      (line.ProductName ?? '').toLowerCase().includes(term) ||
+      (line.ShippingSiteId ?? '').toLowerCase().includes(term) ||
+      (line.ShippingWarehouseId ?? '').toLowerCase().includes(term) ||
+      (line.ProductConfigurationId ?? '').toLowerCase().includes(term) ||
+      (line.ProductSizeId ?? '').toLowerCase().includes(term) ||
+      (line.ProductColorId ?? '').toLowerCase().includes(term) ||
+      (line.ProductStyleId ?? '').toLowerCase().includes(term)
+    );
   }
 
   addLine() {

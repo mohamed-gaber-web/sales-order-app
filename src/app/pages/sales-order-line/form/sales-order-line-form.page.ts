@@ -28,6 +28,8 @@ export class SalesOrderLineFormPage implements OnInit {
   productVariants: ProductVariant[] = [];
   availableSizes: string[] = [];
   availableColors: string[] = [];
+  availableStyles: string[] = [];
+  availableConfigurations: string[] = [];
   variantMessage = '';
 
   salesOrderNumber = '';
@@ -45,9 +47,12 @@ export class SalesOrderLineFormPage implements OnInit {
       ItemNumber: ['', Validators.required],
       ShippingSiteId: ['', Validators.required],
       ShippingWarehouseId: ['', Validators.required],
+      OrderedSalesQuantity: [null, [Validators.required, Validators.min(0.01)]],
+      SalesPrice: [null, [Validators.required, Validators.min(0)]],
       ProductConfigurationId: [''],
       ProductSizeId: [''],
       ProductColorId: [''],
+      ProductStyleId: [''],
     });
   }
 
@@ -104,12 +109,17 @@ export class SalesOrderLineFormPage implements OnInit {
 
     this.isLoadingVariants = true;
     this.variantMessage = '';
-    this.lineForm.patchValue({ ProductSizeId: '', ProductColorId: '' });
+    this.lineForm.patchValue({ ProductConfigurationId: '', ProductSizeId: '', ProductColorId: '', ProductStyleId: '' });
 
     this.orderLineService.getProductVariants(itemNumber).subscribe({
       next: (res) => {
         this.productVariants = res.value;
 
+        this.availableConfigurations = [
+          ...new Set(
+            res.value.map((v: any) => v.ProductConfigurationId).filter((c: string) => !!c)
+          ),
+        ];
         this.availableSizes = [
           ...new Set(
             res.value.map((v: any) => v.ProductSizeId).filter((s: string) => !!s)
@@ -120,6 +130,20 @@ export class SalesOrderLineFormPage implements OnInit {
             res.value.map((v: any) => v.ProductColorId).filter((c: string) => !!c)
           ),
         ];
+        this.availableStyles = [
+          ...new Set(
+            res.value.map((v: any) => v.ProductStyleId).filter((s: string) => !!s)
+          ),
+        ];
+
+        const toggleCtrl = (name: string, hasData: boolean) => {
+          const ctrl = this.lineForm.get(name);
+          hasData ? ctrl?.enable() : ctrl?.disable();
+        };
+        toggleCtrl('ProductConfigurationId', this.availableConfigurations.length > 0);
+        toggleCtrl('ProductSizeId', this.availableSizes.length > 0);
+        toggleCtrl('ProductColorId', this.availableColors.length > 0);
+        toggleCtrl('ProductStyleId', this.availableStyles.length > 0);
 
         this.isLoadingVariants = false;
 
@@ -136,9 +160,15 @@ export class SalesOrderLineFormPage implements OnInit {
       error: async () => {
         this.isLoadingVariants = false;
         this.productVariants = [];
+        this.availableConfigurations = [];
         this.availableSizes = [];
         this.availableColors = [];
+        this.availableStyles = [];
         this.variantMessage = '';
+        this.lineForm.get('ProductConfigurationId')?.enable();
+        this.lineForm.get('ProductSizeId')?.enable();
+        this.lineForm.get('ProductColorId')?.enable();
+        this.lineForm.get('ProductStyleId')?.enable();
         const toast = await this.toastCtrl.create({
           message: 'Failed to load product variants.',
           duration: 3000,

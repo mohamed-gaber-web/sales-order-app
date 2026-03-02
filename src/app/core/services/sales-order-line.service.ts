@@ -19,6 +19,7 @@ export interface ProductVariant {
   ProductMasterNumber: string;
   ProductSizeId: string;
   ProductColorId: string;
+  ProductStyleId: string;
   ProductConfigurationId: string;
 }
 
@@ -33,6 +34,7 @@ export interface SalesOrderLineResponse {
   ProductConfigurationId: string;
   ProductSizeId: string;
   ProductColorId: string;
+  ProductStyleId: string;
   OrderedSalesQuantity?: number;
   SalesPrice?: number;
   LineAmount?: number;
@@ -45,11 +47,14 @@ export interface CreateSalesOrderLineDto {
   dataAreaId: string;
   SalesOrderNumber: string;
   ItemNumber: string;
+  OrderedSalesQuantity: number;
+  SalesPrice: number;
   ShippingSiteId: string;
   ShippingWarehouseId: string;
   ProductConfigurationId: string;
   ProductSizeId: string;
   ProductColorId: string;
+  ProductStyleId: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -64,6 +69,7 @@ export class SalesOrderLineService {
       {
         '$filter': `SalesOrderNumber eq '${salesOrderNumber}' and dataAreaId eq 'usmf'`,
         '$count': 'true',
+        '$orderby': 'LineCreationSequenceNumber desc',
       }
     );
   }

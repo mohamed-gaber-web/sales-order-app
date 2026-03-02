@@ -1,6 +1,8 @@
 import { Component, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { IonInfiniteScroll, ToastController } from '@ionic/angular';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
 import { SalesOrderService } from '../../../core/services/sales-order.service';
 import { SalesOrderHeaderResponse } from '../../../models/sales-order.model';
 
@@ -18,7 +20,10 @@ export class SalesOrderListPage {
   searchTerm = '';
   isLoading = false;
   isLoadingMore = false;
+  isSearching = false;
   totalCount = 0;
+
+  private searchSubject = new Subject<string>();
 
   get hasMore(): boolean {
     return this.orders.length < this.totalCount;
@@ -28,7 +33,14 @@ export class SalesOrderListPage {
     private router: Router,
     private toastCtrl: ToastController,
     private salesOrderService: SalesOrderService
-  ) {}
+  ) {
+    this.searchSubject.pipe(
+      debounceTime(400),
+      distinctUntilChanged(),
+    ).subscribe((term) => {
+      this.searchFromApi(term);
+    });
+  }
 
   ionViewWillEnter() {
     this.loadOrders();
@@ -38,11 +50,11 @@ export class SalesOrderListPage {
     this.isLoading = true;
     this.orders = [];
     this.totalCount = 0;
-    this.salesOrderService.getOrderHeaders(0).subscribe({
+    this.salesOrderService.getOrderHeaders(0, this.searchTerm.trim()).subscribe({
       next: (res) => {
-        this.orders = res.value;
+        this.orders = this.deduplicate(res.value);
+        this.filteredOrders = [...this.orders];
         this.totalCount = res['@odata.count'] ?? res.value.length;
-        this.filterOrders();
         this.isLoading = false;
         if (this.infiniteScroll) {
           this.infiniteScroll.disabled = !this.hasMore;
@@ -67,10 +79,10 @@ export class SalesOrderListPage {
       return;
     }
     this.isLoadingMore = true;
-    this.salesOrderService.getOrderHeaders(this.orders.length).subscribe({
+    this.salesOrderService.getOrderHeaders(this.orders.length, this.searchTerm.trim()).subscribe({
       next: (res) => {
-        this.orders = [...this.orders, ...res.value];
-        this.filterOrders();
+        this.orders = this.deduplicate([...this.orders, ...res.value]);
+        this.filteredOrders = [...this.orders];
         this.isLoadingMore = false;
         event.target.complete();
         if (!this.hasMore) {
@@ -94,10 +106,10 @@ export class SalesOrderListPage {
   loadMoreWeb() {
     if (!this.hasMore || this.isLoadingMore) return;
     this.isLoadingMore = true;
-    this.salesOrderService.getOrderHeaders(this.orders.length).subscribe({
+    this.salesOrderService.getOrderHeaders(this.orders.length, this.searchTerm.trim()).subscribe({
       next: (res) => {
-        this.orders = [...this.orders, ...res.value];
-        this.filterOrders();
+        this.orders = this.deduplicate([...this.orders, ...res.value]);
+        this.filteredOrders = [...this.orders];
         this.isLoadingMore = false;
       },
       error: async () => {
@@ -113,22 +125,35 @@ export class SalesOrderListPage {
     });
   }
 
-  filterOrders() {
-    if (!this.searchTerm.trim()) {
-      this.filteredOrders = [...this.orders];
-      return;
-    }
-    const term = this.searchTerm.toLowerCase();
-    this.filteredOrders = this.orders.filter(order =>
-      order.SalesId.toLowerCase().includes(term) ||
-      order.CustAccount.toLowerCase().includes(term) ||
-      (order.SalesTable_SalesName ?? '').toLowerCase().includes(term) ||
-      (order.SalesTable_InvoiceAccount ?? '').toLowerCase().includes(term)
-    );
+  onSearchChange() {
+    this.searchSubject.next(this.searchTerm.trim());
   }
 
-  onSearchChange() {
-    this.filterOrders();
+  private searchFromApi(term: string) {
+    this.isSearching = true;
+    this.orders = [];
+    this.totalCount = 0;
+    this.salesOrderService.getOrderHeaders(0, term).subscribe({
+      next: (res) => {
+        this.orders = this.deduplicate(res.value);
+        this.filteredOrders = [...this.orders];
+        this.totalCount = res['@odata.count'] ?? res.value.length;
+        this.isSearching = false;
+        if (this.infiniteScroll) {
+          this.infiniteScroll.disabled = !this.hasMore;
+        }
+      },
+      error: async () => {
+        this.isSearching = false;
+        const toast = await this.toastCtrl.create({
+          message: 'Search failed. Please try again.',
+          duration: 3000,
+          color: 'danger',
+          position: 'bottom'
+        });
+        await toast.present();
+      }
+    });
   }
 
   createOrder() {
@@ -142,11 +167,11 @@ export class SalesOrderListPage {
   doRefresh(event: any) {
     this.orders = [];
     this.totalCount = 0;
-    this.salesOrderService.getOrderHeaders(0).subscribe({
+    this.salesOrderService.getOrderHeaders(0, this.searchTerm.trim()).subscribe({
       next: (res) => {
-        this.orders = res.value;
+        this.orders = this.deduplicate(res.value);
+        this.filteredOrders = [...this.orders];
         this.totalCount = res['@odata.count'] ?? res.value.length;
-        this.filterOrders();
         event.target.complete();
         if (this.infiniteScroll) {
           this.infiniteScroll.disabled = !this.hasMore;
@@ -162,6 +187,15 @@ export class SalesOrderListPage {
         });
         await toast.present();
       }
+    });
+  }
+
+  private deduplicate(list: SalesOrderHeaderResponse[]): SalesOrderHeaderResponse[] {
+    const seen = new Set<string>();
+    return list.filter((o) => {
+      if (seen.has(o.SalesId)) return false;
+      seen.add(o.SalesId);
+      return true;
     });
   }
 

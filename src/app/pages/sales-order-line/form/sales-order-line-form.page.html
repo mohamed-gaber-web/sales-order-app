@@ -55,6 +55,34 @@
                 [readonly]="true">
               </ion-input>
             </ion-item>
+
+            <div class="field-row">
+              <!-- Quantity -->
+              <ion-item class="form-item">
+                <ion-input
+                  formControlName="OrderedSalesQuantity"
+                  label="Quantity *"
+                  labelPlacement="stacked"
+                  type="number"
+                  placeholder="Enter quantity"
+                  min="0.01"
+                  step="1">
+                </ion-input>
+              </ion-item>
+
+              <!-- Sales Price -->
+              <ion-item class="form-item">
+                <ion-input
+                  formControlName="SalesPrice"
+                  label="Sales Price *"
+                  labelPlacement="stacked"
+                  type="number"
+                  placeholder="Enter price"
+                  min="0"
+                  step="0.01">
+                </ion-input>
+              </ion-item>
+            </div>
           </ion-list>
         </div>
 
@@ -142,12 +170,18 @@
 
             <!-- Configuration -->
             <ion-item class="form-item">
-              <ion-input
+              <ion-select
                 formControlName="ProductConfigurationId"
                 label="Configuration"
                 labelPlacement="stacked"
-                placeholder="Leave empty if not applicable">
-              </ion-input>
+                interface="popover"
+                [placeholder]="availableConfigurations.length > 0 ? 'Select configuration' : 'No configurations available'">
+                @for (config of availableConfigurations; track config) {
+                  <ion-select-option [value]="config">
+                    {{ config }}
+                  </ion-select-option>
+                }
+              </ion-select>
             </ion-item>
 
             <div class="field-row">
@@ -158,7 +192,7 @@
                   label="Size"
                   labelPlacement="stacked"
                   interface="popover"
-                  [placeholder]="availableSizes.length > 0 ? 'Select size' : 'Search item first'">
+                  [placeholder]="availableSizes.length > 0 ? 'Select size' : 'No sizes available'">
                   @for (size of availableSizes; track size) {
                     <ion-select-option [value]="size">
                       {{ size }}
@@ -174,7 +208,7 @@
                   label="Color"
                   labelPlacement="stacked"
                   interface="popover"
-                  [placeholder]="availableColors.length > 0 ? 'Select color' : 'Search item first'">
+                  [placeholder]="availableColors.length > 0 ? 'Select color' : 'No colors available'">
                   @for (color of availableColors; track color) {
                     <ion-select-option [value]="color">
                       {{ color }}
@@ -183,6 +217,22 @@
                 </ion-select>
               </ion-item>
             </div>
+
+            <!-- Style -->
+            <ion-item class="form-item">
+              <ion-select
+                formControlName="ProductStyleId"
+                label="Style"
+                labelPlacement="stacked"
+                interface="popover"
+                [placeholder]="availableStyles.length > 0 ? 'Select style' : 'No styles available'">
+                @for (style of availableStyles; track style) {
+                  <ion-select-option [value]="style">
+                    {{ style }}
+                  </ion-select-option>
+                }
+              </ion-select>
+            </ion-item>
           </ion-list>
         </div>
 

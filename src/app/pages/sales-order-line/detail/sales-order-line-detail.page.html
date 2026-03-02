@@ -11,6 +11,18 @@
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
+
+  <!-- Mobile Search Bar -->
+  <ion-toolbar>
+    <ion-searchbar
+      [(ngModel)]="searchTerm"
+      (ionInput)="onSearchChange()"
+      placeholder="Search by item, site, color..."
+      debounce="300"
+      animated="true"
+      class="custom-searchbar">
+    </ion-searchbar>
+  </ion-toolbar>
 </ion-header>
 
 <ion-content class="detail-content">
@@ -28,10 +40,20 @@
           <span class="web-count-chip">{{ lines.length }}</span>
         }
       </div>
-      <ion-button (click)="addLine()" class="web-add-btn">
-        <ion-icon slot="start" name="add-outline"></ion-icon>
-        Add Line
-      </ion-button>
+      <div class="web-actions">
+        <ion-searchbar
+          [(ngModel)]="searchTerm"
+          (ionInput)="onSearchChange()"
+          placeholder="Search lines..."
+          debounce="300"
+          animated="false"
+          class="web-searchbar">
+        </ion-searchbar>
+        <ion-button (click)="addLine()" class="web-add-btn">
+          <ion-icon slot="start" name="add-outline"></ion-icon>
+          Add Line
+        </ion-button>
+      </div>
     </div>
   </div>
 
@@ -87,6 +109,10 @@
                 <span class="field-value">{{ line.ProductColorId || '—' }}</span>
               </div>
               <div class="field-item">
+                <span class="field-label">Style</span>
+                <span class="field-value">{{ line.ProductStyleId || '—' }}</span>
+              </div>
+              <div class="field-item">
                 <span class="field-label">Quantity</span>
                 <span class="field-value">{{ line.OrderedSalesQuantity ?? '—' }}</span>
               </div>
@@ -121,12 +147,17 @@
   @if (!isLoading && lines.length === 0) {
     <div class="empty-state">
       <ion-icon name="list-outline"></ion-icon>
-      <h3>No Order Lines</h3>
-      <p>This sales order has no lines yet. Add a line to get started.</p>
-      <ion-button (click)="addLine()" class="add-btn">
-        <ion-icon slot="start" name="add-outline"></ion-icon>
-        Add Line
-      </ion-button>
+      @if (searchTerm) {
+        <h3>No Results</h3>
+        <p>No lines match your search. Try adjusting your criteria.</p>
+      } @else {
+        <h3>No Order Lines</h3>
+        <p>This sales order has no lines yet. Add a line to get started.</p>
+        <ion-button (click)="addLine()" class="add-btn">
+          <ion-icon slot="start" name="add-outline"></ion-icon>
+          Add Line
+        </ion-button>
+      }
     </div>
   }
 
