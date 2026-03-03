@@ -96,14 +96,14 @@
           <ion-list lines="none">
             <div class="field-row">
               <!-- Shipping Site -->
-              <ion-item class="form-item">
+              <ion-item class="form-item" id="site-trigger" button (click)="showSitePopover = !showSitePopover; showWarehousePopover = false; filteredSites = sites">
                 <ion-select
                   formControlName="ShippingSiteId"
                   label="Shipping Site *"
                   labelPlacement="stacked"
                   interface="popover"
                   placeholder="Select site"
-                  (ionChange)="onSiteChange()">
+                  style="pointer-events: none;">
                   @for (site of sites; track site.SiteId) {
                     <ion-select-option [value]="site.SiteId">
                       {{ site.SiteName || site.SiteId }}
@@ -112,15 +112,16 @@
                 </ion-select>
               </ion-item>
 
-              <!-- Shipping Warehouse -->
-              <ion-item class="form-item">
+              <!-- Warehouse -->
+              <ion-item class="form-item" id="wh-trigger" button (click)="showWarehousePopover = !showWarehousePopover; showSitePopover = false; filteredWarehouses = allWarehouses">
                 <ion-select
                   formControlName="ShippingWarehouseId"
                   label="Warehouse *"
                   labelPlacement="stacked"
                   interface="popover"
-                  placeholder="Select warehouse">
-                  @for (wh of warehouses; track wh.WarehouseId) {
+                  placeholder="Select warehouse"
+                  style="pointer-events: none;">
+                  @for (wh of allWarehouses; track wh.WarehouseId) {
                     <ion-select-option [value]="wh.WarehouseId">
                       {{ wh.WarehouseName || wh.WarehouseId }}
                     </ion-select-option>
@@ -128,6 +129,56 @@
                 </ion-select>
               </ion-item>
             </div>
+
+            <!-- Site dropdown with search -->
+            @if (showSitePopover) {
+              <div class="select-dropdown">
+                <ion-searchbar
+                  placeholder="Search sites..."
+                  [debounce]="100"
+                  (ionInput)="onSiteSearch($any($event).detail.value || '')">
+                </ion-searchbar>
+                <div class="select-dropdown-list">
+                  @for (site of filteredSites; track site.SiteId) {
+                    <div
+                      class="select-dropdown-item"
+                      [class.active]="lineForm.get('ShippingSiteId')?.value === site.SiteId"
+                      (click)="selectSite(site)">
+                      <ion-icon name="checkmark-outline" class="check-icon"></ion-icon>
+                      <span>{{ site.SiteName || site.SiteId }}</span>
+                    </div>
+                  }
+                  @if (filteredSites.length === 0) {
+                    <div class="select-dropdown-empty">No sites found</div>
+                  }
+                </div>
+              </div>
+            }
+
+            <!-- Warehouse dropdown with search -->
+            @if (showWarehousePopover) {
+              <div class="select-dropdown">
+                <ion-searchbar
+                  placeholder="Search warehouses..."
+                  [debounce]="100"
+                  (ionInput)="onWarehouseSearch($any($event).detail.value || '')">
+                </ion-searchbar>
+                <div class="select-dropdown-list">
+                  @for (wh of filteredWarehouses; track wh.WarehouseId) {
+                    <div
+                      class="select-dropdown-item"
+                      [class.active]="lineForm.get('ShippingWarehouseId')?.value === wh.WarehouseId"
+                      (click)="selectWarehouse(wh)">
+                      <ion-icon name="checkmark-outline" class="check-icon"></ion-icon>
+                      <span>{{ wh.WarehouseName || wh.WarehouseId }}</span>
+                    </div>
+                  }
+                  @if (filteredWarehouses.length === 0) {
+                    <div class="select-dropdown-empty">No warehouses found</div>
+                  }
+                </div>
+              </div>
+            }
           </ion-list>
         </div>
 

@@ -32,6 +32,11 @@ export class SalesOrderLineFormPage implements OnInit {
   availableConfigurations: string[] = [];
   variantMessage = '';
 
+  filteredSites: Site[] = [];
+  filteredWarehouses: Warehouse[] = [];
+  showSitePopover = false;
+  showWarehousePopover = false;
+
   salesOrderNumber = '';
 
   constructor(
@@ -73,8 +78,9 @@ export class SalesOrderLineFormPage implements OnInit {
     ]).subscribe({
       next: ([sitesRes, warehousesRes]) => {
         this.sites = sitesRes.value;
+        this.filteredSites = this.sites;
         this.allWarehouses = warehousesRes.value;
-        this.warehouses = this.allWarehouses;
+        this.filteredWarehouses = this.allWarehouses;
         this.isLoading = false;
       },
       error: async () => {
@@ -90,17 +96,34 @@ export class SalesOrderLineFormPage implements OnInit {
     });
   }
 
-  onSiteChange() {
-    const siteId = this.lineForm.get('ShippingSiteId')?.value;
-    this.lineForm.patchValue({ ShippingWarehouseId: '' });
+  // ── Site search & select ──────────────────────────────────
+  onSiteSearch(term: string) {
+    const lower = term.toLowerCase();
+    this.filteredSites = this.sites.filter(
+      (s) =>
+        s.SiteId.toLowerCase().includes(lower) ||
+        (s.SiteName && s.SiteName.toLowerCase().includes(lower))
+    );
+  }
 
-    if (siteId) {
-      this.warehouses = this.allWarehouses.filter(
-        (w) => !w.OperationalSiteId || w.OperationalSiteId === siteId
-      );
-    } else {
-      this.warehouses = this.allWarehouses;
-    }
+  selectSite(site: Site) {
+    this.lineForm.patchValue({ ShippingSiteId: site.SiteId });
+    this.showSitePopover = false;
+  }
+
+  // ── Warehouse search & select ─────────────────────────────
+  onWarehouseSearch(term: string) {
+    const lower = term.toLowerCase();
+    this.filteredWarehouses = this.allWarehouses.filter(
+      (w) =>
+        w.WarehouseId.toLowerCase().includes(lower) ||
+        (w.WarehouseName && w.WarehouseName.toLowerCase().includes(lower))
+    );
+  }
+
+  selectWarehouse(wh: Warehouse) {
+    this.lineForm.patchValue({ ShippingWarehouseId: wh.WarehouseId });
+    this.showWarehousePopover = false;
   }
 
   searchProductVariants() {
