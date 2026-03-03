@@ -21,20 +21,26 @@ const SALES_SELECT =
 export class SalesOrderService {
   constructor(private api: ApiService) {}
 
-  getOrderHeaders(skip = 0, search = ''): Observable<ODataResponse<SalesOrderHeaderResponse>> {
-    let filter = SALES_FILTER;
-    if (search) {
-      const s = search.replace(/'/g, "''");
-      filter += ` and (contains(SalesId,'${s}') or contains(CustAccount,'${s}') or contains(SalesTable_SalesName,'${s}') or contains(SalesTable_InvoiceAccount,'${s}'))`;
-    }
-
+  getOrderHeaders(skip = 0): Observable<ODataResponse<SalesOrderHeaderResponse>> {
     return this.api.get<ODataResponse<SalesOrderHeaderResponse>>(
       '/data/GP_SalesHeaderAndLineData',
       {
         '$top': String(SALES_PAGE_SIZE),
         '$skip': String(skip),
         '$count': 'true',
-        '$filter': filter,
+        '$filter': SALES_FILTER,
+        '$select': SALES_SELECT,
+        '$orderby': 'SalesId desc',
+      }
+    );
+  }
+
+  getAllOrderHeaders(): Observable<ODataResponse<SalesOrderHeaderResponse>> {
+    return this.api.get<ODataResponse<SalesOrderHeaderResponse>>(
+      '/data/GP_SalesHeaderAndLineData',
+      {
+        '$count': 'true',
+        '$filter': SALES_FILTER,
         '$select': SALES_SELECT,
         '$orderby': 'SalesId desc',
       }

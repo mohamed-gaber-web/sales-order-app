@@ -2,7 +2,7 @@ import { Component, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { IonInfiniteScroll, ToastController } from '@ionic/angular';
 import { Subject } from 'rxjs';
-import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { SalesOrderService } from '../../../core/services/sales-order.service';
 import { SalesOrderHeaderResponse } from '../../../models/sales-order.model';
 
@@ -16,17 +16,19 @@ export class SalesOrderListPage {
   @ViewChild(IonInfiniteScroll) infiniteScroll!: IonInfiniteScroll;
 
   orders: SalesOrderHeaderResponse[] = [];
+  allOrders: SalesOrderHeaderResponse[] = [];
   filteredOrders: SalesOrderHeaderResponse[] = [];
   searchTerm = '';
   isLoading = false;
   isLoadingMore = false;
   isSearching = false;
   totalCount = 0;
+  private allDataLoaded = false;
 
   private searchSubject = new Subject<string>();
 
   get hasMore(): boolean {
-    return this.orders.length < this.totalCount;
+    return !this.searchTerm.trim() && this.orders.length < this.totalCount;
   }
 
   constructor(
@@ -38,11 +40,13 @@ export class SalesOrderListPage {
       debounceTime(400),
       distinctUntilChanged(),
     ).subscribe((term) => {
-      this.searchFromApi(term);
+      this.handleSearch(term);
     });
   }
 
   ionViewWillEnter() {
+    this.allDataLoaded = false;
+    this.allOrders = [];
     this.loadOrders();
   }
 
@@ -50,7 +54,7 @@ export class SalesOrderListPage {
     this.isLoading = true;
     this.orders = [];
     this.totalCount = 0;
-    this.salesOrderService.getOrderHeaders(0, this.searchTerm.trim()).subscribe({
+    this.salesOrderService.getOrderHeaders(0).subscribe({
       next: (res) => {
         this.orders = this.deduplicate(res.value);
         this.filteredOrders = [...this.orders];
@@ -79,7 +83,7 @@ export class SalesOrderListPage {
       return;
     }
     this.isLoadingMore = true;
-    this.salesOrderService.getOrderHeaders(this.orders.length, this.searchTerm.trim()).subscribe({
+    this.salesOrderService.getOrderHeaders(this.orders.length).subscribe({
       next: (res) => {
         this.orders = this.deduplicate([...this.orders, ...res.value]);
         this.filteredOrders = [...this.orders];
@@ -106,7 +110,7 @@ export class SalesOrderListPage {
   loadMoreWeb() {
     if (!this.hasMore || this.isLoadingMore) return;
     this.isLoadingMore = true;
-    this.salesOrderService.getOrderHeaders(this.orders.length, this.searchTerm.trim()).subscribe({
+    this.salesOrderService.getOrderHeaders(this.orders.length).subscribe({
       next: (res) => {
         this.orders = this.deduplicate([...this.orders, ...res.value]);
         this.filteredOrders = [...this.orders];
@@ -129,18 +133,32 @@ export class SalesOrderListPage {
     this.searchSubject.next(this.searchTerm.trim());
   }
 
-  private searchFromApi(term: string) {
+  private handleSearch(term: string) {
+    if (!term) {
+      // Search cleared — show paginated data
+      this.filteredOrders = [...this.orders];
+      if (this.infiniteScroll) {
+        this.infiniteScroll.disabled = !this.hasMore;
+      }
+      return;
+    }
+
+    // If all data already loaded, filter locally
+    if (this.allDataLoaded) {
+      this.filterLocally(term);
+      return;
+    }
+
+    // Load all data from API then filter
     this.isSearching = true;
-    this.orders = [];
-    this.totalCount = 0;
-    this.salesOrderService.getOrderHeaders(0, term).subscribe({
+    this.salesOrderService.getAllOrderHeaders().subscribe({
       next: (res) => {
-        this.orders = this.deduplicate(res.value);
-        this.filteredOrders = [...this.orders];
-        this.totalCount = res['@odata.count'] ?? res.value.length;
+        this.allOrders = this.deduplicate(res.value);
+        this.allDataLoaded = true;
         this.isSearching = false;
+        this.filterLocally(term);
         if (this.infiniteScroll) {
-          this.infiniteScroll.disabled = !this.hasMore;
+          this.infiniteScroll.disabled = true;
         }
       },
       error: async () => {
@@ -156,6 +174,16 @@ export class SalesOrderListPage {
     });
   }
 
+  private filterLocally(term: string) {
+    const t = term.toLowerCase();
+    this.filteredOrders = this.allOrders.filter((order) =>
+      order.SalesId.toLowerCase().includes(t) ||
+      order.CustAccount.toLowerCase().includes(t) ||
+      (order.SalesTable_SalesName ?? '').toLowerCase().includes(t) ||
+      (order.SalesTable_InvoiceAccount ?? '').toLowerCase().includes(t)
+    );
+  }
+
   createOrder() {
     this.router.navigate(['/sales-order/create']);
   }
@@ -165,9 +193,11 @@ export class SalesOrderListPage {
   }
 
   doRefresh(event: any) {
+    this.allDataLoaded = false;
+    this.allOrders = [];
     this.orders = [];
     this.totalCount = 0;
-    this.salesOrderService.getOrderHeaders(0, this.searchTerm.trim()).subscribe({
+    this.salesOrderService.getOrderHeaders(0).subscribe({
       next: (res) => {
         this.orders = this.deduplicate(res.value);
         this.filteredOrders = [...this.orders];
