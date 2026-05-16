@@ -1,8 +1,8 @@
 // ── Header ─────────────────────────────────────────────────
 ion-header {
   ion-toolbar {
-    --background: #002559;
-    --color: #fff;
+    --background: var(--gp-toolbar-bg);
+    --color: var(--gp-toolbar-color);
 
     ion-title {
       font-weight: 700;
@@ -11,7 +11,7 @@ ion-header {
     }
 
     ion-button {
-      --color: #fff;
+      --color: var(--gp-toolbar-color);
     }
   }
 
@@ -94,7 +94,7 @@ ion-header {
   .order-number {
     font-size: 15px;
     font-weight: 700;
-    color: #002559;
+    color: var(--gp-navy);
     letter-spacing: -0.01em;
     flex: 1;
   }
@@ -140,7 +140,7 @@ ion-header {
       display: block;
       font-size: 13px;
       font-weight: 500;
-      color: var(--ion-color-dark);
+      color: var(--ion-text-color, var(--ion-color-dark));
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -165,7 +165,7 @@ ion-header {
   }
 
   h3 {
-    color: var(--ion-color-dark);
+    color: var(--ion-text-color, var(--ion-color-dark));
     font-size: 18px;
     font-weight: 700;
     margin: 0 0 8px;
@@ -182,7 +182,7 @@ ion-header {
 
   .create-btn {
     --border-radius: var(--gp-radius-md);
-    --background: linear-gradient(90deg, #F24C1A 0%, #F28E26 100%);
+    --background: linear-gradient(90deg, var(--gp-accent) 0%, var(--gp-accent-end) 100%);
     font-weight: 600;
     text-transform: none;
     height: 48px;
@@ -197,8 +197,8 @@ ion-header {
 
 // ── FAB ────────────────────────────────────────────────────
 ion-fab-button {
-  --background: linear-gradient(135deg, #F24C1A 0%, #F28E26 100%);
-  --box-shadow: 0 6px 20px rgba(242, 76, 26, 0.4);
+  --background: linear-gradient(135deg, var(--gp-accent) 0%, var(--gp-accent-end) 100%);
+  --box-shadow: 0 6px 20px rgba(var(--ion-color-secondary-rgb), 0.4);
   --color: #fff;
   transition: transform var(--gp-transition);
 
@@ -256,7 +256,7 @@ ion-fab-button {
     .web-page-title {
       font-size: 22px;
       font-weight: 800;
-      color: #002559;
+      color: var(--gp-navy);
       margin: 0;
       letter-spacing: -0.03em;
     }
@@ -289,9 +289,9 @@ ion-fab-button {
     }
 
     .web-create-btn {
-      --background: linear-gradient(90deg, #F24C1A 0%, #F28E26 100%);
+      --background: linear-gradient(90deg, var(--gp-accent) 0%, var(--gp-accent-end) 100%);
       --border-radius: var(--gp-radius-md);
-      --box-shadow: 0 4px 14px rgba(242, 76, 26, 0.3);
+      --box-shadow: 0 4px 14px rgba(var(--ion-color-secondary-rgb), 0.3);
       font-weight: 700;
       font-size: 14px;
       text-transform: none;
@@ -349,8 +349,8 @@ ion-fab-button {
 
     .web-load-more-btn {
       --border-radius: var(--gp-radius-md);
-      --border-color: #002559;
-      --color: #002559;
+      --border-color: var(--gp-navy);
+      --color: var(--gp-navy);
       font-weight: 600;
       font-size: 14px;
       text-transform: none;

@@ -1,13 +1,20 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
+import { Platform } from '@ionic/angular';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
-  private baseUrl = environment.apiBaseUrl;
+  private baseUrl: string;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private platform: Platform) {
+    // On native (Capacitor): use the full D365 URL (no proxy available)
+    // On web: use empty baseUrl so the dev proxy / Vercel handles routing
+    this.baseUrl = this.platform.is('capacitor') || this.platform.is('cordova')
+      ? environment.d365BaseUrl
+      : environment.apiBaseUrl;
+  }
 
   get<T>(path: string, params?: Record<string, string>): Observable<T> {
     const httpParams = params

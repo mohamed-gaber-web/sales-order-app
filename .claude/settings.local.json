@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__postman__getWorkspaces",
+      "mcp__postman__getCollections",
+      "mcp__postman__getCollection",
+      "Bash(npm run *)",
+      "Bash(curl *)",
+      "mcp__postman__getCollectionContext",
+      "mcp__postman__getCollectionRequest",
+      "Bash(npx ng *)"
+    ]
+  }
+}

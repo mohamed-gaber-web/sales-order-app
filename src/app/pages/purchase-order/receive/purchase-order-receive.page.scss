@@ -1,0 +1,245 @@
+// ── Header ─────────────────────────────────────────────────
+ion-header ion-toolbar {
+  --background: var(--gp-toolbar-bg);
+  --color: var(--gp-toolbar-color);
+
+  ion-title {
+    font-weight: 700;
+    font-size: 17px;
+    letter-spacing: -0.02em;
+  }
+}
+
+// ── Content ────────────────────────────────────────────────
+.receive-content {
+  --background: var(--gp-bg, #f0f2f5);
+}
+
+// ── Context Card ────────────────────────────────────────────
+.context-card {
+  margin: 16px 16px 0;
+  border-radius: var(--gp-radius-lg) !important;
+  box-shadow: var(--gp-shadow-sm) !important;
+
+  ion-card-content {
+    padding: 20px;
+  }
+}
+
+.context-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--gp-border, #e5e7eb);
+
+  .context-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ion-color-medium);
+    margin: 0 0 3px;
+  }
+
+  .context-value {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ion-text-color, var(--ion-color-dark));
+    margin: 0;
+
+    &.bold {
+      font-weight: 800;
+      font-size: 18px;
+      color: var(--gp-navy);
+      letter-spacing: -0.02em;
+    }
+  }
+
+  .line-badge {
+    background: var(--gp-bg, #f0f2f5);
+    color: var(--gp-navy);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 6px 14px;
+    border-radius: 999px;
+    white-space: nowrap;
+    letter-spacing: -0.01em;
+  }
+}
+
+.context-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 16px;
+
+  .field-item {
+    min-width: 0;
+
+    &.full {
+      grid-column: 1 / -1;
+    }
+
+    .field-label {
+      display: block;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--ion-color-medium);
+      margin-bottom: 2px;
+    }
+
+    .field-value {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--ion-text-color, var(--ion-color-dark));
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+
+      &.remaining {
+        font-weight: 700;
+        color: var(--ion-color-warning);
+      }
+    }
+  }
+}
+
+// ── Form Card ───────────────────────────────────────────────
+.form-card {
+  margin: 12px 16px 0;
+  border-radius: var(--gp-radius-lg) !important;
+  box-shadow: var(--gp-shadow-sm) !important;
+
+  ion-card-content {
+    padding: 20px;
+  }
+}
+
+.section-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--gp-navy);
+  margin: 0 0 16px;
+  letter-spacing: -0.02em;
+}
+
+// ── Form Fields ─────────────────────────────────────────────
+.form-field {
+  margin-bottom: 20px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.field-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ion-text-color, var(--ion-color-dark));
+  margin-bottom: 6px;
+  letter-spacing: -0.01em;
+
+  .required {
+    color: var(--ion-color-danger);
+    margin-left: 2px;
+  }
+}
+
+.qty-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+
+  .field-label {
+    margin-bottom: 0;
+  }
+
+  .max-btn {
+    --color: var(--gp-accent);
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: none;
+    height: 28px;
+    --padding-start: 8px;
+    --padding-end: 8px;
+  }
+}
+
+.custom-input {
+  --background: var(--gp-bg, #f0f2f5);
+  --border-radius: var(--gp-radius-md);
+  --padding-start: 14px;
+  --padding-end: 14px;
+  --padding-top: 12px;
+  --padding-bottom: 12px;
+  font-size: 15px;
+  font-weight: 500;
+  border-radius: var(--gp-radius-md);
+  border: 1.5px solid transparent;
+  transition: border-color 0.15s ease;
+
+  &.invalid {
+    border-color: var(--ion-color-danger);
+  }
+}
+
+.custom-input.ion-focused {
+  border-color: var(--gp-accent);
+}
+
+.field-error {
+  font-size: 12px;
+  color: var(--ion-color-danger);
+  margin: 4px 0 0;
+}
+
+// ── Submit Button ───────────────────────────────────────────
+.submit-wrap {
+  padding: 16px 16px 32px;
+
+  .submit-btn {
+    --background: linear-gradient(90deg, var(--gp-accent) 0%, var(--gp-accent-end) 100%);
+    --border-radius: var(--gp-radius-md);
+    --box-shadow: 0 4px 14px rgba(var(--ion-color-secondary-rgb), 0.3);
+    font-weight: 700;
+    font-size: 15px;
+    text-transform: none;
+    height: 52px;
+    letter-spacing: -0.01em;
+
+    &[disabled] {
+      opacity: 0.55;
+    }
+
+    ion-spinner {
+      width: 18px;
+      height: 18px;
+    }
+  }
+}
+
+// ── Desktop ─────────────────────────────────────────────────
+@media (min-width: 992px) {
+  .context-card,
+  .form-card {
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 600px;
+  }
+
+  .context-card {
+    margin-top: 28px;
+  }
+
+  .submit-wrap {
+    max-width: 600px;
+    margin: 0 auto;
+    padding-bottom: 48px;
+  }
+}

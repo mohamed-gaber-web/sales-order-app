@@ -38,6 +38,11 @@
 
         <!-- Bottom Actions -->
         <div class="menu-footer">
+          <ion-item button lines="none" class="menu-item theme-toggle" detail="false" (click)="toggleTheme()">
+            <ion-icon [name]="themeIcon + '-outline'" slot="start"></ion-icon>
+            <ion-label>{{ themeLabel }} Mode</ion-label>
+            <ion-note slot="end" class="theme-badge">{{ themeLabel }}</ion-note>
+          </ion-item>
           <ion-item button lines="none" class="menu-item" detail="false">
             <ion-icon name="settings-outline" slot="start"></ion-icon>
             <ion-label>Settings</ion-label>

@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { LoadingController, ToastController } from '@ionic/angular';
 import { forkJoin } from 'rxjs';
+import { Company, Currency, Customer } from '../../../core/models/lookup.models';
 import { LookupService } from '../../../core/services/lookup.service';
 import { SalesOrderService } from '../../../core/services/sales-order.service';
 
@@ -21,6 +22,14 @@ export class SalesOrderFormPage implements OnInit {
   readonly companies = this.lookupService.companies;
   readonly currencies = this.lookupService.currencies;
   readonly customers = this.lookupService.customers;
+
+  // Searchable select state
+  filteredCompanies: Company[] = [];
+  filteredCurrencies: Currency[] = [];
+  filteredCustomers: Customer[] = [];
+  showCompanyPopover = false;
+  showCurrencyPopover = false;
+  showCustomerPopover = false;
 
   constructor(
     private fb: FormBuilder,
@@ -113,6 +122,51 @@ export class SalesOrderFormPage implements OnInit {
         await toast.present();
       }
     });
+  }
+
+  // ── Company search & select ──────────────────────────────
+  onCompanySearch(term: string) {
+    const lower = term.toLowerCase();
+    this.filteredCompanies = this.companies().filter(
+      (c) =>
+        c.DataArea.toLowerCase().includes(lower) ||
+        (c.Name && c.Name.toLowerCase().includes(lower))
+    );
+  }
+
+  selectCompany(company: Company) {
+    this.orderForm.patchValue({ dataAreaId: company.DataArea });
+    this.showCompanyPopover = false;
+  }
+
+  // ── Currency search & select ────────────────────────────
+  onCurrencySearch(term: string) {
+    const lower = term.toLowerCase();
+    this.filteredCurrencies = this.currencies().filter(
+      (c) =>
+        c.CurrencyCode.toLowerCase().includes(lower) ||
+        (c.Name && c.Name.toLowerCase().includes(lower))
+    );
+  }
+
+  selectCurrency(currency: Currency) {
+    this.orderForm.patchValue({ CurrencyCode: currency.CurrencyCode });
+    this.showCurrencyPopover = false;
+  }
+
+  // ── Customer search & select ────────────────────────────
+  onCustomerSearch(term: string) {
+    const lower = term.toLowerCase();
+    this.filteredCustomers = this.customers().filter(
+      (c) =>
+        c.CustomerAccount.toLowerCase().includes(lower) ||
+        (c.CustomerName && c.CustomerName.toLowerCase().includes(lower))
+    );
+  }
+
+  selectCustomer(customer: Customer) {
+    this.orderForm.patchValue({ OrderingCustomerAccountNumber: customer.CustomerAccount });
+    this.showCustomerPopover = false;
   }
 
   goBack() {

@@ -5,3 +5,5 @@ export type { Company, Currency, Customer, ODataResponse } from './models/lookup
 export { SalesOrderLineService } from './services/sales-order-line.service';
 export type { Site, Warehouse, ProductVariant, CreateSalesOrderLineDto } from './services/sales-order-line.service';
 export { AuthInterceptor } from './interceptors/auth.interceptor';
+export { ThemeService } from './services/theme.service';
+export type { ThemeMode } from './services/theme.service';

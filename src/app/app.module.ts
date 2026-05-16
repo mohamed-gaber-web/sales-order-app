@@ -7,7 +7,7 @@ import {
   HTTP_INTERCEPTORS,
 } from '@angular/common/http';
 import { provideAppInitializer } from '@angular/core';
-import { from, forkJoin, switchMap, map, Observable } from 'rxjs';
+import { from, forkJoin, switchMap, map, catchError, of, Observable } from 'rxjs';
 
 import { IonicModule, IonicRouteStrategy } from '@ionic/angular';
 
@@ -26,7 +26,12 @@ function initializeApp(): Observable<void> {
         lookup.loadCustomers(),
       ])
     ),
-    map(() => void 0)
+    map(() => void 0),
+    catchError((err) => {
+      console.error('App initialization error:', err);
+      // Allow the app to boot even if lookups fail
+      return of(void 0);
+    })
   );
 }
 

@@ -60,13 +60,14 @@
             <!-- Company + Currency side by side on desktop -->
             <div class="field-row">
               <!-- Company (dataAreaId) -->
-              <ion-item class="form-item">
+              <ion-item class="form-item" button (click)="showCompanyPopover = !showCompanyPopover; showCurrencyPopover = false; showCustomerPopover = false; filteredCompanies = companies()">
                 <ion-select
                   formControlName="dataAreaId"
                   label="Company *"
                   labelPlacement="stacked"
                   interface="popover"
-                  placeholder="Select company">
+                  placeholder="Select company"
+                  style="pointer-events: none;">
                   @for (company of companies(); track company.DataArea) {
                     <ion-select-option [value]="company.DataArea">
                       {{ company.Name || company.DataArea }}
@@ -76,13 +77,14 @@
               </ion-item>
 
               <!-- Currency -->
-              <ion-item class="form-item">
+              <ion-item class="form-item" button (click)="showCurrencyPopover = !showCurrencyPopover; showCompanyPopover = false; showCustomerPopover = false; filteredCurrencies = currencies()">
                 <ion-select
                   formControlName="CurrencyCode"
                   label="Currency *"
                   labelPlacement="stacked"
                   interface="popover"
-                  placeholder="Select currency">
+                  placeholder="Select currency"
+                  style="pointer-events: none;">
                   @for (currency of currencies(); track currency.CurrencyCode) {
                     <ion-select-option [value]="currency.CurrencyCode">
                       {{ currency.CurrencyCode }} – {{ currency.Name }}
@@ -92,14 +94,65 @@
               </ion-item>
             </div>
 
+            <!-- Company dropdown with search -->
+            @if (showCompanyPopover) {
+              <div class="select-dropdown">
+                <ion-searchbar
+                  placeholder="Search companies..."
+                  [debounce]="100"
+                  (ionInput)="onCompanySearch($any($event).detail.value || '')">
+                </ion-searchbar>
+                <div class="select-dropdown-list">
+                  @for (company of filteredCompanies; track company.DataArea) {
+                    <div
+                      class="select-dropdown-item"
+                      [class.active]="orderForm.get('dataAreaId')?.value === company.DataArea"
+                      (click)="selectCompany(company)">
+                      <ion-icon name="checkmark-outline" class="check-icon"></ion-icon>
+                      <span>{{ company.Name || company.DataArea }}</span>
+                    </div>
+                  }
+                  @if (filteredCompanies.length === 0) {
+                    <div class="select-dropdown-empty">No companies found</div>
+                  }
+                </div>
+              </div>
+            }
+
+            <!-- Currency dropdown with search -->
+            @if (showCurrencyPopover) {
+              <div class="select-dropdown">
+                <ion-searchbar
+                  placeholder="Search currencies..."
+                  [debounce]="100"
+                  (ionInput)="onCurrencySearch($any($event).detail.value || '')">
+                </ion-searchbar>
+                <div class="select-dropdown-list">
+                  @for (currency of filteredCurrencies; track currency.CurrencyCode) {
+                    <div
+                      class="select-dropdown-item"
+                      [class.active]="orderForm.get('CurrencyCode')?.value === currency.CurrencyCode"
+                      (click)="selectCurrency(currency)">
+                      <ion-icon name="checkmark-outline" class="check-icon"></ion-icon>
+                      <span>{{ currency.CurrencyCode }} – {{ currency.Name }}</span>
+                    </div>
+                  }
+                  @if (filteredCurrencies.length === 0) {
+                    <div class="select-dropdown-empty">No currencies found</div>
+                  }
+                </div>
+              </div>
+            }
+
             <!-- Customer -->
-            <ion-item class="form-item">
+            <ion-item class="form-item" button (click)="showCustomerPopover = !showCustomerPopover; showCompanyPopover = false; showCurrencyPopover = false; filteredCustomers = customers()">
               <ion-select
                 formControlName="OrderingCustomerAccountNumber"
                 label="Customer *"
                 labelPlacement="stacked"
                 interface="popover"
-                placeholder="Select customer">
+                placeholder="Select customer"
+                style="pointer-events: none;">
                 @for (customer of customers(); track customer.CustomerAccount) {
                   <ion-select-option [value]="customer.CustomerAccount">
                     {{ customer.CustomerName }} ({{ customer.CustomerAccount }})
@@ -107,6 +160,31 @@
                 }
               </ion-select>
             </ion-item>
+
+            <!-- Customer dropdown with search -->
+            @if (showCustomerPopover) {
+              <div class="select-dropdown">
+                <ion-searchbar
+                  placeholder="Search customers..."
+                  [debounce]="100"
+                  (ionInput)="onCustomerSearch($any($event).detail.value || '')">
+                </ion-searchbar>
+                <div class="select-dropdown-list">
+                  @for (customer of filteredCustomers; track customer.CustomerAccount) {
+                    <div
+                      class="select-dropdown-item"
+                      [class.active]="orderForm.get('OrderingCustomerAccountNumber')?.value === customer.CustomerAccount"
+                      (click)="selectCustomer(customer)">
+                      <ion-icon name="checkmark-outline" class="check-icon"></ion-icon>
+                      <span>{{ customer.CustomerName }} ({{ customer.CustomerAccount }})</span>
+                    </div>
+                  }
+                  @if (filteredCustomers.length === 0) {
+                    <div class="select-dropdown-empty">No customers found</div>
+                  }
+                </div>
+              </div>
+            }
 
           </ion-list>
         </div>

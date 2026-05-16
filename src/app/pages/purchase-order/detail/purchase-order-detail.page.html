@@ -1,0 +1,173 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/purchase-order/list"></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ poNumber }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="loadDetail()">
+        <ion-icon slot="icon-only" name="refresh-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="detail-content">
+
+  <!-- Loading Skeleton -->
+  @if (isLoading) {
+    <div class="skeleton-wrap">
+      <ion-card class="header-card">
+        <ion-card-content>
+          <ion-skeleton-text animated style="width: 50%; height: 22px; margin-bottom: 16px"></ion-skeleton-text>
+          <ion-skeleton-text animated style="width: 70%; height: 16px; margin-bottom: 8px"></ion-skeleton-text>
+          <ion-skeleton-text animated style="width: 40%; height: 16px"></ion-skeleton-text>
+        </ion-card-content>
+      </ion-card>
+      @for (i of [1, 2, 3]; track i) {
+        <ion-card class="line-card">
+          <ion-card-content>
+            <ion-skeleton-text animated style="width: 30%; height: 18px; margin-bottom: 10px"></ion-skeleton-text>
+            <ion-skeleton-text animated style="width: 60%; height: 14px; margin-bottom: 8px"></ion-skeleton-text>
+            <ion-skeleton-text animated style="width: 40%; height: 14px"></ion-skeleton-text>
+          </ion-card-content>
+        </ion-card>
+      }
+    </div>
+  }
+
+  <!-- PO Header Card -->
+  @if (!isLoading && po) {
+    <ion-card class="header-card">
+      <ion-card-content>
+        <div class="header-row">
+          <div>
+            <p class="po-label">Purchase Order</p>
+            <h2 class="po-number">{{ po.PurchaseOrderNumber }}</h2>
+          </div>
+          <div class="badge-group">
+            @if (po.PurchaseOrderStatus) {
+              <ion-badge color="warning" class="status-badge">{{ po.PurchaseOrderStatus }}</ion-badge>
+            }
+            @if (po.DocumentApprovalStatus) {
+              <ion-badge color="success" class="status-badge">{{ po.DocumentApprovalStatus }}</ion-badge>
+            }
+          </div>
+        </div>
+
+        <div class="header-fields">
+          <div class="field-item">
+            <span class="field-label">Vendor Account</span>
+            <span class="field-value">{{ po.OrderVendorAccountNumber || po.VendorAccountNumber || '—' }}</span>
+          </div>
+          <div class="field-item">
+            <span class="field-label">Currency</span>
+            <span class="field-value">{{ po.CurrencyCode || '—' }}</span>
+          </div>
+          <div class="field-item">
+            <span class="field-label">Requested Delivery</span>
+            <span class="field-value">
+              {{ po.RequestedDeliveryDate ? (po.RequestedDeliveryDate | date:'mediumDate') : '—' }}
+            </span>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Lines Section -->
+    <div class="lines-section">
+      <div class="lines-header">
+        <h3 class="lines-title">
+          Lines
+          <span class="lines-count">{{ po.PurchaseOrderLinesV2?.length ?? 0 }}</span>
+        </h3>
+        @if ((po.PurchaseOrderLinesV2?.length ?? 0) > 3) {
+          <ion-searchbar
+            [(ngModel)]="searchTerm"
+            placeholder="Filter lines..."
+            animated="true"
+            class="lines-searchbar">
+          </ion-searchbar>
+        }
+      </div>
+
+      @if (filteredLines.length === 0) {
+        <div class="lines-empty">
+          <ion-icon name="list-outline"></ion-icon>
+          <p>No lines found</p>
+        </div>
+      }
+
+      @for (line of filteredLines; track line.LineNumber) {
+        <ion-card class="line-card" [class.received]="isFullyReceived(line)">
+          <ion-card-content>
+
+            <div class="line-header">
+              <div class="line-meta">
+                <span class="line-num">Line {{ line.LineNumber }}</span>
+                <span class="item-number">{{ line.ItemNumber }}</span>
+              </div>
+              <ion-badge [color]="getLineStatusColor(line)" class="line-status">
+                {{ getLineStatusLabel(line) }}
+              </ion-badge>
+            </div>
+
+            @if (line.ProductName) {
+              <p class="product-name">{{ line.ProductName }}</p>
+            }
+
+            <div class="line-fields">
+              <div class="field-item">
+                <span class="field-label">Ordered Qty</span>
+                <span class="field-value">{{ line.PurchaseQuantity }} {{ line.PurchaseUnitSymbol || '' }}</span>
+              </div>
+              <div class="field-item">
+                <span class="field-label">Remaining Qty</span>
+                <span class="field-value qty-remaining" [class.zero]="isFullyReceived(line)">
+                  {{ getRemainingQty(line) }} {{ line.PurchaseUnitSymbol || '' }}
+                </span>
+              </div>
+              @if (line.ReceivingWarehouseId) {
+                <div class="field-item">
+                  <span class="field-label">Warehouse</span>
+                  <span class="field-value">{{ line.ReceivingWarehouseId }}</span>
+                </div>
+              }
+              @if (line.PurchasePrice !== null && line.PurchasePrice !== undefined) {
+                <div class="field-item">
+                  <span class="field-label">Unit Price</span>
+                  <span class="field-value">{{ line.PurchasePrice | number:'1.2-2' }}</span>
+                </div>
+              }
+            </div>
+
+            @if (!isFullyReceived(line)) {
+              <ion-button
+                expand="block"
+                class="receive-btn"
+                (click)="receiveLine(line)">
+                <ion-icon slot="start" name="download-outline"></ion-icon>
+                Receive
+              </ion-button>
+            }
+
+          </ion-card-content>
+        </ion-card>
+      }
+    </div>
+  }
+
+  <!-- Error / No Data State -->
+  @if (!isLoading && !po) {
+    <div class="empty-state">
+      <ion-icon name="alert-circle-outline"></ion-icon>
+      <h3>Order Not Found</h3>
+      <p>Could not load details for {{ poNumber }}</p>
+      <ion-button (click)="loadDetail()" fill="outline" class="retry-btn">
+        <ion-icon slot="start" name="refresh-outline"></ion-icon>
+        Retry
+      </ion-button>
+    </div>
+  }
+
+</ion-content>

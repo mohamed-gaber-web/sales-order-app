@@ -1,10 +1,10 @@
 ion-header {
   ion-toolbar {
-    --background: #002559;
-    --color: #fff;
+    --background: var(--gp-toolbar-bg);
+    --color: var(--gp-toolbar-color);
 
     ion-back-button {
-      --color: #fff;
+      --color: var(--gp-toolbar-color);
     }
 
     ion-title {
@@ -14,7 +14,7 @@ ion-header {
     }
 
     ion-button {
-      --color: #fff;
+      --color: var(--gp-toolbar-color);
     }
   }
 }
@@ -33,7 +33,7 @@ ion-header {
   ion-spinner {
     width: 44px;
     height: 44px;
-    color: #F24C1A;
+    color: var(--gp-accent);
   }
 
   p {
@@ -45,9 +45,9 @@ ion-header {
 
 // Order Header Card
 .order-header-card {
-  background: linear-gradient(135deg, #002559 0%, #001a3d 100%);
+  background: linear-gradient(135deg, var(--gp-navy-bg) 0%, var(--gp-navy-bg-end) 100%);
   padding: 24px;
-  color: #fff;
+  color: var(--gp-toolbar-color);
   position: relative;
   overflow: hidden;
 
@@ -59,7 +59,7 @@ ion-header {
     left: 0;
     right: 0;
     height: 3px;
-    background: linear-gradient(90deg, #F24C1A 0%, #F28E26 100%);
+    background: linear-gradient(90deg, var(--gp-accent) 0%, var(--gp-accent-end) 100%);
   }
 
   .order-number-row {
@@ -145,14 +145,14 @@ ion-header {
 
   ion-icon {
     font-size: 20px;
-    color: #F24C1A;
+    color: var(--gp-accent);
   }
 
   h3 {
     margin: 0;
     font-size: 15px;
     font-weight: 700;
-    color: var(--ion-color-dark);
+    color: var(--ion-text-color, var(--ion-color-dark));
     flex: 1;
     letter-spacing: -0.01em;
   }
@@ -176,12 +176,12 @@ ion-header {
   .customer-avatar {
     width: 52px;
     height: 52px;
-    background: linear-gradient(135deg, #F24C1A 0%, #F28E26 100%);
+    background: linear-gradient(135deg, var(--gp-accent) 0%, var(--gp-accent-end) 100%);
     border-radius: var(--gp-radius-md);
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 12px rgba(242, 76, 26, 0.25);
+    box-shadow: 0 4px 12px rgba(var(--ion-color-secondary-rgb), 0.25);
 
     span {
       font-size: 20px;
@@ -197,7 +197,7 @@ ion-header {
       margin: 0 0 3px;
       font-size: 15px;
       font-weight: 700;
-      color: var(--ion-color-dark);
+      color: var(--ion-text-color, var(--ion-color-dark));
       letter-spacing: -0.01em;
     }
 
@@ -220,7 +220,7 @@ ion-header {
 
       ion-icon {
         font-size: 20px;
-        color: #002559;
+        color: var(--gp-navy);
       }
     }
   }
@@ -250,7 +250,7 @@ ion-header {
       margin: 0 0 4px;
       font-size: 14px;
       font-weight: 700;
-      color: var(--ion-color-dark);
+      color: var(--ion-text-color, var(--ion-color-dark));
       letter-spacing: -0.01em;
     }
 
@@ -267,7 +267,7 @@ ion-header {
   .item-price {
     font-size: 15px;
     font-weight: 800;
-    color: #002559;
+    color: var(--gp-navy);
     letter-spacing: -0.02em;
   }
 
@@ -296,7 +296,7 @@ ion-header {
   justify-content: space-between;
   padding: 10px 0;
   font-size: 13px;
-  color: var(--ion-color-dark);
+  color: var(--ion-text-color, var(--ion-color-dark));
   border-bottom: 1px solid var(--gp-border, #e5e7eb);
 
   &:last-child {
@@ -311,18 +311,18 @@ ion-header {
   &.total {
     padding-top: 14px;
     margin-top: 6px;
-    border-top: 2px solid #002559;
+    border-top: 2px solid var(--gp-navy);
     border-bottom: none;
     font-size: 18px;
     font-weight: 800;
-    color: #002559;
+    color: var(--gp-navy);
     letter-spacing: -0.02em;
   }
 }
 
 // Notes Card
 .notes-card {
-  background: #fffbeb;
+  background: var(--gp-notes-bg);
   border-radius: var(--gp-radius-md);
   padding: 14px 16px;
   border-left: 3px solid var(--ion-color-warning);
@@ -330,7 +330,7 @@ ion-header {
   p {
     margin: 0;
     font-size: 13px;
-    color: var(--ion-color-dark);
+    color: var(--ion-text-color, var(--ion-color-dark));
     line-height: 1.6;
   }
 }
