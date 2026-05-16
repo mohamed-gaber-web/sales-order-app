@@ -188,7 +188,7 @@ ion-header ion-toolbar {
   border-radius: 16px !important;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07), 0 2px 8px rgba(0, 0, 0, 0.04) !important;
   overflow: hidden;
-  animation: fadeSlideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1) backwards;
+  animation: fadeSlideUp 0.38s cubic-bezier(0.16, 1, 0.3, 1) backwards;
 
   @for $i from 1 through 20 {
     &:nth-child(#{$i}) { animation-delay: #{($i - 1) * 0.04}s; }
@@ -282,8 +282,9 @@ ion-header ion-toolbar {
 .progress-fill {
   height: 100%;
   border-radius: 3px;
-  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
   background: linear-gradient(90deg, var(--gp-accent) 0%, var(--gp-accent-end) 100%);
+  animation: gp-progress-reveal 0.9s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  animation-delay: 0.2s;
 
   &.full {
     background: var(--ion-color-success);
@@ -368,6 +369,7 @@ ion-header ion-toolbar {
     align-items: center;
     justify-content: center;
     margin-bottom: 20px;
+    animation: gp-float 3.2s ease-in-out infinite;
 
     ion-icon {
       font-size: 36px;

@@ -91,7 +91,9 @@
   --gp-radius-md: 14px;
   --gp-radius-lg: 20px;
   --gp-radius-xl: 28px;
-  --gp-transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out-expo:  cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --gp-transition: 0.22s cubic-bezier(0.16, 1, 0.3, 1);
   --gp-bg: #f0f2f5;
   --gp-card-bg: #ffffff;
   --gp-border: #e5e7eb;

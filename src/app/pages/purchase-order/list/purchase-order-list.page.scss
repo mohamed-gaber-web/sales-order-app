@@ -62,7 +62,7 @@ ion-header {
   overflow: hidden;
   transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
               box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  animation: fadeSlideUp 0.35s cubic-bezier(0.4, 0, 0.2, 1) backwards;
+  animation: fadeSlideUp 0.38s cubic-bezier(0.16, 1, 0.3, 1) backwards;
 
   @for $i from 1 through 15 {
     &:nth-child(#{$i}) { animation-delay: #{($i - 1) * 0.045}s; }
@@ -221,6 +221,7 @@ ion-header {
     align-items: center;
     justify-content: center;
     margin-bottom: 20px;
+    animation: gp-float 3.2s ease-in-out infinite;
 
     ion-icon {
       font-size: 36px;

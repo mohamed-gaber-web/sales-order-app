@@ -194,6 +194,7 @@ ion-list {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
   margin-bottom: 10px;
   overflow: hidden;
+  animation: fadeSlideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1) backwards;
 
   ion-searchbar {
     --background: var(--gp-bg, #f0f2f5);

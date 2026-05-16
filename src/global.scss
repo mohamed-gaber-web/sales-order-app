@@ -53,16 +53,22 @@ ion-content {
   --padding-bottom: env(safe-area-inset-bottom);
 }
 
-// Smooth card entry animation
+// ── Keyframes ────────────────────────────────────────────────
 @keyframes fadeSlideUp {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+// Progress bar reveal (GPU-composited, works with dynamic widths)
+@keyframes gp-progress-reveal {
+  from { clip-path: inset(0 100% 0 0 round 4px); }
+  to   { clip-path: inset(0 0% 0 0 round 4px); }
+}
+
+// Empty state icon gentle float
+@keyframes gp-float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-7px); }
 }
 
 // Better scrollbar for web
@@ -84,7 +90,15 @@ ion-content {
   }
 }
 
-// Modern ion-card global override
+// ── Button active feedback ───────────────────────────────────
+ion-button::part(native) {
+  transition: transform 100ms var(--ease-out-expo, cubic-bezier(0.16, 1, 0.3, 1));
+}
+ion-button.ion-activated::part(native) {
+  transform: scale(0.96);
+}
+
+// ── Modern ion-card global override ─────────────────────────
 ion-card {
   --background: var(--gp-card-bg);
   border-radius: var(--gp-radius-lg) !important;
@@ -132,7 +146,18 @@ ion-button {
   text-transform: none;
 }
 
-// Smooth page transitions
+// ── Page transitions ─────────────────────────────────────────
 ion-router-outlet > * {
-  animation: fadeSlideUp 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: fadeSlideUp 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+// ── Reduced motion ───────────────────────────────────────────
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
