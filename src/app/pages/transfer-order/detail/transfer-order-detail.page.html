@@ -1,0 +1,182 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/transfer-order/list"></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ transferOrderNumber }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="loadDetail()">
+        <ion-icon slot="icon-only" name="refresh-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="detail-content">
+
+  <!-- Loading Skeleton -->
+  @if (isLoading) {
+    <div class="skeleton-wrap">
+      <ion-card class="header-card">
+        <ion-card-content>
+          <ion-skeleton-text animated style="width: 50%; height: 26px; border-radius: 8px; margin-bottom: 14px"></ion-skeleton-text>
+          <ion-skeleton-text animated style="width: 75%; height: 16px; border-radius: 6px; margin-bottom: 8px"></ion-skeleton-text>
+          <ion-skeleton-text animated style="width: 45%; height: 16px; border-radius: 6px"></ion-skeleton-text>
+        </ion-card-content>
+      </ion-card>
+      @for (i of [1, 2, 3]; track i) {
+        <ion-card class="line-card">
+          <ion-card-content>
+            <ion-skeleton-text animated style="width: 35%; height: 18px; border-radius: 6px; margin-bottom: 8px"></ion-skeleton-text>
+            <ion-skeleton-text animated style="width: 65%; height: 14px; border-radius: 6px; margin-bottom: 10px"></ion-skeleton-text>
+            <ion-skeleton-text animated style="width: 100%; height: 6px; border-radius: 3px"></ion-skeleton-text>
+          </ion-card-content>
+        </ion-card>
+      }
+    </div>
+  }
+
+  <!-- Transfer Header Card -->
+  @if (!isLoading && order) {
+    <ion-card class="header-card">
+      <div class="header-hero">
+        <div>
+          <p class="transfer-label">Transfer Order</p>
+          <h2 class="transfer-id">{{ order.TransferOrderNumber }}</h2>
+        </div>
+        <div class="badge-group">
+          @if (order.TransferOrderStatus) {
+            <ion-badge [color]="getStatusColor(order.TransferOrderStatus)" class="status-badge">
+              {{ order.TransferOrderStatus }}
+            </ion-badge>
+          }
+        </div>
+      </div>
+
+      <div class="header-fields">
+        <div class="field-item">
+          <span class="field-label">From</span>
+          <span class="field-value">{{ order.ShippingWarehouseId || '—' }}</span>
+        </div>
+        <div class="field-item">
+          <span class="field-label">To</span>
+          <span class="field-value">{{ order.ReceivingWarehouseId || '—' }}</span>
+        </div>
+        <div class="field-item">
+          <span class="field-label">Ship Date</span>
+          <span class="field-value">
+            {{ order.RequestedShippingDate ? (order.RequestedShippingDate | date:'MMM d, y') : '—' }}
+          </span>
+        </div>
+        <div class="field-item">
+          <span class="field-label">Receive Date</span>
+          <span class="field-value">
+            {{ order.RequestedReceiptDate ? (order.RequestedReceiptDate | date:'MMM d, y') : '—' }}
+          </span>
+        </div>
+      </div>
+    </ion-card>
+
+    <!-- Lines Section -->
+    <div class="lines-section">
+      <div class="lines-header">
+        <h3 class="lines-title">
+          Lines
+          <span class="lines-count">{{ lines.length }}</span>
+        </h3>
+        @if (lines.length > 3) {
+          <ion-searchbar
+            [(ngModel)]="searchTerm"
+            placeholder="Filter lines..."
+            animated="true"
+            class="lines-searchbar">
+          </ion-searchbar>
+        }
+      </div>
+
+      @if (filteredLines.length === 0) {
+        <div class="lines-empty">
+          <ion-icon name="list-outline"></ion-icon>
+          <p>No lines found</p>
+        </div>
+      }
+
+      @for (line of filteredLines; track line.LineNumber) {
+        <ion-card class="line-card" [class.shipped]="isFullyShipped(line)">
+          <div class="line-inner">
+            <div class="line-accent"
+              [style.background]="getLineStatusColor(line) === 'success'
+                ? 'var(--ion-color-success)'
+                : getLineStatusColor(line) === 'warning'
+                  ? 'var(--ion-color-warning)'
+                  : 'var(--ion-color-primary)'">
+            </div>
+
+            <div class="line-body">
+              <div class="line-top">
+                <div class="line-meta">
+                  <span class="line-num">Line {{ line.LineNumber }}</span>
+                  <span class="item-number">{{ line.ItemNumber }}</span>
+                </div>
+                <ion-badge [color]="getLineStatusColor(line)" class="line-status">
+                  {{ getLineStatusLabel(line) }}
+                </ion-badge>
+              </div>
+
+              <!-- Quantity progress bar -->
+              <div class="qty-progress">
+                <div class="progress-track">
+                  <div class="progress-fill"
+                    [class.full]="isFullyShipped(line)"
+                    [style.width.%]="getShippedPct(line)">
+                  </div>
+                </div>
+                <div class="qty-meta">
+                  <span>{{ getShippedQty(line) }} {{ line.UnitId || '' }} shipped</span>
+                  <span class="qty-remaining" [class.done]="isFullyShipped(line)">
+                    {{ getRemainingQty(line) }} remaining
+                  </span>
+                </div>
+              </div>
+
+              <div class="line-fields">
+                <div class="field-item">
+                  <span class="field-label">Ordered</span>
+                  <span class="field-value">{{ line.TransferQuantity }} {{ line.UnitId || '' }}</span>
+                </div>
+                @if (line.ShippedQuantity !== undefined) {
+                  <div class="field-item">
+                    <span class="field-label">Shipped</span>
+                    <span class="field-value">{{ line.ShippedQuantity }}</span>
+                  </div>
+                }
+                @if (line.ReceivedQuantity !== undefined) {
+                  <div class="field-item">
+                    <span class="field-label">Received</span>
+                    <span class="field-value">{{ line.ReceivedQuantity }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        </ion-card>
+      }
+    </div>
+  }
+
+  <!-- Error / No Data State -->
+  @if (!isLoading && !order) {
+    <div class="empty-state">
+      <div class="empty-icon-wrap">
+        <ion-icon name="alert-circle-outline"></ion-icon>
+      </div>
+      <h3>Transfer Not Found</h3>
+      <p>Could not load details for {{ transferOrderNumber }}</p>
+      <ion-button (click)="loadDetail()" fill="outline" class="retry-btn">
+        <ion-icon slot="start" name="refresh-outline"></ion-icon>
+        Retry
+      </ion-button>
+    </div>
+  }
+
+</ion-content>

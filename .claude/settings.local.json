@@ -15,7 +15,11 @@
       "Skill(impeccable:frontend-design)",
       "Skill(impeccable:teach-impeccable)",
       "Bash(npx cap *)",
-      "Bash(./gradlew assembleDebug)"
+      "Bash(./gradlew assembleDebug)",
+      "Bash(xargs grep -l \"transfer\\\\|Transfer\")",
+      "Bash(^d.*requirement)",
+      "Bash(^d.*user)",
+      "Bash(^d.*story\")"
     ]
   }
 }

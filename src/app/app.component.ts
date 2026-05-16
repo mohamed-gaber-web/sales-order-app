@@ -12,6 +12,7 @@ export class AppComponent implements OnInit {
     { title: 'Dashboard', url: '/dashboard', icon: 'grid' },
     { title: 'Purchase Orders', url: '/purchase-order/list', icon: 'cube' },
     { title: 'Sales Orders', url: '/sales-order/list', icon: 'cart' },
+    { title: 'Transfer Orders', url: '/transfer-order/list', icon: 'swap-horizontal' },
   ];
 
   showSplash = true;

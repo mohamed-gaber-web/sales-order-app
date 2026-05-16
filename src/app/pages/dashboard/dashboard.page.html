@@ -58,6 +58,23 @@
         <div class="stat-label">Open Sales</div>
       </div>
     </div>
+
+    <!-- TO Stat -->
+    <div class="stat-card">
+      <div class="stat-icon" style="background: rgba(15, 118, 110, 0.1);">
+        <ion-icon name="swap-horizontal-outline" style="color: #0f766e;"></ion-icon>
+      </div>
+      <div class="stat-body">
+        <div class="stat-value">
+          @if (isLoadingStats) {
+            <ion-skeleton-text animated style="width: 36px; height: 24px; border-radius: 6px;"></ion-skeleton-text>
+          } @else {
+            {{ toCount ?? '—' }}
+          }
+        </div>
+        <div class="stat-label">Open Transfers</div>
+      </div>
+    </div>
   </div>
 
   <!-- Modules Section -->

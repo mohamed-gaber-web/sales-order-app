@@ -1,0 +1,409 @@
+// ── Header ─────────────────────────────────────────────────
+ion-header ion-toolbar {
+  --background: var(--gp-toolbar-bg);
+  --color: var(--gp-toolbar-color);
+  --border-color: transparent;
+
+  ion-title {
+    font-weight: 700;
+    font-size: 17px;
+    letter-spacing: -0.02em;
+  }
+}
+
+// ── Content ────────────────────────────────────────────────
+.detail-content {
+  --background: var(--gp-bg);
+}
+
+// ── Skeleton ────────────────────────────────────────────────
+.skeleton-wrap {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+// ── Transfer Hero Header Card ───────────────────────────────
+.header-card {
+  --background: var(--gp-card-bg);
+  margin: 16px 16px 0;
+  border-radius: 20px !important;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08) !important;
+  overflow: hidden;
+
+  ion-card-content {
+    padding: 0;
+  }
+}
+
+.header-hero {
+  background: linear-gradient(135deg, var(--gp-navy, #002559) 0%, #1a3b6a 100%);
+  padding: 20px 20px 16px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+
+  .transfer-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(255, 255, 255, 0.6);
+    margin: 0 0 4px;
+  }
+
+  .transfer-id {
+    font-size: 22px;
+    font-weight: 800;
+    color: #fff;
+    margin: 0;
+    letter-spacing: -0.025em;
+  }
+
+  .badge-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    align-items: flex-end;
+
+    .status-badge {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 999px;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+  }
+}
+
+.header-fields {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0;
+  padding: 0;
+
+  .field-item {
+    padding: 14px 18px;
+    min-width: 0;
+    border-right: 1px solid var(--gp-border);
+    border-bottom: 1px solid var(--gp-border);
+
+    &:nth-child(even) { border-right: none; }
+    &:nth-last-child(-n+2) { border-bottom: none; }
+
+    .field-label {
+      display: block;
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--ion-color-medium);
+      margin-bottom: 3px;
+    }
+
+    .field-value {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--ion-text-color, #111827);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+}
+
+// ── Lines Section ───────────────────────────────────────────
+.lines-section {
+  padding: 16px;
+}
+
+.lines-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+
+  .lines-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--gp-navy);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    letter-spacing: -0.02em;
+
+    .lines-count {
+      background: var(--gp-bg);
+      color: var(--ion-color-medium);
+      font-size: 12px;
+      font-weight: 700;
+      padding: 2px 9px;
+      border-radius: 999px;
+    }
+  }
+
+  .lines-searchbar {
+    --background: var(--gp-bg);
+    --border-radius: 12px;
+    --box-shadow: none;
+    --placeholder-color: var(--ion-color-medium);
+    flex: 1;
+    min-width: 160px;
+    max-width: 260px;
+    padding: 0;
+    font-size: 14px;
+  }
+}
+
+.lines-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48px 32px;
+  gap: 10px;
+  text-align: center;
+
+  ion-icon {
+    font-size: 44px;
+    color: var(--ion-color-medium);
+    opacity: 0.35;
+  }
+
+  p {
+    color: var(--ion-color-medium);
+    font-size: 14px;
+    margin: 0;
+  }
+}
+
+// ── Line Card ───────────────────────────────────────────────
+.line-card {
+  --background: var(--gp-card-bg);
+  margin: 0 0 10px;
+  border-radius: 16px !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07), 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+  overflow: hidden;
+  animation: fadeSlideUp 0.38s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+
+  @for $i from 1 through 20 {
+    &:nth-child(#{$i}) { animation-delay: #{($i - 1) * 0.04}s; }
+  }
+
+  &.shipped {
+    opacity: 0.7;
+  }
+
+  ion-card-content {
+    padding: 0;
+  }
+}
+
+.line-inner {
+  display: flex;
+  align-items: stretch;
+}
+
+.line-accent {
+  width: 4px;
+  flex-shrink: 0;
+}
+
+.line-body {
+  flex: 1;
+  padding: 14px 16px;
+  min-width: 0;
+}
+
+// Line top: item + status badge
+.line-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+
+  .line-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    .line-num {
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--ion-color-medium);
+    }
+
+    .item-number {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--gp-navy);
+      letter-spacing: -0.01em;
+    }
+  }
+
+  .line-status {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 9px;
+    border-radius: 999px;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    flex-shrink: 0;
+  }
+}
+
+.product-name {
+  font-size: 13px;
+  color: var(--ion-color-medium);
+  margin: 0 0 12px;
+  line-height: 1.4;
+}
+
+// Quantity progress
+.qty-progress {
+  margin-bottom: 12px;
+}
+
+.progress-track {
+  height: 6px;
+  background: var(--gp-border);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--gp-accent) 0%, var(--gp-accent-end) 100%);
+  animation: gp-progress-reveal 0.9s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  animation-delay: 0.2s;
+
+  &.full {
+    background: var(--ion-color-success);
+  }
+}
+
+.qty-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--ion-color-medium);
+  font-weight: 500;
+
+  .qty-remaining {
+    font-weight: 700;
+    color: var(--ion-color-warning);
+
+    &.done {
+      color: var(--ion-color-success);
+    }
+  }
+}
+
+// Line fields grid
+.line-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 16px;
+
+  .field-item {
+    min-width: 0;
+
+    .field-label {
+      display: block;
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--ion-color-medium);
+      margin-bottom: 2px;
+    }
+
+    .field-value {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--ion-text-color, #111827);
+    }
+  }
+}
+
+// ── Error / Empty State ─────────────────────────────────────
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 32px;
+  text-align: center;
+
+  .empty-icon-wrap {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: var(--gp-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    animation: gp-float 3.2s ease-in-out infinite;
+
+    ion-icon {
+      font-size: 36px;
+      color: var(--ion-color-medium);
+    }
+  }
+
+  h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--ion-text-color, #111827);
+    margin: 0 0 8px;
+    letter-spacing: -0.02em;
+  }
+
+  p {
+    font-size: 14px;
+    color: var(--ion-color-medium);
+    margin: 0 0 24px;
+  }
+
+  .retry-btn {
+    --border-radius: 12px;
+    --border-color: var(--gp-border);
+    --color: var(--gp-navy);
+    font-weight: 600;
+    font-size: 14px;
+    text-transform: none;
+    height: 40px;
+  }
+}
+
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+// ── Desktop ─────────────────────────────────────────────────
+@media (min-width: 992px) {
+  .header-card {
+    margin: 28px auto 0;
+    max-width: 860px;
+  }
+
+  .lines-section {
+    padding: 20px 0;
+    max-width: 860px;
+    margin: 0 auto;
+  }
+}
