@@ -1,0 +1,85 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Dashboard</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="dashboard-content">
+
+  <!-- Hero / Greeting -->
+  <div class="hero-section">
+    <div class="hero-inner">
+      <div class="hero-text">
+        <p class="greeting">{{ greeting }} 👋</p>
+        <h1 class="hero-title">Grow Path</h1>
+        <p class="hero-date">{{ currentDate }}</p>
+      </div>
+      <div class="hero-logo">
+        <ion-icon name="stats-chart-outline"></ion-icon>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Row -->
+  <div class="stats-row">
+    <!-- PO Stat -->
+    <div class="stat-card">
+      <div class="stat-icon" style="background: rgba(242, 76, 26, 0.12);">
+        <ion-icon name="cube-outline" style="color: var(--gp-accent);"></ion-icon>
+      </div>
+      <div class="stat-body">
+        <div class="stat-value">
+          @if (isLoadingStats) {
+            <ion-skeleton-text animated style="width: 36px; height: 24px; border-radius: 6px;"></ion-skeleton-text>
+          } @else {
+            {{ poCount ?? '—' }}
+          }
+        </div>
+        <div class="stat-label">Pending POs</div>
+      </div>
+    </div>
+
+    <!-- SO Stat -->
+    <div class="stat-card">
+      <div class="stat-icon" style="background: rgba(0, 37, 89, 0.08);">
+        <ion-icon name="cart-outline" style="color: var(--gp-navy);"></ion-icon>
+      </div>
+      <div class="stat-body">
+        <div class="stat-value">
+          @if (isLoadingStats) {
+            <ion-skeleton-text animated style="width: 36px; height: 24px; border-radius: 6px;"></ion-skeleton-text>
+          } @else {
+            {{ soCount ?? '—' }}
+          }
+        </div>
+        <div class="stat-label">Open Sales</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modules Section -->
+  <div class="modules-section">
+    <h2 class="section-label">Quick Access</h2>
+
+    <div class="modules-list">
+      @for (mod of modules; track mod.route) {
+        <div class="module-card" (click)="navigate(mod.route)">
+          <div class="module-icon-wrap" [style.background]="'linear-gradient(135deg,' + mod.color + ' 0%,' + mod.colorEnd + ' 100%)'">
+            <ion-icon [name]="mod.icon"></ion-icon>
+          </div>
+          <div class="module-info">
+            <div class="module-title">{{ mod.title }}</div>
+            <div class="module-subtitle">{{ mod.subtitle }}</div>
+          </div>
+          <div class="module-arrow">
+            <ion-icon name="chevron-forward-outline"></ion-icon>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+
+</ion-content>

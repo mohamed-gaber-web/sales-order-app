@@ -94,4 +94,13 @@ export class PurchaseOrderDetailPage implements OnInit {
     if (remaining < line.PurchaseQuantity) return 'Partial';
     return 'Open';
   }
+
+  getReceivedQty(line: PurchaseOrderLine): number {
+    return Math.max(0, line.PurchaseQuantity - this.getRemainingQty(line));
+  }
+
+  getReceivedPct(line: PurchaseOrderLine): number {
+    if (line.PurchaseQuantity <= 0) return 0;
+    return Math.min(100, Math.round((this.getReceivedQty(line) / line.PurchaseQuantity) * 100));
+  }
 }

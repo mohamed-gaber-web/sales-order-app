@@ -241,4 +241,14 @@ export class PurchaseOrderListPage {
       default:           return 'medium';
     }
   }
+
+  getStatusStripColor(status?: string): string {
+    switch (status) {
+      case 'Backorder':  return 'var(--ion-color-warning)';
+      case 'Received':   return 'var(--ion-color-success)';
+      case 'Invoiced':   return 'var(--ion-color-tertiary)';
+      case 'Canceled':   return 'var(--ion-color-danger)';
+      default:           return 'var(--ion-color-primary)';
+    }
+  }
 }

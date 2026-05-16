@@ -3,157 +3,196 @@ ion-header {
   ion-toolbar {
     --background: var(--gp-toolbar-bg);
     --color: var(--gp-toolbar-color);
+    --border-color: transparent;
 
     ion-title {
-      font-weight: 700;
       font-size: 18px;
-      letter-spacing: -0.02em;
+      font-weight: 700;
+      letter-spacing: -0.025em;
+    }
+
+    ion-menu-button {
+      color: var(--gp-toolbar-color);
     }
   }
 
-  ion-toolbar:nth-child(2) {
-    --background: var(--gp-card-bg, #fff);
-    --padding-top: 4px;
-    --padding-bottom: 4px;
+  ion-toolbar:last-child {
+    --background: var(--gp-toolbar-bg);
+    --padding-bottom: 10px;
+    --padding-top: 0;
   }
 }
 
 .custom-searchbar {
-  --background: var(--gp-bg, #f0f2f5);
-  --border-radius: var(--gp-radius-md);
+  --background: rgba(255, 255, 255, 0.14);
+  --border-radius: 12px;
   --box-shadow: none;
-  --placeholder-color: var(--ion-color-medium);
-  --icon-color: var(--ion-color-medium);
-  padding: 0 12px;
+  --placeholder-color: rgba(255, 255, 255, 0.55);
+  --icon-color: rgba(255, 255, 255, 0.55);
+  --color: #fff;
+  --clear-button-color: rgba(255, 255, 255, 0.7);
+  padding: 0 8px;
   font-size: 14px;
 }
 
 // ── Content ────────────────────────────────────────────────
 .orders-content {
-  --background: var(--gp-bg, #f0f2f5);
+  --background: var(--gp-bg);
 }
 
-// ── Web Page Header (desktop only) ─────────────────────────
+// ── Web Page Header (hidden on mobile) ─────────────────────
 .web-page-header {
   display: none;
 }
 
-// ── Orders List (mobile default) ───────────────────────────
+// ── Orders List ─────────────────────────────────────────────
 .orders-list {
-  padding: 12px 16px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
-// ── Order Card ─────────────────────────────────────────────
+// ── Order Card ──────────────────────────────────────────────
 .order-card {
-  margin: 0 0 10px;
-  border-radius: var(--gp-radius-lg) !important;
-  box-shadow: var(--gp-shadow-sm) !important;
-  cursor: pointer;
-  transition: transform var(--gp-transition), box-shadow var(--gp-transition);
+  --background: var(--gp-card-bg);
+  margin: 0 !important;
+  border-radius: 16px !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07), 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+  overflow: hidden;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   animation: fadeSlideUp 0.35s cubic-bezier(0.4, 0, 0.2, 1) backwards;
 
-  @for $i from 1 through 12 {
-    &:nth-child(#{$i}) {
-      animation-delay: #{$i * 0.04}s;
-    }
+  @for $i from 1 through 15 {
+    &:nth-child(#{$i}) { animation-delay: #{($i - 1) * 0.045}s; }
   }
 
   ion-card-content {
-    padding: 16px;
+    padding: 0;
   }
 }
 
 @media (hover: hover) and (pointer: fine) {
   .order-card:hover {
     transform: translateY(-2px);
-    box-shadow: var(--gp-shadow-lg) !important;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(0, 0, 0, 0.05) !important;
   }
 }
 
-.skeleton-card {
-  ion-card-content {
-    padding: 20px;
-  }
+// Card layout: status strip + body side by side
+.card-layout {
+  display: flex;
+  align-items: stretch;
+  min-height: 90px;
 }
 
-// ── Card Header ─────────────────────────────────────────────
-.order-header {
+.status-strip {
+  width: 5px;
+  flex-shrink: 0;
+  border-radius: 0;
+}
+
+.card-body {
+  flex: 1;
+  min-width: 0;
+  padding: 14px 16px;
+}
+
+// Top row: PO number + status badge
+.card-top {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 12px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid var(--gp-border, #e5e7eb);
+  gap: 10px;
+  margin-bottom: 5px;
 
   .order-number {
     font-size: 15px;
     font-weight: 700;
     color: var(--gp-navy);
-    letter-spacing: -0.01em;
+    letter-spacing: -0.02em;
     flex: 1;
+    min-width: 0;
   }
 
   .badge-group {
     display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-  }
-
-  .status-badge,
-  .release-badge {
-    font-size: 10px;
-    font-weight: 600;
-    padding: 3px 9px;
-    border-radius: 999px;
-    letter-spacing: 0.02em;
-    white-space: nowrap;
+    gap: 5px;
+    flex-shrink: 0;
   }
 }
 
-// ── Fields Grid ─────────────────────────────────────────────
-.order-fields {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px 16px;
+.status-badge,
+.approval-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+// Vendor row
+.card-vendor {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ion-color-medium);
+  margin-bottom: 10px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// Meta fields row
+.card-fields {
+  display: flex;
+  gap: 16px;
 
   .field-item {
+    flex: 1;
     min-width: 0;
+  }
 
-    .field-label {
-      display: block;
-      font-size: 10px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--ion-color-medium);
-      margin-bottom: 2px;
-    }
+  .field-label {
+    display: block;
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ion-color-medium);
+    margin-bottom: 2px;
+  }
 
-    .field-value {
-      display: block;
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--ion-text-color, var(--ion-color-dark));
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
+  .field-value {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ion-text-color, #111827);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 }
 
-// ── Searching State ─────────────────────────────────────────
+// Skeleton
+.skeleton-card {
+  ion-card-content {
+    padding: 16px;
+  }
+}
+
+// ── Searching ───────────────────────────────────────────────
 .searching-state {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 48px 32px;
-  gap: 12px;
+  padding: 64px 32px;
+  gap: 14px;
 
   ion-spinner {
-    width: 36px;
-    height: 36px;
+    width: 32px;
+    height: 32px;
     color: var(--gp-accent);
   }
 
@@ -173,18 +212,27 @@ ion-header {
   padding: 80px 32px;
   text-align: center;
 
-  ion-icon {
-    font-size: 72px;
-    color: var(--ion-color-medium);
-    opacity: 0.3;
+  .empty-icon-wrap {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: var(--gp-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
     margin-bottom: 20px;
+
+    ion-icon {
+      font-size: 36px;
+      color: var(--ion-color-medium);
+    }
   }
 
   h3 {
-    color: var(--ion-text-color, var(--ion-color-dark));
-    font-size: 18px;
+    color: var(--ion-text-color, #111827);
+    font-size: 17px;
     font-weight: 700;
-    margin: 0 0 8px;
+    margin: 0 0 6px;
     letter-spacing: -0.02em;
   }
 
@@ -192,39 +240,36 @@ ion-header {
     color: var(--ion-color-medium);
     font-size: 14px;
     margin: 0;
-    max-width: 260px;
+    max-width: 240px;
     line-height: 1.5;
   }
 }
 
-// ── Web Load More (hidden on mobile) ───────────────────────
+// ── Web Load More (desktop only) ────────────────────────────
 .web-load-more {
   display: none;
 }
 
 @keyframes fadeSlideUp {
-  from { opacity: 0; transform: translateY(12px); }
+  from { opacity: 0; transform: translateY(10px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
 // ══════════════════════════════════════════════════════════
-// DESKTOP / WEB STYLES  (≥ 992px)
+// DESKTOP (≥ 992px)
 // ══════════════════════════════════════════════════════════
 @media (min-width: 992px) {
-
-  ion-header {
-    display: none;
-  }
+  ion-header { display: none; }
 
   .web-page-header {
     display: block;
-    background: var(--gp-card-bg, #fff);
-    border-bottom: 1px solid var(--gp-border, #e5e7eb);
+    background: var(--gp-card-bg);
+    border-bottom: 1px solid var(--gp-border);
     padding: 0 40px;
     position: sticky;
     top: 0;
     z-index: 10;
-    box-shadow: var(--gp-shadow-sm);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
 
     .web-page-header-inner {
       display: flex;
@@ -250,7 +295,7 @@ ion-header {
     }
 
     .web-count-chip {
-      background: var(--gp-bg, #f0f2f5);
+      background: var(--gp-bg);
       color: var(--ion-color-medium);
       font-size: 12px;
       font-weight: 700;
@@ -258,86 +303,61 @@ ion-header {
       border-radius: 999px;
     }
 
-    .web-actions {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
+    .web-actions { display: flex; align-items: center; gap: 12px; }
 
     .web-searchbar {
-      --background: var(--gp-bg, #f0f2f5);
-      --border-radius: var(--gp-radius-md);
+      --background: var(--gp-bg);
+      --border-radius: 12px;
       --box-shadow: none;
       --placeholder-color: var(--ion-color-medium);
       --icon-color: var(--ion-color-medium);
-      width: 260px;
+      width: 280px;
       padding: 0;
       font-size: 14px;
     }
   }
 
-  .orders-content {
-    --padding-top: 0;
-  }
+  .orders-content { --padding-top: 0; }
 
   .orders-list {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: 14px;
     padding: 28px 40px;
     max-width: 1400px;
     margin: 0 auto !important;
+    flex-direction: unset;
   }
 
-  .order-card {
-    margin: 0 !important;
-  }
+  .empty-state { padding: 120px 32px; }
 
-  .order-card ion-card-content {
-    padding: 20px !important;
-  }
-
-  .order-number {
-    font-size: 16px !important;
-  }
-
-  .empty-state {
-    padding: 120px 32px;
-  }
-
-  ion-infinite-scroll {
-    display: none !important;
-  }
+  ion-infinite-scroll { display: none !important; }
 
   .web-load-more {
     display: flex;
     justify-content: center;
-    padding: 8px 40px 36px;
+    padding: 4px 40px 40px;
     max-width: 1400px;
     margin: 0 auto;
 
     .web-load-more-btn {
-      --border-radius: var(--gp-radius-md);
-      --border-color: var(--gp-navy);
+      --border-radius: 12px;
+      --border-color: var(--gp-border);
       --color: var(--gp-navy);
       font-weight: 600;
       font-size: 14px;
       text-transform: none;
       height: 40px;
       min-width: 160px;
-      letter-spacing: -0.01em;
 
-      ion-spinner {
-        width: 16px;
-        height: 16px;
-      }
+      ion-spinner { width: 16px; height: 16px; }
     }
   }
 }
 
 @media (min-width: 1400px) {
   .orders-list {
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
     padding: 32px 48px;
   }
 }

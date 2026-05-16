@@ -6,12 +6,11 @@
     <ion-title>Purchase Orders</ion-title>
   </ion-toolbar>
 
-  <!-- Search Bar -->
   <ion-toolbar>
     <ion-searchbar
       [(ngModel)]="searchTerm"
       (ionInput)="onSearchChange()"
-      placeholder="Search by PO number or vendor..."
+      placeholder="Search PO number or vendor..."
       debounce="300"
       animated="true"
       class="custom-searchbar">
@@ -25,7 +24,7 @@
     </ion-refresher-content>
   </ion-refresher>
 
-  <!-- Web Page Header (hidden on mobile) -->
+  <!-- Web Page Header (desktop only) -->
   <div class="web-page-header">
     <div class="web-page-header-inner">
       <div class="web-title-group">
@@ -53,9 +52,9 @@
       @for (i of [1, 2, 3, 4, 5, 6]; track i) {
         <ion-card class="order-card skeleton-card">
           <ion-card-content>
-            <ion-skeleton-text animated style="width: 40%; height: 20px"></ion-skeleton-text>
-            <ion-skeleton-text animated style="width: 60%; height: 16px; margin-top: 8px"></ion-skeleton-text>
-            <ion-skeleton-text animated style="width: 30%; height: 24px; margin-top: 12px"></ion-skeleton-text>
+            <ion-skeleton-text animated style="width: 45%; height: 18px; border-radius: 6px"></ion-skeleton-text>
+            <ion-skeleton-text animated style="width: 60%; height: 14px; margin-top: 8px; border-radius: 6px"></ion-skeleton-text>
+            <ion-skeleton-text animated style="width: 80%; height: 12px; margin-top: 10px; border-radius: 6px"></ion-skeleton-text>
           </ion-card-content>
         </ion-card>
       }
@@ -67,50 +66,49 @@
     <div class="orders-list">
       @for (order of filteredOrders; track order.PurchaseOrderNumber) {
         <ion-card class="order-card" button (click)="openDetail(order.PurchaseOrderNumber)">
-          <ion-card-content>
-
-            <!-- Header: PO Number + Badges -->
-            <div class="order-header">
-              <span class="order-number">{{ order.PurchaseOrderNumber }}</span>
-              <div class="badge-group">
-                @if (order.PurchaseOrderStatus) {
-                  <ion-badge [color]="getStatusColor(order.PurchaseOrderStatus)" class="status-badge">
-                    {{ order.PurchaseOrderStatus }}
-                  </ion-badge>
-                }
+          <div class="card-layout">
+            <div class="status-strip" [style.background]="getStatusStripColor(order.PurchaseOrderStatus)"></div>
+            <div class="card-body">
+              <div class="card-top">
+                <span class="order-number">{{ order.PurchaseOrderNumber }}</span>
+                <div class="badge-group">
+                  @if (order.PurchaseOrderStatus) {
+                    <ion-badge [color]="getStatusColor(order.PurchaseOrderStatus)" class="status-badge">
+                      {{ order.PurchaseOrderStatus }}
+                    </ion-badge>
+                  }
+                </div>
+              </div>
+              <div class="card-vendor">
+                <ion-icon name="business-outline" style="font-size: 11px; vertical-align: middle; margin-right: 4px;"></ion-icon>
+                {{ order.OrderVendorAccountNumber || order.VendorAccountNumber || 'No vendor' }}
+              </div>
+              <div class="card-fields">
+                <div class="field-item">
+                  <span class="field-label">Currency</span>
+                  <span class="field-value">{{ order.CurrencyCode || '—' }}</span>
+                </div>
+                <div class="field-item">
+                  <span class="field-label">Delivery</span>
+                  <span class="field-value">
+                    {{ order.RequestedDeliveryDate ? (order.RequestedDeliveryDate | date:'MMM d, y') : '—' }}
+                  </span>
+                </div>
                 @if (order.DocumentApprovalStatus) {
-                  <ion-badge [color]="getApprovalColor(order.DocumentApprovalStatus)" class="release-badge">
-                    {{ order.DocumentApprovalStatus }}
-                  </ion-badge>
+                  <div class="field-item">
+                    <span class="field-label">Approval</span>
+                    <span class="field-value">{{ order.DocumentApprovalStatus }}</span>
+                  </div>
                 }
               </div>
             </div>
-
-            <!-- Fields Grid -->
-            <div class="order-fields">
-              <div class="field-item">
-                <span class="field-label">Vendor Account</span>
-                <span class="field-value">{{ order.OrderVendorAccountNumber || order.VendorAccountNumber || '—' }}</span>
-              </div>
-              <div class="field-item">
-                <span class="field-label">Currency</span>
-                <span class="field-value">{{ order.CurrencyCode || '—' }}</span>
-              </div>
-              <div class="field-item">
-                <span class="field-label">Delivery Date</span>
-                <span class="field-value">
-                  {{ order.RequestedDeliveryDate ? (order.RequestedDeliveryDate | date:'mediumDate') : '—' }}
-                </span>
-              </div>
-            </div>
-
-          </ion-card-content>
+          </div>
         </ion-card>
       }
     </div>
   }
 
-  <!-- Searching spinner -->
+  <!-- Searching Spinner -->
   @if (isSearching) {
     <div class="searching-state">
       <ion-spinner name="crescent"></ion-spinner>
@@ -121,11 +119,13 @@
   <!-- Empty State -->
   @if (!isLoading && !isSearching && filteredOrders.length === 0) {
     <div class="empty-state">
-      <ion-icon name="cube-outline"></ion-icon>
-      <h3>No Purchase Orders Found</h3>
+      <div class="empty-icon-wrap">
+        <ion-icon name="cube-outline"></ion-icon>
+      </div>
+      <h3>No Purchase Orders</h3>
       <p>
         @if (searchTerm) {
-          Try adjusting your search criteria
+          No results for "{{ searchTerm }}"
         } @else {
           No confirmed purchase orders awaiting receipt
         }
@@ -133,7 +133,7 @@
     </div>
   }
 
-  <!-- Web Load More Button (desktop only) -->
+  <!-- Web Load More (desktop only) -->
   @if (!isLoading && hasMore) {
     <div class="web-load-more">
       <ion-button
@@ -154,9 +154,7 @@
 
   <!-- Mobile Infinite Scroll -->
   <ion-infinite-scroll (ionInfinite)="loadMore($event)" [disabled]="!hasMore">
-    <ion-infinite-scroll-content
-      loadingSpinner="crescent"
-      loadingText="Loading more orders...">
+    <ion-infinite-scroll-content loadingSpinner="crescent" loadingText="Loading more orders...">
     </ion-infinite-scroll-content>
   </ion-infinite-scroll>
 </ion-content>

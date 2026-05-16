@@ -9,9 +9,13 @@ import { ThemeService } from './core';
 })
 export class AppComponent implements OnInit {
   public appPages = [
-    { title: 'Sales Orders', url: '/sales-order/list', icon: 'cart' },
+    { title: 'Dashboard', url: '/dashboard', icon: 'grid' },
     { title: 'Purchase Orders', url: '/purchase-order/list', icon: 'cube' },
+    { title: 'Sales Orders', url: '/sales-order/list', icon: 'cart' },
   ];
+
+  showSplash = true;
+  splashFading = false;
 
   readonly themeMode = this.themeService.mode;
   readonly isDark = this.themeService.isDark;
@@ -20,6 +24,10 @@ export class AppComponent implements OnInit {
 
   ngOnInit() {
     this.themeService.initialize();
+    setTimeout(() => {
+      this.splashFading = true;
+      setTimeout(() => { this.showSplash = false; }, 500);
+    }, 1800);
   }
 
   get themeIcon(): string {

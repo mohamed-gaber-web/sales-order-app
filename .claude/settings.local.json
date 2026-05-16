@@ -8,7 +8,12 @@
       "Bash(curl *)",
       "mcp__postman__getCollectionContext",
       "mcp__postman__getCollectionRequest",
-      "Bash(npx ng *)"
+      "Bash(npx ng *)",
+      "Bash(Get-ChildItem -Path \"D:\\\\Grow Path\\\\Dynamic with app\\\\grow-path\" -Recurse -Directory)",
+      "Bash(Select-Object -First 20)",
+      "Bash(Format-Table FullName)",
+      "Skill(impeccable:frontend-design)",
+      "Skill(impeccable:teach-impeccable)"
     ]
   }
 }

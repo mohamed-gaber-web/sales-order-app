@@ -1,4 +1,22 @@
 <ion-app>
+
+  <!-- ── Splash Screen ──────────────────────────────────── -->
+  @if (showSplash) {
+    <div class="splash-overlay" [class.fade-out]="splashFading">
+      <div class="splash-content">
+        <div class="splash-logo-wrap">
+          <img src="assets/icon/grow-path-logo.svg" alt="Grow Path" class="splash-logo" />
+        </div>
+        <h1 class="splash-title">Grow Path</h1>
+        <p class="splash-subtitle">Inventory Management</p>
+        <div class="splash-dots">
+          <span></span><span></span><span></span>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ── Main App ───────────────────────────────────────── -->
   <ion-split-pane contentId="main-content" when="lg">
     <ion-menu contentId="main-content" type="overlay">
       <ion-header class="ion-no-border">
@@ -7,7 +25,7 @@
             <div class="app-logo">
               <img src="assets/icon/grow-path-logo.svg" alt="Grow Path" />
             </div>
-            <p class="app-tagline">Sales Management</p>
+            <p class="app-tagline">Inventory Management</p>
           </div>
         </ion-toolbar>
       </ion-header>
@@ -56,4 +74,5 @@
     </ion-menu>
     <ion-router-outlet id="main-content"></ion-router-outlet>
   </ion-split-pane>
+
 </ion-app>

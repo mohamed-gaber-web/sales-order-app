@@ -19,17 +19,17 @@
     <div class="skeleton-wrap">
       <ion-card class="header-card">
         <ion-card-content>
-          <ion-skeleton-text animated style="width: 50%; height: 22px; margin-bottom: 16px"></ion-skeleton-text>
-          <ion-skeleton-text animated style="width: 70%; height: 16px; margin-bottom: 8px"></ion-skeleton-text>
-          <ion-skeleton-text animated style="width: 40%; height: 16px"></ion-skeleton-text>
+          <ion-skeleton-text animated style="width: 50%; height: 26px; border-radius: 8px; margin-bottom: 14px"></ion-skeleton-text>
+          <ion-skeleton-text animated style="width: 75%; height: 16px; border-radius: 6px; margin-bottom: 8px"></ion-skeleton-text>
+          <ion-skeleton-text animated style="width: 45%; height: 16px; border-radius: 6px"></ion-skeleton-text>
         </ion-card-content>
       </ion-card>
       @for (i of [1, 2, 3]; track i) {
         <ion-card class="line-card">
           <ion-card-content>
-            <ion-skeleton-text animated style="width: 30%; height: 18px; margin-bottom: 10px"></ion-skeleton-text>
-            <ion-skeleton-text animated style="width: 60%; height: 14px; margin-bottom: 8px"></ion-skeleton-text>
-            <ion-skeleton-text animated style="width: 40%; height: 14px"></ion-skeleton-text>
+            <ion-skeleton-text animated style="width: 35%; height: 18px; border-radius: 6px; margin-bottom: 8px"></ion-skeleton-text>
+            <ion-skeleton-text animated style="width: 65%; height: 14px; border-radius: 6px; margin-bottom: 10px"></ion-skeleton-text>
+            <ion-skeleton-text animated style="width: 100%; height: 6px; border-radius: 3px"></ion-skeleton-text>
           </ion-card-content>
         </ion-card>
       }
@@ -39,39 +39,39 @@
   <!-- PO Header Card -->
   @if (!isLoading && po) {
     <ion-card class="header-card">
-      <ion-card-content>
-        <div class="header-row">
-          <div>
-            <p class="po-label">Purchase Order</p>
-            <h2 class="po-number">{{ po.PurchaseOrderNumber }}</h2>
-          </div>
-          <div class="badge-group">
-            @if (po.PurchaseOrderStatus) {
-              <ion-badge color="warning" class="status-badge">{{ po.PurchaseOrderStatus }}</ion-badge>
-            }
-            @if (po.DocumentApprovalStatus) {
-              <ion-badge color="success" class="status-badge">{{ po.DocumentApprovalStatus }}</ion-badge>
-            }
-          </div>
+      <!-- Hero gradient bar -->
+      <div class="header-hero">
+        <div>
+          <p class="po-label">Purchase Order</p>
+          <h2 class="po-number">{{ po.PurchaseOrderNumber }}</h2>
         </div>
+        <div class="badge-group">
+          @if (po.PurchaseOrderStatus) {
+            <ion-badge color="warning" class="status-badge">{{ po.PurchaseOrderStatus }}</ion-badge>
+          }
+          @if (po.DocumentApprovalStatus) {
+            <ion-badge color="success" class="status-badge">{{ po.DocumentApprovalStatus }}</ion-badge>
+          }
+        </div>
+      </div>
 
-        <div class="header-fields">
-          <div class="field-item">
-            <span class="field-label">Vendor Account</span>
-            <span class="field-value">{{ po.OrderVendorAccountNumber || po.VendorAccountNumber || '—' }}</span>
-          </div>
-          <div class="field-item">
-            <span class="field-label">Currency</span>
-            <span class="field-value">{{ po.CurrencyCode || '—' }}</span>
-          </div>
-          <div class="field-item">
-            <span class="field-label">Requested Delivery</span>
-            <span class="field-value">
-              {{ po.RequestedDeliveryDate ? (po.RequestedDeliveryDate | date:'mediumDate') : '—' }}
-            </span>
-          </div>
+      <!-- Fields strip -->
+      <div class="header-fields">
+        <div class="field-item">
+          <span class="field-label">Vendor</span>
+          <span class="field-value">{{ po.OrderVendorAccountNumber || po.VendorAccountNumber || '—' }}</span>
         </div>
-      </ion-card-content>
+        <div class="field-item">
+          <span class="field-label">Currency</span>
+          <span class="field-value">{{ po.CurrencyCode || '—' }}</span>
+        </div>
+        <div class="field-item">
+          <span class="field-label">Delivery</span>
+          <span class="field-value">
+            {{ po.RequestedDeliveryDate ? (po.RequestedDeliveryDate | date:'MMM d, y') : '—' }}
+          </span>
+        </div>
+      </div>
     </ion-card>
 
     <!-- Lines Section -->
@@ -100,58 +100,79 @@
 
       @for (line of filteredLines; track line.LineNumber) {
         <ion-card class="line-card" [class.received]="isFullyReceived(line)">
-          <ion-card-content>
-
-            <div class="line-header">
-              <div class="line-meta">
-                <span class="line-num">Line {{ line.LineNumber }}</span>
-                <span class="item-number">{{ line.ItemNumber }}</span>
-              </div>
-              <ion-badge [color]="getLineStatusColor(line)" class="line-status">
-                {{ getLineStatusLabel(line) }}
-              </ion-badge>
+          <div class="line-inner">
+            <!-- Accent strip colored by status -->
+            <div class="line-accent"
+              [style.background]="getLineStatusColor(line) === 'success'
+                ? 'var(--ion-color-success)'
+                : getLineStatusColor(line) === 'warning'
+                  ? 'var(--ion-color-warning)'
+                  : 'var(--ion-color-primary)'">
             </div>
 
-            @if (line.ProductName) {
-              <p class="product-name">{{ line.ProductName }}</p>
-            }
+            <div class="line-body">
+              <!-- Top row: item number + status badge -->
+              <div class="line-top">
+                <div class="line-meta">
+                  <span class="line-num">Line {{ line.LineNumber }}</span>
+                  <span class="item-number">{{ line.ItemNumber }}</span>
+                </div>
+                <ion-badge [color]="getLineStatusColor(line)" class="line-status">
+                  {{ getLineStatusLabel(line) }}
+                </ion-badge>
+              </div>
 
-            <div class="line-fields">
-              <div class="field-item">
-                <span class="field-label">Ordered Qty</span>
-                <span class="field-value">{{ line.PurchaseQuantity }} {{ line.PurchaseUnitSymbol || '' }}</span>
-              </div>
-              <div class="field-item">
-                <span class="field-label">Remaining Qty</span>
-                <span class="field-value qty-remaining" [class.zero]="isFullyReceived(line)">
-                  {{ getRemainingQty(line) }} {{ line.PurchaseUnitSymbol || '' }}
-                </span>
-              </div>
-              @if (line.ReceivingWarehouseId) {
-                <div class="field-item">
-                  <span class="field-label">Warehouse</span>
-                  <span class="field-value">{{ line.ReceivingWarehouseId }}</span>
-                </div>
+              @if (line.ProductName) {
+                <p class="product-name">{{ line.ProductName }}</p>
               }
-              @if (line.PurchasePrice !== null && line.PurchasePrice !== undefined) {
-                <div class="field-item">
-                  <span class="field-label">Unit Price</span>
-                  <span class="field-value">{{ line.PurchasePrice | number:'1.2-2' }}</span>
+
+              <!-- Quantity progress bar -->
+              <div class="qty-progress">
+                <div class="progress-track">
+                  <div class="progress-fill"
+                    [class.full]="isFullyReceived(line)"
+                    [style.width.%]="getReceivedPct(line)">
+                  </div>
                 </div>
+                <div class="qty-meta">
+                  <span>{{ getReceivedQty(line) }} {{ line.PurchaseUnitSymbol || '' }} received</span>
+                  <span class="qty-remaining" [class.done]="isFullyReceived(line)">
+                    {{ getRemainingQty(line) }} remaining
+                  </span>
+                </div>
+              </div>
+
+              <!-- Extra fields -->
+              <div class="line-fields">
+                <div class="field-item">
+                  <span class="field-label">Ordered</span>
+                  <span class="field-value">{{ line.PurchaseQuantity }} {{ line.PurchaseUnitSymbol || '' }}</span>
+                </div>
+                @if (line.ReceivingWarehouseId) {
+                  <div class="field-item">
+                    <span class="field-label">Warehouse</span>
+                    <span class="field-value">{{ line.ReceivingWarehouseId }}</span>
+                  </div>
+                }
+                @if (line.PurchasePrice !== null && line.PurchasePrice !== undefined) {
+                  <div class="field-item">
+                    <span class="field-label">Unit Price</span>
+                    <span class="field-value">{{ line.PurchasePrice | number:'1.2-2' }}</span>
+                  </div>
+                }
+              </div>
+
+              @if (!isFullyReceived(line)) {
+                <ion-button
+                  expand="block"
+                  class="receive-btn"
+                  (click)="receiveLine(line)">
+                  <ion-icon slot="start" name="download-outline"></ion-icon>
+                  Receive Item
+                </ion-button>
               }
             </div>
-
-            @if (!isFullyReceived(line)) {
-              <ion-button
-                expand="block"
-                class="receive-btn"
-                (click)="receiveLine(line)">
-                <ion-icon slot="start" name="download-outline"></ion-icon>
-                Receive
-              </ion-button>
-            }
-
-          </ion-card-content>
+          </div>
         </ion-card>
       }
     </div>
@@ -160,7 +181,9 @@
   <!-- Error / No Data State -->
   @if (!isLoading && !po) {
     <div class="empty-state">
-      <ion-icon name="alert-circle-outline"></ion-icon>
+      <div class="empty-icon-wrap">
+        <ion-icon name="alert-circle-outline"></ion-icon>
+      </div>
       <h3>Order Not Found</h3>
       <p>Could not load details for {{ poNumber }}</p>
       <ion-button (click)="loadDetail()" fill="outline" class="retry-btn">

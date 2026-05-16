@@ -3,50 +3,80 @@
     <ion-buttons slot="start">
       <ion-back-button [defaultHref]="'/purchase-order/detail/' + poNumber"></ion-back-button>
     </ion-buttons>
-    <ion-title>Receive Line {{ lineNumber }}</ion-title>
+    <ion-title>Receive Item</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="receive-content">
   <form [formGroup]="form" (ngSubmit)="submitReceipt()">
 
-    <!-- Context Card: PO + Line Info -->
+    <!-- Context Summary Card -->
     @if (line) {
       <ion-card class="context-card">
         <ion-card-content>
-          <div class="context-header">
-            <div>
-              <p class="context-label">Purchase Order</p>
-              <p class="context-value bold">{{ poNumber }}</p>
+          <!-- Hero: PO + Line -->
+          <div class="context-hero">
+            <div class="po-info">
+              <p class="po-label">Purchase Order</p>
+              <p class="po-number">{{ poNumber }}</p>
             </div>
-            <div class="line-badge">Line {{ lineNumber }}</div>
+            <div class="line-pill">Line {{ lineNumber }}</div>
           </div>
 
-          <div class="context-fields">
-            <div class="field-item">
-              <span class="field-label">Item Number</span>
-              <span class="field-value">{{ line.ItemNumber }}</span>
-            </div>
-            @if (line.ProductName) {
-              <div class="field-item full">
-                <span class="field-label">Product Name</span>
-                <span class="field-value">{{ line.ProductName }}</span>
+          <div class="context-body">
+            <!-- Item info -->
+            <div class="item-row">
+              <div class="item-icon-wrap">
+                <ion-icon name="cube-outline"></ion-icon>
               </div>
-            }
-            <div class="field-item">
-              <span class="field-label">Ordered Qty</span>
-              <span class="field-value">{{ line.PurchaseQuantity }} {{ line.PurchaseUnitSymbol || '' }}</span>
-            </div>
-            <div class="field-item">
-              <span class="field-label">Remaining Qty</span>
-              <span class="field-value remaining">{{ remainingQty }} {{ line.PurchaseUnitSymbol || '' }}</span>
-            </div>
-            @if (line.ReceivingWarehouseId) {
-              <div class="field-item">
-                <span class="field-label">Warehouse</span>
-                <span class="field-value">{{ line.ReceivingWarehouseId }}</span>
+              <div class="item-info">
+                <div class="item-number">{{ line.ItemNumber }}</div>
+                @if (line.ProductName) {
+                  <div class="item-name">{{ line.ProductName }}</div>
+                }
               </div>
-            }
+            </div>
+
+            <!-- Quantity progress -->
+            <div class="qty-section">
+              <div class="qty-header">
+                <span class="qty-label">Receipt Progress</span>
+                <span class="qty-pct">
+                  {{ line.PurchaseQuantity > 0 ? (((line.PurchaseQuantity - remainingQty) / line.PurchaseQuantity) * 100 | number:'1.0-0') : 0 }}% received
+                </span>
+              </div>
+              <div class="qty-track">
+                <div class="qty-fill"
+                  [style.width.%]="line.PurchaseQuantity > 0 ? ((line.PurchaseQuantity - remainingQty) / line.PurchaseQuantity) * 100 : 0">
+                </div>
+              </div>
+              <div class="qty-values">
+                <div class="qty-stat">
+                  <span class="qty-num">{{ line.PurchaseQuantity }} {{ line.PurchaseUnitSymbol || '' }}</span>
+                  <span class="qty-desc">Ordered</span>
+                </div>
+                <div class="qty-stat remaining">
+                  <span class="qty-num">{{ remainingQty }} {{ line.PurchaseUnitSymbol || '' }}</span>
+                  <span class="qty-desc">Remaining</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Extra fields -->
+            <div class="context-fields">
+              @if (line.ReceivingWarehouseId) {
+                <div class="field-item">
+                  <span class="field-label">Warehouse</span>
+                  <span class="field-value">{{ line.ReceivingWarehouseId }}</span>
+                </div>
+              }
+              @if (line.PurchasePrice !== null && line.PurchasePrice !== undefined) {
+                <div class="field-item">
+                  <span class="field-label">Unit Price</span>
+                  <span class="field-value">{{ line.PurchasePrice | number:'1.2-2' }}</span>
+                </div>
+              }
+            </div>
           </div>
         </ion-card-content>
       </ion-card>
@@ -59,25 +89,32 @@
 
         <!-- Packing Slip ID -->
         <div class="form-field">
-          <ion-label class="field-label">Packing Slip ID <span class="required">*</span></ion-label>
+          <ion-label class="field-label">
+            Packing Slip ID <span class="required">*</span>
+          </ion-label>
           <ion-input
             formControlName="packingSlipId"
             type="text"
-            placeholder="Enter packing slip ID"
+            placeholder="e.g. SLP-2024-001"
             class="custom-input"
             [class.invalid]="form.get('packingSlipId')?.invalid && form.get('packingSlipId')?.touched">
           </ion-input>
           @if (form.get('packingSlipId')?.invalid && form.get('packingSlipId')?.touched) {
-            <p class="field-error">Packing slip ID is required.</p>
+            <p class="field-error">
+              <ion-icon name="alert-circle-outline"></ion-icon>
+              Packing slip ID is required.
+            </p>
           }
         </div>
 
         <!-- Receipt Quantity -->
         <div class="form-field">
           <div class="qty-label-row">
-            <ion-label class="field-label">Receipt Quantity <span class="required">*</span></ion-label>
+            <ion-label class="field-label">
+              Receipt Quantity <span class="required">*</span>
+            </ion-label>
             <ion-button fill="clear" size="small" class="max-btn" (click)="setMaxQty()">
-              Set Max ({{ remainingQty }})
+              Use Max ({{ remainingQty }})
             </ion-button>
           </div>
           <ion-input
@@ -91,13 +128,22 @@
             [class.invalid]="form.get('receiptQty')?.invalid && form.get('receiptQty')?.touched">
           </ion-input>
           @if (form.get('receiptQty')?.errors?.['required'] && form.get('receiptQty')?.touched) {
-            <p class="field-error">Quantity is required.</p>
+            <p class="field-error">
+              <ion-icon name="alert-circle-outline"></ion-icon>
+              Quantity is required.
+            </p>
           }
           @if (form.get('receiptQty')?.errors?.['min'] && form.get('receiptQty')?.touched) {
-            <p class="field-error">Quantity must be greater than 0.</p>
+            <p class="field-error">
+              <ion-icon name="alert-circle-outline"></ion-icon>
+              Quantity must be greater than 0.
+            </p>
           }
           @if (form.get('receiptQty')?.errors?.['max'] && form.get('receiptQty')?.touched) {
-            <p class="field-error">Quantity cannot exceed remaining qty ({{ remainingQty }}).</p>
+            <p class="field-error">
+              <ion-icon name="alert-circle-outline"></ion-icon>
+              Cannot exceed remaining quantity ({{ remainingQty }}).
+            </p>
           }
         </div>
 
@@ -113,7 +159,7 @@
         [disabled]="form.invalid || isSubmitting">
         @if (isSubmitting) {
           <ion-spinner name="crescent" slot="start"></ion-spinner>
-          Posting...
+          Posting Receipt...
         } @else {
           <ion-icon slot="start" name="checkmark-circle-outline"></ion-icon>
           Post Receipt
