@@ -178,7 +178,7 @@ export class SalesOrderDetailPage implements OnInit {
   async deleteOrder() {
     // Replace with API call
     const toast = await this.toastCtrl.create({
-      message: 'Order deleted successfully',
+      message: 'Order deleted.',
       duration: 2000,
       color: 'success',
       position: 'bottom'
@@ -205,7 +205,7 @@ export class SalesOrderDetailPage implements OnInit {
             // Replace with API call
             this.order!.status = newStatus;
             const toast = await this.toastCtrl.create({
-              message: 'Status updated successfully',
+              message: 'Status updated.',
               duration: 2000,
               color: 'success',
               position: 'bottom'

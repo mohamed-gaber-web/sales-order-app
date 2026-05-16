@@ -62,7 +62,7 @@ export class SalesOrderFormPage implements OnInit {
       error: async () => {
         this.isLoading = false;
         const toast = await this.toastCtrl.create({
-          message: 'Failed to load data. Please try again.',
+          message: 'Couldn\'t load form data. Try again.',
           duration: 3000,
           color: 'danger',
           position: 'bottom'
@@ -76,7 +76,7 @@ export class SalesOrderFormPage implements OnInit {
     if (this.orderForm.invalid) {
       this.orderForm.markAllAsTouched();
       const toast = await this.toastCtrl.create({
-        message: 'Please fill in all required fields',
+        message: 'Fill in all required fields to continue.',
         duration: 2000,
         color: 'danger',
         position: 'bottom'
@@ -87,7 +87,7 @@ export class SalesOrderFormPage implements OnInit {
 
     this.isSubmitting = true;
     const loading = await this.loadingCtrl.create({
-      message: 'Creating sales order...',
+      message: 'Creating order...',
       spinner: 'crescent'
     });
     await loading.present();
@@ -102,7 +102,7 @@ export class SalesOrderFormPage implements OnInit {
         this.isSubmitting = false;
         await loading.dismiss();
         const toast = await this.toastCtrl.create({
-          message: 'Sales order created successfully',
+          message: 'Order created.',
           duration: 2000,
           color: 'success',
           position: 'bottom'
@@ -114,7 +114,7 @@ export class SalesOrderFormPage implements OnInit {
         this.isSubmitting = false;
         await loading.dismiss();
         const toast = await this.toastCtrl.create({
-          message: 'Failed to create sales order. Please try again.',
+          message: 'Couldn\'t create order. Try again.',
           duration: 3000,
           color: 'danger',
           position: 'bottom'

@@ -62,7 +62,7 @@ export class PurchaseOrderReceivePage implements OnInit {
     const { receiptQty, packingSlipId } = this.form.value as { receiptQty: number; packingSlipId: string };
 
     const loading = await this.loadingCtrl.create({
-      message: 'Posting receipt...',
+      message: 'Recording receipt...',
       spinner: 'crescent'
     });
     await loading.present();
@@ -81,7 +81,7 @@ export class PurchaseOrderReceivePage implements OnInit {
         await loading.dismiss();
         this.isSubmitting = false;
         const toast = await this.toastCtrl.create({
-          message: `Receipt posted successfully for line ${this.lineNumber}.`,
+          message: `Line ${this.lineNumber} received.`,
           duration: 3000,
           color: 'success',
           position: 'bottom'
@@ -96,7 +96,7 @@ export class PurchaseOrderReceivePage implements OnInit {
         const toast = await this.toastCtrl.create({
           message: d365Message
             ? `Receipt failed: ${d365Message}`
-            : 'Failed to post receipt. Please try again.',
+            : 'Receipt failed. Check your connection and try again.',
           duration: 5000,
           color: 'danger',
           position: 'bottom'

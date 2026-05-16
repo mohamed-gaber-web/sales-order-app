@@ -67,7 +67,7 @@ export class SalesOrderListPage {
       error: async () => {
         this.isLoading = false;
         const toast = await this.toastCtrl.create({
-          message: 'Failed to load sales orders. Please try again.',
+          message: 'Couldn\'t load orders. Pull down to refresh.',
           duration: 3000,
           color: 'danger',
           position: 'bottom'
@@ -97,7 +97,7 @@ export class SalesOrderListPage {
         this.isLoadingMore = false;
         event.target.complete();
         const toast = await this.toastCtrl.create({
-          message: 'Failed to load more orders.',
+          message: 'Couldn\'t load more orders.',
           duration: 3000,
           color: 'danger',
           position: 'bottom'
@@ -119,7 +119,7 @@ export class SalesOrderListPage {
       error: async () => {
         this.isLoadingMore = false;
         const toast = await this.toastCtrl.create({
-          message: 'Failed to load more orders.',
+          message: 'Couldn\'t load more orders.',
           duration: 3000,
           color: 'danger',
           position: 'bottom'
@@ -164,7 +164,7 @@ export class SalesOrderListPage {
       error: async () => {
         this.isSearching = false;
         const toast = await this.toastCtrl.create({
-          message: 'Search failed. Please try again.',
+          message: 'Search failed. Try again.',
           duration: 3000,
           color: 'danger',
           position: 'bottom'
@@ -210,7 +210,7 @@ export class SalesOrderListPage {
       error: async () => {
         event.target.complete();
         const toast = await this.toastCtrl.create({
-          message: 'Failed to refresh orders.',
+          message: 'Refresh failed. Try again.',
           duration: 3000,
           color: 'danger',
           position: 'bottom'

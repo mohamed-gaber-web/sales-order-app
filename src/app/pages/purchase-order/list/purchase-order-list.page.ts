@@ -67,7 +67,7 @@ export class PurchaseOrderListPage {
       error: async () => {
         this.isLoading = false;
         const toast = await this.toastCtrl.create({
-          message: 'Failed to load purchase orders. Please try again.',
+          message: 'Couldn\'t load orders. Pull down to refresh.',
           duration: 3000,
           color: 'danger',
           position: 'bottom'
@@ -97,7 +97,7 @@ export class PurchaseOrderListPage {
         this.isLoadingMore = false;
         (event.target as HTMLIonInfiniteScrollElement).complete();
         const toast = await this.toastCtrl.create({
-          message: 'Failed to load more orders.',
+          message: 'Couldn\'t load more orders.',
           duration: 3000,
           color: 'danger',
           position: 'bottom'
@@ -119,7 +119,7 @@ export class PurchaseOrderListPage {
       error: async () => {
         this.isLoadingMore = false;
         const toast = await this.toastCtrl.create({
-          message: 'Failed to load more orders.',
+          message: 'Couldn\'t load more orders.',
           duration: 3000,
           color: 'danger',
           position: 'bottom'
@@ -161,7 +161,7 @@ export class PurchaseOrderListPage {
       error: async () => {
         this.isSearching = false;
         const toast = await this.toastCtrl.create({
-          message: 'Search failed. Please try again.',
+          message: 'Search failed. Try again.',
           duration: 3000,
           color: 'danger',
           position: 'bottom'
@@ -203,7 +203,7 @@ export class PurchaseOrderListPage {
       error: async () => {
         (event.target as HTMLIonRefresherElement).complete();
         const toast = await this.toastCtrl.create({
-          message: 'Failed to refresh orders.',
+          message: 'Refresh failed. Try again.',
           duration: 3000,
           color: 'danger',
           position: 'bottom'

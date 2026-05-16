@@ -21,11 +21,13 @@ export class AuthInterceptor implements HttpInterceptor {
     }
 
     // Only attach token to requests going to our D365 API
-    // Web: relative paths like /data/...
-    // Native: full URL like https://growpath.sandbox.../data/...
+    // Web: relative paths like /data/... or /api/services/...
+    // Native: full URL like https://gp-customers.../data/... or .../api/services/...
     const isD365Request =
       req.url.startsWith('/data') ||
-      req.url.startsWith(environment.d365BaseUrl + '/data');
+      req.url.startsWith('/api/services') ||
+      req.url.startsWith(environment.d365BaseUrl + '/data') ||
+      req.url.startsWith(environment.d365BaseUrl + '/api/services');
     if (!isD365Request) {
       return next.handle(req);
     }

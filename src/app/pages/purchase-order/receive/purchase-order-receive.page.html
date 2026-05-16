@@ -3,7 +3,7 @@
     <ion-buttons slot="start">
       <ion-back-button [defaultHref]="'/purchase-order/detail/' + poNumber"></ion-back-button>
     </ion-buttons>
-    <ion-title>Receive Item</ion-title>
+    <ion-title>Receive</ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -159,10 +159,10 @@
         [disabled]="form.invalid || isSubmitting">
         @if (isSubmitting) {
           <ion-spinner name="crescent" slot="start"></ion-spinner>
-          Posting Receipt...
+          Confirming...
         } @else {
           <ion-icon slot="start" name="checkmark-circle-outline"></ion-icon>
-          Post Receipt
+          Confirm Receipt
         }
       </ion-button>
     </div>

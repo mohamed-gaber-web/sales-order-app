@@ -16,14 +16,14 @@ module.exports = {
 
   // D365 OData API
   '/data': {
-    target: 'https://gp-customers.sandbox.operations.eu.dynamics.com',
+    target: 'https://growpath.sandbox.operations.eu.dynamics.com',
     changeOrigin: true,
     secure: true,
   },
 
   // D365 custom services (e.g. product receipt)
   '/api/services': {
-    target: 'https://gp-customers.sandbox.operations.eu.dynamics.com',
+    target: 'https://growpath.sandbox.operations.eu.dynamics.com',
     changeOrigin: true,
     secure: true,
   },

@@ -69,3 +69,21 @@ Use `Platform.is('capacitor')` to branch between native and web paths. Native go
 - RxJS 7.8, TypeScript 5.9 (strict mode)
 - Jasmine 5.1 + Karma 6.4 (Chrome launcher)
 - ESLint 9 with `@angular-eslint` and `@typescript-eslint`
+
+## Design Context
+
+### Users
+Field sales reps and warehouse staff using the app on mobile while on the floor or in the field. Time-pressured; need information fast without hunting through UI. Occasionally on desktop for heavier data entry tasks.
+
+### Brand Personality
+Trustworthy · Professional · Precise
+
+### Aesthetic Direction
+Typography-led, structured, and calm — inspired by Linear and Notion. Navy primary (`#002559`) with orange accent (`#F24C1A`). No decorative clutter. Dark mode supported via `body.ion-palette-dark` CSS class.
+
+### Design Principles
+1. **Every word earns its place** — direct, present-tense labels and messages; no jargon, no redundancy.
+2. **Status at a glance** — color-coded strips and badges surface state without requiring the user to read.
+3. **Mobile-first, desktop-capable** — layouts adapt; no functionality is hidden on small screens.
+4. **Calm under pressure** — no alarming microcopy; errors say what happened and what to do next.
+5. **Consistent vocabulary** — pick one term per concept and use it everywhere (e.g., "Receive" not "Receive Item").

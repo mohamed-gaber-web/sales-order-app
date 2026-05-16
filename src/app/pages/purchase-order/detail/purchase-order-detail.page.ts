@@ -52,7 +52,7 @@ export class PurchaseOrderDetailPage implements OnInit {
       error: async () => {
         this.isLoading = false;
         const toast = await this.toastCtrl.create({
-          message: 'Failed to load purchase order details.',
+          message: 'Couldn\'t load this order. Tap retry.',
           duration: 3000,
           color: 'danger',
           position: 'bottom'
