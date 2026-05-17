@@ -134,6 +134,15 @@ export class InventoryHomePage {
       color: '#0284c7',
       route: '/inventory/inquiry',
     },
+    {
+      id: 'AI-01',
+      title: 'AI Hub',
+      subtitle: '45 smart warehouse capabilities',
+      icon: 'sparkles-outline',
+      color: '#22d3ee',
+      route: '/inventory/ai-hub',
+      badge: 'NEW',
+    },
   ];
 
   constructor(

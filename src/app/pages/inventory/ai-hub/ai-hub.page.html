@@ -1,0 +1,187 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/inventory" text="" aria-label="Back"></ion-back-button>
+    </ion-buttons>
+    <ion-title>AI Hub</ion-title>
+  </ion-toolbar>
+  <ion-toolbar>
+    <ion-searchbar
+      [value]="searchQuery"
+      (ionInput)="onSearchInput($event)"
+      placeholder="Search capabilities..."
+      animated="true"
+      class="list-searchbar"
+      aria-label="Search AI capabilities">
+    </ion-searchbar>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ai-content">
+
+  <!-- ── Page intro ─────────────────────────────────────────── -->
+  <div class="ai-intro">
+    <div class="ai-intro-left">
+      <p class="ai-intro-label">
+        <ion-icon name="sparkles-outline"></ion-icon>
+        Powered Module
+      </p>
+      <h2 class="ai-intro-title">Smart Warehouse<br>Intelligence</h2>
+      <p class="ai-intro-sub">45 AI capabilities across 10 domains embedded in your warehouse workflows.</p>
+    </div>
+    <div class="ai-stats-col">
+      <div class="ai-stat-card">
+        <span class="ai-stat-num">{{ visibleCount }}</span>
+        <span class="ai-stat-lbl">Features</span>
+      </div>
+      <div class="ai-stat-card">
+        <span class="ai-stat-num">10</span>
+        <span class="ai-stat-lbl">Domains</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Filter chips ───────────────────────────────────────── -->
+  <div class="ai-chips-wrap">
+    <div class="ai-chips-scroll">
+      @for (chip of chips; track chip.value) {
+        <button
+          class="ai-chip"
+          [class.ai-chip--active]="activeFilter === chip.value"
+          (click)="selectFilter(chip.value)"
+          [attr.aria-pressed]="activeFilter === chip.value">
+          {{ chip.label }}
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- ── Categories ─────────────────────────────────────────── -->
+  <div class="ai-list">
+
+    @if (visibleCategories.length === 0) {
+      <div class="empty-state">
+        <div class="empty-icon-wrap">
+          <ion-icon name="search-outline"></ion-icon>
+        </div>
+        <h3>No capabilities found</h3>
+        <p>Try a different keyword or filter</p>
+      </div>
+    }
+
+    @for (cat of visibleCategories; track cat.id) {
+      <div class="ai-cat-card" [class.ai-cat-card--open]="isCategoryOpen(cat.id)">
+
+        <!-- Category header -->
+        <button
+          class="ai-cat-head"
+          (click)="toggleCategory(cat.id)"
+          [attr.aria-expanded]="isCategoryOpen(cat.id)">
+          <div class="ai-cat-accent"></div>
+          <span class="ai-cat-emoji" aria-hidden="true">{{ cat.icon }}</span>
+          <div class="ai-cat-info">
+            <span class="ai-cat-title">{{ cat.title }}</span>
+            <span class="ai-cat-sub">{{ cat.subtitle }}</span>
+          </div>
+          <ion-badge class="ai-cat-count">{{ cat.features.length }}</ion-badge>
+          <ion-icon
+            name="chevron-forward-outline"
+            class="ai-cat-chevron"
+            [class.ai-cat-chevron--open]="isCategoryOpen(cat.id)"
+            aria-hidden="true">
+          </ion-icon>
+        </button>
+
+        <!-- Feature rows -->
+        <div class="ai-feat-list" [class.ai-feat-list--open]="isCategoryOpen(cat.id)">
+          <div class="ai-feat-inner">
+            @for (feat of cat.features; track feat.number) {
+              <button
+                class="ai-feat-row"
+                (click)="openFeature(feat, cat)"
+                [attr.aria-label]="feat.title">
+                <span class="ai-feat-num">{{ padNumber(feat.number) }}</span>
+                <div class="ai-feat-body">
+                  <span class="ai-feat-title">{{ feat.title }}</span>
+                  <span class="ai-feat-desc">{{ feat.description }}</span>
+                </div>
+                <span class="ai-tag" [class]="'ai-tag--' + feat.tag.toLowerCase()">{{ feat.tag }}</span>
+                <ion-icon name="chevron-forward-outline" class="ai-feat-arrow" aria-hidden="true"></ion-icon>
+              </button>
+            }
+          </div>
+        </div>
+
+      </div>
+    }
+  </div>
+
+</ion-content>
+
+<!-- ── Feature detail bottom sheet ───────────────────────── -->
+@if (selectedFeature && selectedCategory) {
+  <div class="ai-backdrop" (click)="closeFeature()" aria-hidden="true"></div>
+  <div class="ai-sheet" role="dialog" [attr.aria-label]="selectedFeature.title" aria-modal="true">
+
+    <div class="ai-sheet-handle" aria-hidden="true"></div>
+
+    <div class="ai-sheet-head">
+      <div class="ai-sheet-meta">
+        <span class="ai-sheet-emoji" aria-hidden="true">{{ selectedCategory.icon }}</span>
+        <span class="ai-sheet-cat">{{ selectedCategory.title }}</span>
+      </div>
+      <button class="ai-sheet-close" (click)="closeFeature()" aria-label="Close">
+        <ion-icon name="close-outline"></ion-icon>
+      </button>
+    </div>
+
+    <h2 class="ai-sheet-title">{{ selectedFeature.title }}</h2>
+
+    <div class="ai-sheet-body">
+
+      <div class="ai-sheet-section">
+        <p class="ai-section-label">What it does</p>
+        <p class="ai-sheet-desc">{{ selectedFeature.description }}</p>
+      </div>
+
+      <div class="ai-sheet-section">
+        <p class="ai-section-label">Expected impact</p>
+        <div class="ai-impact-row">
+          <div class="ai-impact-pill ai-impact-pill--green">
+            <span class="ai-impact-val">{{ selectedFeature.impact.speed }}</span>
+            <span class="ai-impact-lbl">Speed</span>
+          </div>
+          <div class="ai-impact-pill ai-impact-pill--blue">
+            <span class="ai-impact-val">{{ selectedFeature.impact.accuracy }}</span>
+            <span class="ai-impact-lbl">Accuracy</span>
+          </div>
+          <div class="ai-impact-pill ai-impact-pill--orange">
+            <span class="ai-impact-val">{{ selectedFeature.impact.time }}</span>
+            <span class="ai-impact-lbl">Time / Op</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="ai-sheet-section">
+        <p class="ai-section-label">Tech stack</p>
+        <div class="ai-tech-row">
+          <span class="ai-tag ai-tag--lg" [class]="'ai-tag--' + selectedFeature.tag.toLowerCase()">
+            {{ selectedFeature.tag }}
+          </span>
+          <span class="ai-tech-label">{{ tagLabel(selectedFeature.tag) }}</span>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="ai-sheet-footer">
+      <ion-button fill="outline" class="ai-btn-secondary" (click)="learnMore()">
+        Learn more
+      </ion-button>
+      <ion-button class="ai-btn-primary" (click)="requestFeature()">
+        Request feature
+      </ion-button>
+    </div>
+
+  </div>
+}

@@ -119,4 +119,40 @@
     <ion-router-outlet id="main-content"></ion-router-outlet>
   </ion-split-pane>
 
+  <!-- ── Bottom Tab Bar (mobile only) ─────────────────────── -->
+  <nav class="bottom-tabs" aria-label="Main navigation">
+
+    <a class="btab" [routerLink]="['/dashboard']" [class.btab--active]="isTab('/dashboard')" aria-label="Home">
+      <div class="btab-icon-wrap">
+        <ion-icon [name]="isTab('/dashboard') ? 'home' : 'home-outline'"></ion-icon>
+      </div>
+      <span class="btab-label">Home</span>
+    </a>
+
+    <a class="btab" [routerLink]="['/inventory/ai-hub']" [class.btab--active]="isTab('/inventory/ai-hub')" aria-label="AI Hub">
+      <div class="btab-icon-wrap">
+        <div class="btab-ai-pill" [class.btab-ai-pill--active]="isTab('/inventory/ai-hub')">
+          <ion-icon name="sparkles"></ion-icon>
+          <span>AI</span>
+        </div>
+      </div>
+      <span class="btab-label">AI Hub</span>
+    </a>
+
+    <a class="btab" [routerLink]="['/inventory']" [class.btab--active]="isInventoryTab()" aria-label="Inventory">
+      <div class="btab-icon-wrap">
+        <ion-icon [name]="isInventoryTab() ? 'layers' : 'layers-outline'"></ion-icon>
+      </div>
+      <span class="btab-label">Inventory</span>
+    </a>
+
+    <button class="btab" (click)="openProfile()" aria-label="Profile">
+      <div class="btab-icon-wrap">
+        <ion-icon name="person-outline"></ion-icon>
+      </div>
+      <span class="btab-label">Profile</span>
+    </button>
+
+  </nav>
+
 </ion-app>

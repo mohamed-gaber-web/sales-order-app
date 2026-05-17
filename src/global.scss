@@ -48,9 +48,13 @@ body {
   letter-spacing: -0.01em;
 }
 
-// iOS safe area padding
+// Push content above the bottom tab bar on mobile and tablet
 ion-content {
-  --padding-bottom: env(safe-area-inset-bottom);
+  --padding-bottom: calc(60px + env(safe-area-inset-bottom));
+
+  @media (min-width: 1280px) {
+    --padding-bottom: env(safe-area-inset-bottom);
+  }
 }
 
 // ── Keyframes ────────────────────────────────────────────────
@@ -90,9 +94,8 @@ ion-content {
   }
 }
 
-// ── Glass Header System ──────────────────────────────────────
+// ── Page Header System ───────────────────────────────────────
 ion-header {
-  // Remove the default Ionic hairline shadow
   &::after { display: none !important; }
 }
 
@@ -100,31 +103,64 @@ ion-toolbar {
   --background: var(--gp-toolbar-bg);
   --color: var(--gp-toolbar-color);
   --border-color: transparent;
+  --padding-start: 4px;
+  --padding-end: 4px;
 
-  // Frosted glass via the shadow-DOM native part
   &::part(native) {
-    backdrop-filter: blur(24px) saturate(180%);
-    -webkit-backdrop-filter: blur(24px) saturate(180%);
-    border-bottom: 1px solid var(--gp-toolbar-border, rgba(0, 0, 0, 0.07));
+    border-bottom: 1px solid var(--gp-toolbar-border, rgba(255, 255, 255, 0.1));
   }
 
-  // Title typography
   ion-title {
     font-weight: 700;
-    font-size: 17px;
-    letter-spacing: -0.025em;
+    font-size: 18px;
+    letter-spacing: -0.03em;
     color: var(--gp-toolbar-color);
   }
 
-  // Back button & menu button inherit toolbar color
+  // Left-aligned title — transforms the header from generic Ionic to intentional
+  ion-title::part(native) {
+    text-align: left;
+    padding-inline-start: 2px;
+    padding-inline-end: 56px;
+  }
+
   ion-back-button,
   ion-menu-button {
     --color: var(--gp-toolbar-color);
   }
 
-  // Icon-only buttons in toolbar
   ion-button {
     --color: var(--gp-toolbar-color);
+  }
+}
+
+// Back button: chevron only, no text label
+ion-back-button::part(text) {
+  display: none;
+}
+
+// ── Searchbar in navy toolbar ─────────────────────────────────
+// Applies globally to all pages — individual pages may override
+.custom-searchbar,
+.list-searchbar {
+  --background: rgba(255, 255, 255, 0.12);
+  --border-radius: 12px;
+  --box-shadow: none;
+  --placeholder-color: rgba(255, 255, 255, 0.48);
+  --icon-color: rgba(255, 255, 255, 0.55);
+  --color: #fff;
+  --clear-button-color: rgba(255, 255, 255, 0.65);
+  --highlight-color-focused: transparent;
+  padding: 0 8px;
+  font-size: 14px;
+
+  // Orange focus ring — the single branded affordance signal
+  &.searchbar-has-focus {
+    --background: rgba(255, 255, 255, 0.19);
+    --box-shadow: 0 0 0 1.5px rgba(242, 76, 26, 0.85),
+                  0 4px 20px rgba(0, 0, 0, 0.2);
+    --icon-color: rgba(255, 255, 255, 0.9);
+    --placeholder-color: rgba(255, 255, 255, 0.65);
   }
 }
 

@@ -40,7 +40,12 @@
         </div>
         <div class="tile-label">
           <span class="tile-id">{{ tile.id }}</span>
-          <span class="tile-title">{{ tile.title }}</span>
+          <div class="tile-title-row">
+            <span class="tile-title">{{ tile.title }}</span>
+            @if (tile.badge) {
+              <span class="tile-badge">{{ tile.badge }}</span>
+            }
+          </div>
           <span class="tile-subtitle">{{ tile.subtitle }}</span>
         </div>
         <ion-icon name="chevron-forward-outline" class="tile-chevron"></ion-icon>

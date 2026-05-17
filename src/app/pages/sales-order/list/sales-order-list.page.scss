@@ -1,35 +1,10 @@
 // ── Header ─────────────────────────────────────────────────
 ion-header {
-  ion-toolbar {
-    --background: var(--gp-toolbar-bg);
-    --color: var(--gp-toolbar-color);
-
-    ion-title {
-      font-weight: 700;
-      font-size: 18px;
-      letter-spacing: -0.02em;
-    }
-
-    ion-button {
-      --color: var(--gp-toolbar-color);
-    }
-  }
-
+  // Search toolbar padding
   ion-toolbar:nth-child(2) {
-    --background: var(--gp-card-bg, #fff);
-    --padding-top: 4px;
-    --padding-bottom: 4px;
+    --padding-top: 2px;
+    --padding-bottom: 10px;
   }
-}
-
-.custom-searchbar {
-  --background: var(--gp-bg, #f0f2f5);
-  --border-radius: var(--gp-radius-md);
-  --box-shadow: none;
-  --placeholder-color: var(--ion-color-medium);
-  --icon-color: var(--ion-color-medium);
-  padding: 0 12px;
-  font-size: 14px;
 }
 
 // ── Content ────────────────────────────────────────────────
@@ -213,6 +188,55 @@ ion-fab-button {
   to   { opacity: 1; transform: translateY(0); }
 }
 
+// ── Header & Search Keyframes ──────────────────────────────
+@keyframes headerReveal {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes titleReveal {
+  from { opacity: 0; transform: translateY(-5px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes iconReveal {
+  from { opacity: 0; transform: scale(0.78); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes searchReveal {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes webHeaderReveal {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes chipReveal {
+  from { opacity: 0; transform: scale(0.55); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes actionsReveal {
+  from { opacity: 0; transform: translateX(10px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ion-header,
+  ion-title,
+  ion-menu-button,
+  .web-page-header,
+  .web-page-title,
+  .web-count-chip,
+  .web-actions {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
 // ══════════════════════════════════════════════════════════
 // DESKTOP / WEB STYLES  (≥ 992px)
 // ══════════════════════════════════════════════════════════
@@ -238,6 +262,7 @@ ion-fab-button {
     top: 0;
     z-index: 10;
     box-shadow: var(--gp-shadow-sm);
+    animation: webHeaderReveal 0.46s var(--ease-out-expo) both;
 
     .web-page-header-inner {
       display: flex;
@@ -260,6 +285,7 @@ ion-fab-button {
       color: var(--gp-navy);
       margin: 0;
       letter-spacing: -0.03em;
+      animation: titleReveal 0.48s 0.05s var(--ease-out-expo) both;
     }
 
     .web-count-chip {
@@ -270,12 +296,14 @@ ion-fab-button {
       padding: 3px 10px;
       border-radius: 999px;
       letter-spacing: 0;
+      animation: chipReveal 0.38s 0.16s var(--ease-out-expo) both;
     }
 
     .web-actions {
       display: flex;
       align-items: center;
       gap: 12px;
+      animation: actionsReveal 0.44s 0.1s var(--ease-out-expo) both;
     }
 
     .web-searchbar {
@@ -287,6 +315,14 @@ ion-fab-button {
       width: 260px;
       padding: 0;
       font-size: 14px;
+      transition: box-shadow 0.22s var(--ease-out-expo);
+
+      &.searchbar-has-focus {
+        --background: #fff;
+        --box-shadow: 0 0 0 2px rgba(242, 76, 26, 0.28),
+                      0 4px 20px rgba(0, 0, 0, 0.07);
+        --icon-color: var(--gp-accent);
+      }
     }
 
     .web-create-btn {
@@ -298,6 +334,18 @@ ion-fab-button {
       text-transform: none;
       height: 40px;
       letter-spacing: -0.01em;
+      transition: transform 0.2s var(--ease-out-expo),
+                  --box-shadow 0.2s ease;
+
+      &:hover {
+        --box-shadow: 0 6px 22px rgba(var(--ion-color-secondary-rgb), 0.46);
+        transform: translateY(-1px);
+      }
+
+      &:active {
+        transform: scale(0.96) translateY(0);
+        --box-shadow: 0 2px 8px rgba(var(--ion-color-secondary-rgb), 0.22);
+      }
     }
   }
 

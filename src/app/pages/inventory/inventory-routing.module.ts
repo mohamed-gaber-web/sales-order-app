@@ -66,6 +66,10 @@ const routes: Routes = [
     path: 'inquiry',
     loadChildren: () => import('./inquiry/inquiry.module').then(m => m.InquiryModule)
   },
+  {
+    path: 'ai-hub',
+    loadChildren: () => import('./ai-hub/ai-hub.module').then(m => m.AiHubModule)
+  },
 ];
 
 @NgModule({

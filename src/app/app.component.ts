@@ -1,4 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Router, NavigationEnd } from '@angular/router';
+import { ToastController } from '@ionic/angular';
+import { filter, takeUntil } from 'rxjs/operators';
+import { Subject } from 'rxjs';
 import { ThemeService } from './core';
 
 @Component({
@@ -7,7 +11,9 @@ import { ThemeService } from './core';
   styleUrls: ['app.component.scss'],
   standalone: false,
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+  currentUrl = '';
   public menuGroups = [
     {
       title: 'Inventory',
@@ -63,7 +69,8 @@ export class AppComponent implements OnInit {
       icon: 'search',
       expanded: false,
       items: [
-        { title: 'On Hand List', url: '/inventory/on-hand', icon: 'stats-chart' },
+        { title: 'On Hand List',      url: '/inventory/on-hand',  icon: 'stats-chart' },
+        { title: 'Inventory Inquiry', url: '/inventory/inquiry',  icon: 'search' },
       ]
     },
   ];
@@ -80,10 +87,44 @@ export class AppComponent implements OnInit {
   readonly themeMode = this.themeService.mode;
   readonly isDark = this.themeService.isDark;
 
-  constructor(private themeService: ThemeService) {}
+  constructor(
+    private themeService: ThemeService,
+    private router: Router,
+    private toastCtrl: ToastController,
+  ) {}
+
+  isTab(path: string): boolean {
+    return this.currentUrl.startsWith(path);
+  }
+
+  isInventoryTab(): boolean {
+    return this.currentUrl.startsWith('/inventory') &&
+           !this.currentUrl.startsWith('/inventory/ai-hub');
+  }
+
+  async openProfile() {
+    const toast = await this.toastCtrl.create({
+      message: 'Profile — Coming Soon',
+      duration: 2000,
+      position: 'bottom',
+      color: 'dark',
+    });
+    await toast.present();
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
 
   ngOnInit() {
     this.themeService.initialize();
+    this.router.events.pipe(
+      filter(e => e instanceof NavigationEnd),
+      takeUntil(this.destroy$),
+    ).subscribe((e) => {
+      this.currentUrl = (e as NavigationEnd).urlAfterRedirects;
+    });
     setTimeout(() => {
       this.splashFading = true;
       setTimeout(() => { this.showSplash = false; }, 500);

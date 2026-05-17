@@ -1,38 +1,9 @@
 // ── Header ─────────────────────────────────────────────────
 ion-header {
-  ion-toolbar {
-    --background: var(--gp-toolbar-bg);
-    --color: var(--gp-toolbar-color);
-    --border-color: transparent;
-
-    ion-title {
-      font-size: 18px;
-      font-weight: 700;
-      letter-spacing: -0.025em;
-    }
-
-    ion-menu-button {
-      color: var(--gp-toolbar-color);
-    }
-  }
-
   ion-toolbar:last-child {
-    --background: var(--gp-toolbar-bg);
     --padding-bottom: 10px;
-    --padding-top: 0;
+    --padding-top: 2px;
   }
-}
-
-.custom-searchbar {
-  --background: rgba(255, 255, 255, 0.14);
-  --border-radius: 12px;
-  --box-shadow: none;
-  --placeholder-color: rgba(255, 255, 255, 0.55);
-  --icon-color: rgba(255, 255, 255, 0.55);
-  --color: #fff;
-  --clear-button-color: rgba(255, 255, 255, 0.7);
-  padding: 0 8px;
-  font-size: 14px;
 }
 
 // ── Content ────────────────────────────────────────────────
@@ -256,6 +227,55 @@ ion-header {
   to   { opacity: 1; transform: translateY(0); }
 }
 
+// ── Header & Search Keyframes ──────────────────────────────
+@keyframes headerReveal {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes titleReveal {
+  from { opacity: 0; transform: translateY(-5px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes iconReveal {
+  from { opacity: 0; transform: scale(0.78); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes searchReveal {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes webHeaderReveal {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes chipReveal {
+  from { opacity: 0; transform: scale(0.55); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes actionsReveal {
+  from { opacity: 0; transform: translateX(10px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ion-header,
+  ion-title,
+  ion-menu-button,
+  .web-page-header,
+  .web-page-title,
+  .web-count-chip,
+  .web-actions {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
 // ══════════════════════════════════════════════════════════
 // DESKTOP (≥ 992px)
 // ══════════════════════════════════════════════════════════
@@ -271,6 +291,7 @@ ion-header {
     top: 0;
     z-index: 10;
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+    animation: webHeaderReveal 0.46s var(--ease-out-expo) both;
 
     .web-page-header-inner {
       display: flex;
@@ -293,6 +314,7 @@ ion-header {
       color: var(--gp-navy);
       margin: 0;
       letter-spacing: -0.03em;
+      animation: titleReveal 0.48s 0.05s var(--ease-out-expo) both;
     }
 
     .web-count-chip {
@@ -302,9 +324,15 @@ ion-header {
       font-weight: 700;
       padding: 3px 10px;
       border-radius: 999px;
+      animation: chipReveal 0.38s 0.16s var(--ease-out-expo) both;
     }
 
-    .web-actions { display: flex; align-items: center; gap: 12px; }
+    .web-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      animation: actionsReveal 0.44s 0.1s var(--ease-out-expo) both;
+    }
 
     .web-searchbar {
       --background: var(--gp-bg);
@@ -315,6 +343,14 @@ ion-header {
       width: 280px;
       padding: 0;
       font-size: 14px;
+      transition: box-shadow 0.22s var(--ease-out-expo);
+
+      &.searchbar-has-focus {
+        --background: #fff;
+        --box-shadow: 0 0 0 2px rgba(242, 76, 26, 0.28),
+                      0 4px 20px rgba(0, 0, 0, 0.07);
+        --icon-color: var(--gp-accent);
+      }
     }
   }
 

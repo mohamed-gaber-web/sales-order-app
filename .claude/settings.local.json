@@ -42,7 +42,13 @@
       "Bash(findstr transfer *)",
       "WebFetch(domain:instructions)",
       "Bash(dir D:\\\\Grow Path\\\\Dynamic with app\\\\grow-path\\\\src *)",
-      "Bash(npm install *)"
+      "Bash(npm install *)",
+      "Bash(Get-ChildItem -Path \"D:\\\\Grow Path\\\\Dynamic with app\\\\grow-path\\\\src\\\\app\" -Recurse -Directory)",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(npm start *)",
+      "Skill(impeccable:animate)",
+      "Bash(copy *)",
+      "Bash(.\\\\gradlew assembleDebug)"
     ]
   }
 }

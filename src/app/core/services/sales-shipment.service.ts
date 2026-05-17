@@ -22,7 +22,7 @@ export class SalesShipmentService {
     return this.api.get<ODataResponse<SalesShipmentHeader>>(
       '/data/GP_SalesHeaderAndLineData',
       {
-        '$filter': `dataAreaId eq 'usmf' and RemainInventPhysical gt 0 and SalesTable_SalesStatus eq Microsoft.Dynamics.DataEntities.SalesStatus'Backorder' and SalesStatus eq Microsoft.Dynamics.DataEntities.SalesStatus'Backorder'`,
+        '$filter': `dataAreaId eq 'usmf' and ${SS_FILTER}`,
         '$top': String(SS_PAGE_SIZE),
         '$skip': String(skip),
         '$count': 'true',
@@ -35,7 +35,7 @@ export class SalesShipmentService {
     return this.api.get<ODataResponse<SalesShipmentHeader>>(
       '/data/GP_SalesHeaderAndLineData',
       {
-        '$filter': `dataAreaId eq 'usmf' and RemainInventPhysical gt 0 and SalesTable_SalesStatus eq Microsoft.Dynamics.DataEntities.SalesStatus'Backorder' and SalesStatus eq Microsoft.Dynamics.DataEntities.SalesStatus'Backorder'`,
+        '$filter': `dataAreaId eq 'usmf' and ${SS_FILTER}`,
         '$count': 'true',
         '$orderby': 'SalesOrderNumber desc',
       }

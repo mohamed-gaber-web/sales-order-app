@@ -329,6 +329,80 @@ ion-menu {
   }
 }
 
+// ── Bottom Tab Bar ─────────────────────────────────────────
+.bottom-tabs {
+  display: flex;
+  align-items: stretch;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 500;
+  height: calc(60px + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  background: var(--gp-card-bg, #fff);
+  border-top: 1px solid var(--gp-border, #e5e7eb);
+  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.08);
+
+  // Hide only on large desktops — tablets keep the tab bar
+  @media (min-width: 1280px) {
+    display: none;
+  }
+}
+
+.btab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  color: var(--ion-color-medium);
+  transition: color 0.18s;
+  -webkit-tap-highlight-color: transparent;
+  min-height: 60px;
+
+  &--active {
+    color: var(--gp-navy, #002559);
+  }
+
+  &:active .btab-icon-wrap {
+    transform: scale(0.88);
+  }
+}
+
+.btab-icon-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 28px;
+  border-radius: 14px;
+  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), background 0.18s;
+
+  .btab--active & {
+    background: rgba(0, 37, 89, 0.08);
+  }
+
+  ion-icon {
+    font-size: 22px;
+    transition: color 0.18s;
+  }
+}
+
+.btab-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+
+
 @media (min-width: 992px) {
   ion-menu {
     --width: 260px;

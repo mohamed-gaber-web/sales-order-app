@@ -3,33 +3,10 @@
 // Shared with purchase-order-list.page.scss pattern
 
 ion-header {
-  ion-toolbar {
-    --background: var(--gp-toolbar-bg);
-    --color: var(--gp-toolbar-color);
-    --border-color: transparent;
-
-    ion-title {
-      font-size: 18px;
-      font-weight: 700;
-      letter-spacing: -0.025em;
-    }
-  }
-
   ion-toolbar:last-child {
-    --background: var(--gp-toolbar-bg);
     --padding-bottom: 10px;
-    --padding-top: 0;
+    --padding-top: 2px;
   }
-}
-
-.custom-searchbar {
-  --background: rgba(255, 255, 255, 0.14);
-  --border-radius: 12px;
-  --box-shadow: none;
-  --placeholder-color: rgba(255, 255, 255, 0.55);
-  --icon-color: rgba(255, 255, 255, 0.55);
-  --color: #fff;
-  padding: 0 8px;
 }
 
 .on-hand-content { --background: var(--gp-bg); }
@@ -233,4 +210,35 @@ ion-header {
 @keyframes fadeSlideUp {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+// ── Header & Search Keyframes ──────────────────────────────
+@keyframes headerReveal {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes titleReveal {
+  from { opacity: 0; transform: translateY(-5px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes iconReveal {
+  from { opacity: 0; transform: scale(0.78); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes searchReveal {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ion-header,
+  ion-title,
+  ion-back-button,
+  ion-button {
+    animation: none !important;
+    transition: none !important;
+  }
 }
