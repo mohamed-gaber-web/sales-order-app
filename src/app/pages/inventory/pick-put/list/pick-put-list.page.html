@@ -1,0 +1,76 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/inventory" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Pick &amp; Put</ion-title>
+  </ion-toolbar>
+  <ion-toolbar class="segment-toolbar">
+    <ion-segment [value]="segment" (ionChange)="segmentChanged($event)" class="gp-segment">
+      <ion-segment-button value="my">My Work</ion-segment-button>
+      <ion-segment-button value="all">All Work</ion-segment-button>
+    </ion-segment>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="pp-content">
+
+  <!-- Work List -->
+  @if (visibleWork.length > 0) {
+    <div class="work-list">
+      @for (item of visibleWork; track item.workId) {
+        <div class="work-card" (click)="openWork(item)">
+          <div class="card-layout">
+            <div class="type-strip" [class.strip-picking]="item.workType === 'Picking'" [class.strip-putting]="item.workType === 'Putting'"></div>
+            <div class="card-body">
+              <div class="card-top">
+                <div class="card-ids">
+                  <span class="work-id">{{ item.workId }}</span>
+                  <span class="ref-id">{{ item.referenceId }}</span>
+                </div>
+                <div class="card-badges">
+                  <ion-badge [color]="getWorkTypeColor(item.workType)" class="type-badge">
+                    {{ item.workType }}
+                  </ion-badge>
+                  <ion-badge [color]="getStatusColor(item.status)" class="status-badge">
+                    {{ item.status }}
+                  </ion-badge>
+                </div>
+              </div>
+              @if (item.assignedTo) {
+                <div class="assigned-row">
+                  <ion-icon name="person-outline"></ion-icon>
+                  <span>{{ item.assignedTo }}</span>
+                </div>
+              }
+            </div>
+            <ion-icon name="chevron-forward-outline" class="chevron-icon"></ion-icon>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Empty State (My Work) -->
+  @if (segment === 'my' && myWork.length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon-wrap">
+        <ion-icon name="layers-outline"></ion-icon>
+      </div>
+      <h3>No Work Assigned</h3>
+      <p>System-directed picking work will appear here when assigned to you. Check with your supervisor or scan a work order to begin.</p>
+    </div>
+  }
+
+  <!-- Empty State (All Work) -->
+  @if (segment === 'all' && allWork.length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon-wrap">
+        <ion-icon name="layers-outline"></ion-icon>
+      </div>
+      <h3>No Work Orders</h3>
+      <p>No open work orders found. New work is created automatically when orders are released to the warehouse.</p>
+    </div>
+  }
+
+</ion-content>

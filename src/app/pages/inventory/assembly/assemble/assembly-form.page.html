@@ -1,0 +1,104 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/inventory/assembly" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Assembly</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="page-content">
+  <div class="page-body">
+
+    <!-- Order header banner -->
+    <div class="order-banner">
+      <div class="banner-icon-wrap">
+        <ion-icon name="git-merge-outline"></ion-icon>
+      </div>
+      <div class="banner-details">
+        <p class="banner-label">Assembly Order</p>
+        <p class="banner-value">{{ orderNumber }}</p>
+        <p class="banner-sub">{{ parentItemName }}</p>
+      </div>
+      <div class="banner-right">
+        <div class="banner-qty-block">
+          <p class="banner-label">Qty</p>
+          <p class="banner-value">{{ quantity }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Status / warehouse row -->
+    <div class="meta-row">
+      <span class="meta-pill" [style.color]="getStatusColor()" [style.background]="getStatusBg()">
+        {{ status }}
+      </span>
+      <span class="meta-wh">
+        <ion-icon name="business-outline"></ion-icon>
+        {{ warehouseId }}
+      </span>
+    </div>
+
+    <!-- BOM lines -->
+    <div class="section-header">
+      <span class="section-title">Bill of Materials</span>
+      <span class="section-count">{{ issuedCount }}/{{ bomLines.length }} issued</span>
+    </div>
+
+    <div class="bom-list">
+      @for (line of bomLines; track line.itemNumber) {
+        <div class="bom-card" [class.issued]="line.issued">
+          <div class="bom-card-body">
+            <div class="bom-top">
+              <div class="bom-item-info">
+                <span class="bom-item-number">{{ line.itemNumber }}</span>
+                <span class="bom-item-name">{{ line.itemName }}</span>
+              </div>
+              <div class="bom-qty">
+                <span class="bom-qty-value">{{ line.requiredQuantity }}</span>
+                <span class="bom-qty-unit">{{ line.unitSymbol }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="bom-check-col">
+            <label class="issued-toggle" [class.checked]="line.issued">
+              <input type="checkbox" [(ngModel)]="line.issued" />
+              <ion-icon [name]="line.issued ? 'checkmark-circle' : 'ellipse-outline'"></ion-icon>
+              <span>{{ line.issued ? 'Issued' : 'Issue' }}</span>
+            </label>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Progress summary -->
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-track">
+        <div class="progress-bar-fill" [style.width.%]="(issuedCount / bomLines.length) * 100"></div>
+      </div>
+      <span class="progress-label">{{ issuedCount }} of {{ bomLines.length }} components issued</span>
+    </div>
+
+    <!-- Info notice -->
+    <div class="info-box">
+      <ion-icon name="information-circle-outline"></ion-icon>
+      <p>Check each component once it has been picked from the warehouse. Submit when all lines are confirmed.</p>
+    </div>
+
+    <!-- Submit -->
+    <ion-button
+      expand="block"
+      class="action-btn"
+      (click)="submit()"
+      [disabled]="isSubmitting || bomLines.length === 0">
+      @if (isSubmitting) {
+        <ion-spinner name="crescent" slot="start"></ion-spinner>
+        Posting Assembly...
+      } @else {
+        <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+        Post Assembly
+      }
+    </ion-button>
+
+  </div>
+</ion-content>

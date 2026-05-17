@@ -5,6 +5,8 @@ import { ODataResponse } from '../models/lookup.models';
 import {
   CreateSalesOrderHeaderDto,
   SalesOrderHeaderResponse,
+  CreatePackingSlipRequest,
+  PackingSlipResponse,
 } from '../../models/sales-order.model';
 
 export const SALES_PAGE_SIZE = 10;
@@ -53,6 +55,13 @@ export class SalesOrderService {
     return this.api.post<SalesOrderHeaderResponse>(
       '/data/SalesOrderHeadersV3',
       dto
+    );
+  }
+
+  createPackingSlip(payload: CreatePackingSlipRequest): Observable<PackingSlipResponse> {
+    return this.api.post<PackingSlipResponse>(
+      '/api/services/GP_CreatePackingSlipServiceGroup/GP_CreatePackingSlipService/createPackingSlip',
+      payload
     );
   }
 }

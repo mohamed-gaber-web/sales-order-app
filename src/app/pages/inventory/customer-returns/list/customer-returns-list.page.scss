@@ -1,0 +1,106 @@
+ion-header ion-toolbar {
+  --background: var(--gp-toolbar-bg);
+  --color: var(--gp-toolbar-color);
+  --border-color: transparent;
+
+  ion-title { font-size: 18px; font-weight: 700; letter-spacing: -0.025em; }
+}
+
+.page-content { --background: var(--gp-bg); }
+
+.page-body {
+  padding: 24px 16px;
+  max-width: 600px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.section-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+
+  .section-icon-wrap {
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    ion-icon { font-size: 22px; }
+  }
+
+  .section-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--ion-text-color);
+    margin: 0 0 4px;
+    letter-spacing: -0.02em;
+  }
+
+  .section-desc {
+    font-size: 13px;
+    color: var(--ion-color-medium);
+    margin: 0;
+    line-height: 1.45;
+  }
+}
+
+.input-group { display: flex; flex-direction: column; gap: 10px; }
+
+.input-item {
+  --background: var(--gp-card-bg);
+  --border-radius: 12px;
+  --padding-start: 14px;
+  --inner-padding-end: 14px;
+  border-radius: 12px;
+  border: 1px solid var(--gp-border, #e5e7eb);
+}
+
+.action-btn {
+  --background: var(--gp-navy, #002559);
+  --border-radius: 14px;
+  --padding-top: 16px;
+  --padding-bottom: 16px;
+  font-weight: 700;
+  font-size: 15px;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.error-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(220, 38, 38, 0.08);
+  border: 1px solid rgba(220, 38, 38, 0.2);
+  border-radius: 12px;
+  padding: 12px 14px;
+  color: #dc2626;
+  font-size: 13px;
+
+  ion-icon { font-size: 18px; flex-shrink: 0; }
+}
+
+.info-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: rgba(2, 132, 199, 0.06);
+  border: 1px solid rgba(2, 132, 199, 0.15);
+  border-radius: 12px;
+  padding: 14px;
+
+  ion-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+
+  p {
+    font-size: 13px;
+    color: var(--ion-color-medium);
+    margin: 0;
+    line-height: 1.5;
+  }
+}

@@ -4,12 +4,17 @@
       <ion-menu-button></ion-menu-button>
     </ion-buttons>
     <ion-title>Dashboard</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="openScanner()" class="scan-btn" title="Scan QR / Barcode">
+        <ion-icon slot="icon-only" name="qr-code-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="dashboard-content">
 
-  <!-- Hero / Greeting -->
+  <!-- ── Hero / Greeting ─────────────────────────────────── -->
   <div class="hero-section">
     <div class="hero-inner">
       <div class="hero-text">
@@ -23,10 +28,22 @@
     </div>
   </div>
 
-  <!-- Stats Row -->
+  <!-- ── Stats Row ───────────────────────────────────────── -->
   <div class="stats-row">
+
+    <!-- Inventory (static link, no live count) -->
+    <!-- <div class="stat-card stat-card--clickable" (click)="navigate('/inventory')">
+      <div class="stat-icon" style="background: rgba(37,99,235,0.1);">
+        <ion-icon name="layers-outline" style="color: #2563eb;"></ion-icon>
+      </div>
+      <div class="stat-body">
+        <div class="stat-value">13</div>
+        <div class="stat-label">Inv. Modules</div>
+      </div>
+    </div> -->
+
     <!-- PO Stat -->
-    <div class="stat-card">
+    <div class="stat-card stat-card--clickable" (click)="navigate('/purchase-order/list')">
       <div class="stat-icon" style="background: rgba(242, 76, 26, 0.12);">
         <ion-icon name="cube-outline" style="color: var(--gp-accent);"></ion-icon>
       </div>
@@ -43,7 +60,7 @@
     </div>
 
     <!-- SO Stat -->
-    <div class="stat-card">
+    <div class="stat-card stat-card--clickable" (click)="navigate('/sales-order/list')">
       <div class="stat-icon" style="background: rgba(0, 37, 89, 0.08);">
         <ion-icon name="cart-outline" style="color: var(--gp-navy);"></ion-icon>
       </div>
@@ -60,7 +77,7 @@
     </div>
 
     <!-- TO Stat -->
-    <div class="stat-card">
+    <div class="stat-card stat-card--clickable" (click)="navigate('/transfer-order/list')">
       <div class="stat-icon" style="background: rgba(15, 118, 110, 0.1);">
         <ion-icon name="swap-horizontal-outline" style="color: #0f766e;"></ion-icon>
       </div>
@@ -72,18 +89,19 @@
             {{ toCount ?? '—' }}
           }
         </div>
-        <div class="stat-label">Open Transfers</div>
+        <div class="stat-label">Transfers</div>
       </div>
     </div>
+
   </div>
 
-  <!-- Modules Section -->
+  <!-- ── Quick Access ─────────────────────────────────────── -->
   <div class="modules-section">
     <h2 class="section-label">Quick Access</h2>
 
     <div class="modules-list">
-      @for (mod of modules; track mod.route) {
-        <div class="module-card" (click)="navigate(mod.route)">
+      @for (mod of modules; track mod.route; let i = $index) {
+        <div class="module-card" [style.animation-delay]="(0.2 + i * 0.07) + 's'" (click)="navigate(mod.route)">
           <div class="module-icon-wrap" [style.background]="'linear-gradient(135deg,' + mod.color + ' 0%,' + mod.colorEnd + ' 100%)'">
             <ion-icon [name]="mod.icon"></ion-icon>
           </div>
@@ -98,5 +116,6 @@
       }
     </div>
   </div>
+
 
 </ion-content>

@@ -26,6 +26,10 @@ const routes: Routes = [
   {
     path: 'transfer-order',
     loadChildren: () => import('./pages/transfer-order/transfer-order.module').then(m => m.TransferOrderModule)
+  },
+  {
+    path: 'inventory',
+    loadChildren: () => import('./pages/inventory/inventory.module').then(m => m.InventoryModule)
   }
 ];
 

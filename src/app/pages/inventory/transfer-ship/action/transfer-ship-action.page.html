@@ -1,0 +1,160 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/inventory/transfer-ship" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Ship {{ toNumber }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="action-content">
+
+  <!-- Loading Skeleton -->
+  @if (isLoading) {
+    <div class="page-body">
+      <ion-card class="context-card">
+        <ion-card-content>
+          <ion-skeleton-text animated style="width: 55%; height: 22px; border-radius: 6px"></ion-skeleton-text>
+          <ion-skeleton-text animated style="width: 70%; height: 14px; margin-top: 10px; border-radius: 6px"></ion-skeleton-text>
+        </ion-card-content>
+      </ion-card>
+      @for (i of [1, 2, 3]; track i) {
+        <ion-card class="line-card">
+          <ion-card-content>
+            <ion-skeleton-text animated style="width: 40%; height: 16px; border-radius: 6px"></ion-skeleton-text>
+            <ion-skeleton-text animated style="width: 65%; height: 13px; margin-top: 8px; border-radius: 6px"></ion-skeleton-text>
+            <ion-skeleton-text animated style="width: 100%; height: 44px; margin-top: 12px; border-radius: 10px"></ion-skeleton-text>
+          </ion-card-content>
+        </ion-card>
+      }
+    </div>
+  }
+
+  <!-- Error State -->
+  @if (!isLoading && loadError) {
+    <div class="error-state">
+      <div class="error-icon-wrap">
+        <ion-icon name="cloud-offline-outline"></ion-icon>
+      </div>
+      <h3>Could Not Load Order</h3>
+      <p>Check your connection and try again.</p>
+      <ion-button (click)="loadOrderWithLines()" fill="outline" class="retry-btn">
+        <ion-icon slot="start" name="refresh-outline"></ion-icon>
+        Retry
+      </ion-button>
+    </div>
+  }
+
+  <!-- Content -->
+  @if (!isLoading && !loadError) {
+
+    <!-- Order Banner -->
+    @if (header) {
+      <div class="page-body">
+        <ion-card class="context-card">
+          <div class="context-hero">
+            <div class="to-info">
+              <p class="to-label">Transfer Order</p>
+              <p class="to-number">{{ toNumber }}</p>
+            </div>
+            <ion-badge color="warning" class="status-pill">Ready to Ship</ion-badge>
+          </div>
+          <div class="context-meta">
+            <div class="route-row">
+              <ion-icon name="cube-outline" class="route-icon"></ion-icon>
+              <span class="warehouse-label">From</span>
+              <span class="warehouse-id">{{ header.ShippingWarehouseId || '—' }}</span>
+              <ion-icon name="arrow-forward-outline" class="arrow-icon"></ion-icon>
+              <span class="warehouse-label">To</span>
+              <span class="warehouse-id dest">{{ header.ReceivingWarehouseId || '—' }}</span>
+            </div>
+            @if (header.RequestedShippingDate) {
+              <div class="meta-field">
+                <span class="meta-label">Requested Ship Date</span>
+                <span class="meta-value">{{ header.RequestedShippingDate | date:'MMM d, y' }}</span>
+              </div>
+            }
+          </div>
+        </ion-card>
+
+        <!-- Empty Lines State -->
+        @if (lineEntries.length === 0) {
+          <div class="empty-lines">
+            <ion-icon name="checkmark-circle-outline" color="success"></ion-icon>
+            <p>All lines have been shipped for this order.</p>
+          </div>
+        }
+
+        <!-- Line Cards -->
+        @for (entry of lineEntries; track entry.line.LineNumber) {
+          <ion-card class="line-card">
+            <ion-card-content>
+              <div class="line-header">
+                <div class="line-item-info">
+                  <span class="line-number">Line {{ entry.line.LineNumber }}</span>
+                  <span class="item-number">{{ entry.line.ItemNumber }}</span>
+                </div>
+                <div class="line-qty-info">
+                  <span class="remain-label">Remaining</span>
+                  <span class="remain-qty">{{ entry.remainQty }} {{ entry.line.UnitId || '' }}</span>
+                </div>
+              </div>
+
+              <div class="qty-input-row">
+                <div class="qty-label-row">
+                  <span class="input-label">Ship Quantity</span>
+                  <button type="button" class="max-btn" (click)="setMaxQty(entry)">
+                    Max ({{ entry.remainQty }})
+                  </button>
+                </div>
+                <ion-input
+                  type="number"
+                  [(ngModel)]="entry.shipQty"
+                  [min]="0.001"
+                  [max]="entry.remainQty"
+                  step="0.001"
+                  placeholder="Enter quantity"
+                  class="qty-input"
+                  [class.invalid]="entry.shipQty <= 0 || entry.shipQty > entry.remainQty">
+                </ion-input>
+                @if (entry.shipQty <= 0) {
+                  <p class="field-error">
+                    <ion-icon name="alert-circle-outline"></ion-icon>
+                    Quantity must be greater than 0.
+                  </p>
+                }
+                @if (entry.shipQty > entry.remainQty) {
+                  <p class="field-error">
+                    <ion-icon name="alert-circle-outline"></ion-icon>
+                    Cannot exceed remaining quantity ({{ entry.remainQty }}).
+                  </p>
+                }
+              </div>
+            </ion-card-content>
+          </ion-card>
+        }
+
+        <!-- Submit Button -->
+        @if (lineEntries.length > 0) {
+          <div class="submit-wrap">
+            <ion-button
+              expand="block"
+              class="submit-btn"
+              (click)="submitShipment()"
+              [disabled]="!isFormValid || isSubmitting">
+              @if (isSubmitting) {
+                <ion-spinner name="crescent" slot="start"></ion-spinner>
+                Shipping...
+              } @else {
+                <ion-icon slot="start" name="send-outline"></ion-icon>
+                Confirm Shipment
+              }
+            </ion-button>
+          </div>
+        }
+
+      </div>
+    }
+  }
+
+</ion-content>

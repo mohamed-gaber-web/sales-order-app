@@ -1,0 +1,263 @@
+ion-header ion-toolbar {
+  --background: var(--gp-toolbar-bg);
+  --color: var(--gp-toolbar-color);
+  --border-color: transparent;
+}
+
+.loc-content {
+  --background: var(--gp-bg);
+}
+
+// ── Filter bar ─────────────────────────────────────────────
+.filter-bar {
+  padding: 12px 16px 0;
+}
+
+.wh-select {
+  --background: var(--gp-card-bg);
+  --border-radius: 12px;
+  --padding-start: 14px;
+  --padding-end: 14px;
+  border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+// ── Search ─────────────────────────────────────────────────
+.search-wrap {
+  padding: 10px 16px 0;
+
+  ion-searchbar {
+    --background: var(--gp-card-bg);
+    --border-radius: 12px;
+    --box-shadow: 0 1px 4px rgba(0,0,0,.06);
+    padding: 0;
+  }
+}
+
+// ── Create form ────────────────────────────────────────────
+.create-form-card {
+  margin: 14px 16px 0;
+  background: var(--gp-card-bg);
+  border-radius: 18px;
+  padding: 18px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.06), 0 2px 10px rgba(0,0,0,.04);
+  animation: fadeSlideUp 0.3s cubic-bezier(0.4,0,0.2,1) backwards;
+}
+
+.create-form-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ion-text-color);
+  margin: 0 0 14px;
+  letter-spacing: -0.01em;
+}
+
+.field-group {
+  margin-bottom: 14px;
+}
+
+.field-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--ion-color-medium);
+  display: block;
+  margin-bottom: 6px;
+}
+
+.field-input {
+  --background: var(--gp-bg);
+  --border-radius: 10px;
+  --padding-start: 12px;
+  --padding-end: 12px;
+  border-radius: 10px;
+  font-size: 14px;
+
+  &.invalid {
+    --background: rgba(220,38,38,.06);
+    border: 1.5px solid rgba(220,38,38,.4);
+  }
+}
+
+.field-select {
+  --background: var(--gp-bg);
+  --border-radius: 10px;
+  --padding-start: 12px;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+.submit-btn {
+  margin-top: 6px;
+  --background: var(--gp-navy, #002559);
+  --border-radius: 12px;
+  font-weight: 700;
+}
+
+// ── Location list ──────────────────────────────────────────
+.loc-list {
+  padding: 12px 16px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.loc-card {
+  background: var(--gp-card-bg);
+  border-radius: 14px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+  animation: fadeSlideUp 0.35s cubic-bezier(0.4,0,0.2,1) backwards;
+
+  &:active { transform: scale(0.985); box-shadow: none; }
+
+  @media (hover: hover) {
+    &:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(0,0,0,.1); }
+  }
+}
+
+.loc-id-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.loc-id {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ion-text-color);
+  letter-spacing: -0.01em;
+}
+
+.badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  flex-shrink: 0;
+
+  &.active {
+    background: rgba(5,150,105,.12);
+    color: #059669;
+  }
+  &.blocked {
+    background: rgba(220,38,38,.1);
+    color: #dc2626;
+  }
+}
+
+.loc-meta {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.meta-chip {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ion-color-medium);
+  background: var(--gp-bg);
+  padding: 2px 8px;
+  border-radius: 8px;
+}
+
+.loc-action-icon {
+  font-size: 18px;
+  color: var(--ion-color-medium);
+  flex-shrink: 0;
+}
+
+// ── Skeleton ───────────────────────────────────────────────
+.skeleton-list {
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.loc-skeleton {
+  background: var(--gp-card-bg);
+  border-radius: 14px;
+  padding: 16px;
+}
+
+// ── Empty state ────────────────────────────────────────────
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 24px;
+  text-align: center;
+  gap: 8px;
+
+  ion-icon { font-size: 52px; color: var(--ion-color-medium); opacity: .5; }
+  p { font-size: 16px; font-weight: 700; color: var(--ion-text-color); margin: 0; }
+  span { font-size: 13px; color: var(--ion-color-medium); margin: 0; }
+}
+
+// ── Web header (shared pattern) ────────────────────────────
+.web-page-header {
+  display: none;
+  background: var(--gp-card-bg);
+  border-bottom: 1px solid var(--gp-border, rgba(0,0,0,.08));
+  padding: 28px 32px 20px;
+
+  @media (min-width: 992px) { display: block; }
+}
+
+.web-page-header-inner { max-width: 960px; margin: 0 auto; }
+
+.web-title-group {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 6px;
+}
+
+.web-page-title {
+  font-size: 26px; font-weight: 800;
+  color: var(--ion-text-color); margin: 0;
+  letter-spacing: -0.03em;
+}
+
+.web-count-chip {
+  font-size: 12px; font-weight: 700;
+  background: rgba(0,37,89,.08); color: var(--gp-navy, #002559);
+  border-radius: 20px; padding: 3px 10px;
+}
+
+.web-page-subtitle {
+  font-size: 14px; color: var(--ion-color-medium); margin: 0;
+}
+
+// ── Desktop adjustments ────────────────────────────────────
+@media (min-width: 992px) {
+  ion-header { display: none; }
+
+  .filter-bar, .search-wrap {
+    max-width: 960px; margin: 0 auto;
+  }
+
+  .create-form-card { max-width: 960px; margin: 14px auto 0; }
+
+  .loc-list { max-width: 960px; margin: 0 auto; }
+
+  .skeleton-list { max-width: 960px; margin: 0 auto; }
+}
+
+// ── Animations ─────────────────────────────────────────────
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

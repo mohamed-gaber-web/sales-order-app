@@ -1,0 +1,149 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/inventory" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Reservation</ion-title>
+  </ion-toolbar>
+  <ion-toolbar class="segment-toolbar">
+    <ion-segment [value]="segment" (ionChange)="segmentChanged($event)" class="gp-segment">
+      <ion-segment-button value="reserve">Reserve</ion-segment-button>
+      <ion-segment-button value="release">Release</ion-segment-button>
+    </ion-segment>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="res-content">
+
+  <!-- Reserve Form -->
+  @if (segment === 'reserve') {
+    <form [formGroup]="reserveForm" class="res-form" (ngSubmit)="submitReserve()">
+      <div class="form-card">
+        <div class="section-header">
+          <ion-icon name="lock-closed-outline" class="section-icon"></ion-icon>
+          <span class="section-title">Reserve Inventory</span>
+        </div>
+
+        <div class="form-field" [class.field-error]="hasError(reserveForm, 'orderType')">
+          <label class="field-label">Order Type</label>
+          <div class="select-wrap">
+            <ion-select formControlName="orderType" placeholder="Select order type" interface="action-sheet" class="gp-select">
+              @for (t of orderTypes; track t.value) {
+                <ion-select-option [value]="t.value">{{ t.label }}</ion-select-option>
+              }
+            </ion-select>
+          </div>
+          @if (hasError(reserveForm, 'orderType')) {
+            <span class="error-msg">Order type is required</span>
+          }
+        </div>
+
+        <div class="form-field" [class.field-error]="hasError(reserveForm, 'orderNumber')">
+          <label class="field-label">Order Number</label>
+          <ion-input formControlName="orderNumber" placeholder="e.g. SO-00001" fill="outline" class="gp-input"></ion-input>
+          @if (hasError(reserveForm, 'orderNumber')) {
+            <span class="error-msg">Order number is required</span>
+          }
+        </div>
+
+        <div class="form-field" [class.field-error]="hasError(reserveForm, 'itemNumber')">
+          <label class="field-label">Item Number</label>
+          <ion-input formControlName="itemNumber" placeholder="e.g. ITEM-001" fill="outline" class="gp-input"></ion-input>
+          @if (hasError(reserveForm, 'itemNumber')) {
+            <span class="error-msg">Item number is required</span>
+          }
+        </div>
+
+        <div class="form-field" [class.field-error]="hasError(reserveForm, 'quantity')">
+          <label class="field-label">Quantity</label>
+          <ion-input formControlName="quantity" type="number" placeholder="0" fill="outline" class="gp-input"></ion-input>
+          @if (hasError(reserveForm, 'quantity')) {
+            <span class="error-msg">Enter a valid quantity</span>
+          }
+        </div>
+
+        <ion-button
+          expand="block"
+          shape="round"
+          type="submit"
+          class="submit-btn reserve-btn">
+          <ion-icon slot="start" name="lock-closed-outline"></ion-icon>
+          Create Reservation
+        </ion-button>
+      </div>
+    </form>
+  }
+
+  <!-- Release Form -->
+  @if (segment === 'release') {
+    <form [formGroup]="releaseForm" class="res-form" (ngSubmit)="submitRelease()">
+      <div class="form-card">
+        <div class="section-header">
+          <ion-icon name="lock-open-outline" class="section-icon release-color"></ion-icon>
+          <span class="section-title release-color">Release Reservation</span>
+        </div>
+
+        <div class="form-field" [class.field-error]="hasError(releaseForm, 'orderType')">
+          <label class="field-label">Order Type</label>
+          <div class="select-wrap">
+            <ion-select formControlName="orderType" placeholder="Select order type" interface="action-sheet" class="gp-select">
+              @for (t of orderTypes; track t.value) {
+                <ion-select-option [value]="t.value">{{ t.label }}</ion-select-option>
+              }
+            </ion-select>
+          </div>
+          @if (hasError(releaseForm, 'orderType')) {
+            <span class="error-msg">Order type is required</span>
+          }
+        </div>
+
+        <div class="form-field" [class.field-error]="hasError(releaseForm, 'orderNumber')">
+          <label class="field-label">Order Number</label>
+          <ion-input formControlName="orderNumber" placeholder="e.g. SO-00001" fill="outline" class="gp-input"></ion-input>
+          @if (hasError(releaseForm, 'orderNumber')) {
+            <span class="error-msg">Order number is required</span>
+          }
+        </div>
+
+        <div class="form-field" [class.field-error]="hasError(releaseForm, 'itemNumber')">
+          <label class="field-label">Item Number</label>
+          <ion-input formControlName="itemNumber" placeholder="e.g. ITEM-001" fill="outline" class="gp-input"></ion-input>
+          @if (hasError(releaseForm, 'itemNumber')) {
+            <span class="error-msg">Item number is required</span>
+          }
+        </div>
+
+        <div class="form-field" [class.field-error]="hasError(releaseForm, 'quantity')">
+          <label class="field-label">Quantity</label>
+          <ion-input formControlName="quantity" type="number" placeholder="0" fill="outline" class="gp-input"></ion-input>
+          @if (hasError(releaseForm, 'quantity')) {
+            <span class="error-msg">Enter a valid quantity</span>
+          }
+        </div>
+
+        <ion-button
+          expand="block"
+          shape="round"
+          type="submit"
+          class="submit-btn release-btn">
+          <ion-icon slot="start" name="lock-open-outline"></ion-icon>
+          Release Reservation
+        </ion-button>
+      </div>
+    </form>
+  }
+
+  <!-- Info Box -->
+  <div class="info-box">
+    <ion-icon name="information-circle-outline" class="info-icon"></ion-icon>
+    <div class="info-text">
+      <strong>Reservation rules</strong>
+      <ul>
+        <li>Quantity cannot exceed available physical stock</li>
+        <li>Blocked batches cannot be reserved</li>
+        <li>Reservations are linked to a specific order line</li>
+      </ul>
+    </div>
+  </div>
+
+</ion-content>

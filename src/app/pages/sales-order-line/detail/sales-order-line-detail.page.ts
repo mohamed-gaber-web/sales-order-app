@@ -1,10 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ToastController } from '@ionic/angular';
+import { AlertController, LoadingController, ToastController } from '@ionic/angular';
 import {
   SalesOrderLineService,
   SalesOrderLineResponse,
 } from '../../../core/services/sales-order-line.service';
+import { SalesOrderService } from '../../../core/services/sales-order.service';
 
 @Component({
   selector: 'app-sales-order-line-detail',
@@ -19,11 +20,16 @@ export class SalesOrderLineDetailPage implements OnInit {
   searchTerm = '';
   isLoading = false;
 
+  isSubmittingSlip = false;
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private toastCtrl: ToastController,
-    private orderLineService: SalesOrderLineService
+    private alertCtrl: AlertController,
+    private loadingCtrl: LoadingController,
+    private orderLineService: SalesOrderLineService,
+    private salesOrderService: SalesOrderService,
   ) {}
 
   ngOnInit() {
@@ -77,6 +83,100 @@ export class SalesOrderLineDetailPage implements OnInit {
       (line.ProductColorId ?? '').toLowerCase().includes(term) ||
       (line.ProductStyleId ?? '').toLowerCase().includes(term)
     );
+  }
+
+  async createPickingSlip(line: SalesOrderLineResponse, lineIndex: number) {
+    const maxQty = line.OrderedSalesQuantity ?? 0;
+
+    const alert = await this.alertCtrl.create({
+      header: 'Create Packing Slip',
+      subHeader: `${line.ItemNumber} — Line ${line.LineNumber ?? lineIndex + 1}`,
+      inputs: [
+        {
+          name: 'packingSlipId',
+          type: 'text',
+          placeholder: 'Packing Slip ID (optional)',
+        },
+        {
+          name: 'qty',
+          type: 'number',
+          placeholder: 'Quantity',
+          value: maxQty,
+          min: 0.001,
+        },
+      ],
+      buttons: [
+        { text: 'Cancel', role: 'cancel' },
+        {
+          text: 'Create',
+          handler: (data) => {
+            const qty = Number(data.qty);
+            if (!qty || qty <= 0) return false;
+            this.submitPickingSlip(line, lineIndex, data.packingSlipId ?? '', qty);
+            return true;
+          },
+        },
+      ],
+    });
+    await alert.present();
+  }
+
+  private async submitPickingSlip(
+    line: SalesOrderLineResponse,
+    lineIndex: number,
+    packingSlipId: string,
+    qty: number,
+  ) {
+    if (this.isSubmittingSlip) return;
+    this.isSubmittingSlip = true;
+
+    const loading = await this.loadingCtrl.create({
+      message: 'Creating packing slip...',
+      spinner: 'crescent',
+    });
+    await loading.present();
+
+    const dataAreaId = (line.dataAreaId ?? 'usmf').toUpperCase();
+    const lineNum = line.LineNumber ?? lineIndex + 1;
+
+    this.salesOrderService.createPackingSlip({
+      _request: {
+        DataAreaId: dataAreaId,
+        SalesOrderID: this.salesOrderNumber,
+        packingSlipId,
+        salesLineNum: [lineNum],
+        packingSlipQty: [qty],
+      },
+    }).subscribe({
+      next: async (res) => {
+        await loading.dismiss();
+        this.isSubmittingSlip = false;
+        if (res.Success) {
+          const toast = await this.toastCtrl.create({
+            message: `Packing slip created for line ${lineNum}.`,
+            duration: 3000, color: 'success', position: 'bottom',
+          });
+          await toast.present();
+          this.loadLines();
+        } else {
+          const toast = await this.toastCtrl.create({
+            message: res.ErrorMessage || res.DebugMessage || 'Failed to create packing slip.',
+            duration: 5000, color: 'danger', position: 'bottom',
+          });
+          await toast.present();
+        }
+      },
+      error: async (err: unknown) => {
+        await loading.dismiss();
+        this.isSubmittingSlip = false;
+        const e = err as { error?: { Message?: string; message?: string }; message?: string };
+        const msg = e?.error?.Message ?? e?.error?.message ?? e?.message ?? 'Failed to create packing slip.';
+        const toast = await this.toastCtrl.create({
+          message: msg, duration: 5000, color: 'danger', position: 'bottom',
+        });
+        await toast.present();
+      },
+    });
   }
 
   addLine() {

@@ -1,0 +1,200 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/inventory/pick-put" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ workId }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="work-content">
+
+  <!-- Progress Bar -->
+  <div class="progress-wrap">
+    <div class="progress-track">
+      <div class="progress-fill" [style.width.%]="progressPercent"></div>
+    </div>
+    <span class="progress-label">{{ progressPercent }}% Complete</span>
+  </div>
+
+  <!-- State Banner -->
+  <div class="state-banner" [class.banner-completed]="state === 'Completed'">
+    <div class="state-icon-wrap">
+      @if (state === 'Idle')           { <ion-icon name="hourglass-outline"></ion-icon> }
+      @if (state === 'WorkAssigned')   { <ion-icon name="clipboard-outline"></ion-icon> }
+      @if (state === 'AtPickLocation') { <ion-icon name="location-outline"></ion-icon> }
+      @if (state === 'ItemScanned')    { <ion-icon name="barcode-outline"></ion-icon> }
+      @if (state === 'QtyConfirmed')   { <ion-icon name="checkmark-circle-outline"></ion-icon> }
+      @if (state === 'AtPutLocation')  { <ion-icon name="arrow-redo-outline"></ion-icon> }
+      @if (state === 'Completed')      { <ion-icon name="trophy-outline"></ion-icon> }
+    </div>
+    <div class="state-text">
+      <span class="state-step">Step {{ stateIndex + 1 }} of {{ 7 }}</span>
+      <span class="state-label">{{ stateLabel }}</span>
+    </div>
+  </div>
+
+  <!-- Idle State -->
+  @if (state === 'Idle') {
+    <div class="info-card">
+      <p>No work currently assigned. Tap "Start Work" to receive system-directed picking instructions.</p>
+    </div>
+  }
+
+  <!-- Work Assigned -->
+  @if (state === 'WorkAssigned') {
+    <div class="detail-card">
+      <div class="section-header">
+        <ion-icon name="clipboard-outline" class="section-icon"></ion-icon>
+        <span class="section-title">Work Details</span>
+      </div>
+      <div class="field-grid">
+        <div class="field-item">
+          <span class="field-label">Work ID</span>
+          <span class="field-value">{{ workId }}</span>
+        </div>
+        @if (workItem) {
+          <div class="field-item">
+            <span class="field-label">Type</span>
+            <span class="field-value">{{ workItem.workType }}</span>
+          </div>
+          <div class="field-item">
+            <span class="field-label">Reference</span>
+            <span class="field-value">{{ workItem.referenceId }}</span>
+          </div>
+        }
+        <div class="field-item">
+          <span class="field-label">Lines</span>
+          <span class="field-value">1</span>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- At Pick Location -->
+  @if (state === 'AtPickLocation') {
+    <div class="detail-card highlight-card">
+      <div class="section-header">
+        <ion-icon name="location-outline" class="section-icon"></ion-icon>
+        <span class="section-title">Pick Location</span>
+      </div>
+      <div class="location-display">
+        <span class="big-location">{{ stubLine.fromLocation }}</span>
+        <span class="location-sub">Go to this location and pick the item below</span>
+      </div>
+      <div class="field-grid" style="margin-top: 16px">
+        <div class="field-item">
+          <span class="field-label">Item</span>
+          <span class="field-value">{{ stubLine.itemNumber }}</span>
+        </div>
+        <div class="field-item">
+          <span class="field-label">Description</span>
+          <span class="field-value">{{ stubLine.itemName }}</span>
+        </div>
+        <div class="field-item">
+          <span class="field-label">Requested Qty</span>
+          <span class="field-value">{{ stubLine.requestedQty }} {{ stubLine.unitSymbol }}</span>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Item Scanned -->
+  @if (state === 'ItemScanned') {
+    <div class="detail-card">
+      <div class="section-header">
+        <ion-icon name="barcode-outline" class="section-icon"></ion-icon>
+        <span class="section-title">Item Confirmed</span>
+      </div>
+      <div class="scan-confirm">
+        <ion-icon name="checkmark-circle" class="confirm-check"></ion-icon>
+        <div>
+          <span class="field-label">Scanned Item</span>
+          <span class="field-value">{{ stubLine.itemNumber }} — {{ stubLine.itemName }}</span>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Qty Confirmed -->
+  @if (state === 'QtyConfirmed') {
+    <div class="detail-card highlight-card">
+      <div class="section-header">
+        <ion-icon name="calculator-outline" class="section-icon"></ion-icon>
+        <span class="section-title">Enter Quantity</span>
+      </div>
+      <div class="qty-row">
+        <div class="qty-target">
+          <span class="qty-target-label">Target</span>
+          <span class="qty-target-value">{{ stubLine.requestedQty }} {{ stubLine.unitSymbol }}</span>
+        </div>
+        <ion-input
+          [(ngModel)]="confirmedQty"
+          type="number"
+          fill="outline"
+          placeholder="{{ stubLine.requestedQty }}"
+          class="qty-input">
+        </ion-input>
+      </div>
+      <p class="qty-hint">Enter the actual quantity picked. Tap "Confirm Quantity" to continue.</p>
+    </div>
+  }
+
+  <!-- At Put Location -->
+  @if (state === 'AtPutLocation') {
+    <div class="detail-card highlight-card">
+      <div class="section-header">
+        <ion-icon name="arrow-redo-outline" class="section-icon"></ion-icon>
+        <span class="section-title">Put Location</span>
+      </div>
+      <div class="location-display">
+        <span class="big-location">{{ stubLine.toLocation }}</span>
+        <span class="location-sub">Place the picked items at this destination location</span>
+      </div>
+      <div class="field-grid" style="margin-top: 16px">
+        <div class="field-item">
+          <span class="field-label">Item</span>
+          <span class="field-value">{{ stubLine.itemNumber }}</span>
+        </div>
+        <div class="field-item">
+          <span class="field-label">Qty to Put</span>
+          <span class="field-value">{{ confirmedQty ?? stubLine.requestedQty }} {{ stubLine.unitSymbol }}</span>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Completed -->
+  @if (state === 'Completed') {
+    <div class="success-banner">
+      <ion-icon name="checkmark-circle" class="success-icon"></ion-icon>
+      <h2 class="success-title">Work Complete</h2>
+      <p class="success-sub">
+        {{ stubLine.itemNumber }} has been picked from {{ stubLine.fromLocation }}
+        and placed at {{ stubLine.toLocation }}.
+      </p>
+      <ion-button
+        expand="block"
+        shape="round"
+        class="done-btn"
+        (click)="done()">
+        Done
+      </ion-button>
+    </div>
+  }
+
+  <!-- Next Step Button -->
+  @if (state !== 'Completed') {
+    <div class="footer-action">
+      <ion-button
+        expand="block"
+        shape="round"
+        class="next-btn"
+        (click)="nextStep()">
+        {{ nextLabel }}
+        <ion-icon slot="end" name="arrow-forward-outline"></ion-icon>
+      </ion-button>
+    </div>
+  }
+
+</ion-content>

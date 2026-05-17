@@ -1,0 +1,106 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/inventory/assembly" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Disassembly</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="page-content">
+  <div class="page-body">
+
+    <!-- Parent item banner -->
+    <div class="order-banner">
+      <div class="banner-icon-wrap">
+        <ion-icon name="git-branch-outline"></ion-icon>
+      </div>
+      <div class="banner-details">
+        <p class="banner-label">Parent Item / LP</p>
+        <p class="banner-value">{{ orderNumber }}</p>
+        <p class="banner-sub">{{ parentItemName }}</p>
+      </div>
+      <div class="banner-right">
+        <div class="banner-qty-block">
+          <p class="banner-label">Qty</p>
+          <p class="banner-value">{{ quantity }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Warehouse -->
+    <div class="meta-row">
+      <span class="meta-label">Disassemble into:</span>
+      <span class="meta-wh">
+        <ion-icon name="business-outline"></ion-icon>
+        Warehouse {{ warehouseId }}
+      </span>
+    </div>
+
+    <!-- Component outputs -->
+    <div class="section-header">
+      <span class="section-title">Expected Component Output</span>
+      <span class="section-count">{{ confirmedCount }}/{{ componentOutputs.length }} confirmed</span>
+    </div>
+
+    <div class="component-list">
+      @for (comp of componentOutputs; track comp.itemNumber) {
+        <div class="component-card" [class.confirmed]="comp.confirmed">
+          <div class="component-body">
+            <div class="component-top">
+              <div class="component-info">
+                <span class="component-number">{{ comp.itemNumber }}</span>
+                <span class="component-name">{{ comp.itemName }}</span>
+              </div>
+              <div class="component-qty">
+                <span class="qty-value">{{ comp.expectedQuantity }}</span>
+                <span class="qty-unit">{{ comp.unitSymbol }}</span>
+              </div>
+            </div>
+            <div class="component-output-label">
+              <ion-icon name="arrow-down-circle-outline"></ion-icon>
+              Will be received into stock
+            </div>
+          </div>
+          <div class="component-check-col">
+            <label class="confirm-toggle" [class.checked]="comp.confirmed">
+              <input type="checkbox" [(ngModel)]="comp.confirmed" />
+              <ion-icon [name]="comp.confirmed ? 'checkmark-circle' : 'ellipse-outline'"></ion-icon>
+              <span>{{ comp.confirmed ? 'OK' : 'Confirm' }}</span>
+            </label>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Progress bar -->
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-track">
+        <div class="progress-bar-fill accent" [style.width.%]="(confirmedCount / componentOutputs.length) * 100"></div>
+      </div>
+      <span class="progress-label">{{ confirmedCount }} of {{ componentOutputs.length }} outputs confirmed</span>
+    </div>
+
+    <!-- Warning notice -->
+    <div class="info-box warning-box">
+      <ion-icon name="warning-outline"></ion-icon>
+      <p>Disassembly is irreversible. The parent item will be consumed and components will be received. Verify quantities before submitting.</p>
+    </div>
+
+    <!-- Submit -->
+    <ion-button
+      expand="block"
+      class="action-btn accent-btn"
+      (click)="submit()"
+      [disabled]="isSubmitting || componentOutputs.length === 0">
+      @if (isSubmitting) {
+        <ion-spinner name="crescent" slot="start"></ion-spinner>
+        Posting Disassembly...
+      } @else {
+        <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+        Post Disassembly
+      }
+    </ion-button>
+
+  </div>
+</ion-content>

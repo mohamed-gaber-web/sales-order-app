@@ -23,6 +23,7 @@ export interface TransferOrderLine {
   ReceivedQuantity?: number;
   RemainingShippedQuantity?: number;
   RemainingReceivedQuantity?: number;
+  InventoryUnitSymbol?: string;
   UnitId?: string;
   ProductConfigurationId?: string;
   ProductColorId?: string;

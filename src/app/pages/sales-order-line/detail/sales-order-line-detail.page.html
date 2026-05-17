@@ -49,7 +49,7 @@
           animated="false"
           class="web-searchbar">
         </ion-searchbar>
-        <ion-button (click)="addLine()" class="web-add-btn">
+<ion-button (click)="addLine()" class="web-add-btn">
           <ion-icon slot="start" name="add-outline"></ion-icon>
           Add Line
         </ion-button>
@@ -75,7 +75,7 @@
   <!-- Lines List -->
   @if (!isLoading && lines.length > 0) {
     <div class="lines-list">
-      @for (line of lines; track $index) {
+      @for (line of lines; track $index; let i = $index) {
         <ion-card class="line-card">
           <ion-card-content>
             <!-- Header -->
@@ -136,6 +136,18 @@
                 <span class="amount-label">Tax</span>
                 <span class="amount-value">{{ formatCurrency(line.SalesTaxAmount) }}</span>
               </div>
+            </div>
+
+            <!-- Packing Slip Action -->
+            <div class="line-actions">
+              <ion-button
+                expand="block"
+                class="slip-btn"
+                [disabled]="isSubmittingSlip"
+                (click)="createPickingSlip(line, i)">
+                <ion-icon slot="start" name="document-text-outline"></ion-icon>
+                Packing Slip
+              </ion-button>
             </div>
           </ion-card-content>
         </ion-card>

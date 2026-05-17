@@ -1,0 +1,106 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/inventory" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Vendor Returns</ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" (click)="loadOrders()">
+        <ion-icon name="refresh-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+  <ion-toolbar>
+    <ion-searchbar
+      [(ngModel)]="searchTerm"
+      (ionInput)="onSearchChange()"
+      placeholder="Search PO or vendor..."
+      debounce="300"
+      animated="true"
+      class="custom-searchbar">
+    </ion-searchbar>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="orders-content">
+  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  @if (isLoading) {
+    <div class="orders-list">
+      @for (i of [1,2,3,4,5]; track i) {
+        <ion-card class="order-card skeleton-card">
+          <ion-card-content>
+            <ion-skeleton-text animated style="width: 45%; height: 16px; border-radius: 6px"></ion-skeleton-text>
+            <ion-skeleton-text animated style="width: 60%; height: 13px; margin-top: 8px; border-radius: 6px"></ion-skeleton-text>
+            <ion-skeleton-text animated style="width: 30%; height: 13px; margin-top: 6px; border-radius: 6px"></ion-skeleton-text>
+          </ion-card-content>
+        </ion-card>
+      }
+    </div>
+  }
+
+  @if (!isLoading && filteredOrders.length > 0) {
+    <div class="orders-list">
+      @for (order of filteredOrders; track order.PurchaseOrderNumber) {
+        <ion-card class="order-card" button (click)="openReturn(order.PurchaseOrderNumber)">
+          <div class="card-layout">
+            <div class="status-strip" [style.background]="getStatusColor(order.PurchaseOrderStatus)"></div>
+            <div class="card-body">
+              <div class="card-top">
+                <span class="order-number">{{ order.PurchaseOrderNumber }}</span>
+                <span class="status-pill" [style.color]="getStatusColor(order.PurchaseOrderStatus)" [style.background]="getStatusBg(order.PurchaseOrderStatus)">
+                  {{ order.PurchaseOrderStatus || 'Open' }}
+                </span>
+              </div>
+              <div class="card-vendor">
+                <ion-icon name="storefront-outline"></ion-icon>
+                {{ order.VendorAccountNumber || '—' }}
+              </div>
+              <div class="card-meta">
+                @if (order.CurrencyCode) {
+                  <span>
+                    <ion-icon name="cash-outline"></ion-icon>
+                    {{ order.CurrencyCode }}
+                  </span>
+                }
+                @if (order.RequestedDeliveryDate) {
+                  <span>
+                    <ion-icon name="calendar-outline"></ion-icon>
+                    {{ order.RequestedDeliveryDate | date:'mediumDate' }}
+                  </span>
+                }
+              </div>
+            </div>
+            <div class="card-chevron">
+              <ion-icon name="chevron-forward-outline"></ion-icon>
+            </div>
+          </div>
+        </ion-card>
+      }
+    </div>
+  }
+
+  @if (isSearching) {
+    <div class="searching-state">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Searching all orders...</p>
+    </div>
+  }
+
+  @if (!isLoading && !isSearching && filteredOrders.length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon-wrap">
+        <ion-icon name="arrow-undo-outline"></ion-icon>
+      </div>
+      <h3>No Eligible Purchase Orders</h3>
+      <p>{{ searchTerm ? 'No results for "' + searchTerm + '"' : 'No received purchase orders are available for return' }}</p>
+    </div>
+  }
+
+  <ion-infinite-scroll (ionInfinite)="loadMore($event)" [disabled]="!hasMore">
+    <ion-infinite-scroll-content loadingSpinner="crescent" loadingText="Loading more...">
+    </ion-infinite-scroll-content>
+  </ion-infinite-scroll>
+</ion-content>

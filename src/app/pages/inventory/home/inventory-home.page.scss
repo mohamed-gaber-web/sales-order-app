@@ -1,0 +1,165 @@
+.inv-home-content {
+  --background: var(--ion-background-color);
+}
+
+// ── Web header (hidden on mobile) ────────────────────────────────────────────
+.web-page-header {
+  display: none;
+  padding: 32px 32px 0;
+
+  @media (min-width: 768px) {
+    display: block;
+  }
+
+  .web-page-header-inner {
+    max-width: 960px;
+    margin: 0 auto;
+  }
+
+  .web-title-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .web-page-title {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--ion-text-color);
+    margin: 0;
+  }
+
+  .web-count-chip {
+    background: var(--ion-color-primary);
+    color: #fff;
+    border-radius: 20px;
+    padding: 2px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+
+  .web-page-subtitle {
+    color: var(--ion-color-medium);
+    font-size: 14px;
+    margin: 6px 0 0;
+  }
+}
+
+// ── Mobile header (hidden on desktop) ───────────────────────────────────────
+.mobile-header {
+  padding: 20px 16px 8px;
+
+  @media (min-width: 768px) {
+    display: none;
+  }
+
+  .mobile-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--ion-text-color);
+    margin: 0 0 4px;
+  }
+
+  .mobile-subtitle {
+    font-size: 13px;
+    color: var(--ion-color-medium);
+    margin: 0;
+  }
+}
+
+// ── Tile grid ────────────────────────────────────────────────────────────────
+.tile-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  max-width: 960px;
+  margin: 0 auto;
+
+  @media (min-width: 768px) {
+    padding: 24px 32px 32px;
+  }
+}
+
+.tile-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--ion-card-background, #fff);
+  border: 1px solid var(--ion-border-color, rgba(0,0,0,.08));
+  border-radius: 14px;
+  padding: 16px;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  min-height: 76px;
+  transition: box-shadow 0.18s ease, transform 0.12s ease;
+  box-shadow: 0 1px 4px rgba(0,0,0,.05);
+  -webkit-tap-highlight-color: transparent;
+
+  &:active {
+    transform: scale(0.985);
+    box-shadow: none;
+  }
+
+  @media (hover: hover) {
+    &:hover {
+      box-shadow: 0 4px 16px rgba(0,0,0,.1);
+      transform: translateY(-1px);
+    }
+  }
+}
+
+.tile-icon-wrap {
+  flex-shrink: 0;
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tile-icon {
+  font-size: 24px;
+}
+
+.tile-label {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.tile-id {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--ion-color-medium);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.tile-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ion-text-color);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tile-subtitle {
+  font-size: 12px;
+  color: var(--ion-color-medium);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tile-chevron {
+  flex-shrink: 0;
+  font-size: 16px;
+  color: var(--ion-color-medium);
+}

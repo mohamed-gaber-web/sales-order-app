@@ -1,0 +1,56 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/inventory/sales-shipment" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Ship {{ soNumber }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="page-content">
+  <div class="page-body" [formGroup]="form">
+
+    <div class="order-banner">
+      <ion-icon name="cube-outline" color="primary"></ion-icon>
+      <div>
+        <p class="banner-label">Sales Order</p>
+        <p class="banner-value">{{ soNumber }}</p>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <p class="form-label">Packing Slip ID *</p>
+      <ion-item lines="none" class="input-item">
+        <ion-icon name="document-outline" slot="start" color="medium"></ion-icon>
+        <ion-input formControlName="packingSlipId" placeholder="Enter packing slip number" inputmode="text" clearInput="true" (keyup.enter)="submitShipment()"></ion-input>
+      </ion-item>
+    </div>
+
+    <div class="form-section">
+      <p class="form-label">Company (Data Area) *</p>
+      <ion-item lines="none" class="input-item">
+        <ion-select formControlName="dataAreaId" interface="action-sheet">
+          <ion-select-option value="usmf">USMF</ion-select-option>
+          <ion-select-option value="ussi">USSI</ion-select-option>
+          <ion-select-option value="gbsi">GBSI</ion-select-option>
+        </ion-select>
+      </ion-item>
+    </div>
+
+    <div class="info-box">
+      <ion-icon name="information-circle-outline" color="primary"></ion-icon>
+      <p>This will post a packing slip for all remaining lines on sales order {{ soNumber }}. Ensure items are physically packed before confirming.</p>
+    </div>
+
+    <ion-button expand="block" class="action-btn" (click)="submitShipment()" [disabled]="form.invalid || isSubmitting">
+      @if (isSubmitting) {
+        <ion-spinner name="crescent" slot="start"></ion-spinner>
+        Creating Packing Slip...
+      } @else {
+        <ion-icon name="checkmark-outline" slot="start"></ion-icon>
+        Confirm Shipment
+      }
+    </ion-button>
+
+  </div>
+</ion-content>

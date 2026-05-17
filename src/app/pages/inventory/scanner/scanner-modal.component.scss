@@ -1,0 +1,149 @@
+.scanner-content {
+  --background: #0a1628;
+}
+
+// ── Camera viewfinder ────────────────────────────────────────
+.viewfinder-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4/3;
+  max-height: 60vh;
+  overflow: hidden;
+  background: #000;
+}
+
+.camera-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.scan-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.scan-frame {
+  position: relative;
+  width: 220px;
+  height: 220px;
+}
+
+.corner {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border-color: #fff;
+  border-style: solid;
+
+  &.tl { top: 0; left: 0; border-width: 3px 0 0 3px; }
+  &.tr { top: 0; right: 0; border-width: 3px 3px 0 0; }
+  &.bl { bottom: 0; left: 0; border-width: 0 0 3px 3px; }
+  &.br { bottom: 0; right: 0; border-width: 0 3px 3px 0; }
+}
+
+.scan-line {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--gp-accent, #f24c1a), transparent);
+  animation: scan-sweep 2s ease-in-out infinite;
+}
+
+@keyframes scan-sweep {
+  0%   { top: 0%; opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+
+.scan-hint {
+  color: rgba(255,255,255,.75);
+  font-size: 13px;
+  font-weight: 500;
+  text-align: center;
+  margin: 0;
+  text-shadow: 0 1px 4px rgba(0,0,0,.6);
+}
+
+// ── No camera state ──────────────────────────────────────────
+.no-camera-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48px 32px 24px;
+  text-align: center;
+
+  .no-camera-icon {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: rgba(255,255,255,.06);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+
+    ion-icon { font-size: 32px; color: rgba(255,255,255,.5); }
+  }
+
+  .no-camera-msg {
+    font-size: 14px;
+    color: rgba(255,255,255,.55);
+    margin: 0;
+    max-width: 260px;
+    line-height: 1.5;
+  }
+}
+
+// ── Manual entry ─────────────────────────────────────────────
+.manual-section {
+  padding: 20px 16px 32px;
+}
+
+.manual-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: rgba(255,255,255,.4);
+  margin: 0 0 10px 4px;
+}
+
+.manual-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.manual-input-item {
+  flex: 1;
+  --background: rgba(255,255,255,.08);
+  --border-radius: 12px;
+  --padding-start: 14px;
+  --inner-padding-end: 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.12);
+  --color: #fff;
+  --placeholder-color: rgba(255,255,255,.35);
+
+  ion-icon { color: rgba(255,255,255,.4) !important; }
+}
+
+.manual-go-btn {
+  --background: var(--gp-accent, #f24c1a);
+  --border-radius: 12px;
+  --padding-start: 14px;
+  --padding-end: 14px;
+  height: 48px;
+  min-width: 48px;
+  flex-shrink: 0;
+}

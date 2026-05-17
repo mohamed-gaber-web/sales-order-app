@@ -1,0 +1,63 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/inventory" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Customer Returns</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="page-content">
+  <div class="page-body">
+
+    <div class="section-header">
+      <div class="section-icon-wrap" style="background:#ea580c18">
+        <ion-icon name="return-down-back-outline" style="color:#ea580c"></ion-icon>
+      </div>
+      <div>
+        <h2 class="section-title">Customer Return</h2>
+        <p class="section-desc">Scan or enter the return (RMA) order number to begin receiving</p>
+      </div>
+    </div>
+
+    <div class="input-group">
+      <ion-item lines="none" class="input-item">
+        <ion-icon name="document-text-outline" slot="start" color="medium"></ion-icon>
+        <ion-input
+          [(ngModel)]="returnNumber"
+          placeholder="Return order number"
+          inputmode="text"
+          autocapitalize="characters"
+          (keyup.enter)="lookupReturn()"
+          clearInput="true">
+        </ion-input>
+      </ion-item>
+    </div>
+
+    <ion-button
+      expand="block"
+      class="action-btn"
+      (click)="lookupReturn()"
+      [disabled]="isLoading || !returnNumber.trim()">
+      @if (isLoading) {
+        <ion-spinner name="crescent" slot="start"></ion-spinner>
+        Loading...
+      } @else {
+        <ion-icon name="arrow-forward-outline" slot="end"></ion-icon>
+        Open Return Order
+      }
+    </ion-button>
+
+    @if (errorMessage) {
+      <div class="error-banner">
+        <ion-icon name="alert-circle-outline"></ion-icon>
+        <span>{{ errorMessage }}</span>
+      </div>
+    }
+
+    <div class="info-box">
+      <ion-icon name="information-circle-outline" color="primary"></ion-icon>
+      <p>Customer returns are received against RMA orders. Scan the order barcode or type the return number manually. Each line can be routed to Stock, Quarantine, Scrap, or Inspection.</p>
+    </div>
+  </div>
+</ion-content>

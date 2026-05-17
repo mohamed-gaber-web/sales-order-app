@@ -102,7 +102,7 @@
       }
 
       @for (line of filteredLines; track line.LineNumber) {
-        <ion-card class="line-card" [class.shipped]="isFullyShipped(line)">
+        <ion-card class="line-card" [class.shipped]="isLineComplete(line)">
           <div class="line-inner">
             <div class="line-accent"
               [style.background]="getLineStatusColor(line) === 'success'
@@ -123,40 +123,90 @@
                 </ion-badge>
               </div>
 
-              <!-- Quantity progress bar -->
+              <!-- Ship progress -->
               <div class="qty-progress">
+                <div class="progress-track-label">
+                  <span class="progress-section-label">Ship</span>
+                  <span class="progress-section-label">{{ getShippedQty(line) }} / {{ line.TransferQuantity }} {{ line.InventoryUnitSymbol || '' }}</span>
+                </div>
                 <div class="progress-track">
                   <div class="progress-fill"
-                    [class.full]="isFullyShipped(line)"
+                    [class.full]="getRemainingShip(line) <= 0"
                     [style.width.%]="getShippedPct(line)">
                   </div>
                 </div>
                 <div class="qty-meta">
-                  <span>{{ getShippedQty(line) }} {{ line.UnitId || '' }} shipped</span>
-                  <span class="qty-remaining" [class.done]="isFullyShipped(line)">
-                    {{ getRemainingQty(line) }} remaining
+                  <span>{{ getShippedQty(line) }} shipped</span>
+                  <span class="qty-remaining" [class.done]="getRemainingShip(line) <= 0">
+                    {{ getRemainingShip(line) }} remaining
                   </span>
                 </div>
               </div>
 
+              <!-- Receive progress (shown once order is in transit) -->
+              @if (line.LineStatus === 'Shipping' || line.LineStatus === 'Received') {
+                <div class="qty-progress receive-progress">
+                  <div class="progress-track-label">
+                    <span class="progress-section-label">Receive</span>
+                    <span class="progress-section-label">{{ getReceivedQty(line) }} / {{ line.TransferQuantity }} {{ line.InventoryUnitSymbol || '' }}</span>
+                  </div>
+                  <div class="progress-track">
+                    <div class="progress-fill receive-fill"
+                      [class.full]="getRemainingReceive(line) <= 0"
+                      [style.width.%]="getReceivedPct(line)">
+                    </div>
+                  </div>
+                  <div class="qty-meta">
+                    <span>{{ getReceivedQty(line) }} received</span>
+                    <span class="qty-remaining" [class.done]="getRemainingReceive(line) <= 0">
+                      {{ getRemainingReceive(line) }} remaining
+                    </span>
+                  </div>
+                </div>
+              }
+
               <div class="line-fields">
                 <div class="field-item">
                   <span class="field-label">Ordered</span>
-                  <span class="field-value">{{ line.TransferQuantity }} {{ line.UnitId || '' }}</span>
+                  <span class="field-value">{{ line.TransferQuantity }}</span>
                 </div>
-                @if (line.ShippedQuantity !== undefined) {
-                  <div class="field-item">
-                    <span class="field-label">Shipped</span>
-                    <span class="field-value">{{ line.ShippedQuantity }}</span>
-                  </div>
-                }
-                @if (line.ReceivedQuantity !== undefined) {
-                  <div class="field-item">
-                    <span class="field-label">Received</span>
-                    <span class="field-value">{{ line.ReceivedQuantity }}</span>
-                  </div>
-                }
+                <div class="field-item">
+                  <span class="field-label">Unit</span>
+                  <span class="field-value">{{ line.InventoryUnitSymbol || '—' }}</span>
+                </div>
+                <div class="field-item">
+                  <span class="field-label">Shipped</span>
+                  <span class="field-value">{{ getShippedQty(line) }}</span>
+                </div>
+                <div class="field-item">
+                  <span class="field-label">Received</span>
+                  <span class="field-value">{{ getReceivedQty(line) }}</span>
+                </div>
               </div>
+
+              <!-- Action Buttons -->
+              @if (canShipLine(line) || canReceiveLine(line)) {
+                <div class="line-actions">
+                  @if (canShipLine(line)) {
+                    <ion-button
+                      expand="block"
+                      class="action-btn ship-btn"
+                      (click)="shipLine(line); $event.stopPropagation()">
+                      <ion-icon slot="start" name="arrow-up-circle-outline"></ion-icon>
+                      Ship
+                    </ion-button>
+                  }
+                  @if (canReceiveLine(line)) {
+                    <ion-button
+                      expand="block"
+                      class="action-btn receive-btn"
+                      (click)="receiveLine(line); $event.stopPropagation()">
+                      <ion-icon slot="start" name="arrow-down-circle-outline"></ion-icon>
+                      Receive
+                    </ion-button>
+                  }
+                </div>
+              }
             </div>
           </div>
         </ion-card>

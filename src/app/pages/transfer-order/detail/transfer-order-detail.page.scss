@@ -273,6 +273,24 @@ ion-header ion-toolbar {
   margin-bottom: 12px;
 }
 
+.receive-progress {
+  margin-top: -4px;
+}
+
+.progress-track-label {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.progress-section-label {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--ion-color-medium);
+}
+
 .progress-track {
   height: 6px;
   background: var(--gp-border);
@@ -284,9 +302,17 @@ ion-header ion-toolbar {
 .progress-fill {
   height: 100%;
   border-radius: 3px;
-  background: linear-gradient(90deg, var(--gp-accent) 0%, var(--gp-accent-end) 100%);
+  background: linear-gradient(90deg, var(--gp-navy, #002559) 0%, #1a3b6a 100%);
   animation: gp-progress-reveal 0.9s cubic-bezier(0.16, 1, 0.3, 1) backwards;
   animation-delay: 0.2s;
+
+  &.full {
+    background: var(--ion-color-success);
+  }
+}
+
+.receive-fill {
+  background: linear-gradient(90deg, var(--gp-accent, #F24C1A) 0%, var(--gp-accent-end, #e03a08) 100%);
 
   &.full {
     background: var(--ion-color-success);
@@ -335,6 +361,35 @@ ion-header ion-toolbar {
       font-weight: 600;
       color: var(--ion-text-color, #111827);
     }
+  }
+}
+
+// ── Line Action Buttons ─────────────────────────────────────
+.line-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+
+  .action-btn {
+    flex: 1;
+    --border-radius: 10px;
+    font-weight: 700;
+    font-size: 13px;
+    text-transform: none;
+    height: 40px;
+    letter-spacing: -0.01em;
+
+    ion-icon { font-size: 16px; }
+  }
+
+  .ship-btn {
+    --background: linear-gradient(90deg, var(--gp-navy, #002559) 0%, #1a3b6a 100%);
+    --box-shadow: 0 3px 10px rgba(0, 37, 89, 0.25);
+  }
+
+  .receive-btn {
+    --background: linear-gradient(90deg, var(--gp-accent, #F24C1A) 0%, var(--gp-accent-end, #e03a08) 100%);
+    --box-shadow: 0 3px 10px rgba(242, 76, 26, 0.25);
   }
 }
 

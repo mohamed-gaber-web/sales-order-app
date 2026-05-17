@@ -1,8 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { ModalController, ToastController } from '@ionic/angular';
 import { PurchaseOrderService } from '../../core/services/purchase-order.service';
 import { SalesOrderService } from '../../core/services/sales-order.service';
 import { TransferOrderService } from '../../core/services/transfer-order.service';
+import { BarcodeScannerService } from '../../core/services/barcode-scanner.service';
+import { ScannerModalComponent } from '../inventory/scanner/scanner-modal.component';
 
 @Component({
   selector: 'app-dashboard',
@@ -31,6 +34,14 @@ export class DashboardPage implements OnInit {
   }
 
   readonly modules = [
+    // {
+    //   title: 'Inventory',
+    //   subtitle: 'All 13 warehouse transactions',
+    //   icon: 'layers-outline',
+    //   route: '/inventory',
+    //   color: '#2563eb',
+    //   colorEnd: '#1d4ed8',
+    // },
     {
       title: 'Purchase Orders',
       subtitle: 'Receive and manage incoming goods',
@@ -59,9 +70,12 @@ export class DashboardPage implements OnInit {
 
   constructor(
     private router: Router,
+    private modalCtrl: ModalController,
+    private toastCtrl: ToastController,
     private poService: PurchaseOrderService,
     private soService: SalesOrderService,
-    private toService: TransferOrderService
+    private toService: TransferOrderService,
+    private scannerService: BarcodeScannerService,
   ) {}
 
   ngOnInit() {
@@ -73,38 +87,44 @@ export class DashboardPage implements OnInit {
     this.pendingStats = 3;
 
     this.poService.getOrderHeaders(0).subscribe({
-      next: (res) => {
-        this.poCount = res['@odata.count'] ?? res.value.length;
-        this.checkDone();
-      },
+      next: (res) => { this.poCount = res['@odata.count'] ?? res.value.length; this.checkDone(); },
       error: () => { this.poCount = null; this.checkDone(); }
     });
 
     this.soService.getOrderHeaders(0).subscribe({
-      next: (res) => {
-        this.soCount = res['@odata.count'] ?? res.value.length;
-        this.checkDone();
-      },
+      next: (res) => { this.soCount = res['@odata.count'] ?? res.value.length; this.checkDone(); },
       error: () => { this.soCount = null; this.checkDone(); }
     });
 
     this.toService.getOrderHeaders(0).subscribe({
-      next: (res) => {
-        this.toCount = res['@odata.count'] ?? res.value.length;
-        this.checkDone();
-      },
+      next: (res) => { this.toCount = res['@odata.count'] ?? res.value.length; this.checkDone(); },
       error: () => { this.toCount = null; this.checkDone(); }
     });
   }
 
   private checkDone() {
     this.pendingStats--;
-    if (this.pendingStats <= 0) {
-      this.isLoadingStats = false;
-    }
+    if (this.pendingStats <= 0) this.isLoadingStats = false;
   }
 
   navigate(route: string) {
     this.router.navigateByUrl(route);
+  }
+
+  async openScanner() {
+    const modal = await this.modalCtrl.create({
+      component: ScannerModalComponent,
+      cssClass: 'scanner-modal',
+      breakpoints: [0, 0.75, 1],
+      initialBreakpoint: 0.75,
+    });
+    await modal.present();
+
+    const { data } = await modal.onWillDismiss<string>();
+    if (data) {
+      const route = this.scannerService.resolveRoute(data);
+      // Pass scanned value as state for the target page to pick up
+      this.router.navigateByUrl(route, { state: { scannedValue: data } });
+    }
   }
 }

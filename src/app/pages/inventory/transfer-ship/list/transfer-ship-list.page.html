@@ -1,0 +1,151 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/inventory" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Transfer Ship</ion-title>
+  </ion-toolbar>
+  <ion-toolbar>
+    <ion-searchbar
+      [(ngModel)]="searchTerm"
+      (ionInput)="onSearchChange()"
+      placeholder="Search order or warehouse..."
+      debounce="300"
+      animated="true"
+      class="custom-searchbar">
+    </ion-searchbar>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="orders-content">
+  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+    <ion-refresher-content pullingIcon="chevron-down-outline" refreshingSpinner="crescent">
+    </ion-refresher-content>
+  </ion-refresher>
+
+  <!-- Web Page Header (desktop only) -->
+  <div class="web-page-header">
+    <div class="web-page-header-inner">
+      <div class="web-title-group">
+        <h1 class="web-page-title">Transfer Ship</h1>
+        @if (!isLoading) {
+          <span class="web-count-chip">{{ filteredOrders.length }}</span>
+        }
+      </div>
+      <div class="web-actions">
+        <ion-searchbar
+          [(ngModel)]="searchTerm"
+          (ionInput)="onSearchChange()"
+          placeholder="Search orders..."
+          debounce="300"
+          animated="false"
+          class="web-searchbar">
+        </ion-searchbar>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading Skeleton -->
+  @if (isLoading) {
+    <div class="orders-list">
+      @for (i of [1, 2, 3, 4, 5]; track i) {
+        <ion-card class="order-card skeleton-card">
+          <ion-card-content>
+            <ion-skeleton-text animated style="width: 45%; height: 18px; border-radius: 6px"></ion-skeleton-text>
+            <ion-skeleton-text animated style="width: 65%; height: 13px; margin-top: 8px; border-radius: 6px"></ion-skeleton-text>
+            <ion-skeleton-text animated style="width: 80%; height: 12px; margin-top: 8px; border-radius: 6px"></ion-skeleton-text>
+          </ion-card-content>
+        </ion-card>
+      }
+    </div>
+  }
+
+  <!-- Orders List -->
+  @if (!isLoading && filteredOrders.length > 0) {
+    <div class="orders-list">
+      @for (order of filteredOrders; track order.TransferOrderNumber) {
+        <ion-card class="order-card" button (click)="openShip(order.TransferOrderNumber)">
+          <div class="card-layout">
+            <div class="status-strip" style="background: var(--gp-accent)"></div>
+            <div class="card-body">
+              <div class="card-top">
+                <span class="order-number">{{ order.TransferOrderNumber }}</span>
+                <ion-badge color="warning" class="status-badge">Ready to Ship</ion-badge>
+              </div>
+              <div class="card-route">
+                <ion-icon name="arrow-forward-outline" class="route-icon"></ion-icon>
+                <span class="warehouse-from">{{ order.ShippingWarehouseId || '—' }}</span>
+                <ion-icon name="chevron-forward-outline" class="route-arrow"></ion-icon>
+                <span class="warehouse-to">{{ order.ReceivingWarehouseId || '—' }}</span>
+              </div>
+              <div class="card-fields">
+                @if (order.RequestedShippingDate) {
+                  <div class="field-item">
+                    <span class="field-label">Ship Date</span>
+                    <span class="field-value">{{ order.RequestedShippingDate | date:'MMM d, y' }}</span>
+                  </div>
+                }
+                @if (order.TransferOrderStatus) {
+                  <div class="field-item">
+                    <span class="field-label">Status</span>
+                    <span class="field-value">{{ order.TransferOrderStatus }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        </ion-card>
+      }
+    </div>
+  }
+
+  <!-- Searching Spinner -->
+  @if (isSearching) {
+    <div class="searching-state">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Searching all orders...</p>
+    </div>
+  }
+
+  <!-- Empty State -->
+  @if (!isLoading && !isSearching && filteredOrders.length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon-wrap">
+        <ion-icon name="swap-horizontal-outline"></ion-icon>
+      </div>
+      <h3>No Orders Ready to Ship</h3>
+      <p>
+        @if (searchTerm) {
+          No results for "{{ searchTerm }}"
+        } @else {
+          No open transfer orders waiting to be shipped
+        }
+      </p>
+    </div>
+  }
+
+  <!-- Web Load More (desktop only) -->
+  @if (!isLoading && hasMore) {
+    <div class="web-load-more">
+      <ion-button
+        (click)="loadMoreWeb()"
+        [disabled]="isLoadingMore"
+        class="web-load-more-btn"
+        fill="outline">
+        @if (isLoadingMore) {
+          <ion-spinner name="crescent" slot="start"></ion-spinner>
+          Loading...
+        } @else {
+          <ion-icon slot="start" name="chevron-down-outline"></ion-icon>
+          Load More
+        }
+      </ion-button>
+    </div>
+  }
+
+  <!-- Mobile Infinite Scroll -->
+  <ion-infinite-scroll (ionInfinite)="loadMore($event)" [disabled]="!hasMore">
+    <ion-infinite-scroll-content loadingSpinner="crescent" loadingText="Loading more orders...">
+    </ion-infinite-scroll-content>
+  </ion-infinite-scroll>
+</ion-content>

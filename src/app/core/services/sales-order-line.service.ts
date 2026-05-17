@@ -27,6 +27,7 @@ export interface ProductVariant {
 export interface SalesOrderLineResponse {
   dataAreaId: string;
   SalesOrderNumber: string;
+  LineNumber?: number;
   ItemNumber: string;
   ProductName?: string;
   ShippingSiteId: string;

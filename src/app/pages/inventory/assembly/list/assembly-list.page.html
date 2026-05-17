@@ -1,0 +1,116 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/inventory" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Assembly</ion-title>
+  </ion-toolbar>
+  <ion-toolbar class="segment-toolbar">
+    <ion-segment [(ngModel)]="activeSegment" class="gp-segment">
+      <ion-segment-button value="assembly">
+        <ion-label>Assembly</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="disassembly">
+        <ion-label>Disassembly</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="page-content">
+  <div class="page-body">
+
+    <!-- ── Assembly Tab ─────────────────────────────────────────────────── -->
+    @if (activeSegment === 'assembly') {
+      <div class="tab-panel">
+
+        <div class="hero-wrap">
+          <div class="hero-icon assembly-icon">
+            <ion-icon name="git-merge-outline"></ion-icon>
+          </div>
+          <h2 class="hero-title">Post Assembly</h2>
+          <p class="hero-sub">Look up an assembly order to issue components and report the finished item.</p>
+        </div>
+
+        <div class="form-section">
+          <p class="form-label">Assembly Order Number *</p>
+          <ion-item lines="none" class="input-item">
+            <ion-icon name="receipt-outline" slot="start" color="medium"></ion-icon>
+            <ion-input
+              [(ngModel)]="assemblyOrderNumber"
+              placeholder="Scan or enter order number"
+              inputmode="text"
+              clearInput="true"
+              (keyup.enter)="lookUpAssembly()">
+            </ion-input>
+          </ion-item>
+        </div>
+
+        <div class="info-box">
+          <ion-icon name="information-circle-outline"></ion-icon>
+          <div class="info-text">
+            <p class="info-heading">How assembly works</p>
+            <p>Components are issued from the warehouse and the finished good is received into stock. Confirm each BOM line before submitting.</p>
+          </div>
+        </div>
+
+        <ion-button
+          expand="block"
+          class="action-btn"
+          (click)="lookUpAssembly()"
+          [disabled]="!assemblyOrderNumber.trim()">
+          <ion-icon name="search-outline" slot="start"></ion-icon>
+          Look Up Order
+        </ion-button>
+
+      </div>
+    }
+
+    <!-- ── Disassembly Tab ──────────────────────────────────────────────── -->
+    @if (activeSegment === 'disassembly') {
+      <div class="tab-panel">
+
+        <div class="hero-wrap">
+          <div class="hero-icon disassembly-icon">
+            <ion-icon name="git-branch-outline"></ion-icon>
+          </div>
+          <h2 class="hero-title">Post Disassembly</h2>
+          <p class="hero-sub">Scan a parent item or license plate to break it down into its components.</p>
+        </div>
+
+        <div class="form-section">
+          <p class="form-label">Parent Item / License Plate *</p>
+          <ion-item lines="none" class="input-item">
+            <ion-icon name="barcode-outline" slot="start" color="medium"></ion-icon>
+            <ion-input
+              [(ngModel)]="disassemblyOrderNumber"
+              placeholder="Scan or enter LP / item number"
+              inputmode="text"
+              clearInput="true"
+              (keyup.enter)="lookUpDisassembly()">
+            </ion-input>
+          </ion-item>
+        </div>
+
+        <div class="info-box disassembly-info">
+          <ion-icon name="information-circle-outline"></ion-icon>
+          <div class="info-text">
+            <p class="info-heading">How disassembly works</p>
+            <p>The parent item is consumed and its components are received back into stock. Verify expected output quantities before posting.</p>
+          </div>
+        </div>
+
+        <ion-button
+          expand="block"
+          class="action-btn disassembly-btn"
+          (click)="lookUpDisassembly()"
+          [disabled]="!disassemblyOrderNumber.trim()">
+          <ion-icon name="search-outline" slot="start"></ion-icon>
+          Look Up Item
+        </ion-button>
+
+      </div>
+    }
+
+  </div>
+</ion-content>

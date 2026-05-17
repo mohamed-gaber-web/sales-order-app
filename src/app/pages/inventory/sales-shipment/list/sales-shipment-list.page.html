@@ -1,0 +1,81 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/inventory" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Sales Shipment</ion-title>
+  </ion-toolbar>
+  <ion-toolbar>
+    <ion-searchbar
+      [(ngModel)]="searchTerm"
+      (ionInput)="onSearchChange()"
+      placeholder="Search order or customer..."
+      debounce="300"
+      animated="true"
+      class="custom-searchbar">
+    </ion-searchbar>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="orders-content">
+  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  @if (isLoading) {
+    <div class="orders-list">
+      @for (i of [1,2,3,4,5]; track i) {
+        <ion-card class="order-card skeleton-card">
+          <ion-card-content>
+            <ion-skeleton-text animated style="width: 45%; height: 16px; border-radius: 6px"></ion-skeleton-text>
+            <ion-skeleton-text animated style="width: 65%; height: 13px; margin-top: 8px; border-radius: 6px"></ion-skeleton-text>
+          </ion-card-content>
+        </ion-card>
+      }
+    </div>
+  }
+
+  @if (!isLoading && filteredOrders.length > 0) {
+    <div class="orders-list">
+      @for (order of filteredOrders; track order.SalesOrderNumber) {
+        <ion-card class="order-card" button (click)="openShip(order.SalesOrderNumber)">
+          <div class="card-layout">
+            <div class="status-strip" style="background: var(--ion-color-primary)"></div>
+            <div class="card-body">
+              <div class="card-top">
+                <span class="order-number">{{ order.SalesOrderNumber }}</span>
+                <ion-badge color="warning" class="status-badge">Ready to Ship</ion-badge>
+              </div>
+              <div class="card-vendor">
+                <ion-icon name="person-outline" style="font-size:11px;vertical-align:middle;margin-right:4px;"></ion-icon>
+                {{ order.CustomerAccountNumber || '—' }}
+              </div>
+            </div>
+          </div>
+        </ion-card>
+      }
+    </div>
+  }
+
+  @if (isSearching) {
+    <div class="searching-state">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Searching all orders...</p>
+    </div>
+  }
+
+  @if (!isLoading && !isSearching && filteredOrders.length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon-wrap">
+        <ion-icon name="cube-outline"></ion-icon>
+      </div>
+      <h3>No Orders Ready to Ship</h3>
+      <p>{{ searchTerm ? 'No results for "' + searchTerm + '"' : 'No confirmed sales orders with remaining quantity' }}</p>
+    </div>
+  }
+
+  <ion-infinite-scroll (ionInfinite)="loadMore($event)" [disabled]="!hasMore">
+    <ion-infinite-scroll-content loadingSpinner="crescent" loadingText="Loading more...">
+    </ion-infinite-scroll-content>
+  </ion-infinite-scroll>
+</ion-content>

@@ -19,7 +19,28 @@
       "Bash(xargs grep -l \"transfer\\\\|Transfer\")",
       "Bash(^d.*requirement)",
       "Bash(^d.*user)",
-      "Bash(^d.*story\")"
+      "Bash(^d.*story\")",
+      "Bash(Get-ChildItem -Path \"D:\\\\Grow Path\\\\Dynamic with app\\\\grow-path\" -Force)",
+      "Bash(Select-Object Name, FullName)",
+      "Bash(Format-Table)",
+      "Bash(npx tsc *)",
+      "PowerShell(ls \"D:\\\\Grow Path\\\\Dynamic with app\\\\grow-path\\\\src\\\\app\\\\pages\\\\inventory\\\\\")",
+      "PowerShell(ls \"D:\\\\Grow Path\\\\Dynamic with app\\\\grow-path\\\\src\\\\app\\\\core\\\\services\\\\\")",
+      "PowerShell(ls \"D:\\\\Grow Path\\\\Dynamic with app\\\\grow-path\\\\src\\\\app\\\\pages\\\\inventory\\\\on-hand\\\\\")",
+      "PowerShell(ls \"D:\\\\Grow Path\\\\Dynamic with app\\\\grow-path\\\\src\\\\app\\\\pages\\\\inventory\\\\production-issue\\\\\")",
+      "PowerShell(New-Item *)",
+      "PowerShell(Get-ChildItem -Path \"D:\\\\Grow Path\\\\Dynamic with app\\\\grow-path\\\\src\\\\app\\\\pages\\\\inventory\\\\cycle-count\" -Recurse | ForEach-Object { $_.FullName })",
+      "PowerShell(Get-ChildItem -Path \"D:\\\\Grow Path\\\\Dynamic with app\\\\grow-path\\\\src\\\\app\\\\pages\\\\inventory\\\\assembly\" -Recurse | ForEach-Object { $_.FullName })",
+      "Bash(node -e \"const p=require\\('./package.json'\\); console.log\\(Object.keys\\({...p.dependencies,...p.devDependencies}\\).join\\('\\\\n'\\)\\)\")",
+      "Bash(ls *.docx)",
+      "Bash(dir *.docx)",
+      "Bash(powershell *)",
+      "Bash(cat capacitor.config.ts)",
+      "Bash(cat capacitor.config.json)",
+      "mcp__postman__searchPostmanElements",
+      "mcp__postman__getCollectionFolder",
+      "Bash(findstr transfer *)",
+      "WebFetch(domain:instructions)"
     ]
   }
 }

@@ -5,6 +5,7 @@ import { ODataResponse } from '../models/lookup.models';
 import {
   PurchaseOrderHeader,
   CreateProductReceiptRequest,
+  CreateProductReceiptResponse,
 } from '../../models/purchase-order.model';
 
 export const PO_PAGE_SIZE = 10;
@@ -49,8 +50,8 @@ export class PurchaseOrderService {
     );
   }
 
-  createProductReceipt(payload: CreateProductReceiptRequest): Observable<unknown> {
-    return this.api.post<unknown>(
+  createProductReceipt(payload: CreateProductReceiptRequest): Observable<CreateProductReceiptResponse> {
+    return this.api.post<CreateProductReceiptResponse>(
       '/api/services/GP_createProductReceiptServiceGroup/GP_CreateProductReceiptService/createProductReceipt',
       payload
     );

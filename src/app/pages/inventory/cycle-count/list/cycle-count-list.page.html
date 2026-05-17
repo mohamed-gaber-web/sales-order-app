@@ -1,0 +1,115 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/inventory" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Cycle Count</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="loadJournals()" [disabled]="isLoading">
+        <ion-icon slot="icon-only" name="refresh-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+  @if (!isLoading && journals.length > 0) {
+    <ion-toolbar>
+      <ion-searchbar
+        [(ngModel)]="searchTerm"
+        (ionInput)="onSearchChange()"
+        placeholder="Search journals..."
+        animated="true"
+        class="list-searchbar">
+      </ion-searchbar>
+    </ion-toolbar>
+  }
+</ion-header>
+
+<ion-content class="page-content">
+
+  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- Loading -->
+  @if (isLoading) {
+    <div class="skeleton-list">
+      @for (i of [1,2,3,4]; track i) {
+        <div class="skeleton-card">
+          <ion-skeleton-text animated style="width: 35%; height: 18px; border-radius: 6px; margin-bottom: 8px"></ion-skeleton-text>
+          <ion-skeleton-text animated style="width: 65%; height: 14px; border-radius: 5px; margin-bottom: 6px"></ion-skeleton-text>
+          <ion-skeleton-text animated style="width: 45%; height: 13px; border-radius: 5px"></ion-skeleton-text>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Error -->
+  @if (!isLoading && loadError) {
+    <div class="empty-state">
+      <div class="empty-icon-wrap">
+        <ion-icon name="cloud-offline-outline"></ion-icon>
+      </div>
+      <h3>Connection Error</h3>
+      <p>Could not load counting journals.</p>
+      <ion-button fill="outline" class="retry-btn" (click)="loadJournals()">
+        <ion-icon slot="start" name="refresh-outline"></ion-icon>
+        Retry
+      </ion-button>
+    </div>
+  }
+
+  <!-- Empty -->
+  @if (!isLoading && !loadError && filteredJournals.length === 0 && journals.length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon-wrap">
+        <ion-icon name="list-circle-outline"></ion-icon>
+      </div>
+      <h3>No Open Journals</h3>
+      <p>There are no unposted counting journals in D365 right now.</p>
+    </div>
+  }
+
+  @if (!isLoading && !loadError && filteredJournals.length === 0 && journals.length > 0) {
+    <div class="empty-state">
+      <div class="empty-icon-wrap">
+        <ion-icon name="search-outline"></ion-icon>
+      </div>
+      <h3>No Results</h3>
+      <p>No journals match "{{ searchTerm }}"</p>
+    </div>
+  }
+
+  <!-- Journal list -->
+  @if (!isLoading && filteredJournals.length > 0) {
+    <div class="journal-list">
+      <p class="list-meta">{{ filteredJournals.length }} open journal{{ filteredJournals.length !== 1 ? 's' : '' }}</p>
+      @for (journal of filteredJournals; track journal.JournalNumber; let i = $index) {
+        <div class="journal-card" [style.animation-delay]="(i * 0.05) + 's'" (click)="openJournal(journal.JournalNumber)">
+          <div class="journal-accent"></div>
+          <div class="journal-body">
+            <div class="journal-top">
+              <span class="journal-number">{{ journal.JournalNumber }}</span>
+              <ion-badge color="primary" class="status-badge">Open</ion-badge>
+            </div>
+            @if (journal.Description) {
+              <p class="journal-desc">{{ journal.Description }}</p>
+            }
+            @if (journal.WorkerResponsiblePersonnelNumber) {
+              <div class="journal-meta-row">
+                <ion-icon name="person-outline"></ion-icon>
+                <span>{{ journal.WorkerResponsiblePersonnelNumber }}</span>
+              </div>
+            }
+            @if (journal.CountingReasonCodeId) {
+              <div class="journal-meta-row">
+                <ion-icon name="pricetag-outline"></ion-icon>
+                <span>{{ journal.CountingReasonCodeId }}</span>
+              </div>
+            }
+          </div>
+          <ion-icon name="chevron-forward-outline" class="journal-arrow"></ion-icon>
+        </div>
+      }
+    </div>
+  }
+
+</ion-content>

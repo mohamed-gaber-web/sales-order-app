@@ -3,6 +3,7 @@ import { Observable, forkJoin, map } from 'rxjs';
 import { ApiService } from './api.service';
 import { ODataResponse } from '../models/lookup.models';
 import { TransferOrderHeader, TransferOrderLine } from '../../models/transfer-order.model';
+import { TransferShipRequest, TransferReceiveRequest, TransferActionResponse } from '../../models/inventory.model';
 
 export const TO_PAGE_SIZE = 10;
 
@@ -58,6 +59,20 @@ export class TransferOrderService {
         header,
         lines: linesResp.value,
       }))
+    );
+  }
+
+  shipTransferOrder(payload: TransferShipRequest): Observable<TransferActionResponse> {
+    return this.api.post<TransferActionResponse>(
+      '/api/services/GP_transferOrderAPIServiceGroup/GP_transferOrderAPIService/shipmentTransferOrder',
+      payload
+    );
+  }
+
+  receiveTransferOrder(payload: TransferReceiveRequest): Observable<TransferActionResponse> {
+    return this.api.post<TransferActionResponse>(
+      '/api/services/GP_transferOrderAPIServiceGroup/GP_transferOrderAPIService/receiveTransferOrder',
+      payload
     );
   }
 }

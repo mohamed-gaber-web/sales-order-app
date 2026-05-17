@@ -1,0 +1,51 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Inventory</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="openScanner()" title="Scan QR / Barcode">
+        <ion-icon slot="icon-only" name="qr-code-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="inv-home-content">
+
+  <!-- Web page header -->
+  <div class="web-page-header">
+    <div class="web-page-header-inner">
+      <div class="web-title-group">
+        <h1 class="web-page-title">Inventory Management</h1>
+        <span class="web-count-chip">13 Transactions</span>
+      </div>
+      <p class="web-page-subtitle">Select a transaction to get started</p>
+    </div>
+  </div>
+
+  <!-- Mobile header -->
+  <div class="mobile-header">
+    <h2 class="mobile-title">Inventory Management</h2>
+    <p class="mobile-subtitle">Select a transaction</p>
+  </div>
+
+  <!-- Tile grid -->
+  <div class="tile-grid">
+    @for (tile of tiles; track tile.id) {
+      <button class="tile-card" (click)="navigate(tile)" type="button">
+        <div class="tile-icon-wrap" [style.background]="tile.color + '18'">
+          <ion-icon [name]="tile.icon" [style.color]="tile.color" class="tile-icon"></ion-icon>
+        </div>
+        <div class="tile-label">
+          <span class="tile-id">{{ tile.id }}</span>
+          <span class="tile-title">{{ tile.title }}</span>
+          <span class="tile-subtitle">{{ tile.subtitle }}</span>
+        </div>
+        <ion-icon name="chevron-forward-outline" class="tile-chevron"></ion-icon>
+      </button>
+    }
+  </div>
+
+</ion-content>

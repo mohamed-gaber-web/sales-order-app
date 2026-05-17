@@ -145,8 +145,12 @@
               <!-- Extra fields -->
               <div class="line-fields">
                 <div class="field-item">
-                  <span class="field-label">Ordered</span>
-                  <span class="field-value">{{ line.PurchaseQuantity }} {{ line.PurchaseUnitSymbol || '' }}</span>
+                  <span class="field-label">QTY</span>
+                  <span class="field-value">{{ line.OrderedPurchaseQuantity ?? line.PurchaseQuantity }}</span>
+                </div>
+                <div class="field-item">
+                  <span class="field-label">Unit</span>
+                  <span class="field-value">{{ line.PurchaseUnitSymbol || '—' }}</span>
                 </div>
                 @if (line.ReceivingWarehouseId) {
                   <div class="field-item">

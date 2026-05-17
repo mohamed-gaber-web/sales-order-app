@@ -20,9 +20,28 @@ export class PurchaseOrderReceivePage implements OnInit {
   form!: FormGroup;
   isSubmitting = false;
 
+  private safeNum(val: unknown, fallback = 0): number {
+    const n = Number(val);
+    return isNaN(n) || n < 0 ? fallback : n;
+  }
+
+  get totalQty(): number {
+    if (!this.line) return 0;
+    return this.safeNum(this.line.OrderedPurchaseQuantity ?? this.line.PurchaseQuantity);
+  }
+
   get remainingQty(): number {
     if (!this.line) return 0;
-    return this.line.RemainingPurchaseQuantity ?? this.line.PurchaseQuantity;
+    const rem = Number(this.line.RemainingPurchaseQuantity);
+    return isNaN(rem) || rem < 0 ? this.totalQty : rem;
+  }
+
+  get receivedQty(): number {
+    return Math.max(0, this.totalQty - this.remainingQty);
+  }
+
+  get receivedPct(): number {
+    return this.totalQty > 0 ? Math.min(100, (this.receivedQty / this.totalQty) * 100) : 0;
   }
 
   constructor(
@@ -77,17 +96,27 @@ export class PurchaseOrderReceivePage implements OnInit {
         productReceiptQty: [receiptQty]
       }
     }).subscribe({
-      next: async () => {
+      next: async (res) => {
         await loading.dismiss();
         this.isSubmitting = false;
-        const toast = await this.toastCtrl.create({
-          message: `Line ${this.lineNumber} received.`,
-          duration: 3000,
-          color: 'success',
-          position: 'bottom'
-        });
-        await toast.present();
-        this.router.navigate(['/purchase-order/detail', this.poNumber]);
+        if (res.Success) {
+          const toast = await this.toastCtrl.create({
+            message: `Line ${this.lineNumber} received successfully.`,
+            duration: 3000,
+            color: 'success',
+            position: 'bottom'
+          });
+          await toast.present();
+          this.router.navigate(['/purchase-order/detail', this.poNumber]);
+        } else {
+          const toast = await this.toastCtrl.create({
+            message: res.Message ? `Receipt failed: ${res.Message}` : 'Receipt failed. Try again.',
+            duration: 5000,
+            color: 'danger',
+            position: 'bottom'
+          });
+          await toast.present();
+        }
       },
       error: async (err) => {
         await loading.dismiss();

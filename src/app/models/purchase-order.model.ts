@@ -30,6 +30,7 @@ export interface PurchaseOrderLine {
   ItemNumber: string;
   ProductName?: string;
   PurchaseQuantity: number;
+  OrderedPurchaseQuantity?: number;
   RemainingPurchaseQuantity?: number;
   PurchaseUnitSymbol?: string;
   ReceivingWarehouseId?: string;
@@ -46,4 +47,9 @@ export interface CreateProductReceiptRequest {
     purchaseLineNum: number[];
     productReceiptQty: number[];
   };
+}
+
+export interface CreateProductReceiptResponse {
+  Success: boolean;
+  Message?: string;
 }

@@ -39,6 +39,10 @@ export class ApiService {
     return this.http.patch<T>(`${this.baseUrl}${path}`, body);
   }
 
+  patchWithHeaders<T>(path: string, body: unknown, headers: Record<string, string>): Observable<T> {
+    return this.http.patch<T>(`${this.baseUrl}${path}`, body, { headers });
+  }
+
   delete<T>(path: string): Observable<T> {
     return this.http.delete<T>(`${this.baseUrl}${path}`);
   }

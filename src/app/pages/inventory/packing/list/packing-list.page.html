@@ -1,0 +1,182 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/inventory" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Packing</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="packing-content">
+
+  <!-- Setup Card (shown when no container open) -->
+  @if (!container) {
+    <div class="setup-card">
+      <div class="section-header">
+        <ion-icon name="cube-outline" class="section-icon"></ion-icon>
+        <span class="section-title">Open Container</span>
+      </div>
+
+      <div class="form-field">
+        <label class="field-label">Sales Order Number</label>
+        <ion-input
+          [(ngModel)]="salesOrderNumber"
+          placeholder="e.g. SO-00123"
+          fill="outline"
+          class="gp-input">
+        </ion-input>
+      </div>
+
+      <div class="form-field">
+        <label class="field-label">Container Type</label>
+        <div class="select-wrap">
+          <ion-select
+            [(ngModel)]="containerType"
+            interface="action-sheet"
+            class="gp-select">
+            @for (opt of containerTypeOptions; track opt.value) {
+              <ion-select-option [value]="opt.value">{{ opt.label }}</ion-select-option>
+            }
+          </ion-select>
+        </div>
+      </div>
+
+      <ion-button
+        expand="block"
+        shape="round"
+        class="open-btn"
+        [disabled]="!canOpenContainer"
+        (click)="openContainer()">
+        <ion-icon slot="start" name="add-circle-outline"></ion-icon>
+        Open Container
+      </ion-button>
+    </div>
+  }
+
+  <!-- Active Container -->
+  @if (container) {
+
+    <!-- Container Header Card -->
+    <div class="container-card" [class.container-closed]="container.status === 'Closed'">
+      <div class="container-top">
+        <div class="container-info">
+          <span class="container-id-label">Container</span>
+          <span class="container-id">{{ container.containerId }}</span>
+          <span class="container-order">{{ salesOrderNumber }}</span>
+        </div>
+        <div class="container-right">
+          <ion-badge [color]="container.status === 'Open' ? 'success' : 'medium'" class="status-badge">
+            {{ container.status }}
+          </ion-badge>
+          <div class="weight-display">
+            <ion-icon name="scale-outline"></ion-icon>
+            <span>{{ totalWeight | number:'1.1-1' }} kg</span>
+          </div>
+        </div>
+      </div>
+      @if (container.maxWeight) {
+        <div class="weight-bar-wrap">
+          <div class="weight-bar-track">
+            <div class="weight-bar-fill"
+              [style.width.%]="((totalWeight / container.maxWeight) * 100) | number:'1.0-0'"
+              [class.weight-warn]="totalWeight / container.maxWeight > 0.8">
+            </div>
+          </div>
+          <span class="weight-limit">Max {{ container.maxWeight }} kg</span>
+        </div>
+      }
+    </div>
+
+    <!-- Item Scan Card (only when open) -->
+    @if (container.status === 'Open') {
+      <div class="scan-card">
+        <div class="section-header">
+          <ion-icon name="barcode-outline" class="section-icon"></ion-icon>
+          <span class="section-title">Add Item</span>
+        </div>
+        <div class="scan-row">
+          <ion-input
+            [(ngModel)]="scanItemNumber"
+            placeholder="Item Number"
+            fill="outline"
+            class="gp-input scan-item-input">
+          </ion-input>
+          <ion-input
+            [(ngModel)]="scanQty"
+            type="number"
+            placeholder="Qty"
+            fill="outline"
+            class="gp-input scan-qty-input">
+          </ion-input>
+        </div>
+        <ion-button
+          expand="block"
+          shape="round"
+          class="add-item-btn"
+          [disabled]="!canAddItem"
+          (click)="addItem()">
+          <ion-icon slot="start" name="add-outline"></ion-icon>
+          Add Item
+        </ion-button>
+      </div>
+    }
+
+    <!-- Items List -->
+    @if (container.items.length > 0) {
+      <div class="items-card">
+        <div class="section-header">
+          <ion-icon name="list-outline" class="section-icon"></ion-icon>
+          <span class="section-title">Packed Items ({{ container.items.length }})</span>
+        </div>
+        <div class="items-list">
+          @for (item of container.items; track item.itemNumber) {
+            <div class="item-row">
+              <div class="item-number">{{ item.itemNumber }}</div>
+              <div class="item-qty-wrap">
+                <span class="item-qty">{{ item.quantity }}</span>
+                <span class="item-unit">{{ item.unitSymbol ?? 'EA' }}</span>
+                <span class="item-weight">{{ (item.quantity * 0.5) | number:'1.1-1' }} kg</span>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Empty Items State -->
+    @if (container.items.length === 0 && container.status === 'Open') {
+      <div class="empty-items">
+        <ion-icon name="cube-outline"></ion-icon>
+        <p>No items added yet. Scan or enter an item number to begin packing.</p>
+      </div>
+    }
+
+    <!-- Close Container Button -->
+    @if (container.status === 'Open') {
+      <div class="close-action">
+        <ion-button
+          expand="block"
+          shape="round"
+          class="close-btn"
+          [disabled]="container.items.length === 0"
+          (click)="closeContainer()">
+          <ion-icon slot="start" name="checkmark-circle-outline"></ion-icon>
+          Close Container
+        </ion-button>
+      </div>
+    }
+
+    <!-- Closed Message -->
+    @if (container.status === 'Closed') {
+      <div class="closed-banner">
+        <ion-icon name="checkmark-circle" class="closed-icon"></ion-icon>
+        <div>
+          <strong>Container Closed</strong>
+          <p>Label has been printed. Container is sealed and ready for shipment.</p>
+        </div>
+      </div>
+    }
+
+  }
+
+</ion-content>

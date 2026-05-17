@@ -73,34 +73,47 @@ export class PurchaseOrderDetailPage implements OnInit {
     this.router.navigate(['/purchase-order/list']);
   }
 
+  private safeNum(val: unknown, fallback = 0): number {
+    const n = Number(val);
+    return isNaN(n) || n < 0 ? fallback : n;
+  }
+
+  getTotalQty(line: PurchaseOrderLine): number {
+    return this.safeNum(line.OrderedPurchaseQuantity ?? line.PurchaseQuantity);
+  }
+
   getRemainingQty(line: PurchaseOrderLine): number {
-    return line.RemainingPurchaseQuantity ?? line.PurchaseQuantity;
+    const rem = Number(line.RemainingPurchaseQuantity);
+    return isNaN(rem) || rem < 0 ? this.getTotalQty(line) : rem;
   }
 
   isFullyReceived(line: PurchaseOrderLine): boolean {
-    return this.getRemainingQty(line) <= 0;
+    return this.getTotalQty(line) > 0 && this.getRemainingQty(line) <= 0;
   }
 
   getLineStatusColor(line: PurchaseOrderLine): string {
+    const total = this.getTotalQty(line);
     const remaining = this.getRemainingQty(line);
-    if (remaining <= 0) return 'success';
-    if (remaining < line.PurchaseQuantity) return 'warning';
+    if (total > 0 && remaining <= 0) return 'success';
+    if (remaining < total) return 'warning';
     return 'primary';
   }
 
   getLineStatusLabel(line: PurchaseOrderLine): string {
+    const total = this.getTotalQty(line);
     const remaining = this.getRemainingQty(line);
-    if (remaining <= 0) return 'Received';
-    if (remaining < line.PurchaseQuantity) return 'Partial';
+    if (total > 0 && remaining <= 0) return 'Received';
+    if (remaining < total) return 'Partial';
     return 'Open';
   }
 
   getReceivedQty(line: PurchaseOrderLine): number {
-    return Math.max(0, line.PurchaseQuantity - this.getRemainingQty(line));
+    return Math.max(0, this.getTotalQty(line) - this.getRemainingQty(line));
   }
 
   getReceivedPct(line: PurchaseOrderLine): number {
-    if (line.PurchaseQuantity <= 0) return 0;
-    return Math.min(100, Math.round((this.getReceivedQty(line) / line.PurchaseQuantity) * 100));
+    const total = this.getTotalQty(line);
+    if (total <= 0) return 0;
+    return Math.min(100, Math.round((this.getReceivedQty(line) / total) * 100));
   }
 }

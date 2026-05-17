@@ -41,22 +41,18 @@
             <div class="qty-section">
               <div class="qty-header">
                 <span class="qty-label">Receipt Progress</span>
-                <span class="qty-pct">
-                  {{ line.PurchaseQuantity > 0 ? (((line.PurchaseQuantity - remainingQty) / line.PurchaseQuantity) * 100 | number:'1.0-0') : 0 }}% received
-                </span>
+                <span class="qty-pct">{{ receivedPct | number:'1.0-0' }}% received</span>
               </div>
               <div class="qty-track">
-                <div class="qty-fill"
-                  [style.width.%]="line.PurchaseQuantity > 0 ? ((line.PurchaseQuantity - remainingQty) / line.PurchaseQuantity) * 100 : 0">
-                </div>
+                <div class="qty-fill" [style.width.%]="receivedPct"></div>
               </div>
               <div class="qty-values">
                 <div class="qty-stat">
-                  <span class="qty-num">{{ line.PurchaseQuantity }} {{ line.PurchaseUnitSymbol || '' }}</span>
-                  <span class="qty-desc">Ordered</span>
+                  <span class="qty-num">{{ totalQty }}</span>
+                  <span class="qty-desc">QTY</span>
                 </div>
                 <div class="qty-stat remaining">
-                  <span class="qty-num">{{ remainingQty }} {{ line.PurchaseUnitSymbol || '' }}</span>
+                  <span class="qty-num">{{ remainingQty }}</span>
                   <span class="qty-desc">Remaining</span>
                 </div>
               </div>
@@ -64,6 +60,10 @@
 
             <!-- Extra fields -->
             <div class="context-fields">
+              <div class="field-item">
+                <span class="field-label">Unit</span>
+                <span class="field-value">{{ line.PurchaseUnitSymbol || '—' }}</span>
+              </div>
               @if (line.ReceivingWarehouseId) {
                 <div class="field-item">
                   <span class="field-label">Warehouse</span>
@@ -90,19 +90,19 @@
         <!-- Packing Slip ID -->
         <div class="form-field">
           <ion-label class="field-label">
-            Packing Slip ID <span class="required">*</span>
+            Product Receipt ID <span class="required">*</span>
           </ion-label>
           <ion-input
             formControlName="packingSlipId"
             type="text"
-            placeholder="e.g. SLP-2024-001"
+            placeholder="e.g. RCP-2024-001"
             class="custom-input"
             [class.invalid]="form.get('packingSlipId')?.invalid && form.get('packingSlipId')?.touched">
           </ion-input>
           @if (form.get('packingSlipId')?.invalid && form.get('packingSlipId')?.touched) {
             <p class="field-error">
               <ion-icon name="alert-circle-outline"></ion-icon>
-              Packing slip ID is required.
+              Product Receipt ID is required.
             </p>
           }
         </div>

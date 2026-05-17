@@ -1,0 +1,76 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/inventory/license-plate" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>LP Detail</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="lp-detail-content">
+
+  <!-- LP Identity Banner -->
+  <div class="lp-banner">
+    <div class="lp-icon-wrap">
+      <ion-icon name="barcode-outline"></ion-icon>
+    </div>
+    <div class="lp-banner-text">
+      <span class="lp-id-label">License Plate ID</span>
+      <span class="lp-id-value">{{ lpId }}</span>
+    </div>
+    <ion-badge [color]="getStatusColor(lp.Status)" class="status-badge">
+      {{ lp.Status ?? 'Unknown' }}
+    </ion-badge>
+  </div>
+
+  <!-- Location Card -->
+  <div class="detail-card">
+    <div class="section-header">
+      <ion-icon name="location-outline" class="section-icon"></ion-icon>
+      <span class="section-title">Location</span>
+    </div>
+    <div class="field-grid">
+      <div class="field-item">
+        <span class="field-label">Warehouse</span>
+        <span class="field-value">{{ lp.WarehouseId || '—' }}</span>
+      </div>
+      <div class="field-item">
+        <span class="field-label">Location</span>
+        <span class="field-value">{{ lp.LocationId || '—' }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contents Card -->
+  <div class="detail-card">
+    <div class="section-header">
+      <ion-icon name="cube-outline" class="section-icon"></ion-icon>
+      <span class="section-title">Contents</span>
+    </div>
+
+    <div class="content-list">
+      @for (row of contents; track row.itemNumber) {
+        <div class="content-row">
+          <div class="content-item-num">{{ row.itemNumber }}</div>
+          <div class="content-qty">
+            <span class="qty-value">{{ row.quantity }}</span>
+            <span class="qty-unit">{{ row.unitSymbol ?? 'EA' }}</span>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Print Button -->
+  <div class="action-footer">
+    <ion-button
+      expand="block"
+      shape="round"
+      class="print-btn"
+      (click)="printLabel()">
+      <ion-icon slot="start" name="print-outline"></ion-icon>
+      Print LP Label
+    </ion-button>
+  </div>
+
+</ion-content>

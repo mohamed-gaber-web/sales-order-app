@@ -150,6 +150,102 @@ ion-menu {
     background: transparent;
   }
 
+  // ── Group structure ─────────────────────────────────────
+  .menu-group {
+    margin-bottom: 2px;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: background 0.2s;
+
+    &.expanded {
+      background: rgba(var(--ion-color-primary-rgb), 0.03);
+    }
+  }
+
+  .menu-group-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 11px 16px;
+    border-radius: 12px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.18s;
+
+    &:active {
+      background: rgba(var(--ion-color-primary-rgb), 0.06);
+    }
+
+    .group-header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--ion-text-color, #111827);
+
+      ion-icon {
+        font-size: 18px;
+        color: var(--gp-navy, #002559);
+      }
+    }
+
+    .chevron {
+      font-size: 14px;
+      color: var(--ion-color-medium);
+      transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+
+      &.open {
+        transform: rotate(90deg);
+      }
+    }
+  }
+
+  .menu-sub-list {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+
+    &.visible {
+      grid-template-rows: 1fr;
+    }
+  }
+
+  .menu-sub-inner {
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  .menu-sub-item {
+    --padding-start: 42px !important;
+    --min-height: 42px !important;
+    font-size: 13px !important;
+
+    ion-icon {
+      font-size: 17px !important;
+    }
+  }
+
+  .menu-dashboard {
+    margin-bottom: 6px;
+  }
+
+  .menu-coming-soon {
+    opacity: 0.4;
+    pointer-events: none;
+  }
+
+  .soon-badge {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: var(--gp-bg, #f0f2f5);
+    color: var(--ion-color-medium);
+    padding: 2px 7px;
+    border-radius: 999px;
+  }
+
   .menu-item {
     --background: transparent;
     --background-hover: rgba(var(--ion-color-primary-rgb), 0.04);

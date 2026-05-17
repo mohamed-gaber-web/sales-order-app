@@ -1,0 +1,95 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/inventory/customer-returns" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Return {{ returnNumber }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="page-content">
+  <div class="page-body" [formGroup]="form">
+
+    <div class="order-banner">
+      <ion-icon name="return-down-back-outline" color="warning"></ion-icon>
+      <div>
+        <p class="banner-label">Return Order</p>
+        <p class="banner-value">{{ returnNumber }}</p>
+      </div>
+    </div>
+
+    <!-- Item number -->
+    <div class="form-section">
+      <p class="form-label">Item Number *</p>
+      <ion-item lines="none" class="input-item">
+        <ion-icon name="cube-outline" slot="start" color="medium"></ion-icon>
+        <ion-input formControlName="itemNumber" placeholder="Scan or enter item number" inputmode="text" clearInput="true"></ion-input>
+      </ion-item>
+    </div>
+
+    <!-- Quantity -->
+    <div class="form-section">
+      <p class="form-label">Quantity *</p>
+      <ion-item lines="none" class="input-item">
+        <ion-icon name="layers-outline" slot="start" color="medium"></ion-icon>
+        <ion-input formControlName="receivedQty" type="number" inputmode="decimal" placeholder="0" min="0.001"></ion-input>
+      </ion-item>
+    </div>
+
+    <!-- Disposition -->
+    <div class="form-section">
+      <p class="form-label">Disposition *</p>
+      <div class="disposition-grid">
+        @for (d of dispositions; track d.value) {
+          <button
+            class="disposition-btn"
+            [class.active]="form.get('dispositionCode')?.value === d.value"
+            [attr.data-color]="d.color"
+            (click)="form.patchValue({ dispositionCode: d.value })"
+            type="button">
+            <ion-icon [name]="d.value === 'Stock' ? 'checkmark-circle-outline' :
+                              d.value === 'Quarantine' ? 'warning-outline' :
+                              d.value === 'Scrap' ? 'trash-outline' : 'eye-outline'"></ion-icon>
+            {{ d.label }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Condition -->
+    <div class="form-section">
+      <p class="form-label">Condition Code</p>
+      <ion-item lines="none" class="input-item">
+        <ion-select formControlName="conditionCode" placeholder="Select condition" interface="action-sheet">
+          <ion-select-option value="Good">Good</ion-select-option>
+          <ion-select-option value="Damaged">Damaged</ion-select-option>
+          <ion-select-option value="Defective">Defective</ion-select-option>
+          <ion-select-option value="Opened">Opened</ion-select-option>
+        </ion-select>
+      </ion-item>
+    </div>
+
+    <!-- Notes -->
+    <div class="form-section">
+      <p class="form-label">Notes</p>
+      <ion-item lines="none" class="input-item">
+        <ion-textarea formControlName="notes" placeholder="Optional notes..." rows="3" autoGrow="true"></ion-textarea>
+      </ion-item>
+    </div>
+
+    <ion-button
+      expand="block"
+      class="action-btn"
+      (click)="submitReturn()"
+      [disabled]="form.invalid || isSubmitting">
+      @if (isSubmitting) {
+        <ion-spinner name="crescent" slot="start"></ion-spinner>
+        Processing...
+      } @else {
+        <ion-icon name="checkmark-outline" slot="start"></ion-icon>
+        Record Return
+      }
+    </ion-button>
+
+  </div>
+</ion-content>

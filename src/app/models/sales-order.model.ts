@@ -24,6 +24,23 @@ export interface SalesOrderHeaderResponse {
   ShippingDateRequested?: string;
 }
 
+// ── Packing Slip ───────────────────────────────────────────
+export interface CreatePackingSlipRequest {
+  _request: {
+    DataAreaId: string;
+    SalesOrderID: string;
+    packingSlipId: string;
+    salesLineNum: number[];
+    packingSlipQty: number[];
+  };
+}
+
+export interface PackingSlipResponse {
+  Success: boolean;
+  ErrorMessage?: string;
+  DebugMessage?: string;
+}
+
 // ── Legacy local model ─────────────────────────────────────
 export interface SalesOrder {
   id: string;

@@ -1,0 +1,158 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/inventory"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Location Management</ion-title>
+    <ion-buttons slot="end">
+      @if (selectedWarehouse) {
+        <ion-button (click)="toggleCreateForm()" [title]="showCreateForm ? 'Cancel' : 'New Location'">
+          <ion-icon slot="icon-only" [name]="showCreateForm ? 'close-outline' : 'add-outline'"></ion-icon>
+        </ion-button>
+      }
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="loc-content">
+
+  <!-- Web header -->
+  <div class="web-page-header">
+    <div class="web-page-header-inner">
+      <div class="web-title-group">
+        <h1 class="web-page-title">Location Management</h1>
+        @if (selectedWarehouse) {
+          <span class="web-count-chip">{{ totalCount }} locations</span>
+        }
+      </div>
+      <p class="web-page-subtitle">Create, block, and unblock warehouse locations</p>
+    </div>
+  </div>
+
+  <!-- Warehouse selector -->
+  <div class="filter-bar">
+    <ion-select
+      class="wh-select"
+      placeholder="Select warehouse…"
+      interface="action-sheet"
+      (ionChange)="onWarehouseChange($event)">
+      @for (wh of warehouses; track wh.WarehouseId) {
+        <ion-select-option [value]="wh.WarehouseId">
+          {{ wh.WarehouseId }} — {{ wh.WarehouseName }}
+        </ion-select-option>
+      }
+    </ion-select>
+  </div>
+
+  @if (selectedWarehouse) {
+
+    <!-- Search bar -->
+    <div class="search-wrap">
+      <ion-searchbar
+        placeholder="Search location ID…"
+        debounce="0"
+        (ionInput)="onSearchInput($event)">
+      </ion-searchbar>
+    </div>
+
+    <!-- Create form -->
+    @if (showCreateForm) {
+      <div class="create-form-card">
+        <h3 class="create-form-title">New Location — {{ selectedWarehouse.WarehouseId }}</h3>
+        <form [formGroup]="createForm">
+
+          <div class="field-group">
+            <ion-label class="field-label">Location ID *</ion-label>
+            <ion-input
+              formControlName="locationId"
+              placeholder="e.g. 01-01-01"
+              class="field-input"
+              [class.invalid]="createForm.get('locationId')?.invalid && createForm.get('locationId')?.touched">
+            </ion-input>
+          </div>
+
+          <div class="field-group">
+            <ion-label class="field-label">Location Profile *</ion-label>
+            <ion-input
+              formControlName="locationProfileId"
+              placeholder="e.g. PICK-PROFILE"
+              class="field-input"
+              [class.invalid]="createForm.get('locationProfileId')?.invalid && createForm.get('locationProfileId')?.touched">
+            </ion-input>
+          </div>
+
+          <div class="field-group">
+            <ion-label class="field-label">Location Type</ion-label>
+            <ion-select formControlName="locationType" interface="popover" class="field-select">
+              @for (type of locationTypes; track type) {
+                <ion-select-option [value]="type">{{ type }}</ion-select-option>
+              }
+            </ion-select>
+          </div>
+
+          <ion-button
+            expand="block"
+            class="submit-btn"
+            [disabled]="createForm.invalid"
+            (click)="submitCreate()">
+            Create Location
+          </ion-button>
+
+        </form>
+      </div>
+    }
+
+    <!-- Location list -->
+    @if (isLoading && locations.length === 0) {
+      <div class="skeleton-list">
+        @for (s of [1,2,3,4,5,6]; track s) {
+          <div class="loc-skeleton">
+            <ion-skeleton-text animated style="width: 40%; height: 16px; border-radius: 6px;"></ion-skeleton-text>
+            <ion-skeleton-text animated style="width: 60%; height: 12px; border-radius: 4px; margin-top: 6px;"></ion-skeleton-text>
+          </div>
+        }
+      </div>
+    } @else if (locations.length === 0 && !isLoading) {
+      <div class="empty-state">
+        <ion-icon name="location-outline"></ion-icon>
+        <p>No locations found</p>
+        <span>{{ searchTerm ? 'Try a different search.' : 'This warehouse has no locations yet.' }}</span>
+      </div>
+    } @else {
+      <div class="loc-list">
+        @for (loc of locations; track trackByLocation($index, loc)) {
+          <div class="loc-card" (click)="openActions(loc)">
+            <div class="loc-id-wrap">
+              <span class="loc-id">{{ loc.LocationId }}</span>
+              @if (loc.IsBlocked) {
+                <span class="badge blocked">Blocked</span>
+              } @else {
+                <span class="badge active">Active</span>
+              }
+            </div>
+            <div class="loc-meta">
+              <span class="meta-chip">{{ loc.LocationType || 'Unknown' }}</span>
+              @if (loc.LocationProfileId) {
+                <span class="meta-chip">{{ loc.LocationProfileId }}</span>
+              }
+            </div>
+            <ion-icon name="ellipsis-vertical-outline" class="loc-action-icon"></ion-icon>
+          </div>
+        }
+      </div>
+
+      <ion-infinite-scroll [disabled]="!hasMore" (ionInfinite)="loadMore($event)">
+        <ion-infinite-scroll-content loadingSpinner="crescent"></ion-infinite-scroll-content>
+      </ion-infinite-scroll>
+    }
+
+  } @else {
+    <!-- Prompt state -->
+    <div class="empty-state">
+      <ion-icon name="business-outline"></ion-icon>
+      <p>Select a Warehouse</p>
+      <span>Choose a warehouse above to manage its locations.</span>
+    </div>
+  }
+
+</ion-content>

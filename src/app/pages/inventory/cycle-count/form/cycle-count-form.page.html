@@ -1,0 +1,188 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/inventory/cycle-count" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ journalNumber }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" (click)="loadLines()" [disabled]="isLoading">
+        <ion-icon name="refresh-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="page-content">
+
+  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- Loading -->
+  @if (isLoading) {
+    <div class="loading-state">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Loading journal lines...</p>
+    </div>
+  }
+
+  <!-- Error -->
+  @if (!isLoading && loadError) {
+    <div class="empty-state">
+      <div class="empty-icon-wrap">
+        <ion-icon name="cloud-offline-outline"></ion-icon>
+      </div>
+      <h3>Load Failed</h3>
+      <p>Could not load lines for journal {{ journalNumber }}.</p>
+      <ion-button fill="outline" class="retry-btn" (click)="loadLines()">
+        <ion-icon slot="start" name="refresh-outline"></ion-icon>
+        Retry
+      </ion-button>
+    </div>
+  }
+
+  <!-- Empty lines -->
+  @if (!isLoading && !loadError && entries.length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon-wrap">
+        <ion-icon name="list-outline"></ion-icon>
+      </div>
+      <h3>No Lines</h3>
+      <p>Journal {{ journalNumber }} has no counting lines.</p>
+    </div>
+  }
+
+  <!-- Lines -->
+  @if (!isLoading && entries.length > 0) {
+    <div class="page-body">
+
+      <!-- Progress summary -->
+      <div class="progress-bar-wrap">
+        <div class="progress-summary">
+          <span class="progress-label">{{ savedCount }} / {{ totalCount }} saved</span>
+          @if (savedCount === totalCount && totalCount > 0) {
+            <span class="progress-done">All done</span>
+          }
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" [style.width.%]="totalCount > 0 ? (savedCount / totalCount) * 100 : 0"></div>
+        </div>
+      </div>
+
+      <!-- Count cards -->
+      @for (entry of entries; track entry.line.LineNumber; let i = $index) {
+        <div class="count-card" [class.saved]="entry.isSaved" [style.animation-delay]="(i * 0.04) + 's'">
+
+          <!-- Accent strip -->
+          <div class="card-accent" [class.accent-saved]="entry.isSaved" [class.accent-modified]="entry.isModified && !entry.isSaved"></div>
+
+          <div class="card-body">
+            <!-- Header row -->
+            <div class="card-header">
+              <div class="card-title-group">
+                <span class="line-num">Line {{ entry.line.LineNumber }}</span>
+                <span class="item-number">{{ entry.line.ItemNumber }}</span>
+              </div>
+              @if (entry.isSaved) {
+                <div class="saved-badge">
+                  <ion-icon name="checkmark-circle"></ion-icon>
+                  Saved
+                </div>
+              }
+            </div>
+
+            <!-- Location info -->
+            <div class="location-row">
+              @if (entry.line.InventorySiteId) {
+                <div class="loc-chip">
+                  <ion-icon name="location-outline"></ion-icon>
+                  {{ entry.line.InventorySiteId }}
+                </div>
+              }
+              @if (entry.line.WarehouseId) {
+                <div class="loc-chip">
+                  <ion-icon name="business-outline"></ion-icon>
+                  {{ entry.line.WarehouseId }}
+                </div>
+              }
+              @if (entry.line.WarehouseLocationId) {
+                <div class="loc-chip">
+                  <ion-icon name="navigate-outline"></ion-icon>
+                  {{ entry.line.WarehouseLocationId }}
+                </div>
+              }
+              @if (entry.line.ItemBatchNumber) {
+                <div class="loc-chip">
+                  <ion-icon name="layers-outline"></ion-icon>
+                  {{ entry.line.ItemBatchNumber }}
+                </div>
+              }
+              @if (entry.line.ProductColorId) {
+                <div class="loc-chip">{{ entry.line.ProductColorId }}</div>
+              }
+              @if (entry.line.ProductSizeId) {
+                <div class="loc-chip">{{ entry.line.ProductSizeId }}</div>
+              }
+              @if (entry.line.ProductStyleId) {
+                <div class="loc-chip">{{ entry.line.ProductStyleId }}</div>
+              }
+              @if (entry.line.ProductConfigurationId) {
+                <div class="loc-chip">{{ entry.line.ProductConfigurationId }}</div>
+              }
+            </div>
+
+            <!-- On-hand reference -->
+            @if (entry.line.OnHandQuantity !== undefined) {
+              <div class="onhand-row">
+                <span class="onhand-label">On Hand</span>
+                <span class="onhand-value">{{ entry.line.OnHandQuantity }}</span>
+              </div>
+            }
+
+            <!-- Counted qty stepper -->
+            <div class="qty-row">
+              <span class="qty-label">Counted Qty</span>
+              <div class="qty-stepper">
+                <button class="qty-btn" (click)="decrement(entry)">
+                  <ion-icon name="remove-outline"></ion-icon>
+                </button>
+                <input
+                  class="qty-input"
+                  type="number"
+                  min="0"
+                  inputmode="decimal"
+                  [(ngModel)]="entry.countedQty"
+                  (ngModelChange)="onQtyChange(entry)"
+                  (focus)="$any($event.target).select()" />
+                <button class="qty-btn" (click)="increment(entry)">
+                  <ion-icon name="add-outline"></ion-icon>
+                </button>
+              </div>
+            </div>
+
+            <!-- Save button -->
+            <ion-button
+              expand="block"
+              class="save-btn"
+              [class.save-btn--saved]="entry.isSaved"
+              [disabled]="entry.isSaving"
+              (click)="saveLine(entry)">
+              @if (entry.isSaving) {
+                <ion-spinner name="crescent" slot="start" style="width:16px;height:16px"></ion-spinner>
+                Saving...
+              } @else if (entry.isSaved) {
+                <ion-icon slot="start" name="checkmark-circle-outline"></ion-icon>
+                Saved
+              } @else {
+                <ion-icon slot="start" name="cloud-upload-outline"></ion-icon>
+                Save
+              }
+            </ion-button>
+          </div>
+        </div>
+      }
+
+    </div>
+  }
+
+</ion-content>

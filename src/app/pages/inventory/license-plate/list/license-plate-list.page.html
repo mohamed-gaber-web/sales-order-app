@@ -1,0 +1,81 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/inventory" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>License Plates</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="lp-content">
+
+  <!-- Look Up Section -->
+  <div class="section-card">
+    <div class="section-header">
+      <ion-icon name="barcode-outline" class="section-icon"></ion-icon>
+      <span class="section-title">Look Up License Plate</span>
+    </div>
+    <div class="lookup-row">
+      <ion-input
+        [(ngModel)]="lpId"
+        placeholder="License Plate ID"
+        class="lp-input"
+        fill="outline"
+        (keyup.enter)="lookUp()">
+      </ion-input>
+      <ion-button
+        (click)="lookUp()"
+        [disabled]="!lpId.trim()"
+        class="lookup-btn"
+        expand="block"
+        shape="round">
+        Look Up
+      </ion-button>
+    </div>
+  </div>
+
+  <!-- Actions Section -->
+  <div class="section-card">
+    <div class="section-header">
+      <ion-icon name="construct-outline" class="section-icon"></ion-icon>
+      <span class="section-title">LP Actions</span>
+    </div>
+
+    <div class="actions-grid">
+      <button class="action-tile" (click)="showBuildAlert()">
+        <div class="tile-icon-wrap tile-build">
+          <ion-icon name="add-circle-outline"></ion-icon>
+        </div>
+        <span class="tile-label">Build LP</span>
+      </button>
+
+      <button class="action-tile" (click)="showSplitAlert()">
+        <div class="tile-icon-wrap tile-split">
+          <ion-icon name="git-branch-outline"></ion-icon>
+        </div>
+        <span class="tile-label">Split LP</span>
+      </button>
+
+      <button class="action-tile" (click)="showMergeAlert()">
+        <div class="tile-icon-wrap tile-merge">
+          <ion-icon name="git-merge-outline"></ion-icon>
+        </div>
+        <span class="tile-label">Merge LP</span>
+      </button>
+
+      <button class="action-tile" (click)="showMoveAlert()">
+        <div class="tile-icon-wrap tile-move">
+          <ion-icon name="arrow-redo-outline"></ion-icon>
+        </div>
+        <span class="tile-label">Move LP</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Info Box -->
+  <div class="info-box">
+    <ion-icon name="information-circle-outline" class="info-icon"></ion-icon>
+    <p>License plates track groups of inventory items. Enter an LP ID above to view its contents and location, or use the actions to build, split, merge, or move license plates.</p>
+  </div>
+
+</ion-content>

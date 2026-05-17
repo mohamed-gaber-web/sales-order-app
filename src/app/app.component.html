@@ -33,25 +33,69 @@
       <ion-content>
         <!-- Navigation Menu -->
         <ion-list id="main-menu" lines="none">
-          @for (p of appPages; track p; let i = $index) {
-            <ion-menu-toggle auto-hide="false">
-              <ion-item
-                routerDirection="root"
-                [routerLink]="[p.url]"
-                lines="none"
-                detail="false"
-                routerLinkActive="selected"
-                class="menu-item"
-              >
+
+          <!-- Dashboard -->
+          <ion-menu-toggle auto-hide="false">
+            <ion-item
+              routerDirection="root"
+              routerLink="/dashboard"
+              lines="none"
+              detail="false"
+              routerLinkActive="selected"
+              class="menu-item menu-dashboard">
+              <ion-icon aria-hidden="true" slot="start" name="grid-outline"></ion-icon>
+              <ion-label>Dashboard</ion-label>
+            </ion-item>
+          </ion-menu-toggle>
+
+          <!-- Grouped sections -->
+          @for (group of menuGroups; track group.title) {
+            <div class="menu-group" [class.expanded]="group.expanded">
+
+              <!-- Parent toggle -->
+              <div class="menu-group-header" (click)="toggleGroup(group)">
+                <div class="group-header-left">
+                  <ion-icon [name]="group.icon + '-outline'"></ion-icon>
+                  <span>{{ group.title }}</span>
+                </div>
                 <ion-icon
-                  aria-hidden="true"
-                  slot="start"
-                  [name]="p.icon + '-outline'"
-                ></ion-icon>
-                <ion-label>{{ p.title }}</ion-label>
-              </ion-item>
-            </ion-menu-toggle>
+                  name="chevron-forward-outline"
+                  class="chevron"
+                  [class.open]="group.expanded">
+                </ion-icon>
+              </div>
+
+              <!-- Sub-items -->
+              <div class="menu-sub-list" [class.visible]="group.expanded">
+                <div class="menu-sub-inner">
+                  @for (item of group.items; track item.title) {
+                    @if (item.comingSoon) {
+                      <ion-item lines="none" detail="false" class="menu-item menu-sub-item menu-coming-soon">
+                        <ion-icon aria-hidden="true" slot="start" [name]="item.icon + '-outline'"></ion-icon>
+                        <ion-label>{{ item.title }}</ion-label>
+                        <ion-note slot="end" class="soon-badge">Soon</ion-note>
+                      </ion-item>
+                    } @else {
+                      <ion-menu-toggle auto-hide="false">
+                        <ion-item
+                          routerDirection="root"
+                          [routerLink]="[item.url]"
+                          lines="none"
+                          detail="false"
+                          routerLinkActive="selected"
+                          class="menu-item menu-sub-item">
+                          <ion-icon aria-hidden="true" slot="start" [name]="item.icon + '-outline'"></ion-icon>
+                          <ion-label>{{ item.title }}</ion-label>
+                        </ion-item>
+                      </ion-menu-toggle>
+                    }
+                  }
+                </div>
+              </div>
+
+            </div>
           }
+
         </ion-list>
 
         <!-- Bottom Actions -->

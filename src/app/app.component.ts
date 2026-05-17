@@ -8,12 +8,71 @@ import { ThemeService } from './core';
   standalone: false,
 })
 export class AppComponent implements OnInit {
-  public appPages = [
-    { title: 'Dashboard', url: '/dashboard', icon: 'grid' },
-    { title: 'Purchase Orders', url: '/purchase-order/list', icon: 'cube' },
-    { title: 'Sales Orders', url: '/sales-order/list', icon: 'cart' },
-    { title: 'Transfer Orders', url: '/transfer-order/list', icon: 'swap-horizontal' },
+  public menuGroups = [
+    {
+      title: 'Inventory',
+      icon: 'layers',
+      expanded: false,
+      items: [
+        { title: 'Transfer Order', url: '/transfer-order/list', icon: 'swap-horizontal' },
+        { title: 'Count Cycle',    url: '/inventory/cycle-count', icon: 'refresh-circle' },
+        { title: 'Movement',       url: null, icon: 'git-branch', comingSoon: true },
+      ]
+    },
+    {
+      title: 'Purchase Order',
+      icon: 'cube',
+      expanded: false,
+      items: [
+        { title: 'Product Receipt', url: '/purchase-order/list', icon: 'download' },
+        { title: 'Vendor Return',   url: '/inventory/vendor-returns', icon: 'return-up-back' },
+      ]
+    },
+    {
+      title: 'Sales Order',
+      icon: 'cart',
+      expanded: false,
+      items: [
+        { title: 'Packing Slip',    url: '/inventory/sales-shipment', icon: 'archive' },
+        { title: 'Return Customer', url: null, icon: 'person-remove', comingSoon: true },
+        { title: 'Return Order',    url: null, icon: 'arrow-undo', comingSoon: true },
+        { title: 'Reservation',     url: '/inventory/reservation', icon: 'bookmark' },
+      ]
+    },
+    {
+      title: 'Production',
+      icon: 'construct',
+      expanded: false,
+      items: [
+        { title: 'Picking List',       url: null, icon: 'list',             comingSoon: true },
+        { title: 'Report As Finished', url: null, icon: 'checkmark-circle', comingSoon: true },
+      ]
+    },
+    {
+      title: 'Wh Management',
+      icon: 'business',
+      expanded: false,
+      items: [
+        { title: 'LP',         url: '/inventory/license-plate', icon: 'barcode' },
+        { title: 'Pick & Put', url: '/inventory/pick-put',      icon: 'hand-right' },
+        { title: 'Packing',    url: '/inventory/packing',       icon: 'cube' },
+      ]
+    },
+    {
+      title: 'Inquiry',
+      icon: 'search',
+      expanded: false,
+      items: [
+        { title: 'On Hand List', url: '/inventory/on-hand', icon: 'stats-chart' },
+      ]
+    },
   ];
+
+  toggleGroup(group: { expanded: boolean }) {
+    const opening = !group.expanded;
+    this.menuGroups.forEach(g => g.expanded = false);
+    if (opening) group.expanded = true;
+  }
 
   showSplash = true;
   splashFading = false;

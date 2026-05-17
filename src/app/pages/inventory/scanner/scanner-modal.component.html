@@ -1,0 +1,64 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar style="--background: #0a1628; --color: #fff; --border-color: transparent;">
+    <ion-title style="font-size:17px; font-weight:700;">Scan QR / Barcode</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="dismiss()" style="--color:#fff;">
+        <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="scanner-content">
+
+  <!-- Camera viewfinder -->
+  @if (canScan && isScanning) {
+    <div class="viewfinder-wrap">
+      <video #videoEl class="camera-video" autoplay playsinline muted></video>
+      <div class="scan-overlay">
+        <div class="scan-frame">
+          <span class="corner tl"></span>
+          <span class="corner tr"></span>
+          <span class="corner bl"></span>
+          <span class="corner br"></span>
+          <div class="scan-line"></div>
+        </div>
+        <p class="scan-hint">Align barcode or QR code within the frame</p>
+      </div>
+    </div>
+  }
+
+  <!-- Camera not supported / error -->
+  @if (!canScan || scanError) {
+    <div class="no-camera-state">
+      <div class="no-camera-icon">
+        <ion-icon name="camera-off-outline"></ion-icon>
+      </div>
+      <p class="no-camera-msg">
+        {{ scanError || 'Camera scanning is not available in this browser. Use manual entry below.' }}
+      </p>
+    </div>
+  }
+
+  <!-- Manual entry fallback (always shown) -->
+  <div class="manual-section">
+    <p class="manual-label">Manual Entry</p>
+    <div class="manual-row">
+      <ion-item lines="none" class="manual-input-item">
+        <ion-icon name="barcode-outline" slot="start" color="medium"></ion-icon>
+        <ion-input
+          [(ngModel)]="manualValue"
+          placeholder="Type PO, TO, or item number..."
+          inputmode="text"
+          autocapitalize="characters"
+          clearInput="true"
+          (keyup.enter)="submitManual()">
+        </ion-input>
+      </ion-item>
+      <ion-button class="manual-go-btn" (click)="submitManual()" [disabled]="!manualValue.trim()">
+        <ion-icon slot="icon-only" name="arrow-forward-outline"></ion-icon>
+      </ion-button>
+    </div>
+  </div>
+
+</ion-content>

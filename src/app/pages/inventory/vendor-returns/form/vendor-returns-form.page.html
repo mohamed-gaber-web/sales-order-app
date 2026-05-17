@@ -1,0 +1,157 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/inventory/vendor-returns" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Return PO {{ poNumber }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="page-content">
+
+  @if (isLoading) {
+    <div class="loading-state">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Loading order lines...</p>
+    </div>
+  }
+
+  @if (!isLoading && loadError) {
+    <div class="page-body">
+      <div class="error-banner">
+        <ion-icon name="alert-circle-outline"></ion-icon>
+        <div>
+          <p class="error-title">Failed to Load Order</p>
+          <p class="error-desc">{{ loadError }}</p>
+        </div>
+      </div>
+      <ion-button expand="block" fill="outline" class="retry-btn" (click)="loadOrder()">
+        <ion-icon name="refresh-outline" slot="start"></ion-icon>
+        Retry
+      </ion-button>
+    </div>
+  }
+
+  @if (!isLoading && !loadError && order) {
+    <div class="page-body" [formGroup]="form">
+
+      <!-- PO info banner -->
+      <div class="order-banner">
+        <div class="banner-icon-wrap">
+          <ion-icon name="arrow-undo-outline"></ion-icon>
+        </div>
+        <div class="banner-details">
+          <p class="banner-label">Purchase Order</p>
+          <p class="banner-value">{{ poNumber }}</p>
+          <p class="banner-sub">
+            <ion-icon name="storefront-outline"></ion-icon>
+            {{ order.VendorAccountNumber }}
+          </p>
+        </div>
+        @if (order.CurrencyCode) {
+          <div class="banner-meta">
+            <p class="banner-label">Currency</p>
+            <p class="banner-currency">{{ order.CurrencyCode }}</p>
+          </div>
+        }
+      </div>
+
+      <!-- Lines -->
+      <p class="section-heading">Select Lines to Return</p>
+
+      @if ((order.PurchaseOrderLinesV2?.length ?? 0) === 0) {
+        <div class="no-lines">
+          <ion-icon name="receipt-outline"></ion-icon>
+          <p>No lines found for this purchase order.</p>
+        </div>
+      }
+
+      <div formArrayName="lines" class="lines-list">
+        @for (line of lines.controls; track $index) {
+          <div [formGroupName]="$index" class="line-card" [class.line-selected]="line.get('selected')?.value">
+            <!-- Line header row -->
+            <div class="line-header" (click)="line.patchValue({ selected: !line.get('selected')?.value })">
+              <ion-checkbox formControlName="selected" class="line-check" (click)="$event.stopPropagation()"></ion-checkbox>
+              <div class="line-info">
+                <span class="line-item-number">{{ line.get('itemNumber')?.value }}</span>
+                <span class="line-meta">
+                  Line {{ line.get('lineNumber')?.value }}
+                  @if (line.get('unitSymbol')?.value) { · {{ line.get('unitSymbol')?.value }} }
+                </span>
+              </div>
+              <div class="line-qty-info">
+                <span class="qty-label">Received</span>
+                <span class="qty-value">{{ line.get('receivedQty')?.value }}</span>
+              </div>
+            </div>
+
+            <!-- Expanded fields when selected -->
+            @if (line.get('selected')?.value) {
+              <div class="line-fields">
+                <div class="field-row">
+                  <div class="field-block">
+                    <p class="field-label">Return Qty *</p>
+                    <ion-item lines="none" class="field-input">
+                      <ion-input
+                        formControlName="returnQty"
+                        type="number"
+                        inputmode="decimal"
+                        placeholder="0.00"
+                        min="0.001">
+                      </ion-input>
+                    </ion-item>
+                    @if (line.get('returnQty')?.invalid && line.get('returnQty')?.touched) {
+                      <p class="field-error">Enter a valid quantity.</p>
+                    }
+                  </div>
+
+                  <div class="field-block">
+                    <p class="field-label">Reason *</p>
+                    <ion-item lines="none" class="field-input">
+                      <ion-select formControlName="reasonCode" placeholder="Select reason" interface="action-sheet">
+                        @for (r of reasonCodes; track r.value) {
+                          <ion-select-option [value]="r.value">{{ r.label }}</ion-select-option>
+                        }
+                      </ion-select>
+                    </ion-item>
+                    @if (line.get('reasonCode')?.invalid && line.get('reasonCode')?.touched) {
+                      <p class="field-error">Reason is required.</p>
+                    }
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      @if (selectedCount > 0) {
+        <div class="selection-summary">
+          <ion-icon name="checkmark-circle-outline" color="success"></ion-icon>
+          <span>{{ selectedCount }} line{{ selectedCount !== 1 ? 's' : '' }} selected for return</span>
+        </div>
+      }
+
+      <div class="info-box">
+        <ion-icon name="information-circle-outline" color="primary"></ion-icon>
+        <p>Select the lines you want to return, enter the quantity and reason for each. Only lines with a quantity and reason code will be included in the return.</p>
+      </div>
+
+      <ion-button
+        expand="block"
+        class="action-btn"
+        (click)="submitReturn()"
+        [disabled]="!hasValidSelection || isSubmitting">
+        @if (isSubmitting) {
+          <ion-spinner name="crescent" slot="start"></ion-spinner>
+          Submitting Return...
+        } @else {
+          <ion-icon name="arrow-undo-outline" slot="start"></ion-icon>
+          Submit Return
+        }
+      </ion-button>
+
+    </div>
+  }
+
+</ion-content>

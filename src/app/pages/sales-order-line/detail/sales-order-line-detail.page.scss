@@ -153,6 +153,24 @@ ion-header {
   }
 }
 
+// ── Line Action ────────────────────────────────────────────
+.line-actions {
+  margin-top: 12px;
+
+  .slip-btn {
+    --background: linear-gradient(90deg, var(--gp-navy, #002559) 0%, #1a3b6a 100%);
+    --border-radius: 10px;
+    --box-shadow: 0 3px 10px rgba(0, 37, 89, 0.2);
+    font-weight: 700;
+    font-size: 13px;
+    text-transform: none;
+    height: 40px;
+    letter-spacing: -0.01em;
+
+    ion-icon { font-size: 16px; }
+  }
+}
+
 // ── Empty State ────────────────────────────────────────────
 .empty-state {
   display: flex;
