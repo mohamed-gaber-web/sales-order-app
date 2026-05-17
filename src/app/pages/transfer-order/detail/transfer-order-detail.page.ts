@@ -250,9 +250,9 @@ export class TransferOrderDetailPage implements OnInit {
   }
 
   getReceivedPct(line: TransferOrderLine): number {
-    const total = this.safeNum(line.TransferQuantity);
-    if (total <= 0) return 0;
-    return Math.min(100, Math.round((this.getReceivedQty(line) / total) * 100));
+    const shipped = this.getShippedQty(line);
+    if (shipped <= 0) return 0;
+    return Math.min(100, Math.round((this.getReceivedQty(line) / shipped) * 100));
   }
 
   isLineComplete(line: TransferOrderLine): boolean {

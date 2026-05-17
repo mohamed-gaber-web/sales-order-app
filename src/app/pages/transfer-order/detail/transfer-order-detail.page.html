@@ -148,7 +148,7 @@
                 <div class="qty-progress receive-progress">
                   <div class="progress-track-label">
                     <span class="progress-section-label">Receive</span>
-                    <span class="progress-section-label">{{ getReceivedQty(line) }} / {{ line.TransferQuantity }} {{ line.InventoryUnitSymbol || '' }}</span>
+                    <span class="progress-section-label">{{ getReceivedQty(line) }} / {{ getShippedQty(line) }} {{ line.InventoryUnitSymbol || '' }}</span>
                   </div>
                   <div class="progress-track">
                     <div class="progress-fill receive-fill"

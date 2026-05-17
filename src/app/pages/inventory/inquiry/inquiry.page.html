@@ -1,0 +1,79 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/inventory" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Inventory Inquiry</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="loadWarehouses()">
+        <ion-icon slot="icon-only" name="refresh-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+  <ion-toolbar>
+    <ion-searchbar
+      [(ngModel)]="searchTerm"
+      (ionInput)="onSearchChange()"
+      placeholder="Search warehouse..."
+      debounce="0"
+      animated="true"
+      class="custom-searchbar">
+    </ion-searchbar>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="inquiry-content">
+
+  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- Prompt -->
+  <div class="prompt-banner">
+    <ion-icon name="business-outline"></ion-icon>
+    <p>Select a warehouse to view its on-hand inventory</p>
+  </div>
+
+  <!-- Loading skeletons -->
+  @if (isLoading) {
+    <div class="wh-list">
+      @for (i of [1,2,3,4,5,6,7]; track i) {
+        <div class="wh-card skeleton">
+          <ion-skeleton-text animated style="width:40%;height:16px;border-radius:6px"></ion-skeleton-text>
+          <ion-skeleton-text animated style="width:65%;height:13px;margin-top:6px;border-radius:5px"></ion-skeleton-text>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Warehouse list -->
+  @if (!isLoading) {
+    <div class="wh-list">
+      @for (wh of filtered; track wh.WarehouseId) {
+        <div class="wh-card" (click)="selectWarehouse(wh)">
+          <div class="wh-icon-wrap">
+            <ion-icon name="business-outline"></ion-icon>
+          </div>
+          <div class="wh-info">
+            <span class="wh-id">{{ wh.WarehouseId }}</span>
+            @if (wh.WarehouseName) {
+              <span class="wh-name">{{ wh.WarehouseName }}</span>
+            }
+          </div>
+          <ion-icon name="chevron-forward-outline" class="wh-arrow"></ion-icon>
+        </div>
+      }
+
+      @if (filtered.length === 0 && !isLoading) {
+        <div class="empty-state">
+          <div class="empty-icon-wrap">
+            <ion-icon name="business-outline"></ion-icon>
+          </div>
+          <h3>No Warehouses</h3>
+          <p>{{ searchTerm ? 'No warehouse matching "' + searchTerm + '"' : 'No warehouses found.' }}</p>
+        </div>
+      }
+    </div>
+  }
+
+</ion-content>

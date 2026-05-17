@@ -34,17 +34,9 @@ export class DashboardPage implements OnInit {
   }
 
   readonly modules = [
-    // {
-    //   title: 'Inventory',
-    //   subtitle: 'All 13 warehouse transactions',
-    //   icon: 'layers-outline',
-    //   route: '/inventory',
-    //   color: '#2563eb',
-    //   colorEnd: '#1d4ed8',
-    // },
     {
       title: 'Purchase Orders',
-      subtitle: 'Receive and manage incoming goods',
+      subtitle: 'Receive incoming goods',
       icon: 'cube-outline',
       route: '/purchase-order/list',
       color: 'var(--gp-accent)',
@@ -52,7 +44,7 @@ export class DashboardPage implements OnInit {
     },
     {
       title: 'Sales Orders',
-      subtitle: 'View and process customer orders',
+      subtitle: 'Process customer orders',
       icon: 'cart-outline',
       route: '/sales-order/list',
       color: 'var(--gp-navy)',
@@ -60,11 +52,54 @@ export class DashboardPage implements OnInit {
     },
     {
       title: 'Transfer Orders',
-      subtitle: 'Move stock between warehouses',
+      subtitle: 'Move stock between sites',
       icon: 'swap-horizontal-outline',
       route: '/transfer-order/list',
       color: '#0f766e',
       colorEnd: '#0d9488',
+    },
+    {
+      title: 'Cycle Count',
+      subtitle: 'Count & adjust inventory',
+      icon: 'clipboard-outline',
+      route: '/inventory/cycle-count',
+      color: '#7c3aed',
+      colorEnd: '#6d28d9',
+    },
+  ];
+
+  readonly aiFeatures = [
+    {
+      module: 'Sales Orders',
+      moduleIcon: 'cart-outline',
+      title: 'Inventory Availability Check',
+      desc: 'Before confirming a sales order line, AI verifies live stock and warns if inventory may fall short.',
+      icon: 'checkmark-circle-outline',
+      gradient: 'linear-gradient(135deg, var(--gp-navy) 0%, #1a3b6a 100%)',
+    },
+    {
+      module: 'Purchase Orders',
+      moduleIcon: 'cube-outline',
+      title: 'Smart Reorder Suggestions',
+      desc: 'AI analyses sales velocity and lead times to recommend exactly what to buy and when.',
+      icon: 'bulb-outline',
+      gradient: 'linear-gradient(135deg, var(--gp-accent) 0%, var(--gp-accent-end) 100%)',
+    },
+    {
+      module: 'Transfer Orders',
+      moduleIcon: 'swap-horizontal-outline',
+      title: 'Optimal Transfer Routing',
+      desc: 'AI picks the best source warehouse for each transfer based on current stock and distance.',
+      icon: 'navigate-outline',
+      gradient: 'linear-gradient(135deg, #0f766e 0%, #0d9488 100%)',
+    },
+    {
+      module: 'Cycle Count',
+      moduleIcon: 'clipboard-outline',
+      title: 'Smart Count Prioritisation',
+      desc: 'AI ranks which items to count first by flagging high-risk discrepancies before they become losses.',
+      icon: 'stats-chart-outline',
+      gradient: 'linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)',
     },
   ];
 

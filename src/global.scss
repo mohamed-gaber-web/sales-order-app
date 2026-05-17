@@ -90,6 +90,44 @@ ion-content {
   }
 }
 
+// ── Glass Header System ──────────────────────────────────────
+ion-header {
+  // Remove the default Ionic hairline shadow
+  &::after { display: none !important; }
+}
+
+ion-toolbar {
+  --background: var(--gp-toolbar-bg);
+  --color: var(--gp-toolbar-color);
+  --border-color: transparent;
+
+  // Frosted glass via the shadow-DOM native part
+  &::part(native) {
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border-bottom: 1px solid var(--gp-toolbar-border, rgba(0, 0, 0, 0.07));
+  }
+
+  // Title typography
+  ion-title {
+    font-weight: 700;
+    font-size: 17px;
+    letter-spacing: -0.025em;
+    color: var(--gp-toolbar-color);
+  }
+
+  // Back button & menu button inherit toolbar color
+  ion-back-button,
+  ion-menu-button {
+    --color: var(--gp-toolbar-color);
+  }
+
+  // Icon-only buttons in toolbar
+  ion-button {
+    --color: var(--gp-toolbar-color);
+  }
+}
+
 // ── Button active feedback ───────────────────────────────────
 ion-button::part(native) {
   transition: transform 100ms var(--ease-out-expo, cubic-bezier(0.16, 1, 0.3, 1));

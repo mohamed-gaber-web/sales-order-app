@@ -1,0 +1,151 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/inventory/inquiry" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>WH {{ warehouseId }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="loadItems()">
+        <ion-icon slot="icon-only" name="refresh-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+  <ion-toolbar>
+    <ion-searchbar
+      [(ngModel)]="searchTerm"
+      (ionInput)="onSearchChange()"
+      placeholder="Search by item number..."
+      debounce="0"
+      animated="true"
+      class="custom-searchbar">
+    </ion-searchbar>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="items-content">
+
+  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- Loading skeletons -->
+  @if (isLoading) {
+    <div class="orders-list">
+      @for (i of [1,2,3,4,5,6]; track i) {
+        <ion-card class="order-card skeleton-card">
+          <ion-card-content>
+            <ion-skeleton-text animated style="width: 40%; height: 16px; border-radius: 6px"></ion-skeleton-text>
+            <ion-skeleton-text animated style="width: 65%; height: 13px; margin-top: 8px; border-radius: 6px"></ion-skeleton-text>
+            <ion-skeleton-text animated style="width: 50%; height: 12px; margin-top: 6px; border-radius: 6px"></ion-skeleton-text>
+          </ion-card-content>
+        </ion-card>
+      }
+    </div>
+  }
+
+  <!-- Results -->
+  @if (!isLoading && items.length > 0) {
+    <div class="result-meta">{{ totalCount }} record(s) in warehouse {{ warehouseId }}</div>
+    <div class="orders-list">
+      @for (item of items; track item.ItemNumber + (item.InventorySiteId ?? '')) {
+        <ion-card class="order-card">
+          <div class="card-layout">
+            <div class="status-strip" [style.background]="'var(--ion-color-' + getAvailableColor(item.TotalAvailableQuantity) + ')'"></div>
+            <div class="card-body">
+
+              <div class="card-top">
+                <div class="card-title-group">
+                  <span class="order-number">{{ item.ItemNumber }}</span>
+                  @if (item.ProductName && item.ProductName !== item.ItemNumber) {
+                    <span class="product-name">{{ item.ProductName }}</span>
+                  }
+                </div>
+                <ion-badge [color]="getAvailableColor(item.TotalAvailableQuantity)" class="status-badge">
+                  {{ item.TotalAvailableQuantity ?? 0 | number:'1.0-2' }}
+                </ion-badge>
+              </div>
+
+              <div class="location-row">
+                @if (item.InventorySiteId) {
+                  <span class="location-chip">
+                    <ion-icon name="location-outline"></ion-icon>Site {{ item.InventorySiteId }}
+                  </span>
+                }
+                @if (item.InventoryWarehouseId) {
+                  <span class="location-chip">
+                    <ion-icon name="business-outline"></ion-icon>WH {{ item.InventoryWarehouseId }}
+                  </span>
+                }
+              </div>
+
+              @if (item.ProductColorId || item.ProductSizeId || item.ProductStyleId || item.ProductConfigurationId || item.ProductVersionId) {
+                <div class="variant-row">
+                  @if (item.ProductColorId)         { <span class="variant-chip">Color: {{ item.ProductColorId }}</span> }
+                  @if (item.ProductSizeId)          { <span class="variant-chip">Size: {{ item.ProductSizeId }}</span> }
+                  @if (item.ProductStyleId)         { <span class="variant-chip">Style: {{ item.ProductStyleId }}</span> }
+                  @if (item.ProductConfigurationId) { <span class="variant-chip">Config: {{ item.ProductConfigurationId }}</span> }
+                  @if (item.ProductVersionId)       { <span class="variant-chip">Ver: {{ item.ProductVersionId }}</span> }
+                </div>
+              }
+
+              <div class="card-fields">
+                <div class="field-item">
+                  <span class="field-label">On Hand</span>
+                  <span class="field-value">{{ item.OnHandQuantity ?? 0 | number:'1.0-2' }}</span>
+                </div>
+                <div class="field-item">
+                  <span class="field-label">Available On Hand</span>
+                  <span class="field-value">{{ item.AvailableOnHandQuantity ?? 0 | number:'1.0-2' }}</span>
+                </div>
+                <div class="field-item">
+                  <span class="field-label">Reserved On Hand</span>
+                  <span class="field-value">{{ item.ReservedOnHandQuantity ?? 0 | number:'1.0-2' }}</span>
+                </div>
+                <div class="field-item">
+                  <span class="field-label">Available Ordered</span>
+                  <span class="field-value">{{ item.AvailableOrderedQuantity ?? 0 | number:'1.0-2' }}</span>
+                </div>
+                <div class="field-item">
+                  <span class="field-label">Reserved Ordered</span>
+                  <span class="field-value">{{ item.ReservedOrderedQuantity ?? 0 | number:'1.0-2' }}</span>
+                </div>
+                <div class="field-item">
+                  <span class="field-label">Ordered Qty</span>
+                  <span class="field-value">{{ item.OrderedQuantity ?? 0 | number:'1.0-2' }}</span>
+                </div>
+                <div class="field-item">
+                  <span class="field-label">On Order</span>
+                  <span class="field-value">{{ item.OnOrderQuantity ?? 0 | number:'1.0-2' }}</span>
+                </div>
+                <div class="field-item">
+                  <span class="field-label">Total Available</span>
+                  <span class="field-value" [class.negative]="(item.TotalAvailableQuantity ?? 0) < 0">
+                    {{ item.TotalAvailableQuantity ?? 0 | number:'1.0-2' }}
+                  </span>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </ion-card>
+      }
+    </div>
+  }
+
+  <!-- Empty state -->
+  @if (!isLoading && items.length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon-wrap">
+        <ion-icon name="cube-outline"></ion-icon>
+      </div>
+      <h3>No Results</h3>
+      <p>{{ searchTerm ? 'No items matching "' + searchTerm + '" in warehouse ' + warehouseId : 'No on-hand items in warehouse ' + warehouseId }}</p>
+    </div>
+  }
+
+  <ion-infinite-scroll (ionInfinite)="loadMore($event)" [disabled]="!hasMore">
+    <ion-infinite-scroll-content loadingSpinner="crescent" loadingText="Loading more...">
+    </ion-infinite-scroll-content>
+  </ion-infinite-scroll>
+
+</ion-content>

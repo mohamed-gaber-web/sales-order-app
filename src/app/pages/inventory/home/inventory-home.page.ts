@@ -126,6 +126,14 @@ export class InventoryHomePage {
       color: '#b45309',
       route: '/inventory/packing',
     },
+    {
+      id: 'US-14',
+      title: 'Inventory Inquiry',
+      subtitle: 'Search items by warehouse',
+      icon: 'search-outline',
+      color: '#0284c7',
+      route: '/inventory/inquiry',
+    },
   ];
 
   constructor(

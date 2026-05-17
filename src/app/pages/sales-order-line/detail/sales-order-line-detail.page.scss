@@ -157,6 +157,47 @@ ion-header {
 .line-actions {
   margin-top: 12px;
 
+  .attach-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    padding: 8px 10px;
+    background: var(--gp-bg, #f0f2f5);
+    border-radius: 10px;
+    border: 1px dashed var(--gp-border, #e5e7eb);
+
+    .camera-btn {
+      --border-radius: 10px;
+      --border-color: var(--gp-navy);
+      --color: var(--gp-navy);
+      height: 40px;
+      width: 40px;
+      flex-shrink: 0;
+    }
+
+    .photo-thumb {
+      width: 52px;
+      height: 52px;
+      border-radius: 8px;
+      object-fit: cover;
+      border: 2px solid var(--ion-color-success);
+      flex-shrink: 0;
+    }
+
+    .attach-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--ion-color-success);
+    }
+
+    .attach-hint {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--ion-color-medium);
+    }
+  }
+
   .slip-btn {
     --background: linear-gradient(90deg, var(--gp-navy, #002559) 0%, #1a3b6a 100%);
     --border-radius: 10px;

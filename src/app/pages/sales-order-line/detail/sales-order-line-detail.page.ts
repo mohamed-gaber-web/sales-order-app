@@ -21,6 +21,8 @@ export class SalesOrderLineDetailPage implements OnInit {
   isLoading = false;
 
   isSubmittingSlip = false;
+  linePhotos = new Map<string, string>();
+  private pendingPhotoKey = '';
 
   constructor(
     private route: ActivatedRoute,
@@ -177,6 +179,28 @@ export class SalesOrderLineDetailPage implements OnInit {
         await toast.present();
       },
     });
+  }
+
+  lineKey(line: SalesOrderLineResponse, i: number): string {
+    return String(line.LineNumber ?? i);
+  }
+
+  takePhoto(line: SalesOrderLineResponse, i: number) {
+    this.pendingPhotoKey = this.lineKey(line, i);
+    (document.getElementById('gp-photo-input') as HTMLInputElement)?.click();
+  }
+
+  onFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const result = e.target?.result as string;
+      if (result) this.linePhotos.set(this.pendingPhotoKey, result);
+    };
+    reader.readAsDataURL(file);
+    input.value = '';
   }
 
   addLine() {

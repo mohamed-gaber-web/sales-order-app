@@ -62,6 +62,10 @@ const routes: Routes = [
     path: 'location-mgmt',
     loadChildren: () => import('./location-mgmt/location-mgmt.module').then(m => m.LocationMgmtModule)
   },
+  {
+    path: 'inquiry',
+    loadChildren: () => import('./inquiry/inquiry.module').then(m => m.InquiryModule)
+  },
 ];
 
 @NgModule({

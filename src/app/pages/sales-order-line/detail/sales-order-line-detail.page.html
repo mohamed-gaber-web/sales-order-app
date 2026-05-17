@@ -140,6 +140,17 @@
 
             <!-- Packing Slip Action -->
             <div class="line-actions">
+              <div class="attach-row">
+                <ion-button fill="outline" class="camera-btn" (click)="takePhoto(line, i)" title="Attach photo">
+                  <ion-icon slot="icon-only" name="camera-outline"></ion-icon>
+                </ion-button>
+                @if (linePhotos.get(lineKey(line, i))) {
+                  <img [src]="linePhotos.get(lineKey(line, i))" class="photo-thumb" alt="Attached photo" />
+                  <span class="attach-label">Photo attached</span>
+                } @else {
+                  <span class="attach-hint">Attach photo</span>
+                }
+              </div>
               <ion-button
                 expand="block"
                 class="slip-btn"
@@ -179,4 +190,8 @@
       <ion-icon name="add"></ion-icon>
     </ion-fab-button>
   </ion-fab>
+
+  <!-- Hidden file input for web camera fallback -->
+  <input id="gp-photo-input" type="file" accept="image/*"
+    style="display:none" (change)="onFileSelected($event)">
 </ion-content>

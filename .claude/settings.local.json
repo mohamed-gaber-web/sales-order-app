@@ -40,7 +40,9 @@
       "mcp__postman__searchPostmanElements",
       "mcp__postman__getCollectionFolder",
       "Bash(findstr transfer *)",
-      "WebFetch(domain:instructions)"
+      "WebFetch(domain:instructions)",
+      "Bash(dir D:\\\\Grow Path\\\\Dynamic with app\\\\grow-path\\\\src *)",
+      "Bash(npm install *)"
     ]
   }
 }
