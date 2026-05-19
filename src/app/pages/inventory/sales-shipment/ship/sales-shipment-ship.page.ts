@@ -54,7 +54,7 @@ export class SalesShipmentShipPage implements OnInit {
         this.isSubmitting = false;
         const t = await this.toastCtrl.create({ message: `Packing slip ${packingSlipId} created.`, duration: 3000, color: 'success', position: 'bottom' });
         await t.present();
-        this.router.navigate(['/inventory/sales-shipment']);
+        this.router.navigate(['/sales-order/list']);
       },
       error: async (err) => {
         await loading.dismiss();
@@ -66,5 +66,5 @@ export class SalesShipmentShipPage implements OnInit {
     });
   }
 
-  goBack() { this.router.navigate(['/inventory/sales-shipment']); }
+  goBack() { this.router.navigate(['/sales-order/list']); }
 }

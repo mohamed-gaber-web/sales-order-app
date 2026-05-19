@@ -203,6 +203,13 @@ export class SalesOrderLineDetailPage implements OnInit {
     input.value = '';
   }
 
+  postPackingSlip() {
+    this.router.navigate(
+      ['/inventory/sales-shipment/ship', this.salesOrderNumber],
+      { state: { returnUrl: '/sales-order/list' } }
+    );
+  }
+
   addLine() {
     this.router.navigate([
       '/sales-order-line/create',

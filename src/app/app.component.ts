@@ -39,7 +39,7 @@ export class AppComponent implements OnInit, OnDestroy {
       icon: 'cart',
       expanded: false,
       items: [
-        { title: 'Packing Slip',    url: '/inventory/sales-shipment', icon: 'archive' },
+        { title: 'Packing Slip',    url: '/sales-order/list', icon: 'archive' },
         { title: 'Return Customer', url: null, icon: 'person-remove', comingSoon: true },
         { title: 'Return Order',    url: null, icon: 'arrow-undo', comingSoon: true },
         { title: 'Reservation',     url: '/inventory/reservation', icon: 'bookmark' },

@@ -48,7 +48,9 @@
       "Bash(npm start *)",
       "Skill(impeccable:animate)",
       "Bash(copy *)",
-      "Bash(.\\\\gradlew assembleDebug)"
+      "Bash(.\\\\gradlew assembleDebug)",
+      "Bash(Get-ChildItem -Path \"D:\\\\Grow Path\\\\Dynamic with app\\\\grow-path\\\\src\\\\app\\\\pages\" -Recurse -Directory)",
+      "Bash(Select-Object FullName)"
     ]
   }
 }
