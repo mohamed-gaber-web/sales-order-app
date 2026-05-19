@@ -5,16 +5,12 @@
     </ion-buttons>
     <ion-title>Purchase Orders</ion-title>
   </ion-toolbar>
-
-  <ion-toolbar>
-    <ion-searchbar
-      [(ngModel)]="searchTerm"
-      (ionInput)="onSearchChange()"
+  <ion-toolbar class="search-toolbar">
+    <ds-search
       placeholder="Search PO number or vendor..."
-      debounce="300"
-      animated="true"
-      class="custom-searchbar">
-    </ion-searchbar>
+      [debounceMs]="300"
+      (query)="onQueryChange($event)">
+    </ds-search>
   </ion-toolbar>
 </ion-header>
 
@@ -24,24 +20,20 @@
     </ion-refresher-content>
   </ion-refresher>
 
-  <!-- Web Page Header (desktop only) -->
-  <div class="web-page-header">
-    <div class="web-page-header-inner">
-      <div class="web-title-group">
-        <h1 class="web-page-title">Purchase Orders</h1>
-        @if (!isLoading) {
-          <span class="web-count-chip">{{ filteredOrders.length }}</span>
-        }
+  <!-- Hero Banner -->
+  <div class="hero-banner">
+    <div class="hero-badge"><span class="hero-badge-dot"></span>Live</div>
+    <h1 class="hero-heading">Purchase <span class="hero-accent">Orders</span></h1>
+    <p class="hero-sub">Receive and manage incoming goods from vendors</p>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <span class="hero-stat-value">{{ totalCount }}</span>
+        <span class="hero-stat-label">Open Orders</span>
       </div>
-      <div class="web-actions">
-        <ion-searchbar
-          [(ngModel)]="searchTerm"
-          (ionInput)="onSearchChange()"
-          placeholder="Search orders..."
-          debounce="300"
-          animated="false"
-          class="web-searchbar">
-        </ion-searchbar>
+      <div class="hero-stat-sep"></div>
+      <div class="hero-stat">
+        <span class="hero-stat-value">{{ company | uppercase }}</span>
+        <span class="hero-stat-label">Company</span>
       </div>
     </div>
   </div>
@@ -73,9 +65,11 @@
                 <span class="order-number">{{ order.PurchaseOrderNumber }}</span>
                 <div class="badge-group">
                   @if (order.PurchaseOrderStatus) {
-                    <ion-badge [color]="getStatusColor(order.PurchaseOrderStatus)" class="status-badge">
-                      {{ order.PurchaseOrderStatus }}
-                    </ion-badge>
+                    <ds-pill
+                      [label]="order.PurchaseOrderStatus"
+                      [color]="getStatusPillColor(order.PurchaseOrderStatus)"
+                      [bg]="getStatusPillBg(order.PurchaseOrderStatus)">
+                    </ds-pill>
                   }
                 </div>
               </div>
@@ -118,19 +112,11 @@
 
   <!-- Empty State -->
   @if (!isLoading && !isSearching && filteredOrders.length === 0) {
-    <div class="empty-state">
-      <div class="empty-icon-wrap">
-        <ion-icon name="cube-outline"></ion-icon>
-      </div>
-      <h3>No Purchase Orders</h3>
-      <p>
-        @if (searchTerm) {
-          No results for "{{ searchTerm }}"
-        } @else {
-          No open purchase orders
-        }
-      </p>
-    </div>
+    <ds-empty-state
+      icon="cube-outline"
+      title="No Purchase Orders"
+      [message]="searchTerm ? 'No results for &quot;' + searchTerm + '&quot;' : 'No open purchase orders found'">
+    </ds-empty-state>
   }
 
   <!-- Web Load More (desktop only) -->

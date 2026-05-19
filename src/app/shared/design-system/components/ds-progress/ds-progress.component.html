@@ -1,0 +1,15 @@
+<div class="ds-progress">
+  @if (labelLeft || labelRight) {
+    <div class="ds-progress-labels">
+      <span class="ds-progress-label-left">{{ labelLeft }}</span>
+      <span class="ds-progress-label-right">{{ labelRight }}</span>
+    </div>
+  }
+  <div class="ds-progress-track">
+    <div
+      class="ds-progress-fill"
+      [style.width.%]="value * 100"
+      [style.background]="color || 'var(--ds-accent)'">
+    </div>
+  </div>
+</div>

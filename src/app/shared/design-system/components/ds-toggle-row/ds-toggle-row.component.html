@@ -1,0 +1,18 @@
+<div class="ds-toggle-row">
+  <div class="ds-toggle-label-wrap">
+    @if (icon) {
+      <ion-icon [name]="icon" class="ds-toggle-icon"></ion-icon>
+    }
+    <div class="ds-toggle-text">
+      <p class="ds-toggle-title">{{ title }}</p>
+      @if (subtitle) {
+        <p class="ds-toggle-sub">{{ subtitle }}</p>
+      }
+    </div>
+  </div>
+  <ion-toggle
+    [checked]="checked"
+    [color]="color"
+    (ionChange)="onChange($event)">
+  </ion-toggle>
+</div>

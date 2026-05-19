@@ -5,23 +5,17 @@
     </ion-buttons>
     <ion-title>Sales Orders</ion-title>
     <ion-buttons slot="end">
-      <!-- Mobile-only add button in toolbar -->
       <ion-button (click)="createOrder()" class="mobile-add-btn">
         <ion-icon slot="icon-only" name="add-outline"></ion-icon>
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
-
-  <!-- Search Bar -->
-  <ion-toolbar>
-    <ion-searchbar
-      [(ngModel)]="searchTerm"
-      (ionInput)="onSearchChange()"
+  <ion-toolbar class="search-toolbar">
+    <ds-search
       placeholder="Search by order number or customer..."
-      debounce="300"
-      animated="true"
-      class="custom-searchbar">
-    </ion-searchbar>
+      [debounceMs]="300"
+      (query)="onQueryChange($event)">
+    </ds-search>
   </ion-toolbar>
 </ion-header>
 
@@ -31,28 +25,20 @@
     </ion-refresher-content>
   </ion-refresher>
 
-  <!-- Web Page Header (hidden on mobile) -->
-  <div class="web-page-header">
-    <div class="web-page-header-inner">
-      <div class="web-title-group">
-        <h1 class="web-page-title">Sales Orders</h1>
-        @if (!isLoading) {
-          <span class="web-count-chip">{{ filteredOrders.length }}</span>
-        }
+  <!-- Hero Banner -->
+  <div class="hero-banner">
+    <div class="hero-badge"><span class="hero-badge-dot"></span>Live</div>
+    <h1 class="hero-heading">Sales <span class="hero-accent">Orders</span></h1>
+    <p class="hero-sub">Process and ship customer orders efficiently</p>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <span class="hero-stat-value">{{ totalCount }}</span>
+        <span class="hero-stat-label">Open Orders</span>
       </div>
-      <div class="web-actions">
-        <ion-searchbar
-          [(ngModel)]="searchTerm"
-          (ionInput)="onSearchChange()"
-          placeholder="Search orders..."
-          debounce="300"
-          animated="false"
-          class="web-searchbar">
-        </ion-searchbar>
-        <ion-button (click)="createOrder()" class="web-create-btn">
-          <ion-icon slot="start" name="add-outline"></ion-icon>
-          New Order
-        </ion-button>
+      <div class="hero-stat-sep"></div>
+      <div class="hero-stat">
+        <span class="hero-stat-value">{{ company | uppercase }}</span>
+        <span class="hero-stat-label">Company</span>
       </div>
     </div>
   </div>
@@ -84,14 +70,18 @@
               <span class="order-number">{{ order.SalesId }}</span>
               <div class="badge-group">
                 @if (order.SalesTable_SalesStatus) {
-                  <ion-badge [color]="getStatusColor(order.SalesTable_SalesStatus)" class="status-badge">
-                    {{ order.SalesTable_SalesStatus }}
-                  </ion-badge>
+                  <ds-pill
+                    [label]="order.SalesTable_SalesStatus"
+                    [color]="getStatusPillColor(order.SalesTable_SalesStatus)"
+                    [bg]="getStatusPillBg(order.SalesTable_SalesStatus)">
+                  </ds-pill>
                 }
                 @if (order.SalesTable_DocumentStatus) {
-                  <ion-badge [color]="getReleaseStatusColor(order.SalesTable_DocumentStatus)" class="release-badge">
-                    {{ order.SalesTable_DocumentStatus }}
-                  </ion-badge>
+                  <ds-pill
+                    [label]="order.SalesTable_DocumentStatus"
+                    [color]="getReleaseStatusPillColor(order.SalesTable_DocumentStatus)"
+                    [bg]="getReleaseStatusPillBg(order.SalesTable_DocumentStatus)">
+                  </ds-pill>
                 }
               </div>
             </div>
@@ -124,23 +114,11 @@
 
   <!-- Empty State -->
   @if (!isLoading && filteredOrders.length === 0) {
-    <div class="empty-state">
-      <ion-icon name="document-text-outline"></ion-icon>
-      <h3>No Orders Found</h3>
-      <p>
-        @if (searchTerm) {
-          No results for "{{ searchTerm }}"
-        } @else {
-          Create your first sales order to get started
-        }
-      </p>
-      @if (!searchTerm) {
-        <ion-button (click)="createOrder()" class="create-btn">
-          <ion-icon slot="start" name="add-outline"></ion-icon>
-          Create Order
-        </ion-button>
-      }
-    </div>
+    <ds-empty-state
+      icon="document-text-outline"
+      title="No Orders Found"
+      [message]="searchTerm ? 'No results for &quot;' + searchTerm + '&quot;' : 'Create your first sales order to get started'">
+    </ds-empty-state>
   }
 
   <!-- Web Load More Button (desktop only) -->

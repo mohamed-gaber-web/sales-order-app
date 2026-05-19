@@ -181,8 +181,13 @@ ion-header ion-toolbar {
 }
 
 .action-footer {
-  padding: 20px 16px 32px;
+  // bottom padding clears the fixed bottom tab bar (hidden on ≥1280px)
+  padding: 20px 16px calc(32px + 60px + env(safe-area-inset-bottom));
   animation: fadeSlideUp 0.3s ease 0.15s backwards;
+
+  @media (min-width: 1280px) {
+    padding: 20px 16px 32px;
+  }
 
   .print-btn {
     --background: var(--gp-navy);

@@ -3,8 +3,12 @@
     <ion-buttons slot="start">
       <ion-menu-button></ion-menu-button>
     </ion-buttons>
+    <div class="toolbar-workspace">
+      <ion-icon name="business-outline"></ion-icon>
+      {{ workspace }}
+    </div>
     <ion-buttons slot="end">
-      <ion-button (click)="openScanner()" class="scan-btn">
+      <ion-button (click)="openScanner()" class="scan-btn" title="Scan QR / Barcode">
         <ion-icon slot="icon-only" name="scan-outline"></ion-icon>
       </ion-button>
     </ion-buttons>
@@ -17,7 +21,7 @@
   <div class="hero">
     <div class="hero-blob b1"></div>
     <div class="hero-blob b2"></div>
-    <div class="hero-blob b3"></div>
+    <div class="hero-shimmer"></div>
 
     <div class="hero-body">
       <div class="hero-left">
@@ -28,23 +32,24 @@
           {{ currentDate }}
         </div>
       </div>
-      <div class="hero-avatar">
-        <ion-icon name="business-outline"></ion-icon>
+      <div class="hero-badge-col">
+        <div class="hero-ws-badge">
+          <ion-icon name="layers-outline"></ion-icon>
+          <span>{{ workspace }}</span>
+        </div>
+        <div class="hero-status-dot"></div>
       </div>
     </div>
 
-    <!-- Glass stats bar -->
+    <!-- KPI Stats bar -->
     <div class="hero-stats">
       <div class="h-stat" (click)="navigate('/purchase-order/list')">
         <div class="h-stat-icon orange">
           <ion-icon name="cube-outline"></ion-icon>
         </div>
         <div class="h-stat-num">
-          @if (isLoadingStats) {
-            <span class="h-skel"></span>
-          } @else {
-            {{ poCount ?? '—' }}
-          }
+          @if (isLoadingStats) { <span class="h-skel"></span> }
+          @else { <span class="h-num-val">{{ animatedPoCount ?? '—' }}</span> }
         </div>
         <div class="h-stat-label">Pending POs</div>
       </div>
@@ -52,15 +57,12 @@
       <div class="h-divider"></div>
 
       <div class="h-stat" (click)="navigate('/sales-order/list')">
-        <div class="h-stat-icon blue">
+        <div class="h-stat-icon white">
           <ion-icon name="cart-outline"></ion-icon>
         </div>
         <div class="h-stat-num">
-          @if (isLoadingStats) {
-            <span class="h-skel"></span>
-          } @else {
-            {{ soCount ?? '—' }}
-          }
+          @if (isLoadingStats) { <span class="h-skel"></span> }
+          @else { <span class="h-num-val">{{ animatedSoCount ?? '—' }}</span> }
         </div>
         <div class="h-stat-label">Open Sales</div>
       </div>
@@ -72,20 +74,49 @@
           <ion-icon name="swap-horizontal-outline"></ion-icon>
         </div>
         <div class="h-stat-num">
-          @if (isLoadingStats) {
-            <span class="h-skel"></span>
-          } @else {
-            {{ toCount ?? '—' }}
-          }
+          @if (isLoadingStats) { <span class="h-skel"></span> }
+          @else { <span class="h-num-val">{{ animatedToCount ?? '—' }}</span> }
         </div>
         <div class="h-stat-label">Transfers</div>
       </div>
     </div>
   </div>
 
+  <!-- ── Needs Attention ─────────────────────────────────── -->
+  <div class="section-wrap">
+    <div class="section-header">
+      <div class="section-title-row">
+        <div class="section-dot alert-dot"></div>
+        <p class="section-label">Needs Attention</p>
+      </div>
+      <span class="section-count">{{ alerts.length }}</span>
+    </div>
+
+    <div class="alerts-list">
+      @for (alert of alerts; track alert.route; let i = $index) {
+        <div
+          class="alert-row"
+          [style.animation-delay]="(i * 0.06) + 's'"
+          (click)="navigate(alert.route)">
+          <div class="alert-icon-wrap" [style.background]="alert.bg">
+            <ion-icon [name]="alert.icon" [style.color]="alert.color"></ion-icon>
+          </div>
+          <p class="alert-label">{{ alert.label }}</p>
+          <ion-icon name="chevron-forward-outline" class="alert-chevron"></ion-icon>
+        </div>
+      }
+    </div>
+  </div>
+
   <!-- ── Quick Access ─────────────────────────────────────── -->
-  <div class="modules-wrap">
-    <p class="section-label">Quick Access</p>
+  <div class="section-wrap">
+    <div class="section-header">
+      <div class="section-title-row">
+        <div class="section-dot primary-dot"></div>
+        <p class="section-label">Quick Access</p>
+      </div>
+    </div>
+
     <div class="modules-grid">
       @for (mod of modules; track mod.route; let i = $index) {
         <div
@@ -93,6 +124,7 @@
           [style.animation-delay]="(i * 0.07) + 's'"
           (click)="navigate(mod.route)">
           <div class="mod-top" [style.background]="'linear-gradient(145deg,' + mod.color + ' 0%,' + mod.colorEnd + ' 100%)'">
+            <div class="mod-glow" [style.background]="'radial-gradient(circle at 70% 30%, rgba(255,255,255,0.22) 0%, transparent 65%)'"></div>
             <div class="mod-icon-ring">
               <ion-icon [name]="mod.icon"></ion-icon>
             </div>
@@ -106,18 +138,18 @@
     </div>
   </div>
 
-  <!-- ── AI Hub Card ─────────────────────────────────────────── -->
+  <!-- ── AI Hub ─────────────────────────────────────────────── -->
   <div class="ai-hub-wrap">
     <div class="ai-hub-card" (click)="navigate('/inventory/ai-hub')">
       <div class="ai-hub-glow"></div>
-      <div class="ai-hub-glow ai-hub-glow--2"></div>
       <div class="ai-hub-left">
         <div class="ai-hub-icon-ring">
           <ion-icon name="sparkles"></ion-icon>
         </div>
-        <div>
+        <div class="ai-hub-text">
+          <div class="ai-hub-badge">AI-Powered</div>
           <p class="ai-hub-title">AI Hub</p>
-          <p class="ai-hub-sub">Smart insights for your inventory</p>
+          <p class="ai-hub-sub">45 smart warehouse capabilities</p>
         </div>
       </div>
       <div class="ai-hub-arrow">
@@ -127,39 +159,28 @@
   </div>
 
   <!-- ── AI Features ───────────────────────────────────────── -->
-  <div class="ai-section">
-    <div class="ai-section-header">
-      <div class="ai-label-row">
-        <ion-icon name="sparkles-outline" class="ai-spark-icon"></ion-icon>
+  <div class="ai-feat-wrap">
+    <div class="ai-feat-header">
+      <div class="ai-feat-title-row">
+        <ion-icon name="sparkles-outline"></ion-icon>
         <p class="section-label" style="margin:0">AI Features</p>
       </div>
-      <span class="ai-soon-global">Coming Soon</span>
+      <span class="ai-soon-chip">Coming Soon</span>
     </div>
 
-    <div class="ai-banner">
-      <div class="ai-banner-glow"></div>
-      <div class="ai-banner-body">
-        <ion-icon name="hardware-chip-outline" class="ai-banner-icon"></ion-icon>
-        <div>
-          <p class="ai-banner-title">Grow Path Intelligence</p>
-          <p class="ai-banner-sub">AI-powered insights built into every workflow — forecasting, anomaly detection, and smart search are on the way.</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="ai-cards">
+    <div class="ai-feat-cards">
       @for (feat of aiFeatures; track feat.title; let i = $index) {
-        <div class="ai-card" [style.animation-delay]="(i * 0.08) + 's'">
-          <div class="ai-card-icon-wrap" [style.background]="feat.gradient">
+        <div class="ai-feat-card" [style.animation-delay]="(i * 0.08) + 's'">
+          <div class="ai-feat-icon" [style.background]="feat.gradient">
             <ion-icon [name]="feat.icon"></ion-icon>
           </div>
-          <div class="ai-card-body">
-            <div class="ai-card-module">
+          <div class="ai-feat-body">
+            <div class="ai-feat-module">
               <ion-icon [name]="feat.moduleIcon"></ion-icon>
               {{ feat.module }}
             </div>
-            <p class="ai-card-title">{{ feat.title }}</p>
-            <p class="ai-card-desc">{{ feat.desc }}</p>
+            <p class="ai-feat-title">{{ feat.title }}</p>
+            <p class="ai-feat-desc">{{ feat.desc }}</p>
           </div>
           <span class="ai-soon-badge">Soon</span>
         </div>

@@ -27,7 +27,8 @@ export class ProjectIssuanceLineDetailPage implements OnInit {
 
   form!: FormGroup;
   isSubmitting = false;
-  postPackingSlip = true;
+  postPackingSlip = false;
+  printLabel = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -44,16 +45,17 @@ export class ProjectIssuanceLineDetailPage implements OnInit {
 
     const nav = this.router.getCurrentNavigation();
     const state = nav?.extras?.state ?? history.state;
-    this.projectName = state?.['projectName'] ?? '';
-    this.dataAreaId = state?.['dataAreaId'] ?? 'usmf';
-    this.itemNumber = state?.['itemNumber'] ?? '';
-    this.productName = state?.['productName'] ?? '';
-    this.salesCategory = state?.['salesCategory'] ?? '';
-    this.linePropertyId = state?.['linePropertyId'] ?? '';
-    this.requiredQuantity = state?.['requiredQuantity'] ?? 0;
-    this.remainingQuantity = state?.['remainingQuantity'] ?? 0;
-    this.lineStatus = state?.['lineStatus'] ?? '';
+    this.projectName        = state?.['projectName']        ?? '';
+    this.dataAreaId         = state?.['dataAreaId']         ?? 'usmf';
+    this.itemNumber         = state?.['itemNumber']         ?? '';
+    this.productName        = state?.['productName']        ?? '';
+    this.salesCategory      = state?.['salesCategory']      ?? '';
+    this.linePropertyId     = state?.['linePropertyId']     ?? '';
+    this.requiredQuantity   = state?.['requiredQuantity']   ?? 0;
+    this.remainingQuantity  = state?.['remainingQuantity']  ?? 0;
+    this.lineStatus         = state?.['lineStatus']         ?? '';
     this.requestedReceiptDate = state?.['requestedReceiptDate'] ?? '';
+    this.postPackingSlip    = state?.['postPackingSlip']    ?? false;
 
     this.form = this.fb.group({
       quantityToIssue: [this.remainingQuantity, [Validators.required, Validators.min(0.001), Validators.max(this.remainingQuantity)]],
@@ -130,23 +132,5 @@ export class ProjectIssuanceLineDetailPage implements OnInit {
         await t.present();
       }
     });
-  }
-
-  getStatusColor(status?: string): string {
-    switch ((status ?? '').toLowerCase()) {
-      case 'open':    return '#16a34a';
-      case 'partial': return '#d97706';
-      case 'closed':  return '#6b7280';
-      default:        return '#2563eb';
-    }
-  }
-
-  getStatusBg(status?: string): string {
-    switch ((status ?? '').toLowerCase()) {
-      case 'open':    return 'rgba(22,163,74,.12)';
-      case 'partial': return 'rgba(217,119,6,.12)';
-      case 'closed':  return 'rgba(107,114,128,.12)';
-      default:        return 'rgba(37,99,235,.12)';
-    }
   }
 }

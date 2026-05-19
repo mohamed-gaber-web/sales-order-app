@@ -10,15 +10,12 @@
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
-  <ion-toolbar>
-    <ion-searchbar
-      [(ngModel)]="searchTerm"
-      (ionInput)="onSearchChange()"
+  <ion-toolbar class="search-toolbar">
+    <ds-search
       placeholder="Search PO or vendor..."
-      debounce="300"
-      animated="true"
-      class="custom-searchbar">
-    </ion-searchbar>
+      [debounceMs]="300"
+      (query)="onQueryChange($event)">
+    </ds-search>
   </ion-toolbar>
 </ion-header>
 
@@ -26,6 +23,24 @@
   <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
+
+  <!-- Hero Banner -->
+  <div class="hero-banner">
+    <div class="hero-badge"><span class="hero-badge-dot"></span>Live</div>
+    <h1 class="hero-heading">Vendor <span class="hero-accent">Returns</span></h1>
+    <p class="hero-sub">Return received items back to vendors</p>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <span class="hero-stat-value">{{ filteredOrders.length }}</span>
+        <span class="hero-stat-label">Eligible Orders</span>
+      </div>
+      <div class="hero-stat-sep"></div>
+      <div class="hero-stat">
+        <span class="hero-stat-value">USMF</span>
+        <span class="hero-stat-label">Company</span>
+      </div>
+    </div>
+  </div>
 
   @if (isLoading) {
     <div class="orders-list">
@@ -50,9 +65,11 @@
             <div class="card-body">
               <div class="card-top">
                 <span class="order-number">{{ order.PurchaseOrderNumber }}</span>
-                <span class="status-pill" [style.color]="getStatusColor(order.PurchaseOrderStatus)" [style.background]="getStatusBg(order.PurchaseOrderStatus)">
-                  {{ order.PurchaseOrderStatus || 'Open' }}
-                </span>
+                <ds-pill
+                  [label]="order.PurchaseOrderStatus || 'Open'"
+                  [color]="getStatusColor(order.PurchaseOrderStatus)"
+                  [bg]="getStatusBg(order.PurchaseOrderStatus)">
+                </ds-pill>
               </div>
               <div class="card-vendor">
                 <ion-icon name="storefront-outline"></ion-icon>
@@ -90,13 +107,11 @@
   }
 
   @if (!isLoading && !isSearching && filteredOrders.length === 0) {
-    <div class="empty-state">
-      <div class="empty-icon-wrap">
-        <ion-icon name="arrow-undo-outline"></ion-icon>
-      </div>
-      <h3>No Eligible Purchase Orders</h3>
-      <p>{{ searchTerm ? 'No results for "' + searchTerm + '"' : 'No received purchase orders are available for return' }}</p>
-    </div>
+    <ds-empty-state
+      icon="arrow-undo-outline"
+      title="No Eligible Purchase Orders"
+      [message]="searchTerm ? 'No results for &quot;' + searchTerm + '&quot;' : 'No received purchase orders are available for return'">
+    </ds-empty-state>
   }
 
   <ion-infinite-scroll (ionInfinite)="loadMore($event)" [disabled]="!hasMore">

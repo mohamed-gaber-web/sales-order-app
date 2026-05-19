@@ -15,6 +15,10 @@ const routes: Routes = [
     loadChildren: () => import('./line-detail/project-issuance-line-detail.module').then(m => m.ProjectIssuanceLineDetailModule)
   },
   {
+    path: 'adhoc',
+    loadChildren: () => import('./adhoc/project-issuance-adhoc.module').then(m => m.ProjectIssuanceAdhocModule)
+  },
+  {
     path: 'adhoc/:projectId',
     loadChildren: () => import('./adhoc/project-issuance-adhoc.module').then(m => m.ProjectIssuanceAdhocModule)
   },

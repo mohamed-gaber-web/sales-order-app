@@ -1,0 +1,24 @@
+<div class="search-wrap" [class.is-focused]="focused" [class.has-value]="!!value" [class.light]="light">
+  <ion-icon name="search-outline" class="search-icon"></ion-icon>
+
+  <input
+    class="search-input"
+    type="search"
+    [placeholder]="placeholder"
+    [(ngModel)]="value"
+    (ngModelChange)="onInput()"
+    (focus)="focused = true"
+    (blur)="focused = false"
+    autocomplete="off"
+    spellcheck="false">
+
+  @if (!value) {
+    <kbd class="search-hint">/</kbd>
+  }
+
+  @if (value) {
+    <button class="clear-btn" type="button" (click)="clear()" tabindex="-1" aria-label="Clear">
+      <ion-icon name="close-outline"></ion-icon>
+    </button>
+  }
+</div>

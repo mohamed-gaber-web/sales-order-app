@@ -5,6 +5,14 @@ import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { ProjectIssuanceService, Project } from '../../../../core/services/project-issuance.service';
 
+type FilterId = 'all' | 'inProcess' | 'created' | 'finished';
+
+interface FilterChip {
+  id: FilterId;
+  label: string;
+  icon: string;
+}
+
 @Component({
   selector: 'app-project-issuance-list',
   templateUrl: './project-issuance-list.page.html',
@@ -22,12 +30,36 @@ export class ProjectIssuanceListPage {
   isLoadingMore = false;
   isSearching = false;
   totalCount = 0;
+  activeFilter: FilterId = 'all';
   private allDataLoaded = false;
+
+  readonly filterChips: FilterChip[] = [
+    { id: 'all',       label: 'All',        icon: 'apps-outline' },
+    { id: 'inProcess', label: 'In Process', icon: 'play-circle-outline' },
+    { id: 'created',   label: 'Created',    icon: 'add-circle-outline' },
+    { id: 'finished',  label: 'Finished',   icon: 'checkmark-circle-outline' },
+  ];
 
   private searchSubject = new Subject<string>();
 
-  get hasMore(): boolean {
-    return !this.searchTerm.trim() && this.projects.length < this.totalCount;
+  get company(): string {
+    return this.projects[0]?.dataAreaId ?? 'usmf';
+  }
+
+  get displayedProjects(): Project[] {
+    if (this.activeFilter === 'all') return this.filteredProjects;
+    const stageMap: Record<FilterId, string> = {
+      all:       '',
+      inProcess: 'inprocess',
+      created:   'created',
+      finished:  'finished',
+    };
+    const stage = stageMap[this.activeFilter];
+    return this.filteredProjects.filter(p => (p.ProjectStage ?? '').toLowerCase() === stage);
+  }
+
+  get canLoadMore(): boolean {
+    return !this.searchTerm.trim() && this.activeFilter === 'all' && this.projects.length < this.totalCount;
   }
 
   constructor(
@@ -54,7 +86,7 @@ export class ProjectIssuanceListPage {
         this.filteredProjects = [...this.projects];
         this.totalCount = res['@odata.count'] ?? res.value.length;
         this.isLoading = false;
-        if (this.infiniteScroll) this.infiniteScroll.disabled = !this.hasMore;
+        if (this.infiniteScroll) this.infiniteScroll.disabled = !this.canLoadMore;
       },
       error: async () => {
         this.isLoading = false;
@@ -65,7 +97,7 @@ export class ProjectIssuanceListPage {
   }
 
   loadMore(event: CustomEvent) {
-    if (!this.hasMore) { (event.target as HTMLIonInfiniteScrollElement).complete(); return; }
+    if (!this.canLoadMore) { (event.target as HTMLIonInfiniteScrollElement).complete(); return; }
     this.isLoadingMore = true;
     this.service.getProjects(this.projects.length).subscribe({
       next: res => {
@@ -73,7 +105,7 @@ export class ProjectIssuanceListPage {
         this.filteredProjects = [...this.projects];
         this.isLoadingMore = false;
         (event.target as HTMLIonInfiniteScrollElement).complete();
-        if (!this.hasMore && this.infiniteScroll) this.infiniteScroll.disabled = true;
+        if (!this.canLoadMore && this.infiniteScroll) this.infiniteScroll.disabled = true;
       },
       error: async () => {
         this.isLoadingMore = false;
@@ -82,12 +114,38 @@ export class ProjectIssuanceListPage {
     });
   }
 
-  onSearchChange() { this.searchSubject.next(this.searchTerm.trim()); }
+  onQueryChange(term: string) {
+    this.searchTerm = term;
+    this.searchSubject.next(term);
+  }
+
+  setFilter(id: FilterId) {
+    this.activeFilter = id;
+  }
+
+  goAdhoc() {
+    this.router.navigate(['/inventory/project-issuance/adhoc']);
+  }
+
+  openProject(project: Project) {
+    this.router.navigate(
+      ['/inventory/project-issuance/detail', project.ProjectID],
+      { state: { projectName: project.Name, customerAccount: project.CustomerAccount, projectStage: project.ProjectStage, dataAreaId: project.dataAreaId } }
+    );
+  }
+
+  doRefresh(event: CustomEvent) {
+    this.allDataLoaded = false;
+    this.allProjects = [];
+    this.activeFilter = 'all';
+    this.loadProjects();
+    setTimeout(() => (event.target as HTMLIonRefresherElement).complete(), 1000);
+  }
 
   private handleSearch(term: string) {
     if (!term) {
       this.filteredProjects = [...this.projects];
-      if (this.infiniteScroll) this.infiniteScroll.disabled = !this.hasMore;
+      if (this.infiniteScroll) this.infiniteScroll.disabled = !this.canLoadMore;
       return;
     }
     if (this.allDataLoaded) { this.filterLocally(term); return; }
@@ -111,20 +169,6 @@ export class ProjectIssuanceListPage {
       p.Name.toLowerCase().includes(t) ||
       (p.CustomerAccount ?? '').toLowerCase().includes(t)
     );
-  }
-
-  openProject(project: Project) {
-    this.router.navigate(
-      ['/inventory/project-issuance/detail', project.ProjectID],
-      { state: { projectName: project.Name, customerAccount: project.CustomerAccount, projectStage: project.ProjectStage, dataAreaId: project.dataAreaId } }
-    );
-  }
-
-  doRefresh(event: CustomEvent) {
-    this.allDataLoaded = false;
-    this.allProjects = [];
-    this.loadProjects();
-    setTimeout(() => (event.target as HTMLIonRefresherElement).complete(), 1000);
   }
 
   getStageColor(stage?: string): string {

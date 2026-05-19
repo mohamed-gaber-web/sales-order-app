@@ -23,6 +23,7 @@ export class PurchaseOrderListPage {
   isLoadingMore = false;
   isSearching = false;
   totalCount = 0;
+  company = 'usmf';
   private allDataLoaded = false;
 
   private searchSubject = new Subject<string>();
@@ -129,6 +130,11 @@ export class PurchaseOrderListPage {
     });
   }
 
+  onQueryChange(term: string) {
+    this.searchTerm = term;
+    this.searchSubject.next(term);
+  }
+
   onSearchChange() {
     this.searchSubject.next(this.searchTerm.trim());
   }
@@ -229,6 +235,26 @@ export class PurchaseOrderListPage {
       case 'Invoiced':   return 'tertiary';
       case 'Canceled':   return 'danger';
       default:           return 'primary';
+    }
+  }
+
+  getStatusPillColor(status?: string): string {
+    switch (status) {
+      case 'Backorder':  return '#92400e';
+      case 'Received':   return '#065f46';
+      case 'Invoiced':   return '#4c1d95';
+      case 'Canceled':   return '#991b1b';
+      default:           return '#1e3a5f';
+    }
+  }
+
+  getStatusPillBg(status?: string): string {
+    switch (status) {
+      case 'Backorder':  return 'rgba(217,119,6,.12)';
+      case 'Received':   return 'rgba(16,185,129,.12)';
+      case 'Invoiced':   return 'rgba(109,40,217,.12)';
+      case 'Canceled':   return 'rgba(220,38,38,.12)';
+      default:           return 'rgba(0,37,89,.10)';
     }
   }
 

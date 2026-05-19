@@ -1,0 +1,31 @@
+<div class="ds-cta-bar">
+  @if (secondaryLabel) {
+    <ion-button
+      fill="outline"
+      color="primary"
+      class="ds-cta-secondary"
+      [disabled]="loading"
+      (click)="secondaryClick.emit()">
+      @if (secondaryIcon) {
+        <ion-icon [name]="secondaryIcon" slot="start"></ion-icon>
+      }
+      {{ secondaryLabel }}
+    </ion-button>
+  }
+  <ion-button
+    expand="block"
+    color="secondary"
+    class="ds-cta-primary"
+    [disabled]="disabled || loading"
+    (click)="ctaClick.emit()">
+    @if (loading) {
+      <ion-spinner name="crescent" slot="start"></ion-spinner>
+      Posting...
+    } @else {
+      @if (icon) {
+        <ion-icon [name]="icon" slot="start"></ion-icon>
+      }
+      {{ label }}
+    }
+  </ion-button>
+</div>

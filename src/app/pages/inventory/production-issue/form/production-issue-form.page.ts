@@ -98,5 +98,23 @@ export class ProductionIssueFormPage implements OnInit {
     });
   }
 
+  getStatusColor(status?: string): string {
+    switch ((status ?? '').toLowerCase()) {
+      case 'released': return '#16a34a';
+      case 'started':  return '#d97706';
+      case 'reported': return '#2563eb';
+      default:         return '#6b7280';
+    }
+  }
+
+  getStatusBg(status?: string): string {
+    switch ((status ?? '').toLowerCase()) {
+      case 'released': return 'rgba(22,163,74,.12)';
+      case 'started':  return 'rgba(217,119,6,.12)';
+      case 'reported': return 'rgba(37,99,235,.12)';
+      default:         return 'rgba(107,114,128,.12)';
+    }
+  }
+
   goBack() { this.router.navigate(['/inventory/production-issue']); }
 }

@@ -1,11 +1,11 @@
 .inv-home-content {
-  --background: var(--ion-background-color);
+  --background: var(--ds-bg-0);
 }
 
 // ── Web header (hidden on mobile) ────────────────────────────────────────────
 .web-page-header {
   display: none;
-  padding: 32px 32px 0;
+  padding: var(--ds-space-8) var(--ds-space-8) 0;
 
   @media (min-width: 768px) {
     display: block;
@@ -19,51 +19,51 @@
   .web-title-group {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: var(--ds-space-3);
   }
 
   .web-page-title {
-    font-size: 26px;
-    font-weight: 700;
-    color: var(--ion-text-color);
+    font-size: var(--ds-text-2xl);
+    font-weight: var(--ds-weight-bold);
+    color: var(--ds-txt-0);
     margin: 0;
   }
 
   .web-count-chip {
-    background: var(--ion-color-primary);
+    background: var(--ds-navy);
     color: #fff;
-    border-radius: 20px;
+    border-radius: var(--ds-radius-pill);
     padding: 2px 10px;
-    font-size: 12px;
-    font-weight: 600;
+    font-size: var(--ds-text-xs);
+    font-weight: var(--ds-weight-semibold);
     letter-spacing: 0.02em;
   }
 
   .web-page-subtitle {
-    color: var(--ion-color-medium);
-    font-size: 14px;
-    margin: 6px 0 0;
+    color: var(--ds-txt-2);
+    font-size: var(--ds-text-sm);
+    margin: var(--ds-space-2) 0 0;
   }
 }
 
 // ── Mobile header (hidden on desktop) ───────────────────────────────────────
 .mobile-header {
-  padding: 20px 16px 8px;
+  padding: var(--ds-space-5) var(--ds-space-4) var(--ds-space-2);
 
   @media (min-width: 768px) {
     display: none;
   }
 
   .mobile-title {
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--ion-text-color);
-    margin: 0 0 4px;
+    font-size: var(--ds-text-xl);
+    font-weight: var(--ds-weight-bold);
+    color: var(--ds-txt-0);
+    margin: 0 0 var(--ds-space-1);
   }
 
   .mobile-subtitle {
-    font-size: 13px;
-    color: var(--ion-color-medium);
+    font-size: var(--ds-text-sm);
+    color: var(--ds-txt-2);
     margin: 0;
   }
 }
@@ -72,30 +72,31 @@
 .tile-grid {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 16px;
+  gap: var(--ds-space-3);
+  padding: var(--ds-space-4);
   max-width: 960px;
   margin: 0 auto;
 
   @media (min-width: 768px) {
-    padding: 24px 32px 32px;
+    padding: var(--ds-space-6) var(--ds-space-8) var(--ds-space-8);
   }
 }
 
 .tile-card {
   display: flex;
   align-items: center;
-  gap: 14px;
-  background: var(--ion-card-background, #fff);
-  border: 1px solid var(--ion-border-color, rgba(0,0,0,.08));
-  border-radius: 14px;
-  padding: 16px;
+  gap: var(--ds-space-4);
+  background: var(--ds-bg-1);
+  border: 1px solid rgba(0, 0, 0, 0.07);
+  border-radius: var(--ds-radius-lg);
+  padding: var(--ds-space-4);
   cursor: pointer;
   text-align: left;
   width: 100%;
   min-height: 76px;
-  transition: box-shadow 0.18s ease, transform 0.12s ease;
-  box-shadow: 0 1px 4px rgba(0,0,0,.05);
+  transition: box-shadow var(--ds-motion-base) var(--ds-ease-out),
+              transform 0.12s var(--ds-ease-out);
+  box-shadow: var(--ds-shadow-sm);
   -webkit-tap-highlight-color: transparent;
 
   &:active {
@@ -105,7 +106,7 @@
 
   @media (hover: hover) {
     &:hover {
-      box-shadow: 0 4px 16px rgba(0,0,0,.1);
+      box-shadow: var(--ds-shadow-md);
       transform: translateY(-1px);
     }
   }
@@ -115,7 +116,7 @@
   flex-shrink: 0;
   width: 50px;
   height: 50px;
-  border-radius: 12px;
+  border-radius: var(--ds-radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -134,9 +135,9 @@
 }
 
 .tile-id {
-  font-size: 10px;
-  font-weight: 600;
-  color: var(--ion-color-medium);
+  font-size: var(--ds-text-2xs, 10px);
+  font-weight: var(--ds-weight-semibold);
+  color: var(--ds-txt-3);
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -144,13 +145,13 @@
 .tile-title-row {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: var(--ds-space-2);
 }
 
 .tile-title {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--ion-text-color);
+  font-size: var(--ds-text-base);
+  font-weight: var(--ds-weight-semibold);
+  color: var(--ds-txt-0);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -161,16 +162,16 @@
   font-size: 9px;
   font-weight: 800;
   letter-spacing: 0.08em;
-  color: #22d3ee;
-  background: rgba(34, 211, 238, 0.1);
-  border: 1px solid rgba(34, 211, 238, 0.3);
-  border-radius: 999px;
+  color: var(--ds-accent);
+  background: var(--ds-accent-soft);
+  border: 1px solid rgba(242, 76, 26, 0.3);
+  border-radius: var(--ds-radius-pill);
   padding: 1px 7px;
 }
 
 .tile-subtitle {
-  font-size: 12px;
-  color: var(--ion-color-medium);
+  font-size: var(--ds-text-sm);
+  color: var(--ds-txt-2);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -179,5 +180,5 @@
 .tile-chevron {
   flex-shrink: 0;
   font-size: 16px;
-  color: var(--ion-color-medium);
+  color: var(--ds-txt-3);
 }

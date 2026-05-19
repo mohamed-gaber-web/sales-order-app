@@ -255,9 +255,13 @@ ion-list {
   display: flex;
   gap: 10px;
   padding: 14px 16px;
-  padding-bottom: calc(14px + env(safe-area-inset-bottom));
+  padding-bottom: calc(14px + 60px + env(safe-area-inset-bottom));
   background: var(--gp-card-bg, #fff);
   box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.06);
+
+  @media (min-width: 1280px) {
+    padding-bottom: calc(14px + env(safe-area-inset-bottom));
+  }
 
   ion-button {
     flex: 1;

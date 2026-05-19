@@ -1,0 +1,17 @@
+<ion-button
+  [fill]="ionFill"
+  [color]="ionColor"
+  [expand]="ionExpand"
+  [disabled]="disabled || loading"
+  class="ds-btn"
+  [class.ds-btn--sm]="size === 'sm'"
+  [class.ds-btn--lg]="size === 'lg'"
+  (click)="onClick()">
+  @if (loading) {
+    <ion-spinner name="crescent" slot="start"></ion-spinner>
+  } @else if (icon) {
+    <ion-icon [name]="icon" slot="start"></ion-icon>
+  }
+  {{ label }}
+  <ng-content></ng-content>
+</ion-button>

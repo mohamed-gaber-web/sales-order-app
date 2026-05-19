@@ -4,213 +4,171 @@
       <ion-back-button [defaultHref]="'/inventory/project-issuance/detail/' + projectId" text=""></ion-back-button>
     </ion-buttons>
     <ion-title>Issue Item</ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" size="small">
+        <ion-icon name="qr-code-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="page-content">
-  <div class="page-body" [formGroup]="form">
+<ion-content>
+  <div class="page-content" [formGroup]="form">
 
-    <!-- Line info banner -->
-    <div class="order-banner">
-      <div class="banner-icon-wrap">
+    <!-- Card 1: Item Information (read-only) -->
+    <div class="form-card">
+      <div class="card-section-label">
         <ion-icon name="cube-outline"></ion-icon>
+        Item Information
       </div>
-      <div class="banner-details">
-        <p class="banner-label">{{ projectId }} · Line {{ lineNumber }}</p>
-        <p class="banner-value">{{ itemNumber }}</p>
-        @if (productName) {
-          <p class="banner-sub">{{ productName }}</p>
-        }
-      </div>
-      <div class="banner-right">
-        <span class="status-pill"
-          [style.color]="getStatusColor(lineStatus)"
-          [style.background]="getStatusBg(lineStatus)">
-          {{ lineStatus }}
-        </span>
-      </div>
-    </div>
-
-    <!-- Summary row -->
-    <div class="summary-row">
-      @if (salesCategory) {
-        <div class="summary-item">
-          <p class="s-label">Category</p>
-          <p class="s-value">{{ salesCategory }}</p>
+      <div class="card-body">
+        <div class="info-row full">
+          <span class="info-label">Product</span>
+          <span class="info-value">{{ productName || itemNumber }}</span>
         </div>
-      }
-      @if (linePropertyId) {
-        <div class="summary-item">
-          <p class="s-label">Line Property</p>
-          <p class="s-value">{{ linePropertyId }}</p>
-        </div>
-      }
-      @if (requestedReceiptDate) {
-        <div class="summary-item">
-          <p class="s-label">Requested Date</p>
-          <p class="s-value">{{ requestedReceiptDate | date:'dd MMM yyyy' }}</p>
-        </div>
-      }
-      <div class="summary-item">
-        <p class="s-label">Required Qty</p>
-        <p class="s-value">{{ requiredQuantity }}</p>
-      </div>
-      <div class="summary-item highlight">
-        <p class="s-label">Remaining Qty</p>
-        <p class="s-value">{{ remainingQuantity }}</p>
-      </div>
-    </div>
-
-    <!-- Quantity to Issue -->
-    <div class="form-section">
-      <p class="form-label">Quantity to Issue *</p>
-      <ion-item lines="none" class="input-item">
-        <ion-icon name="layers-outline" slot="start" color="medium"></ion-icon>
-        <ion-input
-          formControlName="quantityToIssue"
-          type="number"
-          inputmode="decimal"
-          placeholder="0.00"
-          min="0.001">
-        </ion-input>
-        <ion-note slot="end" class="max-note">max {{ remainingQuantity }}</ion-note>
-      </ion-item>
-      @if (form.get('quantityToIssue')?.invalid && form.get('quantityToIssue')?.touched) {
-        <p class="field-error">
-          @if (form.get('quantityToIssue')?.hasError('max')) {
-            Quantity cannot exceed remaining ({{ remainingQuantity }}).
-          } @else {
-            Enter a quantity greater than 0.
+        <div class="info-grid">
+          <div class="info-row">
+            <span class="info-label">Item No.</span>
+            <span class="info-value ds-mono">{{ itemNumber }}</span>
+          </div>
+          @if (salesCategory) {
+            <div class="info-row">
+              <span class="info-label">Category</span>
+              <span class="info-value">{{ salesCategory }}</span>
+            </div>
           }
-        </p>
-      }
-    </div>
-
-    <!-- Unit -->
-    <div class="form-section">
-      <p class="form-label">Unit *</p>
-      <ion-item lines="none" class="input-item">
-        <ion-icon name="resize-outline" slot="start" color="medium"></ion-icon>
-        <ion-input
-          formControlName="unit"
-          placeholder="EA"
-          inputmode="text"
-          clearInput="true">
-        </ion-input>
-      </ion-item>
-    </div>
-
-    <!-- Dimensions section header -->
-    <p class="section-divider">Inventory Dimensions</p>
-
-    <!-- Site -->
-    <div class="form-section">
-      <p class="form-label">Site *</p>
-      <ion-item lines="none" class="input-item">
-        <ion-icon name="map-outline" slot="start" color="medium"></ion-icon>
-        <ion-input
-          formControlName="site"
-          placeholder="e.g. S1"
-          inputmode="text"
-          clearInput="true">
-        </ion-input>
-      </ion-item>
-      @if (form.get('site')?.invalid && form.get('site')?.touched) {
-        <p class="field-error">Site is required.</p>
-      }
-    </div>
-
-    <!-- Warehouse -->
-    <div class="form-section">
-      <p class="form-label">Warehouse *</p>
-      <ion-item lines="none" class="input-item">
-        <ion-icon name="business-outline" slot="start" color="medium"></ion-icon>
-        <ion-input
-          formControlName="warehouse"
-          placeholder="e.g. W1"
-          inputmode="text"
-          clearInput="true">
-        </ion-input>
-      </ion-item>
-      @if (form.get('warehouse')?.invalid && form.get('warehouse')?.touched) {
-        <p class="field-error">Warehouse is required.</p>
-      }
-    </div>
-
-    <!-- Location -->
-    <div class="form-section">
-      <p class="form-label">Location <span class="optional-tag">Optional</span></p>
-      <ion-item lines="none" class="input-item">
-        <ion-icon name="location-outline" slot="start" color="medium"></ion-icon>
-        <ion-input
-          formControlName="location"
-          placeholder="e.g. A-01-01"
-          inputmode="text"
-          clearInput="true">
-        </ion-input>
-      </ion-item>
-    </div>
-
-    <!-- Batch Number -->
-    <div class="form-section">
-      <p class="form-label">Batch Number <span class="optional-tag">Optional</span></p>
-      <ion-item lines="none" class="input-item">
-        <ion-icon name="barcode-outline" slot="start" color="medium"></ion-icon>
-        <ion-input
-          formControlName="batchNumber"
-          placeholder="Scan or enter batch"
-          inputmode="text"
-          clearInput="true">
-        </ion-input>
-      </ion-item>
-    </div>
-
-    <!-- Serial Number -->
-    <div class="form-section">
-      <p class="form-label">Serial Number <span class="optional-tag">Optional</span></p>
-      <ion-item lines="none" class="input-item">
-        <ion-icon name="key-outline" slot="start" color="medium"></ion-icon>
-        <ion-input
-          formControlName="serialNumber"
-          placeholder="Scan or enter serial"
-          inputmode="text"
-          clearInput="true">
-        </ion-input>
-      </ion-item>
-    </div>
-
-    <!-- Post Packing Slip toggle -->
-    <div class="toggle-row">
-      <div class="toggle-label-wrap">
-        <ion-icon name="archive-outline" color="primary"></ion-icon>
-        <div>
-          <p class="toggle-title">Also Post Packing Slip</p>
-          <p class="toggle-sub">Posts packing slip automatically after picking list</p>
+          @if (linePropertyId) {
+            <div class="info-row">
+              <span class="info-label">Line Property</span>
+              <span class="info-value">{{ linePropertyId }}</span>
+            </div>
+          }
+          @if (requestedReceiptDate) {
+            <div class="info-row">
+              <span class="info-label">Due Date</span>
+              <span class="info-value">{{ requestedReceiptDate | date:'dd MMM yyyy' }}</span>
+            </div>
+          }
         </div>
       </div>
-      <ion-toggle [(ngModel)]="postPackingSlip" [ngModelOptions]="{standalone: true}" color="primary"></ion-toggle>
     </div>
 
-    <!-- Info box -->
-    <div class="info-box">
-      <ion-icon name="information-circle-outline" color="primary"></ion-icon>
-      <p>Inventory will be deducted from the selected site and warehouse, and charged to project <strong>{{ projectId }}</strong>. Verify dimensions and quantity before posting.</p>
+    <!-- Card 2: Quantity -->
+    <div class="form-card">
+      <div class="card-section-label">
+        <ion-icon name="layers-outline"></ion-icon>
+        Quantity to Issue
+      </div>
+      <div class="card-body">
+        <ds-form-field
+          label="Quantity"
+          [required]="true"
+          [showError]="(form.get('quantityToIssue')?.invalid && form.get('quantityToIssue')?.touched) ?? false"
+          [errorMessage]="form.get('quantityToIssue')?.hasError('max') ? 'Cannot exceed remaining (' + remainingQuantity + ')' : 'Enter a quantity greater than 0'">
+          <ion-item lines="none" class="input-item">
+            <ion-icon name="layers-outline" slot="start" color="medium"></ion-icon>
+            <ion-input formControlName="quantityToIssue" type="number" inputmode="decimal" placeholder="0.00"></ion-input>
+            <ion-note slot="end" class="max-note">max {{ remainingQuantity }}</ion-note>
+          </ion-item>
+        </ds-form-field>
+
+        <div class="qty-helper-row">
+          <span class="qty-remaining">
+            <ion-icon name="alert-circle-outline"></ion-icon>
+            {{ remainingQuantity }} remaining
+          </span>
+          <span class="qty-sep">·</span>
+          <span class="qty-required">Required: {{ requiredQuantity }}</span>
+        </div>
+
+        <ds-form-field label="Unit" [required]="true">
+          <ion-item lines="none" class="input-item">
+            <ion-icon name="resize-outline" slot="start" color="medium"></ion-icon>
+            <ion-input formControlName="unit" placeholder="EA" inputmode="text" clearInput="true"></ion-input>
+          </ion-item>
+        </ds-form-field>
+      </div>
     </div>
 
-    <!-- Submit button -->
-    <ion-button
-      expand="block"
-      class="action-btn"
-      (click)="submitPickingList()"
-      [disabled]="!canPost">
-      @if (isSubmitting) {
-        <ion-spinner name="crescent" slot="start"></ion-spinner>
-        Posting...
-      } @else {
-        <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
-        Post Picking List{{ postPackingSlip ? ' & Packing Slip' : '' }}
-      }
-    </ion-button>
+    <!-- Card 3: Inventory Dimensions -->
+    <div class="form-card">
+      <div class="card-section-label">
+        <ion-icon name="map-outline"></ion-icon>
+        Inventory Dimensions
+      </div>
+      <div class="card-body">
+        <div class="dims-grid">
+          <ds-form-field label="Site" [required]="true"
+            [showError]="(form.get('site')?.invalid && form.get('site')?.touched) ?? false"
+            errorMessage="Site is required.">
+            <ion-item lines="none" class="input-item">
+              <ion-input formControlName="site" placeholder="e.g. S1" inputmode="text" clearInput="true"></ion-input>
+            </ion-item>
+          </ds-form-field>
+
+          <ds-form-field label="Warehouse" [required]="true"
+            [showError]="(form.get('warehouse')?.invalid && form.get('warehouse')?.touched) ?? false"
+            errorMessage="Warehouse is required.">
+            <ion-item lines="none" class="input-item">
+              <ion-input formControlName="warehouse" placeholder="e.g. W1" inputmode="text" clearInput="true"></ion-input>
+            </ion-item>
+          </ds-form-field>
+
+          <ds-form-field label="Location" [optional]="true">
+            <ion-item lines="none" class="input-item">
+              <ion-input formControlName="location" placeholder="e.g. A-01-01" inputmode="text" clearInput="true"></ion-input>
+            </ion-item>
+          </ds-form-field>
+
+          <ds-form-field label="Batch No." [optional]="true">
+            <ion-item lines="none" class="input-item">
+              <ion-input formControlName="batchNumber" placeholder="Scan or enter" inputmode="text" clearInput="true"></ion-input>
+            </ion-item>
+          </ds-form-field>
+        </div>
+
+        <div class="scan-row">
+          <ion-button fill="outline" size="small" color="primary">
+            <ion-icon name="scan-outline" slot="start"></ion-icon>
+            Scan Location
+          </ion-button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 4: Posting Options -->
+    <div class="form-card">
+      <div class="card-section-label">
+        <ion-icon name="settings-outline"></ion-icon>
+        Posting Options
+      </div>
+      <div class="card-body">
+        <ds-toggle-row
+          title="Also Post Packing Slip"
+          subtitle="Posts packing slip automatically after picking list"
+          icon="archive-outline"
+          [checked]="postPackingSlip"
+          (toggleChange)="postPackingSlip = $event">
+        </ds-toggle-row>
+        <ds-toggle-row
+          title="Print Label"
+          subtitle="Print a label after successfully posting"
+          icon="print-outline"
+          [checked]="printLabel"
+          (toggleChange)="printLabel = $event">
+        </ds-toggle-row>
+      </div>
+    </div>
 
   </div>
 </ion-content>
+
+<ion-footer class="ion-no-border">
+  <ds-cta-bar
+    [label]="postPackingSlip ? 'Post Picking List & Packing Slip' : 'Post Picking List'"
+    icon="checkmark-circle-outline"
+    [loading]="isSubmitting"
+    [disabled]="!canPost"
+    (ctaClick)="submitPickingList()">
+  </ds-cta-bar>
+</ion-footer>

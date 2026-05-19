@@ -1,0 +1,15 @@
+<div class="ds-empty-state">
+  <div class="ds-empty-icon-wrap">
+    <ion-icon [name]="icon"></ion-icon>
+  </div>
+  <h3 class="ds-empty-title">{{ title }}</h3>
+  @if (message) {
+    <p class="ds-empty-message">{{ message }}</p>
+  }
+  @if (buttonLabel) {
+    <ion-button fill="outline" size="small" class="ds-empty-btn" (click)="buttonClick.emit()">
+      {{ buttonLabel }}
+    </ion-button>
+  }
+  <ng-content></ng-content>
+</div>

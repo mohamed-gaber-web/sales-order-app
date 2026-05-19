@@ -16,6 +16,7 @@ export class ProjectIssuanceAdhocPage implements OnInit {
   projectId = '';
   projectName = '';
   dataAreaId = 'usmf';
+  isProjectFixed = false;
 
   form!: FormGroup;
   isSubmitting = false;
@@ -31,13 +32,17 @@ export class ProjectIssuanceAdhocPage implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.projectId = this.route.snapshot.paramMap.get('projectId') ?? '';
+    const routeProjectId = this.route.snapshot.paramMap.get('projectId');
+    this.isProjectFixed = !!routeProjectId;
+    this.projectId = routeProjectId ?? '';
+
     const nav = this.router.getCurrentNavigation();
     const state = nav?.extras?.state ?? history.state;
     this.projectName = state?.['projectName'] ?? '';
-    this.dataAreaId = state?.['dataAreaId'] ?? 'usmf';
+    this.dataAreaId  = state?.['dataAreaId']  ?? 'usmf';
 
     this.form = this.fb.group({
+      projectIdField: [this.projectId, this.isProjectFixed ? [] : [Validators.required]],
       itemNumber:     ['', Validators.required],
       quantity:       [null, [Validators.required, Validators.min(0.001)]],
       unit:           ['EA', Validators.required],
@@ -63,6 +68,7 @@ export class ProjectIssuanceAdhocPage implements OnInit {
     }
 
     const v = this.form.value as {
+      projectIdField: string;
       itemNumber: string;
       quantity: number;
       unit: string;
@@ -76,13 +82,15 @@ export class ProjectIssuanceAdhocPage implements OnInit {
       linePropertyId: string;
     };
 
+    const effectiveProjectId = this.isProjectFixed ? this.projectId : (v.projectIdField ?? '').trim();
+
     const loading = await this.loadingCtrl.create({ message: 'Posting item issuance...', spinner: 'crescent' });
     await loading.present();
     this.isSubmitting = true;
 
     const payload = {
       dataAreaId: this.dataAreaId,
-      projectId: this.projectId,
+      projectId: effectiveProjectId,
       journalName: 'ProjItem',
       line: {
         itemNumber: v.itemNumber.trim(),
@@ -104,13 +112,17 @@ export class ProjectIssuanceAdhocPage implements OnInit {
         await loading.dismiss();
         this.isSubmitting = false;
         const t = await this.toastCtrl.create({
-          message: `Item ${v.itemNumber} issued to project ${this.projectId}.`,
+          message: `Item ${v.itemNumber} issued to project ${effectiveProjectId}.`,
           duration: 3000, color: 'success', position: 'bottom'
         });
         await t.present();
-        this.router.navigate(['/inventory/project-issuance/detail', this.projectId], {
-          state: { projectName: this.projectName, dataAreaId: this.dataAreaId }
-        });
+        if (this.isProjectFixed) {
+          this.router.navigate(['/inventory/project-issuance/detail', effectiveProjectId], {
+            state: { projectName: this.projectName, dataAreaId: this.dataAreaId }
+          });
+        } else {
+          this.router.navigate(['/inventory/project-issuance']);
+        }
       },
       error: async (err) => {
         await loading.dismiss();

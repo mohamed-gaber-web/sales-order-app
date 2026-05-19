@@ -1,0 +1,7 @@
+<div class="ds-stat" [class.ds-stat--highlighted]="highlighted">
+  @if (accentColor) {
+    <div class="ds-stat-accent" [style.background]="accentColor"></div>
+  }
+  <p class="ds-stat-label">{{ label }}</p>
+  <p class="ds-stat-value">{{ value }}<span class="ds-stat-unit" *ngIf="unit"> {{ unit }}</span></p>
+</div>

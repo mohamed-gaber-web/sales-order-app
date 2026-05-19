@@ -1,0 +1,18 @@
+<div class="ds-form-field">
+  @if (label) {
+    <p class="ds-field-label">
+      {{ label }}
+      @if (required) { <span class="ds-required">*</span> }
+      @if (optional) { <span class="ds-optional">Optional</span> }
+    </p>
+  }
+  <div class="ds-field-control">
+    <ng-content></ng-content>
+  </div>
+  @if (showError && errorMessage) {
+    <p class="ds-field-error">{{ errorMessage }}</p>
+  }
+  @if (hint && !showError) {
+    <p class="ds-field-hint">{{ hint }}</p>
+  }
+</div>

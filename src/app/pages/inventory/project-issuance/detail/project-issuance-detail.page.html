@@ -3,7 +3,7 @@
     <ion-buttons slot="start">
       <ion-back-button defaultHref="/inventory/project-issuance" text=""></ion-back-button>
     </ion-buttons>
-    <ion-title>{{ projectId }}</ion-title>
+    <ion-title class="ds-mono">{{ projectId }}</ion-title>
     <ion-buttons slot="end">
       <ion-button fill="clear" (click)="loadRequirements()">
         <ion-icon name="refresh-outline" slot="icon-only"></ion-icon>
@@ -12,7 +12,7 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="page-content">
+<ion-content>
   <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
@@ -24,7 +24,14 @@
         <ion-icon name="folder-open-outline"></ion-icon>
       </div>
       <div class="project-info">
-        <p class="project-id">{{ projectId }}</p>
+        <div class="project-id-row">
+          <span class="project-id ds-mono">{{ projectId }}</span>
+          <ds-pill
+            [label]="projectStage === 'InProcess' ? 'In Process' : (projectStage || 'Active')"
+            [color]="getStatusColor('open')"
+            [bg]="getStatusBg('open')">
+          </ds-pill>
+        </div>
         <p class="project-name">{{ projectName }}</p>
         @if (customerAccount) {
           <p class="project-customer">
@@ -33,128 +40,157 @@
           </p>
         }
       </div>
-      <div class="project-stage-badge">
-        <span [style.color]="getStatusColor(projectStage === 'InProcess' ? 'open' : 'closed')"
-              [style.background]="getStatusBg(projectStage === 'InProcess' ? 'open' : 'closed')">
-          {{ projectStage === 'InProcess' ? 'In Process' : projectStage }}
-        </span>
+    </div>
+
+    <!-- Stats row: open / partial / closed counts -->
+    <div class="project-stats-row">
+      <div class="proj-stat">
+        <span class="proj-stat-value success">{{ openCount }}</span>
+        <span class="proj-stat-label">Open</span>
+      </div>
+      <div class="proj-stat-sep"></div>
+      <div class="proj-stat">
+        <span class="proj-stat-value warning">{{ partialCount }}</span>
+        <span class="proj-stat-label">Partial</span>
+      </div>
+      <div class="proj-stat-sep"></div>
+      <div class="proj-stat">
+        <span class="proj-stat-value muted">{{ closedCount }}</span>
+        <span class="proj-stat-label">Closed</span>
       </div>
     </div>
   </div>
 
-  <!-- Section header: Item Requirements -->
-  <div class="section-header">
-    <span class="section-title">Item Requirements</span>
-    <div class="section-actions">
-      <ion-button fill="outline" size="small" (click)="toggleShowAll()">
+  <!-- Segment tabs -->
+  <ion-segment [(ngModel)]="activeTab" class="req-segment">
+    <ion-segment-button value="requirements">
+      <ion-label>Requirements</ion-label>
+    </ion-segment-button>
+    <ion-segment-button value="history">
+      <ion-label>History</ion-label>
+    </ion-segment-button>
+    <ion-segment-button value="info">
+      <ion-label>Info</ion-label>
+    </ion-segment-button>
+  </ion-segment>
+
+  <!-- Requirements tab -->
+  @if (activeTab === 'requirements') {
+    <div class="search-wrap">
+      <ds-search
+        placeholder="Filter by item or product..."
+        [debounceMs]="200"
+        [light]="true"
+        (query)="onSearchChange($event)">
+      </ds-search>
+    </div>
+
+    <div class="filter-toggle-row">
+      <ion-button fill="outline" size="small" color="primary" (click)="toggleShowAll()">
         {{ showAll ? 'Open Only' : 'Show All' }}
       </ion-button>
-      <ion-button fill="solid" size="small" color="primary" (click)="openAdhoc()">
-        <ion-icon name="add-outline" slot="start"></ion-icon>
-        Ad-hoc
-      </ion-button>
     </div>
-  </div>
 
-  <!-- Search within requirements -->
-  <div class="search-wrap">
-    <ion-searchbar
-      [(ngModel)]="searchTerm"
-      (ionInput)="onSearchChange()"
-      placeholder="Filter by item or product..."
-      debounce="200"
-      animated="true"
-      class="custom-searchbar inner-searchbar">
-    </ion-searchbar>
-  </div>
-
-  <!-- Loading skeletons -->
-  @if (isLoading) {
-    <div class="lines-list">
-      @for (i of [1,2,3]; track i) {
-        <div class="line-card skeleton-card">
-          <ion-skeleton-text animated style="width: 40%; height: 15px; border-radius: 5px"></ion-skeleton-text>
-          <ion-skeleton-text animated style="width: 65%; height: 12px; margin-top: 8px; border-radius: 5px"></ion-skeleton-text>
-          <ion-skeleton-text animated style="width: 50%; height: 12px; margin-top: 6px; border-radius: 5px"></ion-skeleton-text>
-        </div>
-      }
-    </div>
-  }
-
-  <!-- Requirement lines -->
-  @if (!isLoading && filteredRequirements.length > 0) {
-    <div class="lines-list">
-      @for (req of filteredRequirements; track req.LineNumber) {
-        <div class="line-card" (click)="openLine(req)">
-          <div class="line-accent" [style.background]="getStatusColor(req.LineStatus)"></div>
-          <div class="line-body">
-            <div class="line-top">
-              <div class="line-item-wrap">
-                <span class="line-num">Line {{ req.LineNumber }}</span>
-                <span class="item-number">{{ req.ItemNumber }}</span>
-              </div>
-              <span class="status-pill"
-                [style.color]="getStatusColor(req.LineStatus)"
-                [style.background]="getStatusBg(req.LineStatus)">
-                {{ req.LineStatus }}
-              </span>
-            </div>
-
-            @if (req.ProductName) {
-              <p class="product-name">
-                <ion-icon name="cube-outline"></ion-icon>
-                {{ req.ProductName }}
-              </p>
-            }
-
-            <div class="line-meta">
-              @if (req.SalesCategory) {
-                <span><ion-icon name="pricetag-outline"></ion-icon> {{ req.SalesCategory }}</span>
-              }
-              @if (req.LinePropertyId) {
-                <span><ion-icon name="flag-outline"></ion-icon> {{ req.LinePropertyId }}</span>
-              }
-              @if (req.RequestedReceiptDate) {
-                <span><ion-icon name="calendar-outline"></ion-icon> {{ req.RequestedReceiptDate | date:'dd MMM' }}</span>
-              }
-            </div>
-
-            <!-- Quantity progress -->
-            <div class="qty-track">
-              <div class="qty-labels">
-                <span class="qty-remaining">
-                  <strong>{{ req.RemainingQuantity }}</strong> remaining
-                </span>
-                <span class="qty-required">of {{ req.RequiredQuantity }}</span>
-              </div>
-              <div class="progress-bar">
-                <div class="progress-fill"
-                  [style.width.%]="getRemainingPct(req)"
-                  [style.background]="getStatusColor(req.LineStatus)">
-                </div>
-              </div>
-            </div>
+    @if (isLoading) {
+      <div class="lines-list">
+        @for (i of [1,2,3]; track i) {
+          <div class="line-card skeleton-card">
+            <ion-skeleton-text animated style="width: 40%; height: 15px; border-radius: 5px"></ion-skeleton-text>
+            <ion-skeleton-text animated style="width: 65%; height: 12px; margin-top: 8px; border-radius: 5px"></ion-skeleton-text>
+            <ion-skeleton-text animated style="width: 50%; height: 12px; margin-top: 6px; border-radius: 5px"></ion-skeleton-text>
           </div>
-          <div class="line-chevron">
-            <ion-icon name="chevron-forward-outline"></ion-icon>
-          </div>
-        </div>
-      }
-    </div>
-  }
-
-  <!-- Empty state -->
-  @if (!isLoading && filteredRequirements.length === 0) {
-    <div class="empty-state">
-      <div class="empty-icon-wrap">
-        <ion-icon name="list-outline"></ion-icon>
+        }
       </div>
-      <h3>No Item Requirements</h3>
-      <p>{{ searchTerm ? 'No lines match "' + searchTerm + '"' : (showAll ? 'No item requirements found for this project' : 'All lines are fully issued') }}</p>
-      @if (!showAll && !searchTerm) {
-        <ion-button fill="outline" size="small" (click)="toggleShowAll()">Show All Lines</ion-button>
-      }
-    </div>
+    }
+
+    @if (!isLoading && filteredRequirements.length > 0) {
+      <div class="lines-list">
+        @for (req of filteredRequirements; track req.LineNumber) {
+          <div class="line-card" (click)="openRequirementAction(req)">
+            <div class="line-accent" [style.background]="getStatusColor(req.LineStatus)"></div>
+            <div class="line-body">
+              <div class="line-top">
+                <div class="line-item-wrap">
+                  <span class="line-num">Line {{ req.LineNumber }}</span>
+                  <span class="item-number ds-mono">{{ req.ItemNumber }}</span>
+                </div>
+                <ds-pill
+                  [label]="req.LineStatus"
+                  [color]="getStatusColor(req.LineStatus)"
+                  [bg]="getStatusBg(req.LineStatus)">
+                </ds-pill>
+              </div>
+
+              @if (req.ProductName) {
+                <p class="product-name">
+                  <ion-icon name="cube-outline"></ion-icon>
+                  {{ req.ProductName }}
+                </p>
+              }
+
+              <div class="line-meta">
+                @if (req.SalesCategory) {
+                  <span><ion-icon name="pricetag-outline"></ion-icon> {{ req.SalesCategory }}</span>
+                }
+                @if (req.LinePropertyId) {
+                  <span><ion-icon name="flag-outline"></ion-icon> {{ req.LinePropertyId }}</span>
+                }
+                @if (req.RequestedReceiptDate) {
+                  <span><ion-icon name="calendar-outline"></ion-icon> {{ req.RequestedReceiptDate | date:'dd MMM' }}</span>
+                }
+              </div>
+
+              <ds-progress
+                [value]="getRemainingPct(req) / 100"
+                [color]="getStatusColor(req.LineStatus)"
+                [labelLeft]="req.RemainingQuantity + ' remaining'"
+                [labelRight]="'of ' + req.RequiredQuantity">
+              </ds-progress>
+            </div>
+            <div class="line-chevron">
+              <ion-icon name="chevron-forward-outline"></ion-icon>
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    @if (!isLoading && filteredRequirements.length === 0) {
+      <ds-empty-state
+        icon="list-outline"
+        title="No Item Requirements"
+        [message]="searchTerm ? 'No lines match &quot;' + searchTerm + '&quot;' : (showAll ? 'No item requirements found for this project' : 'All lines are fully issued')"
+        [buttonLabel]="!showAll && !searchTerm ? 'Show All Lines' : ''"
+        (buttonClick)="toggleShowAll()">
+      </ds-empty-state>
+    }
   }
 
+  <!-- History tab (placeholder) -->
+  @if (activeTab === 'history') {
+    <ds-empty-state
+      icon="time-outline"
+      title="No History Yet"
+      message="Issuance history will appear here after items are posted.">
+    </ds-empty-state>
+  }
+
+  <!-- Info tab (placeholder) -->
+  @if (activeTab === 'info') {
+    <ds-empty-state
+      icon="information-circle-outline"
+      title="Project Info"
+      message="Detailed project information will appear here.">
+    </ds-empty-state>
+  }
 </ion-content>
+
+<ion-footer class="ion-no-border">
+  <ds-cta-bar
+    label="Ad-hoc Issuance"
+    icon="add-outline"
+    secondaryLabel="Back"
+    (ctaClick)="openAdhoc()"
+    (secondaryClick)="goBack()">
+  </ds-cta-bar>
+</ion-footer>

@@ -1,0 +1,32 @@
+:host { display: block; }
+
+.ds-cta-bar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-2);
+  padding: var(--ds-space-4) var(--ds-space-5);
+  // Account for the 60px custom bottom tab bar (hidden above 1280px)
+  padding-bottom: calc(var(--ds-space-4) + 60px + env(safe-area-inset-bottom));
+
+  @media (min-width: 1280px) {
+    padding-bottom: calc(var(--ds-space-4) + env(safe-area-inset-bottom));
+  }
+  background: var(--ds-bg-1);
+  border-top: 1px solid var(--ds-line-soft);
+
+  .ds-cta-primary {
+    --border-radius: var(--ds-radius-md);
+    height: 52px;
+    font-size: var(--ds-text-lg);
+    font-weight: var(--ds-weight-bold);
+  }
+
+  .ds-cta-secondary {
+    --border-radius: var(--ds-radius-md);
+    --color: var(--ds-navy);
+    --border-color: var(--ds-navy);
+    height: 44px;
+    font-size: var(--ds-text-md);
+    font-weight: var(--ds-weight-semibold);
+  }
+}

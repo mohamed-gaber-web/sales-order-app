@@ -17,6 +17,7 @@
   }
 
   <!-- ── Main App ───────────────────────────────────────── -->
+  @if (!isAuthPage()) {
   <ion-split-pane contentId="main-content" when="lg">
     <ion-menu contentId="main-content" type="overlay">
       <ion-header class="ion-no-border">
@@ -105,6 +106,13 @@
             <ion-label>{{ themeLabel }} Mode</ion-label>
             <ion-note slot="end" class="theme-badge">{{ themeLabel }}</ion-note>
           </ion-item>
+          <ion-item button lines="none" class="menu-item" detail="false" (click)="logout()">
+            <ion-icon name="log-out-outline" slot="start"></ion-icon>
+            <ion-label>Sign Out</ion-label>
+            @if (loggedInUser) {
+              <ion-note slot="end" class="user-email-note">{{ loggedInUser.name }}</ion-note>
+            }
+          </ion-item>
           <ion-item button lines="none" class="menu-item" detail="false">
             <ion-icon name="settings-outline" slot="start"></ion-icon>
             <ion-label>Settings</ion-label>
@@ -118,8 +126,12 @@
     </ion-menu>
     <ion-router-outlet id="main-content"></ion-router-outlet>
   </ion-split-pane>
+  } @else {
+    <ion-router-outlet></ion-router-outlet>
+  }
 
   <!-- ── Bottom Tab Bar (mobile only) ─────────────────────── -->
+  @if (!isAuthPage()) {
   <nav class="bottom-tabs" aria-label="Main navigation">
 
     <a class="btab" [routerLink]="['/dashboard']" [class.btab--active]="isTab('/dashboard')" aria-label="Home">
@@ -154,5 +166,6 @@
     </button>
 
   </nav>
+  }
 
 </ion-app>

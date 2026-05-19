@@ -1,0 +1,156 @@
+:host { display: block; }
+
+// ── Dark variant (default — sits on navy toolbar) ─────────────
+.search-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 42px;
+  padding: 0 14px;
+  border-radius: var(--ds-radius-md);
+  background: rgba(255, 255, 255, 0.09);
+  border: 1.5px solid rgba(255, 255, 255, 0.11);
+  transition:
+    background  180ms cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 180ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow  220ms cubic-bezier(0.16, 1, 0.3, 1);
+
+  &.is-focused {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(242, 76, 26, 0.72);
+    box-shadow:
+      0 0 0 3px rgba(242, 76, 26, 0.16),
+      0 4px 20px rgba(0, 0, 0, 0.22);
+  }
+}
+
+.search-icon {
+  font-size: 17px;
+  color: rgba(255, 255, 255, 0.45);
+  flex-shrink: 0;
+  transition: color 180ms ease, transform 220ms cubic-bezier(0.16, 1, 0.3, 1);
+
+  .is-focused & {
+    color: rgba(255, 255, 255, 0.88);
+    transform: scale(1.08);
+  }
+}
+
+.search-input {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 450;
+  font-family: var(--ds-font, system-ui, sans-serif);
+  letter-spacing: -0.01em;
+  caret-color: var(--ds-accent);
+
+  &::placeholder {
+    color: rgba(255, 255, 255, 0.38);
+    font-weight: 400;
+    transition: color 180ms ease;
+  }
+
+  &:focus::placeholder {
+    color: rgba(255, 255, 255, 0.28);
+  }
+
+  &::-webkit-search-cancel-button,
+  &::-webkit-search-decoration { display: none; }
+}
+
+.search-hint {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  font-size: 11px;
+  font-family: var(--ds-font-mono, 'SF Mono', monospace);
+  color: rgba(255, 255, 255, 0.32);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-radius: 5px;
+  flex-shrink: 0;
+  animation: hint-in 200ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.clear-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.16);
+  color: rgba(255, 255, 255, 0.80);
+  cursor: pointer;
+  flex-shrink: 0;
+  padding: 0;
+  transition: background 140ms ease, transform 140ms ease;
+  animation: clear-in 180ms cubic-bezier(0.16, 1, 0.3, 1) both;
+
+  ion-icon { font-size: 12px; pointer-events: none; }
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.26);
+    transform: scale(1.12);
+  }
+
+  &:active { transform: scale(0.92); }
+}
+
+// ── Light variant (sits on white/light surface) ───────────────
+:host-context(.search-wrap-light) .search-wrap,
+.search-wrap.light {
+  background: var(--ds-bg-1);
+  border-color: var(--ds-line);
+  box-shadow: var(--ds-shadow-sm);
+
+  &.is-focused {
+    background: var(--ds-bg-1);
+    border-color: var(--ds-accent);
+    box-shadow: 0 0 0 3px rgba(242, 76, 26, 0.12), var(--ds-shadow-sm);
+  }
+
+  .search-icon {
+    color: var(--ds-txt-3);
+    .is-focused & { color: var(--ds-accent); }
+  }
+
+  .search-input {
+    color: var(--ds-txt-0);
+    caret-color: var(--ds-accent);
+    &::placeholder { color: var(--ds-txt-3); }
+    &:focus::placeholder { color: var(--ds-txt-3); }
+  }
+
+  .search-hint {
+    color: var(--ds-txt-3);
+    background: var(--ds-bg-0);
+    border-color: var(--ds-line);
+  }
+
+  .clear-btn {
+    background: var(--ds-bg-0);
+    color: var(--ds-txt-2);
+    &:hover { background: var(--ds-bg-2); }
+  }
+}
+
+// ── Animations ────────────────────────────────────────────────
+@keyframes hint-in {
+  from { opacity: 0; transform: scale(0.7); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes clear-in {
+  from { opacity: 0; transform: scale(0.5) rotate(-45deg); }
+  to   { opacity: 1; transform: scale(1) rotate(0deg); }
+}

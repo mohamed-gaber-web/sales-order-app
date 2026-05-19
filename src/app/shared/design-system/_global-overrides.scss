@@ -132,6 +132,15 @@ ion-select {
   }
 }
 
+// ── ion-fab: always clear the bottom tab bar (60px, hidden ≥1280px) ──────────
+ion-fab[slot="fixed"][vertical="bottom"] {
+  bottom: calc(60px + env(safe-area-inset-bottom) + 16px) !important;
+
+  @media (min-width: 1280px) {
+    bottom: calc(env(safe-area-inset-bottom) + 16px) !important;
+  }
+}
+
 // ── ion-badge ───────────────────────────────────────────────
 ion-badge {
   font-weight: var(--ds-weight-semibold);

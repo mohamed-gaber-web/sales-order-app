@@ -1,155 +1,140 @@
-.page-content {
-  --background: var(--ion-background-color);
-}
+// Uses DS tokens — no hardcoded colors or sizes
 
-.page-body {
-  padding: 16px 16px 80px;
+.page-content {
+  padding: var(--ds-space-5);
+  padding-bottom: 100px;
   max-width: 640px;
   margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-4);
 }
 
-.order-banner {
+// ── Form card ────────────────────────────────────────────────
+.form-card {
+  background: var(--ds-bg-1);
+  border-radius: var(--ds-radius-lg);
+  box-shadow: var(--ds-shadow-sm);
+  overflow: hidden;
+}
+
+.card-section-label {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 16px;
-  background: var(--ion-card-background);
-  border-radius: 14px;
-  box-shadow: 0 1px 4px rgba(0,0,0,.08);
-  margin-bottom: 20px;
+  gap: var(--ds-space-2);
+  padding: var(--ds-space-3) var(--ds-space-4);
+  border-bottom: 1px solid var(--ds-line);
+  font-size: var(--ds-text-sm);
+  font-weight: var(--ds-weight-semibold);
+  color: var(--ds-txt-2);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  background: var(--ds-bg-2);
 
-  .banner-icon-wrap {
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
-    background: rgba(242,76,26,.1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-
-    ion-icon { font-size: 22px; color: var(--ion-color-warning); }
-  }
-
-  .banner-details {
-    flex: 1;
-    min-width: 0;
-
-    .banner-label {
-      font-size: 11px;
-      color: var(--ion-text-color);
-      opacity: .5;
-      margin: 0;
-      text-transform: uppercase;
-      letter-spacing: .05em;
-    }
-
-    .banner-value {
-      font-size: 16px;
-      font-weight: 700;
-      color: var(--ion-text-color);
-      margin: 2px 0 0;
-    }
-
-    .banner-sub {
-      font-size: 12px;
-      color: var(--ion-text-color);
-      opacity: .65;
-      margin: 2px 0 0;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-  }
-
-  .banner-badge {
-    .adhoc-badge {
-      font-size: 11px;
-      font-weight: 700;
-      padding: 3px 9px;
-      border-radius: 20px;
-      background: rgba(242,76,26,.12);
-      color: #F24C1A;
-    }
-  }
+  ion-icon { font-size: 15px; color: var(--ds-navy); }
 }
 
+.card-body {
+  padding: var(--ds-space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-3);
+}
+
+// ── Project banner (when project is prefilled) ────────────────
+.project-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-3);
+  padding: var(--ds-space-3);
+  background: var(--ds-navy-soft);
+  border-radius: var(--ds-radius-md);
+}
+
+.project-banner-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--ds-radius-sm);
+  background: var(--ds-navy-mid);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  ion-icon { font-size: 20px; color: var(--ds-navy); }
+}
+
+.project-banner-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.project-banner-id {
+  font-size: var(--ds-text-md);
+  font-weight: var(--ds-weight-bold);
+  color: var(--ds-txt-0);
+}
+
+.project-banner-name {
+  font-size: var(--ds-text-sm);
+  color: var(--ds-txt-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// ── Qty two-col ───────────────────────────────────────────────
 .two-col {
   display: flex;
-  gap: 12px;
+  gap: var(--ds-space-3);
   align-items: flex-start;
 
   .flex-1 { flex: 1; }
-  .w-100 { width: 100px; flex-shrink: 0; }
+  .unit-field { width: 90px; flex-shrink: 0; }
 }
 
-.form-section {
-  margin-bottom: 14px;
-
-  .form-label {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--ion-text-color);
-    margin: 0 0 6px 4px;
-    opacity: .8;
-  }
-
-  .optional-tag {
-    font-size: 11px;
-    font-weight: 400;
-    color: var(--ion-text-color);
-    opacity: .45;
-    margin-left: 4px;
-  }
-
-  .input-item {
-    --border-radius: 10px;
-    --background: var(--ion-card-background);
-    --padding-start: 12px;
-    box-shadow: 0 1px 3px rgba(0,0,0,.06);
-  }
-
-  .field-error {
-    font-size: 12px;
-    color: var(--ion-color-danger);
-    margin: 4px 0 0 4px;
-  }
+// ── Dimension grid ───────────────────────────────────────────
+.dims-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--ds-space-3);
 }
 
-.section-divider {
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: .08em;
-  color: var(--ion-text-color);
-  opacity: .45;
-  margin: 20px 0 12px 4px;
+// ── Scan row ─────────────────────────────────────────────────
+.scan-row {
+  padding-top: var(--ds-space-2);
 }
 
+// ── Input item ────────────────────────────────────────────────
+.input-item {
+  --border-radius: var(--ds-radius-md);
+  --background: var(--ds-bg-2);
+  --padding-start: var(--ds-space-3);
+  box-shadow: var(--ds-shadow-sm);
+
+  &::part(native) { border-radius: var(--ds-radius-md); }
+}
+
+// ── Info box ──────────────────────────────────────────────────
 .info-box {
   display: flex;
-  gap: 10px;
+  gap: var(--ds-space-3);
   align-items: flex-start;
-  background: rgba(0,37,89,.06);
-  border-radius: 10px;
-  padding: 12px 14px;
-  margin-bottom: 20px;
+  background: var(--ds-navy-soft);
+  border-radius: var(--ds-radius-md);
+  padding: var(--ds-space-3) var(--ds-space-4);
 
-  ion-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+  ion-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; color: var(--ds-navy); }
 
   p {
-    font-size: 13px;
-    color: var(--ion-text-color);
-    opacity: .75;
+    font-size: var(--ds-text-base);
+    color: var(--ds-txt-1);
     margin: 0;
-    line-height: 1.5;
+    line-height: var(--ds-lh-normal);
   }
 }
 
-.action-btn {
-  --border-radius: 12px;
-  height: 52px;
-  font-size: 16px;
-  font-weight: 700;
-  margin-top: 4px;
-}
+.ds-mono { font-family: var(--ds-font-mono); }

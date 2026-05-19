@@ -1,0 +1,35 @@
+:host { display: block; }
+
+.ds-progress {
+  width: 100%;
+}
+
+.ds-progress-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: var(--ds-space-1);
+  font-size: var(--ds-text-sm);
+
+  .ds-progress-label-left {
+    color: var(--ds-txt-0);
+    font-weight: var(--ds-weight-semibold);
+  }
+
+  .ds-progress-label-right {
+    color: var(--ds-txt-3);
+  }
+}
+
+.ds-progress-track {
+  height: 5px;
+  background: var(--ds-line);
+  border-radius: var(--ds-radius-pill);
+  overflow: hidden;
+}
+
+.ds-progress-fill {
+  height: 100%;
+  border-radius: var(--ds-radius-pill);
+  transition: width var(--ds-motion-slow) var(--ds-ease-out);
+  background: var(--ds-accent);
+}

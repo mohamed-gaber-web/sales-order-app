@@ -83,6 +83,8 @@ export class VendorReturnsListPage {
     });
   }
 
+  onQueryChange(term: string) { this.searchTerm = term; this.searchSubject.next(term); }
+
   onSearchChange() { this.searchSubject.next(this.searchTerm.trim()); }
 
   private handleSearch(term: string) {

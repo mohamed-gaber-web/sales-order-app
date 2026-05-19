@@ -10,15 +10,12 @@
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
-  <ion-toolbar>
-    <ion-searchbar
-      [(ngModel)]="searchTerm"
-      (ionInput)="onSearchChange()"
+  <ion-toolbar class="search-toolbar">
+    <ds-search
       placeholder="Search order or item..."
-      debounce="300"
-      animated="true"
-      class="custom-searchbar">
-    </ion-searchbar>
+      [debounceMs]="300"
+      (query)="onQueryChange($event)">
+    </ds-search>
   </ion-toolbar>
 </ion-header>
 
@@ -26,6 +23,24 @@
   <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
+
+  <!-- Hero Banner -->
+  <div class="hero-banner">
+    <div class="hero-badge"><span class="hero-badge-dot"></span>Live</div>
+    <h1 class="hero-heading">Production <span class="hero-accent">Issue</span></h1>
+    <p class="hero-sub">Issue materials to released production orders</p>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <span class="hero-stat-value">{{ filteredOrders.length }}</span>
+        <span class="hero-stat-label">Open Orders</span>
+      </div>
+      <div class="hero-stat-sep"></div>
+      <div class="hero-stat">
+        <span class="hero-stat-value">USMF</span>
+        <span class="hero-stat-label">Company</span>
+      </div>
+    </div>
+  </div>
 
   @if (isLoading) {
     <div class="orders-list">
@@ -50,9 +65,11 @@
             <div class="card-body">
               <div class="card-top">
                 <span class="order-number">{{ order.ProductionOrderNumber }}</span>
-                <span class="status-pill" [style.color]="getStatusColor(order.ProductionOrderStatus)" [style.background]="getStatusBg(order.ProductionOrderStatus)">
-                  {{ order.ProductionOrderStatus || 'Open' }}
-                </span>
+                <ds-pill
+                  [label]="order.ProductionOrderStatus || 'Open'"
+                  [color]="getStatusColor(order.ProductionOrderStatus)"
+                  [bg]="getStatusBg(order.ProductionOrderStatus)">
+                </ds-pill>
               </div>
               <div class="card-item">
                 <ion-icon name="cube-outline"></ion-icon>
@@ -88,13 +105,11 @@
   }
 
   @if (!isLoading && !isSearching && filteredOrders.length === 0) {
-    <div class="empty-state">
-      <div class="empty-icon-wrap">
-        <ion-icon name="construct-outline"></ion-icon>
-      </div>
-      <h3>No Open Production Orders</h3>
-      <p>{{ searchTerm ? 'No results for "' + searchTerm + '"' : 'No released production orders awaiting material issue' }}</p>
-    </div>
+    <ds-empty-state
+      icon="construct-outline"
+      title="No Open Production Orders"
+      [message]="searchTerm ? 'No results for &quot;' + searchTerm + '&quot;' : 'No released production orders awaiting material issue'">
+    </ds-empty-state>
   }
 
   <ion-infinite-scroll (ionInfinite)="loadMore($event)" [disabled]="!hasMore">

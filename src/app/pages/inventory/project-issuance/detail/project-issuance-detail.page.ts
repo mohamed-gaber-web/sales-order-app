@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ToastController } from '@ionic/angular';
+import { ActionSheetController, ToastController } from '@ionic/angular';
 import { ProjectIssuanceService, ItemRequirement } from '../../../../core/services/project-issuance.service';
 
 @Component({
@@ -21,11 +21,25 @@ export class ProjectIssuanceDetailPage implements OnInit {
   searchTerm = '';
   isLoading = false;
   showAll = false;
+  activeTab = 'requirements';
+
+  get openCount(): number {
+    return this.requirements.filter(r => (r.LineStatus ?? '').toLowerCase() === 'open').length;
+  }
+
+  get partialCount(): number {
+    return this.requirements.filter(r => (r.LineStatus ?? '').toLowerCase() === 'partial').length;
+  }
+
+  get closedCount(): number {
+    return this.requirements.filter(r => (r.LineStatus ?? '').toLowerCase() === 'closed').length;
+  }
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private toastCtrl: ToastController,
+    private actionSheetCtrl: ActionSheetController,
     private service: ProjectIssuanceService,
   ) {}
 
@@ -71,14 +85,47 @@ export class ProjectIssuanceDetailPage implements OnInit {
     this.filteredRequirements = base;
   }
 
-  onSearchChange() { this.applyFilter(); }
+  onSearchChange(term: string) {
+    this.searchTerm = term;
+    this.applyFilter();
+  }
 
   toggleShowAll() {
     this.showAll = !this.showAll;
     this.applyFilter();
   }
 
-  openLine(req: ItemRequirement) {
+  async openRequirementAction(req: ItemRequirement) {
+    const sheet = await this.actionSheetCtrl.create({
+      header: `${req.ItemNumber}${req.ProductName ? ' · ' + req.ProductName : ''}`,
+      subHeader: `${req.RemainingQuantity} remaining of ${req.RequiredQuantity}`,
+      buttons: [
+        {
+          text: 'Post Picking List',
+          icon: 'document-text-outline',
+          handler: () => this.navigateToLine(req, false),
+        },
+        {
+          text: 'Post Picking List + Packing Slip',
+          icon: 'cube-outline',
+          handler: () => this.navigateToLine(req, true),
+        },
+        {
+          text: 'View / Edit Details',
+          icon: 'eye-outline',
+          handler: () => this.navigateToLine(req, false),
+        },
+        {
+          text: 'Cancel',
+          icon: 'close-outline',
+          role: 'cancel',
+        },
+      ],
+    });
+    await sheet.present();
+  }
+
+  private navigateToLine(req: ItemRequirement, postPackingSlip: boolean) {
     this.router.navigate(
       ['/inventory/project-issuance/line', this.projectId, req.LineNumber],
       {
@@ -93,6 +140,7 @@ export class ProjectIssuanceDetailPage implements OnInit {
           remainingQuantity: req.RemainingQuantity,
           lineStatus: req.LineStatus,
           requestedReceiptDate: req.RequestedReceiptDate,
+          postPackingSlip,
         }
       }
     );
@@ -105,9 +153,18 @@ export class ProjectIssuanceDetailPage implements OnInit {
     );
   }
 
+  goBack() {
+    this.router.navigate(['/inventory/project-issuance']);
+  }
+
   doRefresh(event: CustomEvent) {
     this.loadRequirements();
     setTimeout(() => (event.target as HTMLIonRefresherElement).complete(), 1000);
+  }
+
+  getRemainingPct(req: ItemRequirement): number {
+    if (!req.RequiredQuantity) return 0;
+    return Math.round((req.RemainingQuantity / req.RequiredQuantity) * 100);
   }
 
   getStatusColor(status?: string): string {
@@ -126,10 +183,5 @@ export class ProjectIssuanceDetailPage implements OnInit {
       case 'closed':  return 'rgba(107,114,128,.12)';
       default:        return 'rgba(37,99,235,.12)';
     }
-  }
-
-  getRemainingPct(req: ItemRequirement): number {
-    if (!req.RequiredQuantity) return 0;
-    return Math.round((req.RemainingQuantity / req.RequiredQuantity) * 100);
   }
 }

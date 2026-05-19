@@ -23,6 +23,7 @@ export class TransferOrderListPage {
   isLoadingMore = false;
   isSearching = false;
   totalCount = 0;
+  company = 'usmf';
   private allDataLoaded = false;
 
   private searchSubject = new Subject<string>();
@@ -129,6 +130,11 @@ export class TransferOrderListPage {
         await toast.present();
       }
     });
+  }
+
+  onQueryChange(term: string) {
+    this.searchTerm = term;
+    this.searchSubject.next(term);
   }
 
   onSearchChange() {
@@ -238,6 +244,24 @@ export class TransferOrderListPage {
       case 'Shipped':  return 'var(--ion-color-warning)';
       case 'Received': return 'var(--ion-color-success)';
       default:         return 'var(--ion-color-medium)';
+    }
+  }
+
+  getStatusPillColor(status?: string): string {
+    switch (status) {
+      case 'Created':  return '#1e3a5f';
+      case 'Shipped':  return '#92400e';
+      case 'Received': return '#065f46';
+      default:         return '#6b7280';
+    }
+  }
+
+  getStatusPillBg(status?: string): string {
+    switch (status) {
+      case 'Created':  return 'rgba(0,37,89,.10)';
+      case 'Shipped':  return 'rgba(217,119,6,.12)';
+      case 'Received': return 'rgba(16,185,129,.12)';
+      default:         return 'rgba(107,114,128,.10)';
     }
   }
 }

@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 import { RouterModule, Routes } from '@angular/router';
 import { SalesOrderListPage } from './sales-order-list.page';
+import { DesignSystemModule } from '../../../shared/design-system/design-system.module';
 
 const routes: Routes = [
   {
@@ -17,7 +18,8 @@ const routes: Routes = [
     CommonModule,
     FormsModule,
     IonicModule,
-    RouterModule.forChild(routes)
+    RouterModule.forChild(routes),
+    DesignSystemModule
   ],
   declarations: [SalesOrderListPage]
 })

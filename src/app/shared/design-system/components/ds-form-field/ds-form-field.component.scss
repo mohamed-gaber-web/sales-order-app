@@ -1,0 +1,52 @@
+:host { display: block; }
+
+.ds-form-field {
+  margin-bottom: var(--ds-space-4);
+}
+
+.ds-field-label {
+  font-size: var(--ds-text-base);
+  font-weight: var(--ds-weight-semibold);
+  color: var(--ds-txt-1);
+  margin: 0 0 var(--ds-space-2) var(--ds-space-1);
+}
+
+.ds-required {
+  color: var(--ds-danger);
+  margin-inline-start: 2px;
+}
+
+.ds-optional {
+  font-size: var(--ds-text-sm);
+  font-weight: var(--ds-weight-regular);
+  color: var(--ds-txt-3);
+  margin-inline-start: var(--ds-space-1);
+}
+
+.ds-field-control {
+  ion-item {
+    --border-radius: var(--ds-radius-md);
+    --background: var(--ds-bg-1);
+    --padding-start: var(--ds-space-3);
+    box-shadow: var(--ds-shadow-sm);
+
+    &::part(native) {
+      border-radius: var(--ds-radius-md);
+    }
+  }
+}
+
+.ds-field-error {
+  font-size: var(--ds-text-sm);
+  color: var(--ds-danger);
+  margin: var(--ds-space-1) 0 0 var(--ds-space-1);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ds-field-hint {
+  font-size: var(--ds-text-sm);
+  color: var(--ds-txt-3);
+  margin: var(--ds-space-1) 0 0 var(--ds-space-1);
+}

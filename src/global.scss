@@ -36,7 +36,10 @@
 @import "@ionic/angular/css/palettes/dark.class.css";
 /* @import "@ionic/angular/css/palettes/dark.system.css"; */
 
-// ─── Modern Global Styles ────────────────────────────────────────────
+// DS global Ionic overrides — MUST come after Ionic palette imports
+@import "./app/shared/design-system/global-overrides";
+
+// ─── App-level globals (non-Ionic, not in DS) ────────────────────────────────
 
 * {
   -webkit-font-smoothing: antialiased;
@@ -44,194 +47,17 @@
 }
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--ds-font-sans);
   letter-spacing: -0.01em;
 }
 
-// Push content above the bottom tab bar on mobile and tablet
-ion-content {
-  --padding-bottom: calc(60px + env(safe-area-inset-bottom));
-
-  @media (min-width: 1280px) {
-    --padding-bottom: env(safe-area-inset-bottom);
-  }
-}
-
-// ── Keyframes ────────────────────────────────────────────────
-@keyframes fadeSlideUp {
-  from { opacity: 0; transform: translateY(10px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-// Progress bar reveal (GPU-composited, works with dynamic widths)
+// ── Keyframes (used by pages) ─────────────────────────────────
 @keyframes gp-progress-reveal {
   from { clip-path: inset(0 100% 0 0 round 4px); }
   to   { clip-path: inset(0 0% 0 0 round 4px); }
 }
 
-// Empty state icon gentle float
 @keyframes gp-float {
   0%, 100% { transform: translateY(0); }
   50%       { transform: translateY(-7px); }
-}
-
-// Better scrollbar for web
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.15);
-  border-radius: 3px;
-
-  &:hover {
-    background: rgba(0, 0, 0, 0.25);
-  }
-}
-
-// ── Page Header System ───────────────────────────────────────
-ion-header {
-  &::after { display: none !important; }
-}
-
-ion-toolbar {
-  --background: var(--gp-toolbar-bg);
-  --color: var(--gp-toolbar-color);
-  --border-color: transparent;
-  --padding-start: 4px;
-  --padding-end: 4px;
-
-  &::part(native) {
-    border-bottom: 1px solid var(--gp-toolbar-border, rgba(255, 255, 255, 0.1));
-  }
-
-  ion-title {
-    font-weight: 700;
-    font-size: 18px;
-    letter-spacing: -0.03em;
-    color: var(--gp-toolbar-color);
-  }
-
-  // Left-aligned title — transforms the header from generic Ionic to intentional
-  ion-title::part(native) {
-    text-align: left;
-    padding-inline-start: 2px;
-    padding-inline-end: 56px;
-  }
-
-  ion-back-button,
-  ion-menu-button {
-    --color: var(--gp-toolbar-color);
-  }
-
-  ion-button {
-    --color: var(--gp-toolbar-color);
-  }
-}
-
-// Back button: chevron only, no text label
-ion-back-button::part(text) {
-  display: none;
-}
-
-// ── Searchbar in navy toolbar ─────────────────────────────────
-// Applies globally to all pages — individual pages may override
-.custom-searchbar,
-.list-searchbar {
-  --background: rgba(255, 255, 255, 0.12);
-  --border-radius: 12px;
-  --box-shadow: none;
-  --placeholder-color: rgba(255, 255, 255, 0.48);
-  --icon-color: rgba(255, 255, 255, 0.55);
-  --color: #fff;
-  --clear-button-color: rgba(255, 255, 255, 0.65);
-  --highlight-color-focused: transparent;
-  padding: 0 8px;
-  font-size: 14px;
-
-  // Orange focus ring — the single branded affordance signal
-  &.searchbar-has-focus {
-    --background: rgba(255, 255, 255, 0.19);
-    --box-shadow: 0 0 0 1.5px rgba(242, 76, 26, 0.85),
-                  0 4px 20px rgba(0, 0, 0, 0.2);
-    --icon-color: rgba(255, 255, 255, 0.9);
-    --placeholder-color: rgba(255, 255, 255, 0.65);
-  }
-}
-
-// ── Button active feedback ───────────────────────────────────
-ion-button::part(native) {
-  transition: transform 100ms var(--ease-out-expo, cubic-bezier(0.16, 1, 0.3, 1));
-}
-ion-button.ion-activated::part(native) {
-  transform: scale(0.96);
-}
-
-// ── Modern ion-card global override ─────────────────────────
-ion-card {
-  --background: var(--gp-card-bg);
-  border-radius: var(--gp-radius-lg) !important;
-  box-shadow: var(--gp-shadow-md) !important;
-  margin: 0;
-  transition: transform var(--gp-transition), box-shadow var(--gp-transition);
-}
-
-// Desktop-only hover effects
-@media (hover: hover) and (pointer: fine) {
-  ion-card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--gp-shadow-lg) !important;
-  }
-}
-
-// Wider content area on large screens
-@media (min-width: 768px) {
-  .orders-list {
-    max-width: 720px;
-    margin-left: auto !important;
-    margin-right: auto !important;
-  }
-}
-
-@media (min-width: 1200px) {
-  .orders-list {
-    max-width: 860px;
-  }
-}
-
-// Modern badge styles
-ion-badge {
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  border-radius: 999px;
-  padding: 4px 12px;
-}
-
-// Modern button base
-ion-button {
-  --border-radius: var(--gp-radius-md);
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  text-transform: none;
-}
-
-// ── Page transitions ─────────────────────────────────────────
-ion-router-outlet > * {
-  animation: fadeSlideUp 0.28s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-// ── Reduced motion ───────────────────────────────────────────
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
 }

@@ -4,6 +4,7 @@ import { ToastController } from '@ionic/angular';
 import { filter, takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 import { ThemeService } from './core';
+import { UserAuthService } from './core/services/user-auth.service';
 
 @Component({
   selector: 'app-root',
@@ -99,7 +100,14 @@ export class AppComponent implements OnInit, OnDestroy {
     private themeService: ThemeService,
     private router: Router,
     private toastCtrl: ToastController,
+    private userAuth: UserAuthService,
   ) {}
+
+  isAuthPage(): boolean { return this.currentUrl.startsWith('/auth'); }
+
+  logout(): void { this.userAuth.signOut(); }
+
+  get loggedInUser() { return this.userAuth.getUser(); }
 
   isTab(path: string): boolean {
     return this.currentUrl.startsWith(path);

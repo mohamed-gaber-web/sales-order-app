@@ -10,27 +10,57 @@
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
-  <ion-toolbar>
-    <ion-searchbar
-      [(ngModel)]="searchTerm"
-      (ionInput)="onSearchChange()"
+  <ion-toolbar class="search-toolbar">
+    <ds-search
       placeholder="Search project ID, name or customer..."
-      debounce="300"
-      animated="true"
-      class="custom-searchbar">
-    </ion-searchbar>
+      [debounceMs]="300"
+      (query)="onQueryChange($event)">
+    </ds-search>
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="orders-content">
+<ion-content>
   <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
+  <!-- Hero Banner -->
+  <div class="hero-banner">
+    <div class="hero-badge">
+      <span class="hero-badge-dot"></span>
+      Live
+    </div>
+    <h1 class="hero-heading">Project <span class="hero-accent">Issuance</span></h1>
+    <p class="hero-sub">Issue items to open projects from your warehouse</p>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <span class="hero-stat-value">{{ totalCount }}</span>
+        <span class="hero-stat-label">Open Projects</span>
+      </div>
+      <div class="hero-stat-sep"></div>
+      <div class="hero-stat">
+        <span class="hero-stat-value">{{ company | uppercase }}</span>
+        <span class="hero-stat-label">Company</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter chips -->
+  <div class="chip-row">
+    @for (chip of filterChips; track chip.id) {
+      <ion-chip
+        [class.chip-active]="activeFilter === chip.id"
+        (click)="setFilter(chip.id)">
+        <ion-icon [name]="chip.icon"></ion-icon>
+        <ion-label>{{ chip.label }}</ion-label>
+      </ion-chip>
+    }
+  </div>
+
   <!-- Loading skeletons -->
   @if (isLoading) {
     <div class="orders-list">
-      @for (i of [1,2,3,4,5]; track i) {
+      @for (i of [1,2,3,4]; track i) {
         <ion-card class="order-card skeleton-card">
           <ion-card-content>
             <ion-skeleton-text animated style="width: 40%; height: 16px; border-radius: 6px"></ion-skeleton-text>
@@ -43,20 +73,20 @@
   }
 
   <!-- Project cards -->
-  @if (!isLoading && filteredProjects.length > 0) {
+  @if (!isLoading && displayedProjects.length > 0) {
     <div class="orders-list">
-      @for (project of filteredProjects; track project.ProjectID) {
+      @for (project of displayedProjects; track project.ProjectID) {
         <ion-card class="order-card" button (click)="openProject(project)">
           <div class="card-layout">
             <div class="status-strip" [style.background]="getStageColor(project.ProjectStage)"></div>
             <div class="card-body">
               <div class="card-top">
-                <span class="order-number">{{ project.ProjectID }}</span>
-                <span class="status-pill"
-                  [style.color]="getStageColor(project.ProjectStage)"
-                  [style.background]="getStageBg(project.ProjectStage)">
-                  {{ getStageLabel(project.ProjectStage) }}
-                </span>
+                <span class="order-number ds-mono">{{ project.ProjectID }}</span>
+                <ds-pill
+                  [label]="getStageLabel(project.ProjectStage)"
+                  [color]="getStageColor(project.ProjectStage)"
+                  [bg]="getStageBg(project.ProjectStage)">
+                </ds-pill>
               </div>
               <div class="card-item">
                 <ion-icon name="folder-open-outline"></ion-icon>
@@ -93,18 +123,23 @@
   }
 
   <!-- Empty state -->
-  @if (!isLoading && !isSearching && filteredProjects.length === 0) {
-    <div class="empty-state">
-      <div class="empty-icon-wrap">
-        <ion-icon name="folder-open-outline"></ion-icon>
-      </div>
-      <h3>No Open Projects</h3>
-      <p>{{ searchTerm ? 'No results for "' + searchTerm + '"' : 'No in-process projects found for your company' }}</p>
-    </div>
+  @if (!isLoading && !isSearching && displayedProjects.length === 0) {
+    <ds-empty-state
+      icon="folder-open-outline"
+      title="No Projects Found"
+      [message]="searchTerm ? 'No results for &quot;' + searchTerm + '&quot;' : 'No projects match the current filter'">
+    </ds-empty-state>
   }
 
-  <ion-infinite-scroll (ionInfinite)="loadMore($event)" [disabled]="!hasMore">
+  <ion-infinite-scroll (ionInfinite)="loadMore($event)" [disabled]="!canLoadMore">
     <ion-infinite-scroll-content loadingSpinner="crescent" loadingText="Loading more...">
     </ion-infinite-scroll-content>
   </ion-infinite-scroll>
+
+  <!-- FAB: Ad-hoc issuance (no project preselected) -->
+  <ion-fab slot="fixed" vertical="bottom" horizontal="end">
+    <ion-fab-button (click)="goAdhoc()">
+      <ion-icon name="add-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
 </ion-content>

@@ -137,21 +137,17 @@
         <p>Select the lines you want to return, enter the quantity and reason for each. Only lines with a quantity and reason code will be included in the return.</p>
       </div>
 
-      <ion-button
-        expand="block"
-        class="action-btn"
-        (click)="submitReturn()"
-        [disabled]="!hasValidSelection || isSubmitting">
-        @if (isSubmitting) {
-          <ion-spinner name="crescent" slot="start"></ion-spinner>
-          Submitting Return...
-        } @else {
-          <ion-icon name="arrow-undo-outline" slot="start"></ion-icon>
-          Submit Return
-        }
-      </ion-button>
-
     </div>
   }
 
 </ion-content>
+
+<ion-footer class="ion-no-border">
+  <ds-cta-bar
+    label="Submit Return"
+    icon="arrow-undo-outline"
+    [loading]="isSubmitting"
+    [disabled]="!hasValidSelection"
+    (ctaClick)="submitReturn()">
+  </ds-cta-bar>
+</ion-footer>

@@ -23,6 +23,7 @@ export class SalesOrderListPage {
   isLoadingMore = false;
   isSearching = false;
   totalCount = 0;
+  company = 'usmf';
   private allDataLoaded = false;
 
   private searchSubject = new Subject<string>();
@@ -127,6 +128,11 @@ export class SalesOrderListPage {
         await toast.present();
       }
     });
+  }
+
+  onQueryChange(term: string) {
+    this.searchTerm = term;
+    this.searchSubject.next(term);
   }
 
   onSearchChange() {
@@ -246,6 +252,44 @@ export class SalesOrderListPage {
       case 'PickingList':  return 'warning';
       case 'None':         return 'medium';
       default:             return 'medium';
+    }
+  }
+
+  getStatusPillColor(status?: string): string {
+    switch (status) {
+      case 'Invoiced':   return '#065f46';
+      case 'Backorder':  return '#92400e';
+      case 'Delivered':  return '#4c1d95';
+      case 'Canceled':   return '#991b1b';
+      default:           return '#1e3a5f';
+    }
+  }
+
+  getStatusPillBg(status?: string): string {
+    switch (status) {
+      case 'Invoiced':   return 'rgba(16,185,129,.12)';
+      case 'Backorder':  return 'rgba(217,119,6,.12)';
+      case 'Delivered':  return 'rgba(109,40,217,.12)';
+      case 'Canceled':   return 'rgba(220,38,38,.12)';
+      default:           return 'rgba(0,37,89,.10)';
+    }
+  }
+
+  getReleaseStatusPillColor(status?: string): string {
+    switch (status) {
+      case 'Invoice':      return '#065f46';
+      case 'PackingSlip':  return '#4c1d95';
+      case 'PickingList':  return '#92400e';
+      default:             return '#6b7280';
+    }
+  }
+
+  getReleaseStatusPillBg(status?: string): string {
+    switch (status) {
+      case 'Invoice':      return 'rgba(16,185,129,.12)';
+      case 'PackingSlip':  return 'rgba(109,40,217,.12)';
+      case 'PickingList':  return 'rgba(217,119,6,.12)';
+      default:             return 'rgba(107,114,128,.10)';
     }
   }
 }

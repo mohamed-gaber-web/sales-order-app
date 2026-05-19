@@ -4,11 +4,12 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 import { RouterModule, Routes } from '@angular/router';
 import { ProjectIssuanceLineDetailPage } from './project-issuance-line-detail.page';
+import { DesignSystemModule } from '../../../../shared/design-system/design-system.module';
 
 const routes: Routes = [{ path: '', component: ProjectIssuanceLineDetailPage }];
 
 @NgModule({
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, IonicModule, RouterModule.forChild(routes)],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, IonicModule, RouterModule.forChild(routes), DesignSystemModule],
   declarations: [ProjectIssuanceLineDetailPage]
 })
 export class ProjectIssuanceLineDetailModule {}

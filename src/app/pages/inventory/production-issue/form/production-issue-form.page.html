@@ -23,104 +23,69 @@
         }
       </div>
       @if (orderedQuantity != null) {
-        <div class="banner-qty">
-          <p class="banner-label">Ordered</p>
-          <p class="banner-value">{{ orderedQuantity }}</p>
-        </div>
+        <ds-stat label="Ordered" [value]="orderedQuantity"></ds-stat>
       }
     </div>
 
     @if (status) {
       <div class="status-row">
         <span class="status-label">Status</span>
-        <span class="status-value">{{ status }}</span>
+        <ds-pill [label]="status" [color]="getStatusColor(status)" [bg]="getStatusBg(status)"></ds-pill>
       </div>
     }
 
     <!-- Item Number -->
-    <div class="form-section">
-      <p class="form-label">Item Number *</p>
+    <ds-form-field label="Item Number" [required]="true"
+      [showError]="(form.get('itemNumber')?.invalid && form.get('itemNumber')?.touched) ?? false"
+      errorMessage="Item number is required.">
       <ion-item lines="none" class="input-item">
         <ion-icon name="cube-outline" slot="start" color="medium"></ion-icon>
-        <ion-input
-          formControlName="itemNumber"
-          placeholder="Scan or enter item number"
-          inputmode="text"
-          clearInput="true">
-        </ion-input>
+        <ion-input formControlName="itemNumber" placeholder="Scan or enter item number" inputmode="text" clearInput="true"></ion-input>
       </ion-item>
-      @if (form.get('itemNumber')?.invalid && form.get('itemNumber')?.touched) {
-        <p class="field-error">Item number is required.</p>
-      }
-    </div>
+    </ds-form-field>
 
     <!-- Issue Quantity -->
-    <div class="form-section">
-      <p class="form-label">Issue Quantity *</p>
+    <ds-form-field label="Issue Quantity" [required]="true"
+      [showError]="(form.get('issueQty')?.invalid && form.get('issueQty')?.touched) ?? false"
+      errorMessage="Enter a quantity greater than 0.">
       <ion-item lines="none" class="input-item">
         <ion-icon name="layers-outline" slot="start" color="medium"></ion-icon>
-        <ion-input
-          formControlName="issueQty"
-          type="number"
-          inputmode="decimal"
-          placeholder="0.00"
-          min="0.001">
-        </ion-input>
+        <ion-input formControlName="issueQty" type="number" inputmode="decimal" placeholder="0.00" min="0.001"></ion-input>
       </ion-item>
-      @if (form.get('issueQty')?.invalid && form.get('issueQty')?.touched) {
-        <p class="field-error">Enter a quantity greater than 0.</p>
-      }
-    </div>
+    </ds-form-field>
 
     <!-- Warehouse -->
-    <div class="form-section">
-      <p class="form-label">Warehouse *</p>
+    <ds-form-field label="Warehouse" [required]="true"
+      [showError]="(form.get('warehouseId')?.invalid && form.get('warehouseId')?.touched) ?? false"
+      errorMessage="Warehouse is required.">
       <ion-item lines="none" class="input-item">
         <ion-icon name="business-outline" slot="start" color="medium"></ion-icon>
-        <ion-input
-          formControlName="warehouseId"
-          placeholder="e.g. 11"
-          inputmode="text"
-          clearInput="true">
-        </ion-input>
+        <ion-input formControlName="warehouseId" placeholder="e.g. 11" inputmode="text" clearInput="true"></ion-input>
       </ion-item>
-      @if (form.get('warehouseId')?.invalid && form.get('warehouseId')?.touched) {
-        <p class="field-error">Warehouse is required.</p>
-      }
-    </div>
+    </ds-form-field>
 
     <!-- Batch ID (optional) -->
-    <div class="form-section">
-      <p class="form-label">Batch ID <span class="optional-tag">Optional</span></p>
+    <ds-form-field label="Batch ID" [optional]="true">
       <ion-item lines="none" class="input-item">
         <ion-icon name="barcode-outline" slot="start" color="medium"></ion-icon>
-        <ion-input
-          formControlName="batchId"
-          placeholder="Scan or enter batch number"
-          inputmode="text"
-          clearInput="true">
-        </ion-input>
+        <ion-input formControlName="batchId" placeholder="Scan or enter batch number" inputmode="text" clearInput="true"></ion-input>
       </ion-item>
-    </div>
+    </ds-form-field>
 
     <div class="info-box">
       <ion-icon name="information-circle-outline" color="primary"></ion-icon>
-      <p>Materials will be deducted from the selected warehouse and posted against production order {{ orderNumber }}. Verify quantities before submitting.</p>
+      <p>Materials will be deducted from the selected warehouse and posted against production order <strong>{{ orderNumber }}</strong>. Verify quantities before submitting.</p>
     </div>
-
-    <ion-button
-      expand="block"
-      class="action-btn"
-      (click)="submitIssue()"
-      [disabled]="form.invalid || isSubmitting">
-      @if (isSubmitting) {
-        <ion-spinner name="crescent" slot="start"></ion-spinner>
-        Posting Issue...
-      } @else {
-        <ion-icon name="checkmark-outline" slot="start"></ion-icon>
-        Post Issue
-      }
-    </ion-button>
 
   </div>
 </ion-content>
+
+<ion-footer class="ion-no-border">
+  <ds-cta-bar
+    label="Post Issue"
+    icon="checkmark-circle-outline"
+    [loading]="isSubmitting"
+    [disabled]="form.invalid"
+    (ctaClick)="submitIssue()">
+  </ds-cta-bar>
+</ion-footer>

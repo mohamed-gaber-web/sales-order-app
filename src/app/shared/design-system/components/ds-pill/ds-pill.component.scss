@@ -1,0 +1,32 @@
+:host { display: inline-flex; }
+
+.ds-pill {
+  display: inline-flex;
+  align-items: center;
+  font-size: var(--ds-text-sm);
+  font-weight: var(--ds-weight-semibold);
+  padding: 2px 9px;
+  border-radius: var(--ds-radius-pill);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  flex-shrink: 0;
+
+  &--tag {
+    font-size: var(--ds-text-xs);
+    font-weight: var(--ds-weight-bold);
+    letter-spacing: 0.05em;
+    padding: 2px 7px;
+    text-transform: uppercase;
+  }
+
+  &--count {
+    font-size: var(--ds-text-xs);
+    font-weight: var(--ds-weight-bold);
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}

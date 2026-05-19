@@ -1,0 +1,51 @@
+:host { display: block; }
+
+.ds-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ds-space-3);
+  background: var(--ds-bg-1);
+  border-radius: var(--ds-radius-md);
+  padding: var(--ds-space-4) var(--ds-space-5);
+  box-shadow: var(--ds-shadow-sm);
+}
+
+.ds-toggle-label-wrap {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-3);
+  flex: 1;
+}
+
+.ds-toggle-icon {
+  font-size: 20px;
+  color: var(--ds-accent);
+  flex-shrink: 0;
+}
+
+.ds-toggle-text {
+  min-width: 0;
+}
+
+.ds-toggle-title {
+  font-size: var(--ds-text-md);
+  font-weight: var(--ds-weight-semibold);
+  color: var(--ds-txt-0);
+  margin: 0 0 2px;
+}
+
+.ds-toggle-sub {
+  font-size: var(--ds-text-sm);
+  color: var(--ds-txt-2);
+  margin: 0;
+  line-height: var(--ds-lh-snug);
+}
+
+ion-toggle {
+  --background: var(--ds-bg-3);
+  --background-checked: var(--ds-accent);
+  --handle-background: var(--ds-txt-2);
+  --handle-background-checked: #ffffff;
+  flex-shrink: 0;
+}
