@@ -1,0 +1,232 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button [defaultHref]="'/inventory/project-issuance/detail/' + projectId" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Ad-hoc Issuance</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="page-content">
+  <div class="page-body" [formGroup]="form">
+
+    <!-- Project banner -->
+    <div class="order-banner">
+      <div class="banner-icon-wrap">
+        <ion-icon name="folder-open-outline"></ion-icon>
+      </div>
+      <div class="banner-details">
+        <p class="banner-label">Ad-hoc Issuance</p>
+        <p class="banner-value">{{ projectId }}</p>
+        @if (projectName) {
+          <p class="banner-sub">{{ projectName }}</p>
+        }
+      </div>
+      <div class="banner-badge">
+        <span class="adhoc-badge">Ad-hoc</span>
+      </div>
+    </div>
+
+    <!-- Item Number -->
+    <div class="form-section">
+      <p class="form-label">Item Number *</p>
+      <ion-item lines="none" class="input-item">
+        <ion-icon name="cube-outline" slot="start" color="medium"></ion-icon>
+        <ion-input
+          formControlName="itemNumber"
+          placeholder="Scan or enter item number"
+          inputmode="text"
+          clearInput="true">
+        </ion-input>
+        <ion-button slot="end" fill="clear" size="small">
+          <ion-icon name="scan-outline"></ion-icon>
+        </ion-button>
+      </ion-item>
+      @if (form.get('itemNumber')?.invalid && form.get('itemNumber')?.touched) {
+        <p class="field-error">Item number is required.</p>
+      }
+    </div>
+
+    <!-- Quantity + Unit row -->
+    <div class="two-col">
+      <div class="form-section flex-1">
+        <p class="form-label">Quantity *</p>
+        <ion-item lines="none" class="input-item">
+          <ion-icon name="layers-outline" slot="start" color="medium"></ion-icon>
+          <ion-input
+            formControlName="quantity"
+            type="number"
+            inputmode="decimal"
+            placeholder="0.00"
+            min="0.001">
+          </ion-input>
+        </ion-item>
+        @if (form.get('quantity')?.invalid && form.get('quantity')?.touched) {
+          <p class="field-error">Enter a valid quantity.</p>
+        }
+      </div>
+      <div class="form-section w-100">
+        <p class="form-label">Unit *</p>
+        <ion-item lines="none" class="input-item">
+          <ion-input
+            formControlName="unit"
+            placeholder="EA"
+            inputmode="text"
+            clearInput="true">
+          </ion-input>
+        </ion-item>
+      </div>
+    </div>
+
+    <!-- Dimensions section -->
+    <p class="section-divider">Inventory Dimensions</p>
+
+    <!-- Site -->
+    <div class="form-section">
+      <p class="form-label">Site *</p>
+      <ion-item lines="none" class="input-item">
+        <ion-icon name="map-outline" slot="start" color="medium"></ion-icon>
+        <ion-input
+          formControlName="site"
+          placeholder="e.g. S1"
+          inputmode="text"
+          clearInput="true">
+        </ion-input>
+      </ion-item>
+      @if (form.get('site')?.invalid && form.get('site')?.touched) {
+        <p class="field-error">Site is required.</p>
+      }
+    </div>
+
+    <!-- Warehouse -->
+    <div class="form-section">
+      <p class="form-label">Warehouse *</p>
+      <ion-item lines="none" class="input-item">
+        <ion-icon name="business-outline" slot="start" color="medium"></ion-icon>
+        <ion-input
+          formControlName="warehouse"
+          placeholder="e.g. W1"
+          inputmode="text"
+          clearInput="true">
+        </ion-input>
+      </ion-item>
+      @if (form.get('warehouse')?.invalid && form.get('warehouse')?.touched) {
+        <p class="field-error">Warehouse is required.</p>
+      }
+    </div>
+
+    <!-- Location -->
+    <div class="form-section">
+      <p class="form-label">Location <span class="optional-tag">Optional</span></p>
+      <ion-item lines="none" class="input-item">
+        <ion-icon name="location-outline" slot="start" color="medium"></ion-icon>
+        <ion-input
+          formControlName="location"
+          placeholder="e.g. A-01-01"
+          inputmode="text"
+          clearInput="true">
+        </ion-input>
+      </ion-item>
+    </div>
+
+    <!-- Batch -->
+    <div class="form-section">
+      <p class="form-label">Batch Number <span class="optional-tag">Optional</span></p>
+      <ion-item lines="none" class="input-item">
+        <ion-icon name="barcode-outline" slot="start" color="medium"></ion-icon>
+        <ion-input
+          formControlName="batchNumber"
+          placeholder="Scan or enter batch"
+          inputmode="text"
+          clearInput="true">
+        </ion-input>
+      </ion-item>
+    </div>
+
+    <!-- Serial -->
+    <div class="form-section">
+      <p class="form-label">Serial Number <span class="optional-tag">Optional</span></p>
+      <ion-item lines="none" class="input-item">
+        <ion-icon name="key-outline" slot="start" color="medium"></ion-icon>
+        <ion-input
+          formControlName="serialNumber"
+          placeholder="Scan or enter serial"
+          inputmode="text"
+          clearInput="true">
+        </ion-input>
+      </ion-item>
+    </div>
+
+    <!-- Project Dimensions section -->
+    <p class="section-divider">Project Dimensions</p>
+
+    <!-- Line Property -->
+    <div class="form-section">
+      <p class="form-label">Line Property *</p>
+      <ion-item lines="none" class="input-item">
+        <ion-icon name="flag-outline" slot="start" color="medium"></ion-icon>
+        <ion-select
+          formControlName="linePropertyId"
+          placeholder="Select line property"
+          interface="action-sheet">
+          @for (prop of lineProperties; track prop) {
+            <ion-select-option [value]="prop">{{ prop }}</ion-select-option>
+          }
+        </ion-select>
+      </ion-item>
+      @if (form.get('linePropertyId')?.invalid && form.get('linePropertyId')?.touched) {
+        <p class="field-error">Line property is required.</p>
+      }
+    </div>
+
+    <!-- Category -->
+    <div class="form-section">
+      <p class="form-label">Category <span class="optional-tag">Optional</span></p>
+      <ion-item lines="none" class="input-item">
+        <ion-icon name="pricetag-outline" slot="start" color="medium"></ion-icon>
+        <ion-input
+          formControlName="categoryId"
+          placeholder="e.g. MATERIAL"
+          inputmode="text"
+          clearInput="true">
+        </ion-input>
+      </ion-item>
+    </div>
+
+    <!-- Activity -->
+    <div class="form-section">
+      <p class="form-label">Activity Number <span class="optional-tag">Optional</span></p>
+      <ion-item lines="none" class="input-item">
+        <ion-icon name="git-branch-outline" slot="start" color="medium"></ion-icon>
+        <ion-input
+          formControlName="activityNumber"
+          placeholder="e.g. ACT-001"
+          inputmode="text"
+          clearInput="true">
+        </ion-input>
+      </ion-item>
+    </div>
+
+    <!-- Info box -->
+    <div class="info-box">
+      <ion-icon name="information-circle-outline" color="primary"></ion-icon>
+      <p>A Project Item Journal will be created and posted for project <strong>{{ projectId }}</strong>. This records unplanned consumption with no prior item requirement. Verify all fields before posting.</p>
+    </div>
+
+    <!-- Submit button -->
+    <ion-button
+      expand="block"
+      class="action-btn"
+      (click)="submitIssuance()"
+      [disabled]="!canPost">
+      @if (isSubmitting) {
+        <ion-spinner name="crescent" slot="start"></ion-spinner>
+        Posting Issuance...
+      } @else {
+        <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+        Post Item Issuance
+      }
+    </ion-button>
+
+  </div>
+</ion-content>

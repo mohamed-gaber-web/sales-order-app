@@ -1,6 +1,9 @@
 // Ionic Variables and Theming. For more info, please see:
 // http://ionicframework.com/docs/theming/
 
+// DS tokens — must be first so Ionic vars can reference them
+@import '../app/shared/design-system/tokens';
+
 /** Ionic CSS Variables **/
 :root {
   // Font

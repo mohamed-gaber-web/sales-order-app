@@ -1,0 +1,223 @@
+.page-content {
+  --background: var(--ion-background-color);
+}
+
+.page-body {
+  padding: 16px 16px 80px;
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.order-banner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  background: var(--ion-card-background);
+  border-radius: 14px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.08);
+  margin-bottom: 14px;
+
+  .banner-icon-wrap {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: rgba(0,37,89,.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    ion-icon { font-size: 22px; color: var(--ion-color-primary); }
+  }
+
+  .banner-details {
+    flex: 1;
+    min-width: 0;
+
+    .banner-label {
+      font-size: 11px;
+      color: var(--ion-text-color);
+      opacity: .5;
+      margin: 0;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+
+    .banner-value {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--ion-text-color);
+      margin: 2px 0 0;
+    }
+
+    .banner-sub {
+      font-size: 12px;
+      color: var(--ion-text-color);
+      opacity: .65;
+      margin: 2px 0 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  .banner-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+
+    .status-pill {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 9px;
+      border-radius: 20px;
+    }
+  }
+}
+
+.summary-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+
+  .summary-item {
+    background: var(--ion-card-background);
+    border-radius: 10px;
+    padding: 10px 14px;
+    flex: 1;
+    min-width: 100px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.06);
+
+    &.highlight {
+      border: 1.5px solid var(--ion-color-primary);
+    }
+
+    .s-label {
+      font-size: 10px;
+      color: var(--ion-text-color);
+      opacity: .5;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      margin: 0 0 3px;
+    }
+
+    .s-value {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--ion-text-color);
+      margin: 0;
+    }
+  }
+}
+
+.form-section {
+  margin-bottom: 14px;
+
+  .form-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ion-text-color);
+    margin: 0 0 6px 4px;
+    opacity: .8;
+  }
+
+  .optional-tag {
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--ion-text-color);
+    opacity: .45;
+    margin-left: 4px;
+  }
+
+  .input-item {
+    --border-radius: 10px;
+    --background: var(--ion-card-background);
+    --padding-start: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.06);
+  }
+
+  .max-note {
+    font-size: 12px;
+    opacity: .5;
+  }
+
+  .field-error {
+    font-size: 12px;
+    color: var(--ion-color-danger);
+    margin: 4px 0 0 4px;
+  }
+}
+
+.section-divider {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--ion-text-color);
+  opacity: .45;
+  margin: 20px 0 12px 4px;
+}
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--ion-card-background);
+  border-radius: 12px;
+  padding: 14px 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.06);
+  margin-bottom: 14px;
+
+  .toggle-label-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    ion-icon { font-size: 20px; flex-shrink: 0; }
+
+    .toggle-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--ion-text-color);
+      margin: 0 0 2px;
+    }
+
+    .toggle-sub {
+      font-size: 12px;
+      color: var(--ion-text-color);
+      opacity: .55;
+      margin: 0;
+    }
+  }
+}
+
+.info-box {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  background: rgba(0,37,89,.06);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 20px;
+
+  ion-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+
+  p {
+    font-size: 13px;
+    color: var(--ion-text-color);
+    opacity: .75;
+    margin: 0;
+    line-height: 1.5;
+  }
+}
+
+.action-btn {
+  --border-radius: 12px;
+  height: 52px;
+  font-size: 16px;
+  font-weight: 700;
+  margin-top: 4px;
+}

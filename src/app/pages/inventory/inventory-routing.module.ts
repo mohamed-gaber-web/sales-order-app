@@ -70,6 +70,10 @@ const routes: Routes = [
     path: 'ai-hub',
     loadChildren: () => import('./ai-hub/ai-hub.module').then(m => m.AiHubModule)
   },
+  {
+    path: 'project-issuance',
+    loadChildren: () => import('./project-issuance/project-issuance.module').then(m => m.ProjectIssuanceModule)
+  },
 ];
 
 @NgModule({

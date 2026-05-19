@@ -1,0 +1,224 @@
+// ─── DS Global Ionic Overrides ───────────────────────────────────────────────
+// Applies DS tokens to Ionic primitives app-wide.
+// Import AFTER Ionic palette files and _tokens.scss.
+// NO deep selectors — only Ionic CSS variables + ::part().
+
+// ── ion-toolbar / ion-header ────────────────────────────────
+ion-toolbar {
+  --background: var(--ds-navy);
+  --color: #ffffff;
+  --border-color: transparent;
+  --padding-start: var(--ds-space-1);
+  --padding-end:   var(--ds-space-1);
+
+  &::part(native) {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+  }
+
+  ion-title {
+    font-weight: var(--ds-weight-bold);
+    font-size: var(--ds-text-xl);
+    letter-spacing: -0.03em;
+    color: #ffffff;
+  }
+
+  ion-title::part(native) {
+    text-align: start;
+    padding-inline-start: 2px;
+    padding-inline-end: 56px;
+  }
+
+  ion-back-button,
+  ion-menu-button,
+  ion-button {
+    --color: #ffffff;
+  }
+}
+
+ion-header::after { display: none !important; } // remove hairline
+
+// ── ion-content ─────────────────────────────────────────────
+ion-content {
+  --background: var(--ds-bg-0);
+  --padding-bottom: calc(60px + env(safe-area-inset-bottom));
+
+  @media (min-width: 1280px) {
+    --padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+// ── ion-card ────────────────────────────────────────────────
+ion-card {
+  --background: var(--ds-bg-1);
+  border-radius: var(--ds-radius-lg) !important;
+  box-shadow: var(--ds-shadow-md) !important;
+  margin: 0;
+  transition: transform var(--ds-motion-base) var(--ds-ease-out),
+              box-shadow var(--ds-motion-base) var(--ds-ease-out);
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--ds-shadow-lg) !important;
+    }
+  }
+}
+
+// ── ion-item ────────────────────────────────────────────────
+ion-item {
+  --background: var(--ds-bg-1);
+  --color: var(--ds-txt-0);
+  --border-color: var(--ds-line);
+  --highlight-color-focused: var(--ds-accent);
+  --highlight-color-valid: var(--ds-success);
+  --highlight-color-invalid: var(--ds-danger);
+}
+
+// ── ion-input ───────────────────────────────────────────────
+ion-input {
+  --background: var(--ds-bg-1);
+  --color: var(--ds-txt-0);
+  --placeholder-color: var(--ds-txt-3);
+  --border-color: var(--ds-line);
+  --border-radius: var(--ds-radius-md);
+  --highlight-color-focused: var(--ds-accent);
+}
+
+// ── ion-select ──────────────────────────────────────────────
+ion-select {
+  --placeholder-color: var(--ds-txt-3);
+  --placeholder-opacity: 1;
+  color: var(--ds-txt-0);
+}
+
+// ── ion-searchbar ───────────────────────────────────────────
+.custom-searchbar,
+.list-searchbar,
+.inner-searchbar {
+  --background: rgba(255, 255, 255, 0.12);
+  --border-radius: var(--ds-radius-md);
+  --box-shadow: none;
+  --placeholder-color: rgba(255, 255, 255, 0.50);
+  --icon-color: rgba(255, 255, 255, 0.55);
+  --color: #ffffff;
+  --clear-button-color: rgba(255, 255, 255, 0.65);
+  --highlight-color-focused: transparent;
+  padding: 0 var(--ds-space-2);
+  font-size: var(--ds-text-md);
+
+  &.searchbar-has-focus {
+    --background: rgba(255, 255, 255, 0.19);
+    --box-shadow: 0 0 0 1.5px rgba(242, 76, 26, 0.85),
+                  0 4px 20px rgba(0, 0, 0, 0.2);
+    --icon-color: rgba(255, 255, 255, 0.9);
+  }
+}
+
+// White-background searchbar variant (used inside content area)
+.ds-searchbar-light {
+  --background: var(--ds-bg-1);
+  --border-radius: var(--ds-radius-md);
+  --box-shadow: var(--ds-shadow-sm);
+  --placeholder-color: var(--ds-txt-3);
+  --icon-color: var(--ds-txt-2);
+  --color: var(--ds-txt-0);
+  --clear-button-color: var(--ds-txt-2);
+  --highlight-color-focused: transparent;
+  padding: 0;
+  font-size: var(--ds-text-md);
+
+  &.searchbar-has-focus {
+    --box-shadow: 0 0 0 1.5px var(--ds-accent), var(--ds-shadow-sm);
+  }
+}
+
+// ── ion-badge ───────────────────────────────────────────────
+ion-badge {
+  font-weight: var(--ds-weight-semibold);
+  letter-spacing: 0.02em;
+  border-radius: var(--ds-radius-pill);
+  padding: 4px 12px;
+}
+
+// ── ion-button ──────────────────────────────────────────────
+ion-button {
+  --border-radius: var(--ds-radius-md);
+  font-weight: var(--ds-weight-semibold);
+  letter-spacing: -0.01em;
+  text-transform: none;
+}
+
+ion-button::part(native) {
+  transition: transform var(--ds-motion-fast) var(--ds-ease-out);
+}
+
+ion-button.ion-activated::part(native) {
+  transform: scale(0.96);
+}
+
+// ── ion-toggle ──────────────────────────────────────────────
+ion-toggle {
+  --background: var(--ds-bg-3);
+  --background-checked: var(--ds-accent);
+  --handle-background: var(--ds-txt-2);
+  --handle-background-checked: #ffffff;
+}
+
+// ── ion-progress-bar ────────────────────────────────────────
+ion-progress-bar {
+  --background: var(--ds-line);
+  --progress-background: var(--ds-accent);
+  border-radius: var(--ds-radius-pill);
+}
+
+// ── ion-skeleton-text ───────────────────────────────────────
+ion-skeleton-text {
+  --border-radius: var(--ds-radius-xs);
+}
+
+// ── ion-back-button ─────────────────────────────────────────
+ion-back-button::part(text) {
+  display: none;
+}
+
+// ── Page entry animation ─────────────────────────────────────
+@keyframes ds-fade-slide-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+ion-router-outlet > * {
+  animation: ds-fade-slide-up var(--ds-motion-base) var(--ds-ease-out);
+}
+
+// ── Reduced motion ───────────────────────────────────────────
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+// ── Responsive list container ────────────────────────────────
+@media (min-width: 768px) {
+  .orders-list, .lines-list {
+    max-width: 720px;
+    margin-inline: auto !important;
+  }
+}
+
+@media (min-width: 1200px) {
+  .orders-list, .lines-list {
+    max-width: 860px;
+  }
+}
+
+// ── Scrollbar (web only) ─────────────────────────────────────
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: var(--ds-radius-sm);
+  &:hover { background: rgba(0, 0, 0, 0.25); }
+}
