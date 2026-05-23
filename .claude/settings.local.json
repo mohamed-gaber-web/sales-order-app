@@ -53,7 +53,12 @@
       "Bash(Select-Object FullName)",
       "PowerShell(cd \"D:\\\\Grow Path\\\\Dynamic with app\\\\grow-path\"; Add-Type -AssemblyName System.IO.Compression.FileSystem; $zip = [System.IO.Compression.ZipFile]::OpenRead\\(\"User_Story_Project_Item_Issuance.docx\"\\); $entry = $zip.Entries | Where-Object { $_.FullName -eq \"word/document.xml\" }; $stream = $entry.Open\\(\\); $reader = New-Object System.IO.StreamReader\\($stream\\); $content = $reader.ReadToEnd\\(\\); $reader.Close\\(\\); $zip.Dispose\\(\\); $text = $content -replace '<[^>]+>', ' '; $text = $text -replace '\\\\s+', ' '; $text.Trim\\(\\))",
       "Bash(Sort-Object)",
-      "Bash(node -e \"const j=require\\('./angular.json'\\); const b=j.projects['ionic-app-base']?.architect?.build?.options; console.log\\('styles:', JSON.stringify\\(b?.styles,null,2\\)\\); console.log\\('assets:', JSON.stringify\\(b?.assets?.slice\\(0,4\\),null,2\\)\\);\")"
+      "Bash(node -e \"const j=require\\('./angular.json'\\); const b=j.projects['ionic-app-base']?.architect?.build?.options; console.log\\('styles:', JSON.stringify\\(b?.styles,null,2\\)\\); console.log\\('assets:', JSON.stringify\\(b?.assets?.slice\\(0,4\\),null,2\\)\\);\")",
+      "Bash(where java *)",
+      "Bash(java -version)",
+      "Bash(where gradle *)",
+      "Bash(.\\\\gradlew.bat assembleDebug)",
+      "PowerShell(Get-ChildItem -Path \"D:\\\\Grow Path\\\\Dynamic with app\\\\grow-path\\\\android\\\\app\\\\build\" -Recurse | Where-Object { $_.Extension -eq \".apk\" } | Select-Object FullName)"
     ]
   }
 }
