@@ -1,0 +1,331 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/inventory/project-item-requirements" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Item Requirements</ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" (click)="loadRequirements()">
+        <ion-icon name="refresh-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+  <ion-toolbar class="search-toolbar">
+    <ds-search
+      placeholder="Search item, name, sales order..."
+      [debounceMs]="200"
+      (query)="onQueryChange($event)">
+    </ds-search>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- ── Hero Banner ─────────────────────────────────────────── -->
+  <div class="hero-banner">
+    <div class="hero-top">
+      <div class="hero-left">
+        <span class="hero-eyebrow">
+          <ion-icon name="folder-open-outline"></ion-icon>
+          Project
+        </span>
+        <h1 class="hero-project-id ds-mono">{{ projectId }}</h1>
+        @if (projectName) {
+          <p class="hero-project-name">{{ projectName }}</p>
+        }
+        @if (customerAccount) {
+          <p class="hero-customer">
+            <ion-icon name="person-outline"></ion-icon>
+            {{ customerAccount }}
+          </p>
+        }
+      </div>
+      <div class="hero-stage-pill">
+        {{ projectStage === 'InProcess' ? 'In Process' : (projectStage || 'Active') }}
+      </div>
+    </div>
+
+    <!-- Stats row -->
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <span class="hero-stat-value stat-open">{{ openCount }}</span>
+        <span class="hero-stat-label">Open</span>
+      </div>
+      <div class="hero-stat-sep"></div>
+      <div class="hero-stat">
+        <span class="hero-stat-value stat-partial">{{ partialCount }}</span>
+        <span class="hero-stat-label">Partial</span>
+      </div>
+      <div class="hero-stat-sep"></div>
+      <div class="hero-stat">
+        <span class="hero-stat-value stat-closed">{{ closedCount }}</span>
+        <span class="hero-stat-label">Closed</span>
+      </div>
+      <div class="hero-stat-sep"></div>
+      <div class="hero-stat">
+        <span class="hero-stat-value">{{ requirements.length }}</span>
+        <span class="hero-stat-label">Total</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Filter chips ────────────────────────────────────────── -->
+  <div class="chip-row">
+    @for (chip of filterChips; track chip.id) {
+      <ion-chip [class.chip-active]="activeFilter === chip.id" (click)="setFilter(chip.id)">
+        <ion-icon [name]="chip.icon"></ion-icon>
+        <ion-label>{{ chip.label }}</ion-label>
+      </ion-chip>
+    }
+  </div>
+
+  <!-- ── Sales-ID error banner ───────────────────────────────── -->
+  @if (salesIdError) {
+    <div class="error-banner">
+      <ion-icon name="warning-outline"></ion-icon>
+      <p>{{ salesIdError }}</p>
+    </div>
+  }
+
+  <!-- ── Loading skeletons ────────────────────────────────────── -->
+  @if (isLoading) {
+    <div class="req-list">
+      @for (i of [1,2,3,4]; track i) {
+        <div class="req-card skeleton-card">
+          <div class="skeleton-check"></div>
+          <div class="skeleton-body">
+            <ion-skeleton-text animated style="width:55%;height:18px;border-radius:5px"></ion-skeleton-text>
+            <ion-skeleton-text animated style="width:80%;height:13px;margin-top:8px;border-radius:5px"></ion-skeleton-text>
+            <ion-skeleton-text animated style="width:40%;height:11px;margin-top:6px;border-radius:5px"></ion-skeleton-text>
+            <ion-skeleton-text animated style="width:100%;height:6px;margin-top:12px;border-radius:5px"></ion-skeleton-text>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ── Requirement cards ─────────────────────────────────────── -->
+  @if (!isLoading && filteredRequirements.length > 0) {
+    <div class="req-list" [class.has-bar]="selectedCount > 0">
+      @for (req of filteredRequirements; track req.LineNum) {
+        <div class="req-card"
+             [class.req-selected]="isSelected(req)"
+             [class.req-closed]="!isSelectable(req)"
+             (click)="toggleLine(req)">
+
+          <!-- Checkbox -->
+          <div class="req-check">
+            <div class="checkbox" [class.checkbox-on]="isSelected(req)" [class.checkbox-off]="!isSelectable(req)">
+              @if (isSelected(req)) {
+                <ion-icon name="checkmark-outline"></ion-icon>
+              }
+            </div>
+          </div>
+
+          <!-- Status colour strip -->
+          <div class="req-strip" [style.background]="getStatusColor(req)"></div>
+
+          <!-- Card body -->
+          <div class="req-body">
+
+            <!-- Row 1: Item ID + status pill -->
+            <div class="req-row-top">
+              <span class="req-item-id ds-mono">{{ req.ItemId }}</span>
+              <ds-pill
+                [label]="getStatusLabel(req)"
+                [color]="getStatusColor(req)"
+                [bg]="getStatusBg(req)">
+              </ds-pill>
+            </div>
+
+            <!-- Row 2: Product name -->
+            @if (req.Name) {
+              <p class="req-product-name">{{ req.Name }}</p>
+            }
+
+            <!-- Row 3: Sales order + line -->
+            <div class="req-order-row">
+              <ion-icon name="receipt-outline"></ion-icon>
+              <span class="ds-mono req-sales-id">{{ req.SalesId }}</span>
+              <span class="req-line-num">· Line {{ req.LineNum }}</span>
+            </div>
+
+            <!-- Row 4: Metadata tags -->
+            <div class="req-tags">
+              @if (req.ShippingSiteId) {
+                <span class="tag tag-site">
+                  <ion-icon name="location-outline"></ion-icon>
+                  {{ req.ShippingSiteId }}
+                </span>
+              }
+              @if (req.ProjectCategoryId) {
+                <span class="tag">
+                  <ion-icon name="pricetag-outline"></ion-icon>
+                  {{ req.ProjectCategoryId }}
+                </span>
+              }
+              @if (req.ProjectLinePropertyId) {
+                <span class="tag">
+                  <ion-icon name="flag-outline"></ion-icon>
+                  {{ req.ProjectLinePropertyId }}
+                </span>
+              }
+              @if (req.ShippingDateRequested) {
+                <span class="tag">
+                  <ion-icon name="calendar-outline"></ion-icon>
+                  Ship {{ formatDate(req.ShippingDateRequested) }}
+                </span>
+              }
+              @if (getDimensions(req)) {
+                <span class="tag tag-dim">{{ getDimensions(req) }}</span>
+              }
+            </div>
+
+            <!-- Row 5: Qty progress -->
+            <div class="req-progress-wrap">
+              <div class="req-progress-labels">
+                <span class="prog-remain">
+                  <strong>{{ req.RemainInventPhysical }}</strong>
+                  {{ req.SalesUnit || '' }} remaining
+                </span>
+                <span class="prog-total">of {{ req.QuantityOrdered }} {{ req.SalesUnit || '' }}</span>
+              </div>
+              <div class="req-progress-bar">
+                <div class="req-progress-fill"
+                     [style.width.%]="getRemainingPct(req)"
+                     [style.background]="getStatusColor(req)">
+                </div>
+              </div>
+            </div>
+
+            <!-- Row 6: Qty stepper (only when selected) -->
+            @if (isSelected(req)) {
+              <div class="qty-stepper" (click)="$event.stopPropagation()">
+                <span class="qty-label">
+                  <ion-icon name="cube-outline"></ion-icon>
+                  Qty to issue
+                </span>
+                <div class="stepper-controls">
+                  <button class="step-btn"
+                          (click)="decrementQty(req.LineNum, $event)"
+                          [disabled]="getQty(req.LineNum) <= 1">
+                    <ion-icon name="remove-outline"></ion-icon>
+                  </button>
+                  <span class="qty-value">{{ getQty(req.LineNum) }}</span>
+                  <button class="step-btn"
+                          (click)="incrementQty(req.LineNum, $event)"
+                          [disabled]="getQty(req.LineNum) >= req.RemainInventPhysical">
+                    <ion-icon name="add-outline"></ion-icon>
+                  </button>
+                </div>
+              </div>
+            }
+
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ── Empty state ───────────────────────────────────────────── -->
+  @if (!isLoading && filteredRequirements.length === 0) {
+    <ds-empty-state
+      icon="list-outline"
+      title="No Requirements"
+      [message]="searchTerm ? 'No lines match &quot;' + searchTerm + '&quot;' : 'No requirements found for this filter'">
+    </ds-empty-state>
+  }
+
+  <!-- ── Posting overlay ──────────────────────────────────────── -->
+  @if (isPosting) {
+    <div class="posting-overlay">
+      <div class="posting-card">
+        <ion-spinner name="crescent"></ion-spinner>
+        <p>Posting picking list...</p>
+      </div>
+    </div>
+  }
+
+</ion-content>
+
+<!-- ── Floating action bar ────────────────────────────────────── -->
+@if (selectedCount > 0) {
+  <div class="fab-bar">
+    <div class="fab-info">
+      <span class="fab-count">{{ selectedCount }} line{{ selectedCount > 1 ? 's' : '' }} selected</span>
+      @if (activeSalesId) {
+        <span class="fab-order ds-mono">{{ activeSalesId }}</span>
+      }
+    </div>
+    <ion-button class="fab-cta" (click)="openConfirm()" [disabled]="isPosting">
+      <ion-icon name="document-text-outline" slot="start"></ion-icon>
+      Create Picking List
+    </ion-button>
+  </div>
+}
+
+<!-- ── Confirmation sheet ─────────────────────────────────────── -->
+@if (showConfirmModal) {
+  <div class="sheet-backdrop" (click)="closeConfirm()"></div>
+  <div class="confirm-sheet">
+    <div class="sheet-handle"></div>
+
+    <div class="sheet-head">
+      <div class="sheet-head-left">
+        <ion-icon name="document-text-outline" class="sheet-head-icon"></ion-icon>
+        <span class="sheet-title">Confirm Picking List</span>
+      </div>
+      <button class="sheet-close" (click)="closeConfirm()">
+        <ion-icon name="close-outline"></ion-icon>
+      </button>
+    </div>
+
+    <!-- Sales order pill -->
+    <div class="confirm-order-pill">
+      <ion-icon name="receipt-outline"></ion-icon>
+      <div class="confirm-order-detail">
+        <span class="confirm-order-label">Sales Order</span>
+        <span class="confirm-order-id ds-mono">{{ activeSalesId }}</span>
+      </div>
+    </div>
+
+    <!-- Lines table -->
+    <div class="confirm-table">
+      <div class="confirm-thead">
+        <span>Line</span>
+        <span>Item</span>
+        <span class="align-right">Qty</span>
+      </div>
+      @for (line of selectedLinesList; track line.req.LineNum) {
+        <div class="confirm-trow">
+          <span class="ds-mono conf-line">{{ line.req.LineNum }}</span>
+          <div class="conf-item">
+            <span class="ds-mono conf-item-id">{{ line.req.ItemId }}</span>
+            @if (line.req.Name) {
+              <span class="conf-item-name">{{ line.req.Name }}</span>
+            }
+          </div>
+          <span class="align-right conf-qty">{{ line.qty }}<span class="conf-unit"> {{ line.req.SalesUnit }}</span></span>
+        </div>
+      }
+    </div>
+
+    <p class="confirm-note">
+      <ion-icon name="information-circle-outline"></ion-icon>
+      Packing slip ID will be auto-generated by D365.
+    </p>
+
+    <div class="confirm-actions">
+      <ion-button fill="outline" expand="block" class="btn-cancel-sheet" (click)="closeConfirm()">
+        Cancel
+      </ion-button>
+      <ion-button expand="block" class="btn-post" (click)="postPickingList()">
+        <ion-icon name="cloud-upload-outline" slot="start"></ion-icon>
+        Post
+      </ion-button>
+    </div>
+  </div>
+}

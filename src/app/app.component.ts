@@ -51,7 +51,9 @@ export class AppComponent implements OnInit, OnDestroy {
       icon: 'folder-open',
       expanded: false,
       items: [
-        { title: 'Project Issuance', url: '/inventory/project-issuance', icon: 'git-merge' },
+        // { title: 'Project', url: '/inventory/project-issuance', icon: 'git-merge' },
+        { title: 'Item Requirements', url: '/inventory/project-item-requirements', icon: 'list' },
+        { title: 'Item Journal', url: '/inventory/project-item-journal', icon: 'document-text' },
       ]
     },
     {

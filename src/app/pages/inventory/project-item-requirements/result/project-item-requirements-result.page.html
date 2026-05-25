@@ -1,0 +1,91 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/inventory/project-item-requirements" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ success ? 'Success' : 'Error' }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="result-wrapper">
+
+    <!-- Success state -->
+    @if (success) {
+      <div class="result-card success-card">
+        <div class="result-icon-wrap success-icon">
+          <ion-icon name="checkmark-circle-outline"></ion-icon>
+        </div>
+        <h2 class="result-heading">Picking list posted ✓</h2>
+        <p class="result-sub">{{ lineCount }} line{{ lineCount !== 1 ? 's' : '' }} submitted successfully</p>
+
+        <div class="result-details">
+          <div class="detail-row">
+            <span class="detail-label">Sales Order</span>
+            <span class="detail-value ds-mono">{{ salesOrderID }}</span>
+          </div>
+          @if (packingSlipId) {
+            <div class="detail-row">
+              <span class="detail-label">Packing Slip ID</span>
+              <span class="detail-value ds-mono">{{ packingSlipId }}</span>
+            </div>
+          }
+          <div class="detail-row">
+            <span class="detail-label">Lines posted</span>
+            <span class="detail-value">{{ lineCount }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="result-actions">
+        <ion-button expand="block" fill="outline" (click)="backToProject()">
+          <ion-icon name="arrow-back-outline" slot="start"></ion-icon>
+          Back to project
+        </ion-button>
+        <ion-button expand="block" class="primary-btn" (click)="done()">
+          Done
+        </ion-button>
+      </div>
+    }
+
+    <!-- Failure state -->
+    @if (!success) {
+      <div class="result-card error-card">
+        <div class="result-icon-wrap error-icon">
+          <ion-icon name="close-circle-outline"></ion-icon>
+        </div>
+        <h2 class="result-heading">Posting failed</h2>
+        <p class="result-sub error-msg">{{ errorMessage }}</p>
+
+        @if (errorPayload) {
+          <div class="error-payload-wrap">
+            <p class="payload-label">Error details</p>
+            <pre class="payload-text">{{ errorPayload }}</pre>
+          </div>
+        }
+      </div>
+
+      <div class="result-actions">
+        <ion-button expand="block" fill="outline" (click)="retry()" [disabled]="isRetrying || !retryRequest">
+          @if (isRetrying) {
+            <ion-spinner name="crescent" slot="start"></ion-spinner>
+            Retrying...
+          } @else {
+            <ion-icon name="refresh-outline" slot="start"></ion-icon>
+            Retry
+          }
+        </ion-button>
+        @if (errorPayload) {
+          <ion-button expand="block" fill="outline" color="medium" (click)="copyError()">
+            <ion-icon [name]="copied ? 'checkmark-outline' : 'copy-outline'" slot="start"></ion-icon>
+            {{ copied ? 'Copied!' : 'Copy details' }}
+          </ion-button>
+        }
+        <ion-button expand="block" fill="clear" color="medium" (click)="done()">
+          Back to projects
+        </ion-button>
+      </div>
+    }
+
+  </div>
+</ion-content>

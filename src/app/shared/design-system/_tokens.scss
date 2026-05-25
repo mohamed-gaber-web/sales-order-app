@@ -99,6 +99,15 @@
   --ds-shadow-accent: 0 4px 16px rgba(242, 76, 26, 0.25);
   --ds-shadow-navy:   0 4px 16px rgba(0, 37, 89, 0.20);
 
+  // ── Z-index layers ────────────────────────────────────────
+  // Tab bar is z-index 500 (app.component.scss). Anything fixed
+  // that must appear above it must use one of the layers below.
+  --ds-z-above-tabs:    600;   // action bars, floating CTAs
+  --ds-z-sheet:         700;   // bottom sheets (backdrop)
+  --ds-z-sheet-content: 701;   // bottom sheets (panel)
+  --ds-z-overlay:       800;   // full-screen overlays (posting spinner)
+  --ds-z-toast:         900;   // toasts / snackbars
+
   // ── Motion ────────────────────────────────────────────────
   --ds-motion-fast:   120ms;
   --ds-motion-base:   220ms;

@@ -121,7 +121,7 @@ export class DashboardPage implements OnInit {
       colorEnd: '#1e40af',
     },
     {
-      title: 'Project Issuance',
+      title: 'Project',
       subtitle: 'Issue items to projects',
       icon: 'folder-open-outline',
       route: '/inventory/project-issuance',

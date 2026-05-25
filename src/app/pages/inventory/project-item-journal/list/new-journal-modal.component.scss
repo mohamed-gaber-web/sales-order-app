@@ -1,0 +1,159 @@
+// Force the modal host to be a proper flex column so ion-content
+// fills the remaining height and the sticky footer works correctly.
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+// ── Modal Header ──────────────────────────────────────────────
+.modal-header {
+  ion-toolbar {
+    --background: var(--ds-bg-0);
+    --border-color: var(--ds-line-soft);
+    --color: var(--ds-navy);
+
+    ion-title {
+      color: var(--ds-navy);
+      font-weight: var(--ds-weight-bold);
+    }
+  }
+}
+
+// ── Modal Body ────────────────────────────────────────────────
+.modal-body {
+  --padding-start: 0;
+  --padding-end: 0;
+  --padding-top: 0;
+  --padding-bottom: 0;
+  flex: 1;
+}
+
+// Inner scroll wrapper — gives padding around the form fields
+.modal-scroll-area {
+  padding: var(--ds-space-5) var(--ds-space-6) var(--ds-space-4);
+}
+
+.modal-subtitle {
+  font-size: var(--ds-text-sm);
+  color: var(--ds-txt-2);
+  margin: 0 0 var(--ds-space-6);
+  line-height: var(--ds-lh-normal);
+}
+
+// ── Field Groups ──────────────────────────────────────────────
+.field-group {
+  margin-bottom: var(--ds-space-6);
+}
+
+.field-label {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-2);
+  font-size: var(--ds-text-sm);
+  font-weight: var(--ds-weight-semibold);
+  color: var(--ds-txt-1);
+  margin-bottom: var(--ds-space-2);
+}
+
+.field-readonly-tag {
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-regular);
+  color: var(--ds-txt-3);
+  background: var(--ds-bg-2);
+  border-radius: var(--ds-radius-sm);
+  padding: 1px 6px;
+}
+
+.id-row {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-2);
+  background: var(--ds-bg-1);
+  border: 1px solid var(--ds-line);
+  border-radius: var(--ds-radius-md);
+  padding: var(--ds-space-3) var(--ds-space-3);
+}
+
+.journal-id-display {
+  flex: 1;
+  font-size: var(--ds-text-lg);
+  font-weight: var(--ds-weight-bold);
+  color: var(--ds-navy);
+  letter-spacing: 0.08em;
+  font-family: var(--ds-font-mono);
+}
+
+.regen-btn {
+  --color: var(--ds-txt-3);
+  --padding-start: 0;
+  --padding-end: 0;
+  height: 32px;
+  width: 32px;
+}
+
+.field-value-readonly {
+  background: var(--ds-bg-1);
+  border: 1px solid var(--ds-line-soft);
+  border-radius: var(--ds-radius-md);
+  padding: var(--ds-space-3) var(--ds-space-3);
+  font-size: var(--ds-text-base);
+  color: var(--ds-txt-2);
+}
+
+.field-textarea {
+  --background: var(--ds-bg-1);
+  --border-radius: var(--ds-radius-md);
+  --padding-start: var(--ds-space-3);
+  --padding-end: var(--ds-space-3);
+  --padding-top: var(--ds-space-3);
+  --padding-bottom: var(--ds-space-3);
+  border: 1px solid var(--ds-line);
+  border-radius: var(--ds-radius-md);
+  font-size: var(--ds-text-base);
+}
+
+.field-hint {
+  font-size: var(--ds-text-xs);
+  color: var(--ds-txt-3);
+  margin: var(--ds-space-1) 0 0;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+
+  ion-icon { font-size: 12px; }
+  &.char-count { justify-content: flex-end; }
+  &.char-warn { color: var(--ds-warning); }
+}
+
+// ── Sticky action buttons ─────────────────────────────────────
+// Sits inside ion-content so it's naturally part of the scroll
+// container, but position: sticky keeps it pinned to the bottom
+// of the visible modal area at all times.
+.modal-actions {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  gap: var(--ds-space-3);
+  padding: var(--ds-space-4) var(--ds-space-6);
+  padding-bottom: calc(var(--ds-space-4) + env(safe-area-inset-bottom));
+  background: var(--ds-bg-0);
+  border-top: 1px solid var(--ds-line-soft);
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.06);
+  z-index: 10;
+}
+
+.btn-cancel {
+  flex: 0 0 auto;
+  --border-color: var(--ds-line);
+  --color: var(--ds-txt-1);
+}
+
+.btn-create {
+  flex: 1;
+  --background: var(--ds-accent);
+  --background-activated: var(--ds-accent-end);
+  --box-shadow: var(--ds-shadow-accent);
+}
+
+.ds-mono { font-family: var(--ds-font-mono); }

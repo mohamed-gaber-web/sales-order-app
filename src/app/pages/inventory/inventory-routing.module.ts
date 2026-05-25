@@ -74,6 +74,14 @@ const routes: Routes = [
     path: 'project-issuance',
     loadChildren: () => import('./project-issuance/project-issuance.module').then(m => m.ProjectIssuanceModule)
   },
+  {
+    path: 'project-item-requirements',
+    loadChildren: () => import('./project-item-requirements/project-item-requirements.module').then(m => m.ProjectItemRequirementsModule)
+  },
+  {
+    path: 'project-item-journal',
+    loadChildren: () => import('./project-item-journal/project-item-journal.module').then(m => m.ProjectItemJournalModule)
+  },
 ];
 
 @NgModule({

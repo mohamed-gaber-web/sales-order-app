@@ -3,7 +3,7 @@
     <ion-buttons slot="start">
       <ion-back-button defaultHref="/inventory" text=""></ion-back-button>
     </ion-buttons>
-    <ion-title>Project</ion-title>
+    <ion-title>Project Item Requirements</ion-title>
     <ion-buttons slot="end">
       <ion-button fill="clear" (click)="loadProjects()">
         <ion-icon name="refresh-outline" slot="icon-only"></ion-icon>
@@ -30,16 +30,16 @@
       <span class="hero-badge-dot"></span>
       Live
     </div>
-    <h1 class="hero-heading">Project <span class="hero-accent">Issuance</span></h1>
-    <p class="hero-sub">Issue items to open projects from your warehouse</p>
+    <h1 class="hero-heading">Project Item <span class="hero-accent">Requirements</span></h1>
+    <p class="hero-sub">Select a project to view and create picking lists</p>
     <div class="hero-stats">
       <div class="hero-stat">
         <span class="hero-stat-value">{{ totalCount }}</span>
-        <span class="hero-stat-label">Open Projects</span>
+        <span class="hero-stat-label">Projects</span>
       </div>
       <div class="hero-stat-sep"></div>
       <div class="hero-stat">
-        <span class="hero-stat-value">{{ company | uppercase }}</span>
+        <span class="hero-stat-value">USMF</span>
         <span class="hero-stat-label">Company</span>
       </div>
     </div>
@@ -63,9 +63,9 @@
       @for (i of [1,2,3,4]; track i) {
         <ion-card class="order-card skeleton-card">
           <ion-card-content>
-            <ion-skeleton-text animated style="width: 40%; height: 16px; border-radius: 6px"></ion-skeleton-text>
-            <ion-skeleton-text animated style="width: 70%; height: 13px; margin-top: 8px; border-radius: 6px"></ion-skeleton-text>
-            <ion-skeleton-text animated style="width: 50%; height: 13px; margin-top: 6px; border-radius: 6px"></ion-skeleton-text>
+            <ion-skeleton-text animated style="width: 35%; height: 16px; border-radius: 6px"></ion-skeleton-text>
+            <ion-skeleton-text animated style="width: 65%; height: 13px; margin-top: 8px; border-radius: 6px"></ion-skeleton-text>
+            <ion-skeleton-text animated style="width: 45%; height: 12px; margin-top: 6px; border-radius: 6px"></ion-skeleton-text>
           </ion-card-content>
         </ion-card>
       }
@@ -90,18 +90,36 @@
               </div>
               <div class="card-item">
                 <ion-icon name="folder-open-outline"></ion-icon>
-                {{ project.Name }}
+                {{ project.ProjectName }}
               </div>
-              @if (project.CustomerAccount) {
-                <div class="card-meta">
+              <div class="card-meta">
+                @if (project.CustomerAccount) {
                   <span>
                     <ion-icon name="person-outline"></ion-icon>
                     {{ project.CustomerAccount }}
                   </span>
+                }
+                @if (project.ProjectType) {
                   <span>
-                    <ion-icon name="location-outline"></ion-icon>
-                    {{ project.dataAreaId | uppercase }}
+                    <ion-icon name="layers-outline"></ion-icon>
+                    {{ project.ProjectType }}
                   </span>
+                }
+                @if (project.StartDate1) {
+                  <span>
+                    <ion-icon name="calendar-outline"></ion-icon>
+                    {{ formatDate(project.StartDate1) }}
+                  </span>
+                }
+              </div>
+              @if (project.ProjectGroup || project.ProjectContractID) {
+                <div class="card-footer-row">
+                  @if (project.ProjectGroup) {
+                    <span class="footer-badge">{{ project.ProjectGroup }}</span>
+                  }
+                  @if (project.ProjectContractID) {
+                    <span class="footer-badge ds-mono">{{ project.ProjectContractID }}</span>
+                  }
                 </div>
               }
             </div>
@@ -122,12 +140,25 @@
     </div>
   }
 
+  <!-- Error state -->
+  @if (!isLoading && loadError) {
+    <div class="error-state">
+      <ion-icon name="cloud-offline-outline"></ion-icon>
+      <h3>Could not load projects</h3>
+      <p>Check your connection and try again.</p>
+      <ion-button fill="outline" (click)="loadProjects()">
+        <ion-icon name="refresh-outline" slot="start"></ion-icon>
+        Retry
+      </ion-button>
+    </div>
+  }
+
   <!-- Empty state -->
-  @if (!isLoading && !isSearching && displayedProjects.length === 0) {
+  @if (!isLoading && !loadError && !isSearching && displayedProjects.length === 0) {
     <ds-empty-state
       icon="folder-open-outline"
       title="No Projects Found"
-      [message]="searchTerm ? 'No results for &quot;' + searchTerm + '&quot;' : 'No projects match the current filter'">
+      [message]="searchTerm ? 'No results for &quot;' + searchTerm + '&quot;' : 'No projects match the selected filter'">
     </ds-empty-state>
   }
 
@@ -135,11 +166,4 @@
     <ion-infinite-scroll-content loadingSpinner="crescent" loadingText="Loading more...">
     </ion-infinite-scroll-content>
   </ion-infinite-scroll>
-
-  <!-- FAB: Ad-hoc issuance (no project preselected) -->
-  <ion-fab slot="fixed" vertical="bottom" horizontal="end">
-    <ion-fab-button (click)="goAdhoc()">
-      <ion-icon name="add-outline"></ion-icon>
-    </ion-fab-button>
-  </ion-fab>
 </ion-content>

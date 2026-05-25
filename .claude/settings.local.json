@@ -58,7 +58,11 @@
       "Bash(java -version)",
       "Bash(where gradle *)",
       "Bash(.\\\\gradlew.bat assembleDebug)",
-      "PowerShell(Get-ChildItem -Path \"D:\\\\Grow Path\\\\Dynamic with app\\\\grow-path\\\\android\\\\app\\\\build\" -Recurse | Where-Object { $_.Extension -eq \".apk\" } | Select-Object FullName)"
+      "PowerShell(Get-ChildItem -Path \"D:\\\\Grow Path\\\\Dynamic with app\\\\grow-path\\\\android\\\\app\\\\build\" -Recurse | Where-Object { $_.Extension -eq \".apk\" } | Select-Object FullName)",
+      "Bash(Get-ChildItem -Path \"D:\\\\Grow Path\\\\Dynamic with app\\\\grow-path\\\\src\" -Filter \"*.scss\" -Recurse)",
+      "Bash(awk '{print $NF}')",
+      "Bash(Get-ChildItem -Path \"D:\\\\Grow Path\\\\Dynamic with app\\\\grow-path\\\\src\\\\app\\\\shared\\\\design-system\\\\components\" -Directory)",
+      "Bash(Select-Object Name)"
     ]
   }
 }

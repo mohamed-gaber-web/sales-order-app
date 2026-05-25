@@ -1,0 +1,306 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button fill="clear" (click)="cancel()">Cancel</ion-button>
+    </ion-buttons>
+    <ion-title>New Line</ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" (click)="save()" [disabled]="isSaving" class="save-header-btn">
+        @if (isSaving) {
+          <ion-spinner name="crescent" slot="icon-only"></ion-spinner>
+        } @else {
+          Save
+        }
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="form-content">
+
+  <!-- Journal context strip -->
+  <div class="context-strip">
+    <ion-icon name="document-text-outline"></ion-icon>
+    <span class="ds-mono">{{ journalId }}</span>
+    @if (journalName) { <span class="context-sep">·</span> <span class="context-name">{{ journalName }}</span> }
+  </div>
+
+  <!-- Lookup warning -->
+  @if (lookupsLoading) {
+    <div class="lookups-loading">
+      <ion-spinner name="dots" color="medium"></ion-spinner>
+      <span>Loading lookup data...</span>
+    </div>
+  }
+  @if (lookupsError && !lookupsLoading) {
+    <div class="lookups-warning">
+      <ion-icon name="warning-outline"></ion-icon>
+      <span>Some lookups failed to load. You can still fill fields manually.</span>
+    </div>
+  }
+
+  <!-- ── Section 1: Project ────────────────────────────────── -->
+  <div class="form-section">
+    <div class="section-header">
+      <div class="section-icon-wrap">
+        <ion-icon name="folder-open-outline"></ion-icon>
+      </div>
+      <span>Project</span>
+    </div>
+
+    <!-- Project picker -->
+    <div class="field-row" [class.field-invalid]="submitted && !projectId.trim()">
+      <label class="field-label">
+        Project <span class="required-star">*</span>
+      </label>
+      <div class="picker-trigger" (click)="openProjectPicker()">
+        <div class="picker-value">
+          @if (projectId) {
+            <span class="ds-mono picker-id">{{ projectId }}</span>
+            @if (projectDisplayName) {
+              <span class="picker-name">{{ projectDisplayName }}</span>
+            }
+          } @else {
+            <span class="picker-placeholder">Select project...</span>
+          }
+        </div>
+        <ion-icon name="chevron-forward-outline" class="picker-arrow"></ion-icon>
+      </div>
+      @if (submitted && !projectId.trim()) {
+        <p class="field-error-msg">Project is required.</p>
+      }
+    </div>
+
+    <!-- Activity number -->
+    <div class="field-row">
+      <label class="field-label">Activity Number <span class="optional-tag">Optional</span></label>
+      <ion-input
+        [(ngModel)]="activityNumber"
+        placeholder="Activity number"
+        class="field-input">
+      </ion-input>
+    </div>
+  </div>
+
+  <!-- ── Section 2: Item ───────────────────────────────────── -->
+  <div class="form-section">
+    <div class="section-header">
+      <div class="section-icon-wrap">
+        <ion-icon name="cube-outline"></ion-icon>
+      </div>
+      <span>Item</span>
+    </div>
+
+    <div class="field-row" [class.field-invalid]="submitted && !itemId.trim()">
+      <label class="field-label">Item ID <span class="required-star">*</span></label>
+      <ion-input
+        [(ngModel)]="itemId"
+        placeholder="Scan or type item ID"
+        class="field-input ds-mono-input">
+      </ion-input>
+      @if (submitted && !itemId.trim()) {
+        <p class="field-error-msg">Item ID is required.</p>
+      }
+    </div>
+
+    <div class="field-row" [class.field-invalid]="submitted && quantity <= 0">
+      <label class="field-label">Quantity <span class="required-star">*</span></label>
+      <div class="stepper-row">
+        <ion-button fill="outline" size="small" class="stepper-btn" (click)="decrementQty()" [disabled]="quantity <= 1">
+          <ion-icon name="remove-outline" slot="icon-only"></ion-icon>
+        </ion-button>
+        <ion-input
+          [(ngModel)]="quantity"
+          type="number"
+          min="0.0001"
+          step="1"
+          class="stepper-input">
+        </ion-input>
+        <ion-button fill="outline" size="small" class="stepper-btn" (click)="incrementQty()">
+          <ion-icon name="add-outline" slot="icon-only"></ion-icon>
+        </ion-button>
+      </div>
+      @if (submitted && quantity <= 0) {
+        <p class="field-error-msg">Quantity must be greater than 0.</p>
+      }
+    </div>
+
+    <div class="field-row">
+      <label class="field-label">Price Unit <span class="optional-tag">Read-only</span></label>
+      <div class="field-value-readonly">1</div>
+    </div>
+  </div>
+
+  <!-- ── Section 3: Project Posting ──────────────────────── -->
+  <div class="form-section">
+    <div class="section-header">
+      <div class="section-icon-wrap">
+        <ion-icon name="pricetags-outline"></ion-icon>
+      </div>
+      <span>Project Posting</span>
+    </div>
+
+    <div class="field-row" [class.field-invalid]="submitted && !categoryId">
+      <label class="field-label">Category <span class="required-star">*</span></label>
+      @if (categories.length > 0) {
+        <ion-select
+          [(ngModel)]="categoryId"
+          interface="action-sheet"
+          placeholder="Select category"
+          class="field-select">
+          @for (cat of categories; track cat.Category) {
+            <ion-select-option [value]="cat.Category">{{ cat.Category }}</ion-select-option>
+          }
+        </ion-select>
+      } @else {
+        <ion-input [(ngModel)]="categoryId" placeholder="Type category ID" class="field-input"></ion-input>
+      }
+      @if (submitted && !categoryId) {
+        <p class="field-error-msg">Category is required.</p>
+      }
+    </div>
+
+    <div class="field-row" [class.field-invalid]="submitted && !linePropertyId">
+      <label class="field-label">Line Property <span class="required-star">*</span></label>
+      @if (lineProperties.length > 0) {
+        <ion-select
+          [(ngModel)]="linePropertyId"
+          interface="action-sheet"
+          placeholder="Select line property"
+          class="field-select">
+          @for (lp of lineProperties; track lp.LinePropertyId) {
+            <ion-select-option [value]="lp.LinePropertyId">{{ lp.LinePropertyId }}</ion-select-option>
+          }
+        </ion-select>
+      } @else {
+        <ion-input [(ngModel)]="linePropertyId" placeholder="Type line property ID" class="field-input"></ion-input>
+      }
+      @if (submitted && !linePropertyId) {
+        <p class="field-error-msg">Line Property is required.</p>
+      }
+    </div>
+
+    <div class="field-row" [class.field-invalid]="submitted && !currencyId.trim()">
+      <label class="field-label">Currency <span class="required-star">*</span></label>
+      <ion-input
+        [(ngModel)]="currencyId"
+        placeholder="USD"
+        maxlength="3"
+        style="text-transform: uppercase"
+        class="field-input ds-mono-input">
+      </ion-input>
+      @if (submitted && !currencyId.trim()) {
+        <p class="field-error-msg">Currency is required.</p>
+      }
+    </div>
+
+    <div class="field-row" [class.field-invalid]="submitted && !projectDate">
+      <label class="field-label">Date <span class="required-star">*</span></label>
+      <ion-input
+        [(ngModel)]="projectDate"
+        type="date"
+        [max]="maxDate"
+        class="field-input">
+      </ion-input>
+      @if (submitted && !projectDate) {
+        <p class="field-error-msg">Date is required.</p>
+      }
+    </div>
+  </div>
+
+  <!-- ── Section 4: Storage Dimensions ────────────────────── -->
+  <div class="form-section">
+    <div class="section-header">
+      <div class="section-icon-wrap">
+        <ion-icon name="business-outline"></ion-icon>
+      </div>
+      <span>Storage Dimensions</span>
+    </div>
+
+    <div class="field-row" [class.field-invalid]="submitted && !siteId.trim()">
+      <label class="field-label">Site <span class="required-star">*</span></label>
+      <ion-input
+        [(ngModel)]="siteId"
+        placeholder="Site ID"
+        class="field-input ds-mono-input">
+      </ion-input>
+      @if (submitted && !siteId.trim()) {
+        <p class="field-error-msg">Site is required.</p>
+      }
+    </div>
+
+    <div class="field-row" [class.field-invalid]="submitted && !warehouseId.trim()">
+      <label class="field-label">Warehouse <span class="required-star">*</span></label>
+      <ion-input
+        [(ngModel)]="warehouseId"
+        placeholder="Warehouse ID"
+        class="field-input ds-mono-input">
+      </ion-input>
+      @if (submitted && !warehouseId.trim()) {
+        <p class="field-error-msg">Warehouse is required.</p>
+      }
+    </div>
+  </div>
+
+  <!-- ── Section 5: Advanced ──────────────────────────────── -->
+  <div class="form-section form-section-advanced">
+    <div class="section-header section-header-toggle" (click)="showAdvanced = !showAdvanced">
+      <div class="section-icon-wrap">
+        <ion-icon name="options-outline"></ion-icon>
+      </div>
+      <span>Advanced</span>
+      <ion-icon
+        [name]="showAdvanced ? 'chevron-up-outline' : 'chevron-down-outline'"
+        class="expand-chevron">
+      </ion-icon>
+    </div>
+
+    @if (showAdvanced) {
+      <div class="field-row">
+        <label class="field-label">Configuration</label>
+        <ion-input [(ngModel)]="configId" placeholder="Optional" class="field-input"></ion-input>
+      </div>
+      <div class="field-row">
+        <label class="field-label">Size</label>
+        <ion-input [(ngModel)]="sizeId" placeholder="Optional" class="field-input"></ion-input>
+      </div>
+      <div class="field-row">
+        <label class="field-label">Color</label>
+        <ion-input [(ngModel)]="colorId" placeholder="Optional" class="field-input"></ion-input>
+      </div>
+      <div class="field-row">
+        <label class="field-label">Style</label>
+        <ion-input [(ngModel)]="styleId" placeholder="Optional" class="field-input"></ion-input>
+      </div>
+      <div class="field-row">
+        <label class="field-label">Version</label>
+        <ion-input [(ngModel)]="versionId" placeholder="Optional" class="field-input"></ion-input>
+      </div>
+      <div class="field-row">
+        <label class="field-label">Serial Number</label>
+        <ion-input [(ngModel)]="serialId" placeholder="Optional" class="field-input ds-mono-input"></ion-input>
+      </div>
+    }
+  </div>
+
+  <div style="height: 32px"></div>
+</ion-content>
+
+<ion-footer class="ion-no-border action-bar">
+  <ion-toolbar>
+    <div class="footer-btns">
+      <ion-button fill="outline" class="btn-cancel" (click)="cancel()" [disabled]="isSaving">
+        Cancel
+      </ion-button>
+      <ion-button class="btn-save" (click)="save()" [disabled]="isSaving">
+        @if (isSaving) {
+          <ion-spinner name="crescent" slot="start"></ion-spinner>
+          Saving...
+        } @else {
+          <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+          Save Line
+        }
+      </ion-button>
+    </div>
+  </ion-toolbar>
+</ion-footer>

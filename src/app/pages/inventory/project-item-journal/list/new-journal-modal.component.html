@@ -1,0 +1,103 @@
+<ion-header class="ion-no-border modal-header">
+  <ion-toolbar>
+    <ion-title>New Journal</ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" (click)="dismiss()" [disabled]="isCreating">
+        <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="modal-body" [scrollY]="true">
+
+  <div class="modal-scroll-area">
+
+    <p class="modal-subtitle">
+      A new unposted project item journal will be created in <strong>USMF</strong>.
+    </p>
+
+    <!-- Journal ID -->
+    <div class="field-group">
+      <label class="field-label">
+        Journal ID
+        <span class="field-readonly-tag">Auto-generated</span>
+      </label>
+      <div class="id-row">
+        <span class="journal-id-display ds-mono">{{ journalId }}</span>
+        <ion-button
+          fill="clear"
+          size="small"
+          class="regen-btn"
+          (click)="regenerateId()"
+          [disabled]="isCreating"
+          title="Regenerate ID">
+          <ion-icon name="refresh-outline" slot="icon-only"></ion-icon>
+        </ion-button>
+      </div>
+      <p class="field-hint">
+        <ion-icon name="information-circle-outline"></ion-icon>
+        Tap refresh to regenerate if there's a conflict.
+      </p>
+    </div>
+
+    <!-- Journal Name (read-only) -->
+    <div class="field-group">
+      <label class="field-label">
+        Journal Name
+        <span class="field-readonly-tag">Read-only</span>
+      </label>
+      <div class="field-value-readonly">ProjItem</div>
+    </div>
+
+    <!-- Description -->
+    <div class="field-group">
+      <label class="field-label">Description</label>
+      <ion-textarea
+        [(ngModel)]="description"
+        [maxlength]="60"
+        rows="3"
+        placeholder="Description (max 60 characters)"
+        [disabled]="isCreating"
+        class="field-textarea">
+      </ion-textarea>
+      <p class="field-hint char-count" [class.char-warn]="description.length >= 55">
+        {{ description.length }} / 60
+      </p>
+    </div>
+
+    <!-- Posting Detail Level (read-only) -->
+    <div class="field-group">
+      <label class="field-label">
+        Posting Detail Level
+        <span class="field-readonly-tag">Read-only</span>
+      </label>
+      <div class="field-value-readonly">Detail</div>
+    </div>
+
+  </div>
+
+  <!-- ── Sticky action buttons always visible at bottom ── -->
+  <div class="modal-actions">
+    <ion-button
+      fill="outline"
+      (click)="dismiss()"
+      [disabled]="isCreating"
+      class="btn-cancel">
+      Cancel
+    </ion-button>
+    <ion-button
+      (click)="create()"
+      [disabled]="isCreating"
+      class="btn-create">
+      @if (isCreating) {
+        <ion-spinner name="crescent" slot="start"></ion-spinner>
+        Creating...
+      } @else {
+        <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+        Create Journal
+      }
+    </ion-button>
+  </div>
+
+</ion-content>

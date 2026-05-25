@@ -136,11 +136,27 @@ export class InventoryHomePage {
     },
     {
       id: 'US-PRJ',
-      title: 'Project Issuance',
+      title: 'Project',
       subtitle: 'Issue items to projects',
       icon: 'folder-open-outline',
       color: '#002559',
       route: '/inventory/project-issuance',
+    },
+    {
+      id: 'US-PIR',
+      title: 'Project Item Requirements',
+      subtitle: 'Create picking lists from item requirements',
+      icon: 'list-outline',
+      color: '#0f766e',
+      route: '/inventory/project-item-requirements',
+    },
+    {
+      id: 'US-PIJ',
+      title: 'Project Item Journal',
+      subtitle: 'Create ad-hoc material journals',
+      icon: 'document-text-outline',
+      color: '#7c3aed',
+      route: '/inventory/project-item-journal',
     },
     {
       id: 'AI-01',

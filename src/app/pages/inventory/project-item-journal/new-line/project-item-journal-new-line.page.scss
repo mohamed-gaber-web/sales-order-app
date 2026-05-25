@@ -1,0 +1,284 @@
+// Uses DS tokens — no hardcoded colors or sizes
+
+.form-content {
+  --background: var(--ds-bg-1);
+}
+
+// ── Context strip ──────────────────────────────────────────────
+.context-strip {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-2);
+  background: var(--ds-navy);
+  padding: var(--ds-space-3) var(--ds-space-5);
+  font-size: var(--ds-text-sm);
+  color: rgba(255,255,255,.75);
+  overflow: hidden;
+  ion-icon { font-size: 14px; opacity: .6; flex-shrink: 0; }
+}
+
+.context-sep { opacity: .4; margin: 0 2px; }
+.context-name { opacity: .65; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+// ── Lookup states ─────────────────────────────────────────────
+.lookups-loading {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-2);
+  padding: var(--ds-space-3) var(--ds-space-5);
+  font-size: var(--ds-text-sm);
+  color: var(--ds-txt-3);
+}
+
+.lookups-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ds-space-2);
+  padding: var(--ds-space-3) var(--ds-space-5);
+  background: rgba(245,158,11,.08);
+  border-bottom: 1px solid rgba(245,158,11,.20);
+  font-size: var(--ds-text-sm);
+  color: var(--ds-warning);
+  ion-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+}
+
+// ── Form sections ─────────────────────────────────────────────
+.form-section {
+  background: var(--ds-bg-0);
+  border-radius: var(--ds-radius-lg);
+  margin: var(--ds-space-4) var(--ds-space-4) 0;
+  overflow: hidden;
+  box-shadow: var(--ds-shadow-sm);
+}
+
+.form-section-advanced {
+  margin-bottom: 0;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-3);
+  padding: var(--ds-space-4) var(--ds-space-5);
+  background: var(--ds-bg-0);
+  border-bottom: 1px solid var(--ds-line-soft);
+  font-size: var(--ds-text-sm);
+  font-weight: var(--ds-weight-semibold);
+  color: var(--ds-txt-1);
+}
+
+.section-header-toggle {
+  cursor: pointer;
+  user-select: none;
+  &:active { background: var(--ds-bg-1); }
+}
+
+.section-icon-wrap {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-navy);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  ion-icon { font-size: 15px; color: #fff; }
+}
+
+.expand-chevron {
+  margin-left: auto;
+  font-size: 16px;
+  color: var(--ds-txt-3);
+}
+
+// ── Field rows ─────────────────────────────────────────────────
+.field-row {
+  padding: var(--ds-space-4) var(--ds-space-5);
+  border-bottom: 1px solid var(--ds-line-soft);
+  transition: background var(--ds-motion-fast) var(--ds-ease-out);
+
+  &:last-child { border-bottom: none; }
+  &.field-invalid { background: rgba(239,68,68,.04); }
+}
+
+.field-label {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-2);
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
+  color: var(--ds-txt-2);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: var(--ds-space-2);
+}
+
+.required-star {
+  color: var(--ds-danger);
+  font-size: 12px;
+}
+
+.optional-tag {
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-regular);
+  color: var(--ds-txt-3);
+  text-transform: none;
+  letter-spacing: 0;
+  background: var(--ds-bg-2);
+  border-radius: var(--ds-radius-sm);
+  padding: 1px 5px;
+}
+
+.field-input {
+  --background: var(--ds-bg-1);
+  --padding-start: var(--ds-space-3);
+  --padding-end: var(--ds-space-3);
+  --padding-top: var(--ds-space-2);
+  --padding-bottom: var(--ds-space-2);
+  --border-radius: var(--ds-radius-md);
+  --border-color: var(--ds-line);
+  --border-style: solid;
+  --border-width: 1px;
+  font-size: var(--ds-text-base);
+  border-radius: var(--ds-radius-md);
+}
+
+.field-select {
+  --background: var(--ds-bg-1);
+  --padding-start: var(--ds-space-3);
+  --padding-end: var(--ds-space-3);
+  --border-radius: var(--ds-radius-md);
+  border: 1px solid var(--ds-line);
+  border-radius: var(--ds-radius-md);
+  font-size: var(--ds-text-base);
+  width: 100%;
+}
+
+.field-value-readonly {
+  background: var(--ds-bg-1);
+  border: 1px solid var(--ds-line-soft);
+  border-radius: var(--ds-radius-md);
+  padding: var(--ds-space-2) var(--ds-space-3);
+  font-size: var(--ds-text-base);
+  color: var(--ds-txt-3);
+}
+
+.field-error-msg {
+  margin: var(--ds-space-1) 0 0;
+  font-size: var(--ds-text-xs);
+  color: var(--ds-danger);
+}
+
+// ── Project picker trigger ────────────────────────────────────
+.picker-trigger {
+  display: flex;
+  align-items: center;
+  background: var(--ds-bg-1);
+  border: 1px solid var(--ds-line);
+  border-radius: var(--ds-radius-md);
+  padding: var(--ds-space-3) var(--ds-space-3);
+  cursor: pointer;
+  min-height: 44px;
+  transition: border-color var(--ds-motion-fast) var(--ds-ease-out);
+
+  &:active { border-color: var(--ds-navy); }
+}
+
+.picker-value {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.picker-id {
+  font-size: var(--ds-text-base);
+  font-weight: var(--ds-weight-semibold);
+  color: var(--ds-txt-0);
+}
+
+.picker-name {
+  font-size: var(--ds-text-sm);
+  color: var(--ds-txt-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.picker-placeholder {
+  font-size: var(--ds-text-base);
+  color: var(--ds-txt-3);
+}
+
+.picker-arrow {
+  font-size: 16px;
+  color: var(--ds-txt-3);
+  flex-shrink: 0;
+}
+
+// ── Stepper ───────────────────────────────────────────────────
+.stepper-row {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-2);
+}
+
+.stepper-btn {
+  --border-color: var(--ds-line);
+  --color: var(--ds-txt-1);
+  height: 40px;
+  width: 40px;
+  flex-shrink: 0;
+}
+
+.stepper-input {
+  flex: 1;
+  --background: var(--ds-bg-1);
+  --padding-start: var(--ds-space-3);
+  --padding-end: var(--ds-space-3);
+  --border-radius: var(--ds-radius-md);
+  --border-color: var(--ds-line);
+  --border-style: solid;
+  --border-width: 1px;
+  text-align: center;
+  font-size: var(--ds-text-lg);
+  font-weight: var(--ds-weight-bold);
+}
+
+// ── Action bar ────────────────────────────────────────────────
+.action-bar {
+  ion-toolbar {
+    --background: var(--ds-bg-0);
+    --border-color: var(--ds-line-soft);
+    box-shadow: var(--ds-shadow-lg);
+  }
+}
+
+.footer-btns {
+  display: flex;
+  gap: var(--ds-space-3);
+  padding: var(--ds-space-2) var(--ds-space-5);
+  padding-bottom: calc(var(--ds-space-2) + env(safe-area-inset-bottom));
+}
+
+.btn-cancel {
+  flex: 0 0 auto;
+  --border-color: var(--ds-line);
+  --color: var(--ds-txt-1);
+}
+
+.btn-save {
+  flex: 1;
+  --background: var(--ds-accent);
+  --background-activated: var(--ds-accent-end);
+  --box-shadow: var(--ds-shadow-accent);
+}
+
+.save-header-btn {
+  font-weight: var(--ds-weight-semibold);
+  --color: var(--ds-accent);
+}
+
+.ds-mono { font-family: var(--ds-font-mono); }
+.ds-mono-input { --font-family: var(--ds-font-mono); }

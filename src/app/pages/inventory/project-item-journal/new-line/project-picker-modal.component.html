@@ -1,0 +1,60 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-title>Select Project</ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" (click)="dismiss()">
+        <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+  <ion-toolbar class="picker-search-bar">
+    <ion-searchbar
+      [(ngModel)]="searchTerm"
+      (ionInput)="onSearch($any($event).target.value ?? '')"
+      placeholder="Search project ID or name..."
+      [debounce]="0"
+      animated>
+    </ion-searchbar>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  @if (isLoading) {
+    <div class="picker-loading">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Loading projects...</p>
+    </div>
+  }
+
+  @if (!isLoading && loadError) {
+    <div class="picker-error">
+      <ion-icon name="cloud-offline-outline"></ion-icon>
+      <p>Failed to load projects.</p>
+      <ion-button size="small" fill="outline" (click)="load()">
+        <ion-icon name="refresh-outline" slot="start"></ion-icon>
+        Retry
+      </ion-button>
+    </div>
+  }
+
+  @if (!isLoading && !loadError) {
+    <ion-list lines="inset">
+      @for (project of filteredProjects; track project.ProjectID) {
+        <ion-item button (click)="select(project)" detail="true">
+          <ion-label>
+            <h3 class="project-id ds-mono">{{ project.ProjectID }}</h3>
+            @if (project.Name && project.Name !== project.ProjectID) {
+              <p class="project-name">{{ project.Name }}</p>
+            }
+          </ion-label>
+        </ion-item>
+      }
+      @if (filteredProjects.length === 0) {
+        <div class="picker-empty">
+          <ion-icon name="search-outline"></ion-icon>
+          <p>No projects found{{ searchTerm ? ' for "' + searchTerm + '"' : '' }}.</p>
+        </div>
+      }
+    </ion-list>
+  }
+</ion-content>

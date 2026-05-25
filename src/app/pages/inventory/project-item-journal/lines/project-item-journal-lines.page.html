@@ -1,0 +1,158 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/inventory/project-item-journal" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title class="ds-mono title-id">{{ journalId }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" (click)="loadLines()">
+        <ion-icon name="refresh-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- Journal Banner -->
+  <div class="journal-banner">
+    <div class="banner-eyebrow">
+      {{ journalName }}
+      @if (description) { <span class="banner-desc-sep">·</span> {{ description }} }
+    </div>
+    <h2 class="banner-title ds-mono">{{ journalId }}</h2>
+    <div class="stats-strip">
+      <div class="stat-item">
+        <span class="stat-value">{{ lines.length }}</span>
+        <span class="stat-label">Lines</span>
+      </div>
+      <div class="stat-sep"></div>
+      <div class="stat-item">
+        <span class="stat-value">{{ formatQty(totalQty) }}</span>
+        <span class="stat-label">Total Qty</span>
+      </div>
+      <div class="stat-sep"></div>
+      <div class="stat-item">
+        <span class="stat-value">{{ totalCost | number:'1.2-2' }}</span>
+        <span class="stat-label">{{ currency }} Cost</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading skeletons -->
+  @if (isLoading) {
+    <div class="lines-list">
+      @for (i of [1,2,3]; track i) {
+        <ion-card class="line-card skeleton-card">
+          <ion-card-content>
+            <ion-skeleton-text animated style="width: 20%; height: 12px; border-radius: 6px"></ion-skeleton-text>
+            <ion-skeleton-text animated style="width: 55%; height: 16px; margin-top: 8px; border-radius: 6px"></ion-skeleton-text>
+            <ion-skeleton-text animated style="width: 40%; height: 12px; margin-top: 6px; border-radius: 6px"></ion-skeleton-text>
+            <ion-skeleton-text animated style="width: 70%; height: 12px; margin-top: 6px; border-radius: 6px"></ion-skeleton-text>
+          </ion-card-content>
+        </ion-card>
+      }
+    </div>
+  }
+
+  <!-- Line cards -->
+  @if (!isLoading && lines.length > 0) {
+    <div class="lines-list">
+      @for (line of lines; track line.LineNum) {
+        <ion-card class="line-card">
+          <div class="line-layout">
+            <div class="line-accent"></div>
+            <div class="line-body">
+              <div class="line-top">
+                <span class="line-num ds-mono"># {{ line.LineNum }}</span>
+                <div class="line-badges">
+                  @if (line.ProjectCategoryId) {
+                    <span class="badge badge-category">{{ line.ProjectCategoryId }}</span>
+                  }
+                  @if (line.ProjectLinePropertyId) {
+                    <span class="badge badge-property">{{ line.ProjectLinePropertyId }}</span>
+                  }
+                </div>
+              </div>
+
+              <div class="line-item">
+                <ion-icon name="cube-outline"></ion-icon>
+                <span class="ds-mono">{{ line.ItemId }}</span>
+              </div>
+
+              <div class="line-project">
+                <ion-icon name="folder-outline"></ion-icon>
+                <span class="ds-mono">{{ line.ProjectId }}</span>
+                @if (line.ActivityNumber) {
+                  <span class="activity-tag">· {{ line.ActivityNumber }}</span>
+                }
+              </div>
+
+              <div class="line-meta">
+                <span class="meta-item">
+                  <ion-icon name="scale-outline"></ion-icon>
+                  {{ formatQty(line.Quantity) }}{{ line.ProjectUnitID ? ' ' + line.ProjectUnitID : '' }}
+                </span>
+                @if (line.CostAmount != null) {
+                  <span class="meta-item">
+                    <ion-icon name="cash-outline"></ion-icon>
+                    {{ line.CostAmount | number:'1.2-2' }} {{ line.ProjectSalesCurrencyId }}
+                  </span>
+                }
+                <span class="meta-item">
+                  <ion-icon name="location-outline"></ion-icon>
+                  {{ line.StorageSiteId }} / {{ line.StorageWarehouseId }}
+                </span>
+                @if (line.ProjectDate) {
+                  <span class="meta-item">
+                    <ion-icon name="calendar-outline"></ion-icon>
+                    {{ formatDate(line.ProjectDate) }}
+                  </span>
+                }
+              </div>
+            </div>
+          </div>
+        </ion-card>
+      }
+    </div>
+  }
+
+  <!-- Error state -->
+  @if (!isLoading && loadError) {
+    <div class="error-state">
+      <ion-icon name="cloud-offline-outline"></ion-icon>
+      <h3>Could not load lines</h3>
+      <p>Check your connection and try again.</p>
+      <ion-button fill="outline" (click)="loadLines()">
+        <ion-icon name="refresh-outline" slot="start"></ion-icon>
+        Retry
+      </ion-button>
+    </div>
+  }
+
+  <!-- Empty state -->
+  @if (!isLoading && !loadError && lines.length === 0) {
+    <div class="empty-lines">
+      <ion-icon name="document-text-outline"></ion-icon>
+      <h3>No lines yet</h3>
+      <p>Tap <strong>+ Add Line</strong> to start recording material consumption.</p>
+      <ion-button (click)="goAddLine()">
+        <ion-icon name="add-outline" slot="start"></ion-icon>
+        Add Line
+      </ion-button>
+    </div>
+  }
+
+  <div style="height: 100px"></div>
+</ion-content>
+
+<!-- Sticky Add Line bar -->
+<div class="add-line-bar">
+  <ion-button expand="block" (click)="goAddLine()" class="add-line-btn">
+    <ion-icon name="add-outline" slot="start"></ion-icon>
+    Add Line
+  </ion-button>
+</div>

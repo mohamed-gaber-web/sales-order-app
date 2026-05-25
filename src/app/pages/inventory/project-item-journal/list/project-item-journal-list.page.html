@@ -1,0 +1,128 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/inventory" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Project Item Journal</ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" (click)="loadJournals()">
+        <ion-icon name="refresh-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+  <ion-toolbar class="search-toolbar">
+    <ds-search
+      placeholder="Search journal ID, name or description..."
+      [debounceMs]="300"
+      (query)="onQueryChange($event)">
+    </ds-search>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- Hero Banner -->
+  <div class="hero-banner">
+    <div class="hero-badge">
+      <span class="hero-badge-dot"></span>
+      Unposted · USMF
+    </div>
+    <h1 class="hero-heading">Project Item <span class="hero-accent">Journal</span></h1>
+    <p class="hero-sub">Create and manage ad-hoc material consumption journals</p>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <span class="hero-stat-value">{{ journals.length }}</span>
+        <span class="hero-stat-label">Unposted</span>
+      </div>
+      <div class="hero-stat-sep"></div>
+      <div class="hero-stat">
+        <span class="hero-stat-value">USMF</span>
+        <span class="hero-stat-label">Company</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading skeletons -->
+  @if (isLoading) {
+    <div class="journals-list">
+      @for (i of [1,2,3,4]; track i) {
+        <ion-card class="journal-card skeleton-card">
+          <ion-card-content>
+            <ion-skeleton-text animated style="width: 35%; height: 16px; border-radius: 6px"></ion-skeleton-text>
+            <ion-skeleton-text animated style="width: 65%; height: 13px; margin-top: 8px; border-radius: 6px"></ion-skeleton-text>
+            <ion-skeleton-text animated style="width: 80%; height: 12px; margin-top: 6px; border-radius: 6px"></ion-skeleton-text>
+          </ion-card-content>
+        </ion-card>
+      }
+    </div>
+  }
+
+  <!-- Journal cards -->
+  @if (!isLoading && displayedJournals.length > 0) {
+    <div class="journals-list">
+      @for (journal of displayedJournals; track journal.JournalId) {
+        <ion-card class="journal-card" button (click)="openJournal(journal)">
+          <div class="card-layout">
+            <div class="status-strip"></div>
+            <div class="card-body">
+              <div class="card-top">
+                <span class="journal-id ds-mono">{{ journal.JournalId }}</span>
+                <ds-pill label="Unposted" color="#d97706" bg="rgba(217,119,6,.12)"></ds-pill>
+              </div>
+              <div class="card-item">
+                <ion-icon name="document-text-outline"></ion-icon>
+                {{ journal.JournalName }}
+              </div>
+              @if (journal.Description) {
+                <div class="card-desc">{{ journal.Description }}</div>
+              }
+              @if (journal.PostingDetailLevel) {
+                <div class="card-meta">
+                  <span>
+                    <ion-icon name="layers-outline"></ion-icon>
+                    {{ journal.PostingDetailLevel }}
+                  </span>
+                </div>
+              }
+            </div>
+            <div class="card-chevron">
+              <ion-icon name="chevron-forward-outline"></ion-icon>
+            </div>
+          </div>
+        </ion-card>
+      }
+    </div>
+  }
+
+  <!-- Error state -->
+  @if (!isLoading && loadError) {
+    <div class="error-state">
+      <ion-icon name="cloud-offline-outline"></ion-icon>
+      <h3>Could not load journals</h3>
+      <p>Check your connection and try again.</p>
+      <ion-button fill="outline" (click)="loadJournals()">
+        <ion-icon name="refresh-outline" slot="start"></ion-icon>
+        Retry
+      </ion-button>
+    </div>
+  }
+
+  <!-- Empty state -->
+  @if (!isLoading && !loadError && displayedJournals.length === 0) {
+    <ds-empty-state
+      icon="document-text-outline"
+      title="No Unposted Journals"
+      [message]="searchTerm ? 'No results for &quot;' + searchTerm + '&quot;' : 'No unposted journals. Tap + to create one.'">
+    </ds-empty-state>
+  }
+
+  <!-- FAB -->
+  <ion-fab slot="fixed" vertical="bottom" horizontal="end">
+    <ion-fab-button (click)="openNewJournal()">
+      <ion-icon name="add-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+</ion-content>
