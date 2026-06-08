@@ -62,7 +62,10 @@
       "Bash(Get-ChildItem -Path \"D:\\\\Grow Path\\\\Dynamic with app\\\\grow-path\\\\src\" -Filter \"*.scss\" -Recurse)",
       "Bash(awk '{print $NF}')",
       "Bash(Get-ChildItem -Path \"D:\\\\Grow Path\\\\Dynamic with app\\\\grow-path\\\\src\\\\app\\\\shared\\\\design-system\\\\components\" -Directory)",
-      "Bash(Select-Object Name)"
+      "Bash(Select-Object Name)",
+      "Bash(xargs grep -l \"pdf\\\\|PDF\\\\|jsPDF\\\\|pdfkit\")",
+      "Bash(xargs grep -l \"download\\\\|Download\")",
+      "Bash(xargs grep -l \"Share\\\\|share\\\\|Capacitor.*Share\\\\|navigator.share\")"
     ]
   }
 }

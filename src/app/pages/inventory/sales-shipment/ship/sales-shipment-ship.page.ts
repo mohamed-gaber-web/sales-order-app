@@ -3,6 +3,8 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LoadingController, ToastController } from '@ionic/angular';
 import { SalesShipmentService } from '../../../../core/services/sales-shipment.service';
+import { SalesShipmentHeader } from '../../../../models/inventory.model';
+import { PdfService, PackingSlipPdfData } from '../../../../core/services/pdf.service';
 
 @Component({
   selector: 'app-sales-shipment-ship',
@@ -12,8 +14,13 @@ import { SalesShipmentService } from '../../../../core/services/sales-shipment.s
 })
 export class SalesShipmentShipPage implements OnInit {
   soNumber = '';
+  order: SalesShipmentHeader | null = null;
   form!: FormGroup;
   isSubmitting = false;
+
+  slipConfirmed = false;
+  slipPdfData: PackingSlipPdfData | null = null;
+  isPdfBusy = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -22,10 +29,14 @@ export class SalesShipmentShipPage implements OnInit {
     private loadingCtrl: LoadingController,
     private toastCtrl: ToastController,
     private shipmentService: SalesShipmentService,
+    private pdfService: PdfService,
   ) {}
 
   ngOnInit() {
     this.soNumber = this.route.snapshot.paramMap.get('soNumber') ?? '';
+    const state = history.state as { order?: SalesShipmentHeader };
+    this.order = state?.order ?? null;
+
     this.form = this.fb.group({
       packingSlipId: ['', [Validators.required, Validators.minLength(1)]],
       dataAreaId:    ['usmf', Validators.required],
@@ -52,9 +63,16 @@ export class SalesShipmentShipPage implements OnInit {
       next: async () => {
         await loading.dismiss();
         this.isSubmitting = false;
-        const t = await this.toastCtrl.create({ message: `Packing slip ${packingSlipId} created.`, duration: 3000, color: 'success', position: 'bottom' });
-        await t.present();
-        this.router.navigate(['/sales-order/list']);
+        this.slipPdfData = {
+          salesOrderId: this.soNumber,
+          packingSlipId: packingSlipId.trim(),
+          dataAreaId: dataAreaId,
+          customerAccount: this.order?.CustomerAccountNumber,
+          customerName: this.order?.CustomerName,
+          warehouse: this.order?.ShippingWarehouseId,
+          slipDate: new Date(),
+        };
+        this.slipConfirmed = true;
       },
       error: async (err) => {
         await loading.dismiss();
@@ -64,6 +82,32 @@ export class SalesShipmentShipPage implements OnInit {
         await t.present();
       }
     });
+  }
+
+  async downloadPdf() {
+    if (!this.slipPdfData || this.isPdfBusy) return;
+    this.isPdfBusy = true;
+    try {
+      await this.pdfService.downloadPackingSlip(this.slipPdfData);
+    } catch {
+      const t = await this.toastCtrl.create({ message: 'Could not generate PDF. Try again.', duration: 3000, color: 'danger', position: 'bottom' });
+      await t.present();
+    } finally {
+      this.isPdfBusy = false;
+    }
+  }
+
+  async sharePdf() {
+    if (!this.slipPdfData || this.isPdfBusy) return;
+    this.isPdfBusy = true;
+    try {
+      await this.pdfService.sharePackingSlip(this.slipPdfData);
+    } catch {
+      const t = await this.toastCtrl.create({ message: 'Could not share PDF. Try again.', duration: 3000, color: 'danger', position: 'bottom' });
+      await t.present();
+    } finally {
+      this.isPdfBusy = false;
+    }
   }
 
   goBack() { this.router.navigate(['/sales-order/list']); }

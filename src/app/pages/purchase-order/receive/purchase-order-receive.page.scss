@@ -344,6 +344,176 @@ ion-header ion-toolbar {
   }
 }
 
+// ── Success State ────────────────────────────────────────────
+.success-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 16px 40px;
+  animation: fadeSlideUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+.success-icon-ring {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: rgba(34, 197, 94, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+  animation: fadeSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+
+  .success-icon {
+    font-size: 48px;
+    color: #22c55e;
+  }
+}
+
+.success-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--gp-navy);
+  letter-spacing: -0.03em;
+  margin: 0 0 6px;
+  text-align: center;
+}
+
+.success-sub {
+  font-size: 14px;
+  color: var(--ion-color-medium);
+  margin: 0 0 24px;
+  text-align: center;
+}
+
+.receipt-summary-card {
+  --background: var(--gp-card-bg);
+  width: 100%;
+  border-radius: 20px !important;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08) !important;
+  margin: 0 0 20px;
+  overflow: hidden;
+
+  ion-card-content { padding: 0; }
+}
+
+.summary-hero {
+  background: linear-gradient(135deg, var(--gp-navy, #002559) 0%, #1a3b6a 100%);
+  padding: 16px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  .summary-label {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(255, 255, 255, 0.55);
+    margin: 0 0 3px;
+  }
+
+  .summary-value.primary {
+    font-size: 18px;
+    font-weight: 800;
+    color: #fff;
+    margin: 0;
+    letter-spacing: -0.025em;
+  }
+
+  .summary-badge {
+    background: rgba(255, 255, 255, 0.18);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 5px 13px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    white-space: nowrap;
+  }
+}
+
+.summary-divider {
+  height: 1px;
+  background: var(--gp-border, rgba(0, 0, 0, 0.08));
+  margin: 0;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 16px;
+  padding: 16px 18px;
+
+  .summary-field {
+    min-width: 0;
+
+    .summary-field-label {
+      display: block;
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--ion-color-medium);
+      margin-bottom: 3px;
+    }
+
+    .summary-field-value {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--ion-text-color, #111827);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+
+      &.accent { color: var(--gp-accent); }
+      &.primary { color: var(--gp-navy); }
+    }
+  }
+}
+
+.pdf-actions {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.pdf-download-btn {
+  --background: linear-gradient(90deg, var(--gp-navy) 0%, #1a3b6a 100%);
+  --border-radius: 14px;
+  --box-shadow: 0 4px 16px rgba(0, 37, 89, 0.22);
+  font-weight: 700;
+  font-size: 15px;
+  text-transform: none;
+  height: 52px;
+  letter-spacing: -0.01em;
+
+  ion-spinner { width: 18px; height: 18px; }
+}
+
+.pdf-share-btn {
+  --border-radius: 14px;
+  --color: var(--gp-navy);
+  --border-color: var(--gp-navy);
+  font-weight: 700;
+  font-size: 15px;
+  text-transform: none;
+  height: 52px;
+  letter-spacing: -0.01em;
+}
+
+.back-order-btn {
+  --color: var(--ion-color-medium);
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: none;
+  margin-top: 4px;
+}
+
 // ── Desktop ─────────────────────────────────────────────────
 @media (min-width: 992px) {
   .context-card,
@@ -359,5 +529,11 @@ ion-header ion-toolbar {
     max-width: 580px;
     margin: 0 auto;
     padding-bottom: 48px;
+  }
+
+  .success-wrap {
+    max-width: 580px;
+    margin: 0 auto;
+    padding-top: 48px;
   }
 }

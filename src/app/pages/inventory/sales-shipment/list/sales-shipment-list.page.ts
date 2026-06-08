@@ -112,8 +112,11 @@ export class SalesShipmentListPage {
     );
   }
 
-  openShip(soNumber: string) {
-    this.router.navigate(['/inventory/sales-shipment/ship', soNumber]);
+  openShip(order: SalesShipmentHeader) {
+    this.router.navigate(
+      ['/inventory/sales-shipment/ship', order.SalesOrderNumber],
+      { state: { order } }
+    );
   }
 
   doRefresh(event: CustomEvent) {

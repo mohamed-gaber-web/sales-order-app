@@ -4,6 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { LoadingController, ToastController } from '@ionic/angular';
 import { PurchaseOrderService } from '../../../core/services/purchase-order.service';
 import { PurchaseOrderHeader, PurchaseOrderLine } from '../../../models/purchase-order.model';
+import { PdfService, ReceiptPdfData } from '../../../core/services/pdf.service';
 
 @Component({
   selector: 'app-purchase-order-receive',
@@ -19,6 +20,10 @@ export class PurchaseOrderReceivePage implements OnInit {
 
   form!: FormGroup;
   isSubmitting = false;
+
+  receiptConfirmed = false;
+  receiptPdfData: ReceiptPdfData | null = null;
+  isPdfBusy = false;
 
   private safeNum(val: unknown, fallback = 0): number {
     const n = Number(val);
@@ -50,7 +55,8 @@ export class PurchaseOrderReceivePage implements OnInit {
     private fb: FormBuilder,
     private loadingCtrl: LoadingController,
     private toastCtrl: ToastController,
-    private poService: PurchaseOrderService
+    private poService: PurchaseOrderService,
+    private pdfService: PdfService
   ) {}
 
   ngOnInit() {
@@ -100,14 +106,22 @@ export class PurchaseOrderReceivePage implements OnInit {
         await loading.dismiss();
         this.isSubmitting = false;
         if (res.Success) {
-          const toast = await this.toastCtrl.create({
-            message: `Line ${this.lineNumber} received successfully.`,
-            duration: 3000,
-            color: 'success',
-            position: 'bottom'
-          });
-          await toast.present();
-          this.router.navigate(['/purchase-order/detail', this.poNumber]);
+          this.receiptPdfData = {
+            poNumber: this.poNumber,
+            lineNumber: this.lineNumber,
+            dataAreaId: (this.po?.dataAreaId as string ?? 'usmf'),
+            packingSlipId: packingSlipId.trim(),
+            receiptQty: receiptQty,
+            itemNumber: this.line?.ItemNumber ?? '',
+            productName: this.line?.ProductName,
+            unit: this.line?.PurchaseUnitSymbol,
+            unitPrice: this.line?.PurchasePrice,
+            currency: this.po?.CurrencyCode as string | undefined,
+            warehouse: this.line?.ReceivingWarehouseId,
+            vendor: (this.po?.OrderVendorAccountNumber ?? this.po?.VendorAccountNumber) as string | undefined,
+            receiptDate: new Date()
+          };
+          this.receiptConfirmed = true;
         } else {
           const toast = await this.toastCtrl.create({
             message: res.Message ? `Receipt failed: ${res.Message}` : 'Receipt failed. Try again.',
@@ -133,6 +147,42 @@ export class PurchaseOrderReceivePage implements OnInit {
         await toast.present();
       }
     });
+  }
+
+  async downloadPdf() {
+    if (!this.receiptPdfData || this.isPdfBusy) return;
+    this.isPdfBusy = true;
+    try {
+      await this.pdfService.downloadReceipt(this.receiptPdfData);
+    } catch {
+      const toast = await this.toastCtrl.create({
+        message: 'Could not generate PDF. Try again.',
+        duration: 3000,
+        color: 'danger',
+        position: 'bottom'
+      });
+      await toast.present();
+    } finally {
+      this.isPdfBusy = false;
+    }
+  }
+
+  async sharePdf() {
+    if (!this.receiptPdfData || this.isPdfBusy) return;
+    this.isPdfBusy = true;
+    try {
+      await this.pdfService.shareReceipt(this.receiptPdfData);
+    } catch {
+      const toast = await this.toastCtrl.create({
+        message: 'Could not share PDF. Try again.',
+        duration: 3000,
+        color: 'danger',
+        position: 'bottom'
+      });
+      await toast.present();
+    } finally {
+      this.isPdfBusy = false;
+    }
   }
 
   goBack() {

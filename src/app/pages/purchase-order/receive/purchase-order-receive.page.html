@@ -1,13 +1,124 @@
 <ion-header class="ion-no-border">
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-back-button [defaultHref]="'/purchase-order/detail/' + poNumber"></ion-back-button>
+      @if (!receiptConfirmed) {
+        <ion-back-button [defaultHref]="'/purchase-order/detail/' + poNumber"></ion-back-button>
+      }
     </ion-buttons>
-    <ion-title>Receive</ion-title>
+    <ion-title>{{ receiptConfirmed ? 'Receipt Confirmed' : 'Receive' }}</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="receive-content">
+
+  <!-- ── Success State ─────────────────────────────────────── -->
+  @if (receiptConfirmed && receiptPdfData) {
+    <div class="success-wrap">
+
+      <!-- Check icon -->
+      <div class="success-icon-ring">
+        <ion-icon name="checkmark-circle" class="success-icon"></ion-icon>
+      </div>
+
+      <h2 class="success-title">Receipt Confirmed</h2>
+      <p class="success-sub">Line {{ receiptPdfData.lineNumber }} received successfully</p>
+
+      <!-- Receipt summary card -->
+      <ion-card class="receipt-summary-card">
+        <ion-card-content>
+
+          <div class="summary-hero">
+            <div>
+              <p class="summary-label">Purchase Order</p>
+              <p class="summary-value primary">{{ receiptPdfData.poNumber }}</p>
+            </div>
+            <div class="summary-badge">Line {{ receiptPdfData.lineNumber }}</div>
+          </div>
+
+          <div class="summary-divider"></div>
+
+          <div class="summary-grid">
+            <div class="summary-field">
+              <span class="summary-field-label">Receipt ID</span>
+              <span class="summary-field-value">{{ receiptPdfData.packingSlipId }}</span>
+            </div>
+            <div class="summary-field">
+              <span class="summary-field-label">Qty Received</span>
+              <span class="summary-field-value accent">
+                {{ receiptPdfData.receiptQty | number:'1.3-3' }}
+                {{ receiptPdfData.unit ? ' ' + receiptPdfData.unit : '' }}
+              </span>
+            </div>
+            <div class="summary-field">
+              <span class="summary-field-label">Item</span>
+              <span class="summary-field-value">{{ receiptPdfData.itemNumber }}</span>
+            </div>
+            @if (receiptPdfData.productName) {
+              <div class="summary-field">
+                <span class="summary-field-label">Product</span>
+                <span class="summary-field-value">{{ receiptPdfData.productName }}</span>
+              </div>
+            }
+            @if (receiptPdfData.unitPrice !== undefined) {
+              <div class="summary-field">
+                <span class="summary-field-label">Unit Price</span>
+                <span class="summary-field-value">
+                  {{ receiptPdfData.unitPrice | number:'1.2-2' }}
+                  {{ receiptPdfData.currency ? ' ' + receiptPdfData.currency : '' }}
+                </span>
+              </div>
+              <div class="summary-field">
+                <span class="summary-field-label">Total</span>
+                <span class="summary-field-value primary">
+                  {{ receiptPdfData.receiptQty * receiptPdfData.unitPrice | number:'1.2-2' }}
+                  {{ receiptPdfData.currency ? ' ' + receiptPdfData.currency : '' }}
+                </span>
+              </div>
+            }
+          </div>
+
+        </ion-card-content>
+      </ion-card>
+
+      <!-- PDF Actions -->
+      <div class="pdf-actions">
+        <ion-button
+          expand="block"
+          class="pdf-download-btn"
+          [disabled]="isPdfBusy"
+          (click)="downloadPdf()">
+          @if (isPdfBusy) {
+            <ion-spinner name="crescent" slot="start"></ion-spinner>
+          } @else {
+            <ion-icon slot="start" name="download-outline"></ion-icon>
+          }
+          Download PDF
+        </ion-button>
+
+        <ion-button
+          expand="block"
+          fill="outline"
+          class="pdf-share-btn"
+          [disabled]="isPdfBusy"
+          (click)="sharePdf()">
+          <ion-icon slot="start" name="share-outline"></ion-icon>
+          Share Receipt
+        </ion-button>
+      </div>
+
+      <ion-button
+        expand="block"
+        fill="clear"
+        class="back-order-btn"
+        (click)="goBack()">
+        Back to Purchase Order
+      </ion-button>
+
+    </div>
+  }
+
+  <!-- ── Receive Form ─────────────────────────────────────── -->
+  @if (!receiptConfirmed) {
   <form [formGroup]="form" (ngSubmit)="submitReceipt()">
 
     <!-- Context Summary Card -->
@@ -168,4 +279,6 @@
     </div>
 
   </form>
+  } <!-- end @if (!receiptConfirmed) -->
+
 </ion-content>
