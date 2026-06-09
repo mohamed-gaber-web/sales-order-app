@@ -1,12 +1,13 @@
 {
-  "name": "ionic-app-base",
+  "name": "grow-path",
   "version": "0.0.0",
-  "author": "Ionic Framework",
-  "homepage": "https://ionicframework.com/",
+  "author": "Grow path developer",
+  "homepage": "https://growpath.net/",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
+    "build:native": "ng build --configuration native",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "lint": "ng lint"

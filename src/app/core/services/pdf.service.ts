@@ -16,6 +16,13 @@ export interface ReceiptPdfData {
   receiptDate: Date;
 }
 
+export interface PackingSlipLine {
+  itemNumber: string;
+  productName?: string;
+  quantity: number;
+  unit?: string;
+}
+
 export interface PackingSlipPdfData {
   salesOrderId: string;
   packingSlipId: string;
@@ -24,6 +31,7 @@ export interface PackingSlipPdfData {
   customerName?: string;
   warehouse?: string;
   slipDate: Date;
+  lines?: PackingSlipLine[];
 }
 
 // No external dependencies — uses Canvas API + inline minimal PDF builder.
@@ -113,13 +121,21 @@ export class PdfService {
     const dateStr = data.receiptDate.toLocaleDateString('en-GB', {
       day: '2-digit', month: 'short', year: 'numeric'
     });
-    ctx.fillStyle = lightBlue;
-    ctx.font = '11px Arial,Helvetica,sans-serif';
-    ctx.textAlign = 'right';
-    ctx.fillText(`Receipt ID    ${data.packingSlipId}`, W - margin, 36);
-    ctx.fillText(`Date             ${dateStr}`, W - margin, 54);
-    ctx.fillText(`Company      ${data.dataAreaId.toUpperCase()}`, W - margin, 72);
-    ctx.textAlign = 'left';
+    // Two right-aligned columns: labels end at labelRight, values end at W - margin.
+    const labelRight = W - margin - 95;
+    const metaRow = (label: string, value: string, ry: number) => {
+      ctx.textAlign = 'right';
+      ctx.fillStyle = lightBlue;
+      ctx.font = '11px Arial,Helvetica,sans-serif';
+      ctx.fillText(label, labelRight, ry);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 11px Arial,Helvetica,sans-serif';
+      ctx.fillText(value, W - margin, ry);
+      ctx.textAlign = 'left';
+    };
+    metaRow('Receipt ID', data.packingSlipId, 36);
+    metaRow('Date', dateStr, 54);
+    metaRow('Company', data.dataAreaId.toUpperCase(), 72);
 
     // Orange accent
     ctx.fillStyle = orange;
@@ -253,7 +269,7 @@ export class PdfService {
 
   private renderPackingSlipToCanvas(data: PackingSlipPdfData): HTMLCanvasElement {
     const W = 595;
-    const H = 842;
+    const H = this.packingSlipHeight(data);
     const S = 2;
     const canvas = document.createElement('canvas');
     canvas.width = W * S;
@@ -263,6 +279,22 @@ export class PdfService {
     ctx.scale(S, S);
     this.drawPackingSlip(ctx, data, W, H);
     return canvas;
+  }
+
+  // Height grows with the number of line items. Mirror the y increments in
+  // drawPackingSlip exactly — keep the two in sync.
+  private packingSlipHeight(data: PackingSlipPdfData): number {
+    let y = 130;
+    y += 38 + 32 + 12;                               // SALES ORDER
+    if (data.customerAccount || data.customerName) {
+      y += 38 + 32 + 12;                             // CUSTOMER
+    }
+    y += 38 + 32 + 20;                               // SHIPMENT DETAILS
+    if (data.lines?.length) {
+      y += 38 + 26 + data.lines.length * 26 + 6;     // LINE ITEMS
+    }
+    y += 80;                                         // confirmation stamp
+    return y + 36;                                   // small gap + footer band (size to content)
   }
 
   private drawPackingSlip(
@@ -298,13 +330,21 @@ export class PdfService {
     const dateStr = data.slipDate.toLocaleDateString('en-GB', {
       day: '2-digit', month: 'short', year: 'numeric'
     });
-    ctx.fillStyle = lightBlue;
-    ctx.font = '11px Arial,Helvetica,sans-serif';
-    ctx.textAlign = 'right';
-    ctx.fillText(`Packing Slip    ${data.packingSlipId}`, W - margin, 36);
-    ctx.fillText(`Date               ${dateStr}`, W - margin, 54);
-    ctx.fillText(`Company         ${data.dataAreaId.toUpperCase()}`, W - margin, 72);
-    ctx.textAlign = 'left';
+    // Two right-aligned columns: labels end at labelRight, values end at W - margin.
+    const labelRight = W - margin - 95;
+    const metaRow = (label: string, value: string, ry: number) => {
+      ctx.textAlign = 'right';
+      ctx.fillStyle = lightBlue;
+      ctx.font = '11px Arial,Helvetica,sans-serif';
+      ctx.fillText(label, labelRight, ry);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 11px Arial,Helvetica,sans-serif';
+      ctx.fillText(value, W - margin, ry);
+      ctx.textAlign = 'left';
+    };
+    metaRow('Packing Slip', data.packingSlipId, 36);
+    metaRow('Date', dateStr, 54);
+    metaRow('Company', data.dataAreaId.toUpperCase(), 72);
 
     ctx.fillStyle = orange;
     ctx.fillRect(0, 108, W, 5);
@@ -369,6 +409,71 @@ export class PdfService {
     y += 32;
     y += 20;
 
+    // ── LINE ITEMS ───────────────────────────────────────────
+    if (data.lines?.length) {
+      const clampW = (text: string, font: string, maxW: number): string => {
+        ctx.font = font;
+        if (ctx.measureText(text).width <= maxW) return text;
+        let t = text;
+        while (t.length > 1 && ctx.measureText(t + '…').width > maxW) t = t.slice(0, -1);
+        return t + '…';
+      };
+
+      section('LINE ITEMS');
+
+      const qtyX = W - margin;
+      const itemX = margin;
+      const prodX = margin + 110;
+      const itemW = prodX - itemX - 12;
+      const prodW = qtyX - prodX - 70;
+
+      // Column headers
+      ctx.fillStyle = muted;
+      ctx.font = 'bold 8.5px Arial,Helvetica,sans-serif';
+      ctx.fillText('ITEM', itemX, y);
+      ctx.fillText('PRODUCT', prodX, y);
+      ctx.textAlign = 'right';
+      ctx.fillText('QTY', qtyX, y);
+      ctx.textAlign = 'left';
+      y += 8;
+      ctx.strokeStyle = '#dbe1ec';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(margin, y);
+      ctx.lineTo(W - margin, y);
+      ctx.stroke();
+      y += 18;
+
+      for (const line of data.lines) {
+        ctx.fillStyle = dark;
+        ctx.font = 'bold 11px Arial,Helvetica,sans-serif';
+        ctx.fillText(clampW(line.itemNumber, 'bold 11px Arial,Helvetica,sans-serif', itemW), itemX, y);
+
+        ctx.fillStyle = '#3a4356';
+        ctx.font = '11px Arial,Helvetica,sans-serif';
+        ctx.fillText(clampW(line.productName ?? '—', '11px Arial,Helvetica,sans-serif', prodW), prodX, y);
+
+        const qtyStr = `${Number(line.quantity).toLocaleString('en-US', {
+          maximumFractionDigits: 2
+        })}${line.unit ? ' ' + line.unit : ''}`;
+        ctx.fillStyle = dark;
+        ctx.font = 'bold 11px Arial,Helvetica,sans-serif';
+        ctx.textAlign = 'right';
+        ctx.fillText(qtyStr, qtyX, y);
+        ctx.textAlign = 'left';
+
+        y += 8;
+        ctx.strokeStyle = '#eef1f7';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(margin, y);
+        ctx.lineTo(W - margin, y);
+        ctx.stroke();
+        y += 18;
+      }
+      y += 6;
+    }
+
     // ── Confirmation stamp ───────────────────────────────────
     ctx.fillStyle = navy;
     ctx.fillRect(margin, y, contentW, 64);
@@ -423,9 +528,10 @@ export class PdfService {
   }
 
   private buildPdf(jpegBytes: Uint8Array, imgW: number, imgH: number): Blob {
-    // A4 in PDF points (72 dpi)
+    // A4 width in PDF points (72 dpi); height follows the image aspect ratio so
+    // variable-length documents (e.g. packing slips with many lines) are not squashed.
     const pW = 595.28;
-    const pH = 841.89;
+    const pH = +(pW * (imgH / imgW)).toFixed(2);
     const enc = (s: string) => new TextEncoder().encode(s);
 
     const parts: Uint8Array[] = [];
@@ -449,8 +555,9 @@ export class PdfService {
       `/Contents 4 0 R/Resources<</XObject<</Im0 5 0 R>>>>>>\nendobj\n`
     );
 
-    // Flip image vertically: canvas (0,0) = top-left → PDF (0,0) = bottom-left
-    const streamContent = `q ${pW} 0 0 -${pH} 0 ${pH} cm /Im0 Do Q`;
+    // Paint the image upright. A PDF image XObject already maps its top row to
+    // the top of the unit square, so a positive scale places it right-side-up.
+    const streamContent = `q ${pW} 0 0 ${pH} 0 0 cm /Im0 Do Q`;
     offsets[4] = pos;
     str(`4 0 obj\n<</Length ${enc(streamContent).length}>>\nstream\n${streamContent}\nendstream\nendobj\n`);
 

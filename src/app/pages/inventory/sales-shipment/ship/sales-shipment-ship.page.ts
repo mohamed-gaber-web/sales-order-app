@@ -3,8 +3,9 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LoadingController, ToastController } from '@ionic/angular';
 import { SalesShipmentService } from '../../../../core/services/sales-shipment.service';
+import { SalesOrderLineService } from '../../../../core/services/sales-order-line.service';
 import { SalesShipmentHeader } from '../../../../models/inventory.model';
-import { PdfService, PackingSlipPdfData } from '../../../../core/services/pdf.service';
+import { PdfService, PackingSlipPdfData, PackingSlipLine } from '../../../../core/services/pdf.service';
 
 @Component({
   selector: 'app-sales-shipment-ship',
@@ -22,6 +23,8 @@ export class SalesShipmentShipPage implements OnInit {
   slipPdfData: PackingSlipPdfData | null = null;
   isPdfBusy = false;
 
+  private orderLines: PackingSlipLine[] = [];
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -29,6 +32,7 @@ export class SalesShipmentShipPage implements OnInit {
     private loadingCtrl: LoadingController,
     private toastCtrl: ToastController,
     private shipmentService: SalesShipmentService,
+    private lineService: SalesOrderLineService,
     private pdfService: PdfService,
   ) {}
 
@@ -40,6 +44,23 @@ export class SalesShipmentShipPage implements OnInit {
     this.form = this.fb.group({
       packingSlipId: ['', [Validators.required, Validators.minLength(1)]],
       dataAreaId:    ['usmf', Validators.required],
+    });
+
+    this.loadOrderLines();
+  }
+
+  private loadOrderLines() {
+    if (!this.soNumber) return;
+    this.lineService.getOrderLines(this.soNumber).subscribe({
+      next: (res) => {
+        this.orderLines = (res.value ?? []).map((l) => ({
+          itemNumber: l.ItemNumber,
+          productName: l.ProductName,
+          quantity: Number(l.OrderedSalesQuantity ?? 0),
+          unit: l.SalesUnitSymbol,
+        }));
+      },
+      error: () => { this.orderLines = []; },
     });
   }
 
@@ -71,6 +92,7 @@ export class SalesShipmentShipPage implements OnInit {
           customerName: this.order?.CustomerName,
           warehouse: this.order?.ShippingWarehouseId,
           slipDate: new Date(),
+          lines: this.orderLines,
         };
         this.slipConfirmed = true;
       },
