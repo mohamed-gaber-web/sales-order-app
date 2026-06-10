@@ -65,7 +65,20 @@
       "Bash(Select-Object Name)",
       "Bash(xargs grep -l \"pdf\\\\|PDF\\\\|jsPDF\\\\|pdfkit\")",
       "Bash(xargs grep -l \"download\\\\|Download\")",
-      "Bash(xargs grep -l \"Share\\\\|share\\\\|Capacitor.*Share\\\\|navigator.share\")"
+      "Bash(xargs grep -l \"Share\\\\|share\\\\|Capacitor.*Share\\\\|navigator.share\")",
+      "Bash(git pull *)",
+      "Bash(git fetch *)",
+      "Bash(git checkout *)",
+      "Bash(git stash *)",
+      "Bash(git update-index *)",
+      "Bash(git restore *)",
+      "Skill(update-config)",
+      "Skill(build-apk)",
+      "Bash(npm run build)",
+      "Bash(npx cap sync *)",
+      "PowerShell(cd *; .\\gradlew.bat assembleDebug)",
+      "PowerShell(.\\gradlew.bat assembleDebug)",
+      "PowerShell(Get-Item *app-debug.apk*)"
     ]
   }
 }

@@ -1,4 +1,7 @@
 import { Injectable } from '@angular/core';
+import { Capacitor } from '@capacitor/core';
+import { Filesystem, Directory } from '@capacitor/filesystem';
+import { Share } from '@capacitor/share';
 
 export interface ReceiptPdfData {
   poNumber: string;
@@ -40,21 +43,39 @@ export class PdfService {
 
   async downloadReceipt(data: ReceiptPdfData): Promise<void> {
     const blob = await this.generatePdf(data);
-    this.triggerDownload(blob, `receipt-${data.packingSlipId}.pdf`);
+    await this.savePdf(blob, `receipt-${data.packingSlipId}.pdf`);
   }
 
   async shareReceipt(data: ReceiptPdfData): Promise<void> {
-    const filename = `receipt-${data.packingSlipId}.pdf`;
     const blob = await this.generatePdf(data);
-    const file = new File([blob], filename, { type: 'application/pdf' });
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      await navigator.share({ files: [file], title: filename });
+    await this.sharePdfBlob(blob, `receipt-${data.packingSlipId}.pdf`);
+  }
+
+  private async savePdf(blob: Blob, filename: string): Promise<void> {
+    if (Capacitor.isNativePlatform()) {
+      const base64 = await this.blobToBase64(blob);
+      await Filesystem.writeFile({ path: filename, data: base64, directory: Directory.Documents });
     } else {
-      this.triggerDownload(blob, filename);
+      this.triggerBrowserDownload(blob, filename);
     }
   }
 
-  private triggerDownload(blob: Blob, filename: string): void {
+  private async sharePdfBlob(blob: Blob, filename: string): Promise<void> {
+    if (Capacitor.isNativePlatform()) {
+      const base64 = await this.blobToBase64(blob);
+      const result = await Filesystem.writeFile({ path: filename, data: base64, directory: Directory.Cache });
+      await Share.share({ title: filename, url: result.uri });
+    } else {
+      const file = new File([blob], filename, { type: 'application/pdf' });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: filename });
+      } else {
+        this.triggerBrowserDownload(blob, filename);
+      }
+    }
+  }
+
+  private triggerBrowserDownload(blob: Blob, filename: string): void {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -63,6 +84,18 @@ export class PdfService {
     a.click();
     document.body.removeChild(a);
     setTimeout(() => URL.revokeObjectURL(url), 5000);
+  }
+
+  private blobToBase64(blob: Blob): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        resolve(result.split(',')[1]);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
   }
 
   private async generatePdf(data: ReceiptPdfData): Promise<Blob> {
@@ -247,18 +280,12 @@ export class PdfService {
 
   async downloadPackingSlip(data: PackingSlipPdfData): Promise<void> {
     const blob = await this.generatePackingSlipPdf(data);
-    this.triggerDownload(blob, `packing-slip-${data.packingSlipId}.pdf`);
+    await this.savePdf(blob, `packing-slip-${data.packingSlipId}.pdf`);
   }
 
   async sharePackingSlip(data: PackingSlipPdfData): Promise<void> {
-    const filename = `packing-slip-${data.packingSlipId}.pdf`;
     const blob = await this.generatePackingSlipPdf(data);
-    const file = new File([blob], filename, { type: 'application/pdf' });
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      await navigator.share({ files: [file], title: filename });
-    } else {
-      this.triggerDownload(blob, filename);
-    }
+    await this.sharePdfBlob(blob, `packing-slip-${data.packingSlipId}.pdf`);
   }
 
   private async generatePackingSlipPdf(data: PackingSlipPdfData): Promise<Blob> {

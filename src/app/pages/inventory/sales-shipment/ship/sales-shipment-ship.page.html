@@ -11,7 +11,7 @@
 
 <ion-content class="page-content">
 
-  <!-- ── Success State ─────────────────────────────────────── -->
+  <!-- ── Success State ─────────────────────────────────────────── -->
   @if (slipConfirmed && slipPdfData) {
     <div class="success-wrap">
 
@@ -22,7 +22,6 @@
       <h2 class="success-title">Packing Slip Created</h2>
       <p class="success-sub">{{ slipPdfData.salesOrderId }} shipped successfully</p>
 
-      <!-- Summary card -->
       <ion-card class="slip-summary-card">
         <ion-card-content>
 
@@ -61,14 +60,13 @@
             }
             <div class="summary-field">
               <span class="summary-field-label">Lines Shipped</span>
-              <span class="summary-field-value">All remaining</span>
+              <span class="summary-field-value">{{ confirmedLineCount }} line{{ confirmedLineCount !== 1 ? 's' : '' }}</span>
             </div>
           </div>
 
         </ion-card-content>
       </ion-card>
 
-      <!-- PDF Actions -->
       <div class="pdf-actions">
         <ion-button
           expand="block"
@@ -101,10 +99,11 @@
     </div>
   }
 
-  <!-- ── Ship Form ─────────────────────────────────────────── -->
+  <!-- ── Ship Form ─────────────────────────────────────────────── -->
   @if (!slipConfirmed) {
     <div class="page-body" [formGroup]="form">
 
+      <!-- Order banner -->
       <div class="order-banner">
         <ion-icon name="cube-outline" color="primary"></ion-icon>
         <div>
@@ -119,14 +118,22 @@
         }
       </div>
 
+      <!-- Packing Slip ID -->
       <div class="form-section">
         <p class="form-label">Packing Slip ID *</p>
         <ion-item lines="none" class="input-item">
           <ion-icon name="document-outline" slot="start" color="medium"></ion-icon>
-          <ion-input formControlName="packingSlipId" placeholder="Enter packing slip number" inputmode="text" clearInput="true" (keyup.enter)="submitShipment()"></ion-input>
+          <ion-input
+            formControlName="packingSlipId"
+            placeholder="Enter packing slip number"
+            inputmode="text"
+            clearInput="true"
+            (keyup.enter)="submitShipment()">
+          </ion-input>
         </ion-item>
       </div>
 
+      <!-- Company -->
       <div class="form-section">
         <p class="form-label">Company (Data Area) *</p>
         <ion-item lines="none" class="input-item">
@@ -138,18 +145,155 @@
         </ion-item>
       </div>
 
-      <div class="info-box">
-        <ion-icon name="information-circle-outline" color="primary"></ion-icon>
-        <p>This will post a packing slip for all remaining lines on sales order {{ soNumber }}. Ensure items are physically packed before confirming.</p>
+      <!-- ── Lines to Ship ─────────────────────────────────────── -->
+      <div class="lines-section">
+
+        <div class="lines-header">
+          <div class="lines-header-left">
+            <p class="lines-title">Lines to Ship</p>
+            <p class="lines-sub">
+              @if (linesLoading) {
+                Loading lines...
+              } @else if (totalLines === 0) {
+                No lines found
+              } @else {
+                <span [class.sub-partial]="!allSelected && !noneSelected">
+                  {{ selectedCount }} of {{ totalLines }} selected
+                </span>
+              }
+            </p>
+          </div>
+          @if (!linesLoading && totalLines > 0) {
+            <div class="lines-header-actions">
+              <button class="sel-btn" [class.sel-btn-active]="allSelected" (click)="selectAll()">All</button>
+              <button class="sel-btn" [class.sel-btn-active]="noneSelected" (click)="deselectAll()">None</button>
+            </div>
+          }
+        </div>
+
+        <!-- Skeleton loading -->
+        @if (linesLoading) {
+          @for (i of [1, 2, 3]; track i) {
+            <div class="line-card-skeleton">
+              <div class="skel-check"></div>
+              <div class="skel-body">
+                <ion-skeleton-text animated style="width:50%;height:15px;border-radius:4px"></ion-skeleton-text>
+                <ion-skeleton-text animated style="width:72%;height:12px;margin-top:7px;border-radius:4px"></ion-skeleton-text>
+                <ion-skeleton-text animated style="width:40%;height:11px;margin-top:5px;border-radius:4px"></ion-skeleton-text>
+              </div>
+            </div>
+          }
+        }
+
+        <!-- Line cards -->
+        @if (!linesLoading) {
+          @for (line of orderLinesData; track $index) {
+            <div class="line-card"
+                 [class.line-selected]="isSelected(line, $index)"
+                 (click)="toggleLine(line, $index)">
+
+              <!-- Checkbox -->
+              <div class="line-check-col">
+                <div class="checkbox" [class.checkbox-on]="isSelected(line, $index)">
+                  @if (isSelected(line, $index)) {
+                    <ion-icon name="checkmark-outline"></ion-icon>
+                  }
+                </div>
+              </div>
+
+              <!-- Card body -->
+              <div class="line-card-body">
+
+                <!-- Row 1: Item ID + Line number -->
+                <div class="line-top-row">
+                  <span class="line-item-id">{{ line.ItemNumber }}</span>
+                  <span class="line-num-tag">Line {{ line.LineNumber ?? ($index + 1) }}</span>
+                </div>
+
+                <!-- Row 2: Product name -->
+                @if (line.ProductName) {
+                  <p class="line-product-name">{{ line.ProductName }}</p>
+                }
+
+                <!-- Row 3: Qty + warehouse + dimensions -->
+                <div class="line-meta-row">
+                  <span class="line-qty-badge">
+                    <ion-icon name="layers-outline"></ion-icon>
+                    {{ line.OrderedSalesQuantity }} {{ line.SalesUnitSymbol }}
+                  </span>
+                  @if (line.ShippingWarehouseId) {
+                    <span class="line-meta-tag">
+                      <ion-icon name="business-outline"></ion-icon>
+                      {{ line.ShippingWarehouseId }}
+                    </span>
+                  }
+                  @if (getDimensions(line)) {
+                    <span class="line-meta-tag line-dims">{{ getDimensions(line) }}</span>
+                  }
+                </div>
+
+                <!-- Qty stepper — only when selected -->
+                @if (isSelected(line, $index)) {
+                  <div class="qty-stepper" (click)="$event.stopPropagation()">
+                    <span class="qty-label">
+                      <ion-icon name="cube-outline"></ion-icon>
+                      Ship qty
+                    </span>
+                    <div class="stepper-controls">
+                      <button class="step-btn"
+                              (click)="decrementQty(line, $index, $event)"
+                              [disabled]="getQty(line, $index) <= 1">
+                        <ion-icon name="remove-outline"></ion-icon>
+                      </button>
+                      <span class="qty-value">{{ getQty(line, $index) }}</span>
+                      <button class="step-btn"
+                              (click)="incrementQty(line, $index, $event)"
+                              [disabled]="getQty(line, $index) >= (line.OrderedSalesQuantity ?? 1)">
+                        <ion-icon name="add-outline"></ion-icon>
+                      </button>
+                    </div>
+                  </div>
+                }
+
+              </div>
+            </div>
+          }
+
+          <!-- Empty state -->
+          @if (orderLinesData.length === 0) {
+            <div class="lines-empty">
+              <ion-icon name="list-outline"></ion-icon>
+              <p>No order lines found</p>
+            </div>
+          }
+        }
+
       </div>
 
-      <ion-button expand="block" class="action-btn" (click)="submitShipment()" [disabled]="form.invalid || isSubmitting">
+      <!-- No-selection warning -->
+      @if (!linesLoading && noneSelected && totalLines > 0) {
+        <div class="warn-box">
+          <ion-icon name="warning-outline"></ion-icon>
+          <p>Select at least one line to create a packing slip.</p>
+        </div>
+      }
+
+      <!-- Submit -->
+      <ion-button
+        expand="block"
+        class="action-btn"
+        (click)="submitShipment()"
+        [disabled]="form.invalid || isSubmitting || noneSelected">
         @if (isSubmitting) {
           <ion-spinner name="crescent" slot="start"></ion-spinner>
           Creating Packing Slip...
         } @else {
           <ion-icon name="checkmark-outline" slot="start"></ion-icon>
-          Confirm Shipment
+          @if (noneSelected) {
+            Select Lines to Ship
+          } @else {
+            Ship {{ selectedCount }} Line{{ selectedCount !== 1 ? 's' : '' }}
+          }
         }
       </ion-button>
 
