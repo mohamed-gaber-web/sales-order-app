@@ -153,10 +153,14 @@ export class PurchaseOrderReceivePage implements OnInit {
     if (!this.receiptPdfData || this.isPdfBusy) return;
     this.isPdfBusy = true;
     try {
-      await this.pdfService.downloadReceipt(this.receiptPdfData);
+      const uri = await this.pdfService.downloadReceipt(this.receiptPdfData);
+      if (uri) {
+        const toast = await this.toastCtrl.create({ message: 'PDF saved to your files.', duration: 3000, color: 'success', position: 'bottom' });
+        await toast.present();
+      }
     } catch {
       const toast = await this.toastCtrl.create({
-        message: 'Could not generate PDF. Try again.',
+        message: 'Could not save PDF. Try again.',
         duration: 3000,
         color: 'danger',
         position: 'bottom'

@@ -41,9 +41,9 @@ export interface PackingSlipPdfData {
 @Injectable({ providedIn: 'root' })
 export class PdfService {
 
-  async downloadReceipt(data: ReceiptPdfData): Promise<void> {
+  async downloadReceipt(data: ReceiptPdfData): Promise<string | null> {
     const blob = await this.generatePdf(data);
-    await this.savePdf(blob, `receipt-${data.packingSlipId}.pdf`);
+    return this.savePdf(blob, `receipt-${data.packingSlipId}.pdf`);
   }
 
   async shareReceipt(data: ReceiptPdfData): Promise<void> {
@@ -51,12 +51,16 @@ export class PdfService {
     await this.sharePdfBlob(blob, `receipt-${data.packingSlipId}.pdf`);
   }
 
-  private async savePdf(blob: Blob, filename: string): Promise<void> {
+  private async savePdf(blob: Blob, filename: string): Promise<string | null> {
     if (Capacitor.isNativePlatform()) {
       const base64 = await this.blobToBase64(blob);
-      await Filesystem.writeFile({ path: filename, data: base64, directory: Directory.Documents });
+      // Directory.External maps to app-specific external storage (visible in file manager,
+      // no runtime permission needed on Android 4.4+).
+      const result = await Filesystem.writeFile({ path: filename, data: base64, directory: Directory.External });
+      return result.uri;
     } else {
       this.triggerBrowserDownload(blob, filename);
+      return null;
     }
   }
 
@@ -278,9 +282,9 @@ export class PdfService {
 
   // ── Packing Slip ───────────────────────────────────────────
 
-  async downloadPackingSlip(data: PackingSlipPdfData): Promise<void> {
+  async downloadPackingSlip(data: PackingSlipPdfData): Promise<string | null> {
     const blob = await this.generatePackingSlipPdf(data);
-    await this.savePdf(blob, `packing-slip-${data.packingSlipId}.pdf`);
+    return this.savePdf(blob, `packing-slip-${data.packingSlipId}.pdf`);
   }
 
   async sharePackingSlip(data: PackingSlipPdfData): Promise<void> {
