@@ -4,10 +4,14 @@
   "rewrites": [
     {
       "source": "/data/:path*",
-      "destination": "https://growpath.sandbox.operations.eu.dynamics.com/data/:path*"
+      "destination": "/api/d365/data/:path*"
     },
     {
-      "source": "/((?!api/).*)",
+      "source": "/api/services/:path*",
+      "destination": "/api/d365/api/services/:path*"
+    },
+    {
+      "source": "/((?!api/|data/).*)",
       "destination": "/index.html"
     }
   ]
