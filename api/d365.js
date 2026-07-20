@@ -1,21 +1,35 @@
 /**
- * Vercel serverless function: catch-all proxy to D365.
+ * Vercel serverless function: proxy to D365.
  *
- * Handles /data/* (OData) and /api/services/* (custom services) on web.
- * A plain vercel.json external rewrite cannot be used because Vercel keeps
- * the original Host header (<app>.vercel.app), and D365 routes by hostname
- * and answers 404. This function forwards the request with the correct host.
+ * vercel.json rewrites /data/* and /api/services/* here, passing the real
+ * upstream path in the `dpath` query parameter (?dpath=/data/...).
+ *
+ * A filesystem catch-all route (api/d365/[...path].js) was tried first, but
+ * on this project Vercel's zero-config routing only matched a single path
+ * segment for it — /api/d365/x worked, /api/d365/data/SalesOrderHeadersV3
+ * 404'd before the function was ever invoked. Rewriting to this fixed path
+ * with the target encoded in a query param sidesteps that limitation.
  */
 
 const D365_BASE = 'https://growpath.sandbox.operations.eu.dynamics.com';
-
 const FORWARDED_HEADERS = ['authorization', 'content-type', 'accept', 'if-match', 'prefer'];
 
 module.exports = async function handler(req, res) {
-  // req.url is either the rewritten path (/api/d365/data/...) or the
-  // original one (/data/... or /api/services/...) — both map onto D365 as-is.
-  const targetPath = req.url.replace(/^\/api\/d365/, '');
-  const url = D365_BASE + targetPath;
+  const { dpath, ...rest } = req.query || {};
+  if (!dpath) {
+    return res.status(400).json({ error: 'Missing dpath query parameter' });
+  }
+
+  const qs = new URLSearchParams();
+  for (const [key, value] of Object.entries(rest)) {
+    if (Array.isArray(value)) {
+      value.forEach((v) => qs.append(key, v));
+    } else if (value !== undefined) {
+      qs.append(key, value);
+    }
+  }
+  const query = qs.toString();
+  const url = D365_BASE + dpath + (query ? `?${query}` : '');
 
   const headers = {};
   for (const name of FORWARDED_HEADERS) {

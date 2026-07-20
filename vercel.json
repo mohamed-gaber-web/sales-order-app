@@ -4,11 +4,11 @@
   "rewrites": [
     {
       "source": "/data/:path*",
-      "destination": "/api/d365/data/:path*"
+      "destination": "/api/d365?dpath=/data/:path*"
     },
     {
       "source": "/api/services/:path*",
-      "destination": "/api/d365/api/services/:path*"
+      "destination": "/api/d365?dpath=/api/services/:path*"
     },
     {
       "source": "/((?!api/|data/).*)",
