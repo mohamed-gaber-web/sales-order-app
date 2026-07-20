@@ -235,6 +235,22 @@
   flex-shrink: 0;
 }
 
+// ── Promo Banner ──────────────────────────────────────────────
+.promo-banner-wrap {
+  padding: var(--ds-space-5) var(--ds-space-4) 0;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.promo-banner-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--ds-radius-lg);
+  box-shadow: var(--ds-shadow-sm);
+  cursor: pointer;
+}
+
 // ── Sections ──────────────────────────────────────────────────
 .section-wrap {
   padding: var(--ds-space-5) var(--ds-space-4) 0;
@@ -746,6 +762,10 @@
   }
 
   .section-wrap {
+    padding: var(--ds-space-6) var(--ds-space-8) 0;
+  }
+
+  .promo-banner-wrap {
     padding: var(--ds-space-6) var(--ds-space-8) 0;
   }
 

@@ -232,6 +232,10 @@ export class DashboardPage implements OnInit {
     this.router.navigateByUrl(route);
   }
 
+  openGrowPathSite() {
+    window.open('https://www.growpath.net', '_blank');
+  }
+
   async openScanner() {
     const modal = await this.modalCtrl.create({
       component: ScannerModalComponent,
