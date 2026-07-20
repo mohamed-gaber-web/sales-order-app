@@ -29,7 +29,12 @@
 
 // ── Hero ──────────────────────────────────────────────────────
 .hero {
-  background: linear-gradient(160deg, var(--ds-navy) 0%, #003a7d 55%, #00408c 100%);
+  background-image:
+    linear-gradient(160deg, rgba(0, 37, 89, 0.90) 0%, rgba(0, 58, 125, 0.78) 55%, rgba(0, 64, 140, 0.6) 100%),
+    url('/assets/erp-insights-banner.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   padding: 28px 24px 0;
   position: relative;
   overflow: hidden;
@@ -233,22 +238,6 @@
   width: 1px; height: 44px;
   background: rgba(255, 255, 255, 0.12);
   flex-shrink: 0;
-}
-
-// ── Promo Banner ──────────────────────────────────────────────
-.promo-banner-wrap {
-  padding: var(--ds-space-5) var(--ds-space-4) 0;
-  max-width: 1000px;
-  margin: 0 auto;
-}
-
-.promo-banner-img {
-  display: block;
-  width: 100%;
-  height: auto;
-  border-radius: var(--ds-radius-lg);
-  box-shadow: var(--ds-shadow-sm);
-  cursor: pointer;
 }
 
 // ── Sections ──────────────────────────────────────────────────
@@ -762,10 +751,6 @@
   }
 
   .section-wrap {
-    padding: var(--ds-space-6) var(--ds-space-8) 0;
-  }
-
-  .promo-banner-wrap {
     padding: var(--ds-space-6) var(--ds-space-8) 0;
   }
 
