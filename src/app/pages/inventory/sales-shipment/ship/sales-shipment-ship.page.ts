@@ -223,7 +223,7 @@ export class SalesShipmentShipPage implements OnInit {
         },
         error: async (err) => {
           const msg = err?.error?.Message ?? err?.error?.message ?? err?.message ?? 'Shipment failed.';
-          const t = await this.toastCtrl.create({ message: msg, buttons: [{ text: 'Dismiss', role: 'cancel' }], color: 'danger', position: 'bottom' });
+          const t = await this.toastCtrl.create({ message: msg, duration: 5000, color: 'danger', position: 'bottom' });
           await t.present();
         }
       });
@@ -252,9 +252,13 @@ export class SalesShipmentShipPage implements OnInit {
     if (!this.slipPdfData || this.isPdfBusy) return;
     this.isPdfBusy = true;
     try {
-      await this.pdfService.downloadPackingSlip(this.slipPdfData);
+      const uri = await this.pdfService.downloadPackingSlip(this.slipPdfData);
+      if (uri) {
+        const t = await this.toastCtrl.create({ message: 'PDF saved to your files.', duration: 3000, color: 'success', position: 'bottom' });
+        await t.present();
+      }
     } catch {
-      const t = await this.toastCtrl.create({ message: 'Could not generate PDF. Try again.', buttons: [{ text: 'Dismiss', role: 'cancel' }], color: 'danger', position: 'bottom' });
+      const t = await this.toastCtrl.create({ message: 'Could not save PDF. Try again.', duration: 3000, color: 'danger', position: 'bottom' });
       await t.present();
     } finally {
       this.isPdfBusy = false;
@@ -267,7 +271,7 @@ export class SalesShipmentShipPage implements OnInit {
     try {
       await this.pdfService.sharePackingSlip(this.slipPdfData);
     } catch {
-      const t = await this.toastCtrl.create({ message: 'Could not share PDF. Try again.', buttons: [{ text: 'Dismiss', role: 'cancel' }], color: 'danger', position: 'bottom' });
+      const t = await this.toastCtrl.create({ message: 'Could not share PDF. Try again.', duration: 3000, color: 'danger', position: 'bottom' });
       await t.present();
     } finally {
       this.isPdfBusy = false;
