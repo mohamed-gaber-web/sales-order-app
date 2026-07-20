@@ -47,34 +47,6 @@ ion-header {
   }
 }
 
-// ── Item Search Row ────────────────────────────────────────
-.item-search-row {
-  display: flex;
-  align-items: flex-end;
-  gap: 8px;
-  margin-bottom: 10px;
-
-  .item-input {
-    flex: 1;
-    margin-bottom: 0;
-  }
-
-  .search-btn {
-    --background: linear-gradient(90deg, var(--gp-accent) 0%, var(--gp-accent-end) 100%);
-    --border-radius: var(--gp-radius-sm, 8px);
-    --box-shadow: 0 2px 8px rgba(var(--ion-color-secondary-rgb), 0.25);
-    height: 56px;
-    min-width: 56px;
-    margin: 0;
-    font-size: 20px;
-
-    ion-spinner {
-      width: 20px;
-      height: 20px;
-    }
-  }
-}
-
 // ── Variant Message ────────────────────────────────────────
 .variant-message {
   display: flex;
@@ -121,6 +93,20 @@ ion-header {
 // ── Form Wrapper ───────────────────────────────────────────
 .form-wrapper {
   // Mobile: no special wrapper styles
+}
+
+// ── Item search dropdown close row ─────────────────────────
+.select-dropdown-close {
+  display: flex;
+  justify-content: flex-end;
+  border-bottom: 1px solid var(--gp-border, #e5e7eb);
+
+  ion-button {
+    margin: 0;
+    --padding-start: 8px;
+    --padding-end: 8px;
+    height: 32px;
+  }
 }
 
 // ── Form Section ───────────────────────────────────────────

@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
+import { catchError, map, shareReplay } from 'rxjs/operators';
 import { ApiService } from './api.service';
 import { ODataResponse } from '../models/lookup.models';
 import {
@@ -10,6 +11,8 @@ import {
 } from '../../models/inventory.model';
 
 export const INV_PAGE_SIZE = 20;
+
+const PRODUCT_SELECT = 'ProductNumber,ProductName,ProductSearchName,ProductType';
 
 @Injectable({ providedIn: 'root' })
 export class InventoryService {
@@ -84,6 +87,9 @@ export class InventoryService {
   }
 
   // ── Products ───────────────────────────────────────────────────────────────
+  // Field names verified against the live entity: ProductSearchName is the
+  // filterable name column; SearchName/UnitSymbol do not exist on ProductsV2
+  // and make the whole request fail.
 
   getProducts(skip = 0): Observable<ODataResponse<InventoryProduct>> {
     return this.api.get<ODataResponse<InventoryProduct>>(
@@ -92,22 +98,42 @@ export class InventoryService {
         '$top': String(INV_PAGE_SIZE),
         '$skip': String(skip),
         '$count': 'true',
-        '$select': 'ProductNumber,ProductName,SearchName,UnitSymbol,ProductType',
+        '$select': PRODUCT_SELECT,
         '$orderby': 'ProductNumber asc',
       }
     );
   }
 
-  searchProducts(term: string, skip = 0): Observable<ODataResponse<InventoryProduct>> {
-    const filter = `contains(ProductNumber,'${term}') or contains(ProductName,'${term}')`;
+  /**
+   * Substring search by number or name, filtered in memory over a cached
+   * one-time load: this D365 environment rejects every OData string function
+   * (contains/startswith → "not Queryable"), so server-side search is not
+   * possible — only eq filters work.
+   */
+  searchProducts(term: string, limit = 50): Observable<InventoryProduct[]> {
+    const lower = term.toLowerCase();
+    return this.getAllProductsCached().pipe(
+      map((products) =>
+        products
+          .filter(
+            (p) =>
+              p.ProductNumber.toLowerCase().includes(lower) ||
+              (p.ProductName ?? '').toLowerCase().includes(lower) ||
+              (p.ProductSearchName ?? '').toLowerCase().includes(lower)
+          )
+          .slice(0, limit)
+      )
+    );
+  }
+
+  getProductByNumber(productNumber: string): Observable<ODataResponse<InventoryProduct>> {
+    const safe = productNumber.replace(/'/g, "''");
     return this.api.get<ODataResponse<InventoryProduct>>(
       '/data/ProductsV2',
       {
-        '$filter': filter,
-        '$top': String(INV_PAGE_SIZE),
-        '$skip': String(skip),
-        '$count': 'true',
-        '$select': 'ProductNumber,ProductName,SearchName,UnitSymbol,ProductType',
+        '$filter': `ProductNumber eq '${safe}'`,
+        '$top': '1',
+        '$select': PRODUCT_SELECT,
       }
     );
   }
@@ -117,10 +143,27 @@ export class InventoryService {
       '/data/ProductsV2',
       {
         '$count': 'true',
-        '$select': 'ProductNumber,ProductName,SearchName,UnitSymbol,ProductType',
+        '$select': PRODUCT_SELECT,
         '$orderby': 'ProductNumber asc',
       }
     );
+  }
+
+  private allProducts$?: Observable<InventoryProduct[]>;
+
+  /** Full product list, loaded once per session and shared between subscribers. */
+  getAllProductsCached(): Observable<InventoryProduct[]> {
+    if (!this.allProducts$) {
+      this.allProducts$ = this.getAllProducts().pipe(
+        map((res) => res.value),
+        shareReplay(1),
+        catchError((err) => {
+          this.allProducts$ = undefined; // failed load isn't cached — next call retries
+          return throwError(() => err);
+        })
+      );
+    }
+    return this.allProducts$;
   }
 
   // ── Warehouse Locations ─────────────────────────────────────────────────────

@@ -78,7 +78,7 @@ export class CycleCountFormPage implements OnInit {
         this.loadError = true;
         const toast = await this.toastCtrl.create({
           message: 'Could not load journal lines. Check your connection.',
-          duration: 3000, color: 'danger', position: 'bottom',
+          buttons: [{ text: 'Dismiss', role: 'cancel' }], color: 'danger', position: 'bottom',
         });
         await toast.present();
       },
@@ -101,7 +101,7 @@ export class CycleCountFormPage implements OnInit {
       error: async () => {
         (event.target as HTMLIonRefresherElement).complete();
         const toast = await this.toastCtrl.create({
-          message: 'Refresh failed.', duration: 2500, color: 'danger', position: 'bottom',
+          message: 'Refresh failed.', buttons: [{ text: 'Dismiss', role: 'cancel' }], color: 'danger', position: 'bottom',
         });
         await toast.present();
       },
@@ -143,7 +143,7 @@ export class CycleCountFormPage implements OnInit {
         this.persistSaved(entry.line.LineNumber);
         const toast = await this.toastCtrl.create({
           message: `Line ${entry.line.LineNumber} saved.`,
-          duration: 2000, color: 'success', position: 'bottom',
+          buttons: [{ text: 'Dismiss', role: 'cancel' }], color: 'success', position: 'bottom',
         });
         await toast.present();
       },
@@ -152,7 +152,7 @@ export class CycleCountFormPage implements OnInit {
         const e = err as { error?: { Message?: string; message?: string }; message?: string };
         const msg = e?.error?.Message ?? e?.error?.message ?? e?.message ?? 'Save failed. Try again.';
         const toast = await this.toastCtrl.create({
-          message: msg, duration: 4000, color: 'danger', position: 'bottom',
+          message: msg, buttons: [{ text: 'Dismiss', role: 'cancel' }], color: 'danger', position: 'bottom',
         });
         await toast.present();
       },

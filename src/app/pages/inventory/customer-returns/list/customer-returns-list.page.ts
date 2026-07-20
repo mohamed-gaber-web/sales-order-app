@@ -35,7 +35,7 @@ export class CustomerReturnsListPage {
   async lookupReturn() {
     const num = this.returnNumber.trim();
     if (!num) {
-      const t = await this.toastCtrl.create({ message: 'Enter a return order number.', duration: 2000, color: 'warning', position: 'bottom' });
+      const t = await this.toastCtrl.create({ message: 'Enter a return order number.', buttons: [{ text: 'Dismiss', role: 'cancel' }], color: 'warning', position: 'bottom' });
       await t.present();
       return;
     }

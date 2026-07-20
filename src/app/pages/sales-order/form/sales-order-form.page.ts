@@ -63,7 +63,7 @@ export class SalesOrderFormPage implements OnInit {
         this.isLoading = false;
         const toast = await this.toastCtrl.create({
           message: 'Couldn\'t load form data. Try again.',
-          duration: 3000,
+          buttons: [{ text: 'Dismiss', role: 'cancel' }],
           color: 'danger',
           position: 'bottom'
         });
@@ -77,7 +77,7 @@ export class SalesOrderFormPage implements OnInit {
       this.orderForm.markAllAsTouched();
       const toast = await this.toastCtrl.create({
         message: 'Fill in all required fields to continue.',
-        duration: 2000,
+        buttons: [{ text: 'Dismiss', role: 'cancel' }],
         color: 'danger',
         position: 'bottom'
       });
@@ -103,7 +103,7 @@ export class SalesOrderFormPage implements OnInit {
         await loading.dismiss();
         const toast = await this.toastCtrl.create({
           message: 'Order created.',
-          duration: 2000,
+          buttons: [{ text: 'Dismiss', role: 'cancel' }],
           color: 'success',
           position: 'bottom'
         });
@@ -115,7 +115,7 @@ export class SalesOrderFormPage implements OnInit {
         await loading.dismiss();
         const toast = await this.toastCtrl.create({
           message: 'Couldn\'t create order. Try again.',
-          duration: 3000,
+          buttons: [{ text: 'Dismiss', role: 'cancel' }],
           color: 'danger',
           position: 'bottom'
         });

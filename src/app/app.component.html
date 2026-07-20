@@ -98,8 +98,10 @@
           }
 
         </ion-list>
+      </ion-content>
 
-        <!-- Bottom Actions -->
+      <!-- Bottom Actions -->
+      <ion-footer class="ion-no-border">
         <div class="menu-footer">
           <ion-item button lines="none" class="menu-item theme-toggle" detail="false" (click)="toggleTheme()">
             <ion-icon [name]="themeIcon + '-outline'" slot="start"></ion-icon>
@@ -122,7 +124,7 @@
             <ion-label>Help & Support</ion-label>
           </ion-item>
         </div>
-      </ion-content>
+      </ion-footer>
     </ion-menu>
     <ion-router-outlet id="main-content"></ion-router-outlet>
   </ion-split-pane>

@@ -62,7 +62,7 @@ export class VendorReturnsFormPage implements OnInit {
       error: async (err) => {
         this.isLoading = false;
         this.loadError = err?.error?.Message ?? err?.message ?? 'Could not load purchase order lines.';
-        const t = await this.toastCtrl.create({ message: this.loadError, duration: 4000, color: 'danger', position: 'bottom' });
+        const t = await this.toastCtrl.create({ message: this.loadError, buttons: [{ text: 'Dismiss', role: 'cancel' }], color: 'danger', position: 'bottom' });
         await t.present();
       }
     });
@@ -138,7 +138,7 @@ export class VendorReturnsFormPage implements OnInit {
         this.isSubmitting = false;
         const t = await this.toastCtrl.create({
           message: `Return for PO ${this.poNumber} submitted successfully.`,
-          duration: 3000,
+          buttons: [{ text: 'Dismiss', role: 'cancel' }],
           color: 'success',
           position: 'bottom',
         });
@@ -149,7 +149,7 @@ export class VendorReturnsFormPage implements OnInit {
         await loading.dismiss();
         this.isSubmitting = false;
         const msg = err?.error?.Message ?? err?.error?.message ?? err?.message ?? 'Return submission failed. Try again.';
-        const t = await this.toastCtrl.create({ message: msg, duration: 5000, color: 'danger', position: 'bottom' });
+        const t = await this.toastCtrl.create({ message: msg, buttons: [{ text: 'Dismiss', role: 'cancel' }], color: 'danger', position: 'bottom' });
         await t.present();
       }
     });

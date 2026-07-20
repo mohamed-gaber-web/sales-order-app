@@ -537,3 +537,21 @@ ion-header ion-toolbar {
     padding-top: 48px;
   }
 }
+
+.input-with-scan {
+  display: flex;
+  align-items: stretch;
+  gap: var(--ds-space-2);
+
+  .custom-input { flex: 1; min-width: 0; }
+
+  .scan-btn {
+    margin: 0;
+    height: auto;
+    --border-color: var(--ds-line, var(--ion-color-medium));
+    --border-radius: var(--ds-radius-md, 10px);
+    --color: var(--ds-navy);
+    --padding-start: 12px;
+    --padding-end: 12px;
+  }
+}

@@ -41,7 +41,7 @@ export class CycleCountListPage {
         this.loadError = true;
         const toast = await this.toastCtrl.create({
           message: 'Could not load counting journals. Check your connection.',
-          duration: 3000, color: 'danger', position: 'bottom',
+          buttons: [{ text: 'Dismiss', role: 'cancel' }], color: 'danger', position: 'bottom',
         });
         await toast.present();
       },
@@ -59,7 +59,7 @@ export class CycleCountListPage {
         (event.target as HTMLIonRefresherElement).complete();
         const toast = await this.toastCtrl.create({
           message: 'Refresh failed. Try again.',
-          duration: 2500, color: 'danger', position: 'bottom',
+          buttons: [{ text: 'Dismiss', role: 'cancel' }], color: 'danger', position: 'bottom',
         });
         await toast.present();
       },

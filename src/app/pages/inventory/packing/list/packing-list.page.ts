@@ -114,7 +114,7 @@ export class PackingListPage {
             }
             const toast = await this.toastCtrl.create({
               message: 'Container closed, label printed',
-              duration: 2500,
+              buttons: [{ text: 'Dismiss', role: 'cancel' }],
               color: 'success',
               position: 'bottom',
               icon: 'print-outline',

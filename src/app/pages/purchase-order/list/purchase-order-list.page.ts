@@ -1,10 +1,11 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, inject, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
-import { IonInfiniteScroll, ToastController } from '@ionic/angular';
+import { IonInfiniteScroll, ModalController, ToastController } from '@ionic/angular';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { PurchaseOrderService } from '../../../core/services/purchase-order.service';
 import { PurchaseOrderHeader } from '../../../models/purchase-order.model';
+import { ScannerModalComponent } from '../../inventory/scanner/scanner-modal.component';
 
 @Component({
   selector: 'app-purchase-order-list',
@@ -27,6 +28,7 @@ export class PurchaseOrderListPage {
   private allDataLoaded = false;
 
   private searchSubject = new Subject<string>();
+  private modalCtrl = inject(ModalController);
 
   get hasMore(): boolean {
     return !this.searchTerm.trim() && this.orders.length < this.totalCount;
@@ -51,6 +53,21 @@ export class PurchaseOrderListPage {
     this.loadOrders();
   }
 
+  async scanOrder() {
+    const modal = await this.modalCtrl.create({
+      component: ScannerModalComponent,
+      cssClass: 'scanner-modal',
+      breakpoints: [0, 0.75, 1],
+      initialBreakpoint: 0.75,
+    });
+    await modal.present();
+    const { data } = await modal.onWillDismiss<string>();
+    const poNumber = data?.trim();
+    if (poNumber) {
+      this.router.navigate(['/purchase-order/detail', poNumber]);
+    }
+  }
+
   loadOrders() {
     this.isLoading = true;
     this.orders = [];
@@ -69,7 +86,7 @@ export class PurchaseOrderListPage {
         this.isLoading = false;
         const toast = await this.toastCtrl.create({
           message: 'Couldn\'t load orders. Pull down to refresh.',
-          duration: 3000,
+          buttons: [{ text: 'Dismiss', role: 'cancel' }],
           color: 'danger',
           position: 'bottom'
         });
@@ -99,7 +116,7 @@ export class PurchaseOrderListPage {
         (event.target as HTMLIonInfiniteScrollElement).complete();
         const toast = await this.toastCtrl.create({
           message: 'Couldn\'t load more orders.',
-          duration: 3000,
+          buttons: [{ text: 'Dismiss', role: 'cancel' }],
           color: 'danger',
           position: 'bottom'
         });
@@ -121,7 +138,7 @@ export class PurchaseOrderListPage {
         this.isLoadingMore = false;
         const toast = await this.toastCtrl.create({
           message: 'Couldn\'t load more orders.',
-          duration: 3000,
+          buttons: [{ text: 'Dismiss', role: 'cancel' }],
           color: 'danger',
           position: 'bottom'
         });
@@ -168,7 +185,7 @@ export class PurchaseOrderListPage {
         this.isSearching = false;
         const toast = await this.toastCtrl.create({
           message: 'Search failed. Try again.',
-          duration: 3000,
+          buttons: [{ text: 'Dismiss', role: 'cancel' }],
           color: 'danger',
           position: 'bottom'
         });
@@ -210,7 +227,7 @@ export class PurchaseOrderListPage {
         (event.target as HTMLIonRefresherElement).complete();
         const toast = await this.toastCtrl.create({
           message: 'Refresh failed. Try again.',
-          duration: 3000,
+          buttons: [{ text: 'Dismiss', role: 'cancel' }],
           color: 'danger',
           position: 'bottom'
         });

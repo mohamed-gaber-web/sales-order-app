@@ -1,0 +1,120 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/inventory" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Picking List</ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" (click)="loadJournals()">
+        <ion-icon name="refresh-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+  <ion-toolbar class="search-toolbar">
+    <ds-search
+      placeholder="Search journal, order or description..."
+      [debounceMs]="300"
+      (query)="onQueryChange($event)">
+    </ds-search>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="journals-content">
+  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- Hero Banner -->
+  <div class="hero-banner">
+    <div class="hero-badge"><span class="hero-badge-dot"></span>Live</div>
+    <h1 class="hero-heading">Picking <span class="hero-accent">List</span></h1>
+    <p class="hero-sub">Production picking list journals and their lines</p>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <span class="hero-stat-value">{{ filteredJournals.length }}</span>
+        <span class="hero-stat-label">Journals</span>
+      </div>
+      <div class="hero-stat-sep"></div>
+      <div class="hero-stat">
+        <span class="hero-stat-value">{{ postedCount }}</span>
+        <span class="hero-stat-label">Posted</span>
+      </div>
+    </div>
+  </div>
+
+  @if (isLoading) {
+    <div class="journals-list">
+      @for (i of [1,2,3,4,5]; track i) {
+        <ion-card class="journal-card skeleton-card">
+          <ion-card-content>
+            <ion-skeleton-text animated style="width: 45%; height: 16px; border-radius: 6px"></ion-skeleton-text>
+            <ion-skeleton-text animated style="width: 65%; height: 13px; margin-top: 8px; border-radius: 6px"></ion-skeleton-text>
+            <ion-skeleton-text animated style="width: 35%; height: 13px; margin-top: 6px; border-radius: 6px"></ion-skeleton-text>
+          </ion-card-content>
+        </ion-card>
+      }
+    </div>
+  }
+
+  @if (!isLoading && displayedJournals.length > 0) {
+    <div class="journals-list">
+      @for (journal of displayedJournals; track journal.JournalNumber) {
+        <ion-card class="journal-card" button (click)="openJournal(journal)">
+          <div class="card-layout">
+            <div class="status-strip" [style.background]="getStatusColor(journal.IsPosted)"></div>
+            <div class="card-body">
+              <div class="card-top">
+                <span class="journal-number">{{ journal.JournalNumber }}</span>
+                <ds-pill
+                  [label]="journal.IsPosted === 'Yes' ? 'Posted' : 'Not posted'"
+                  [color]="getStatusColor(journal.IsPosted)"
+                  [bg]="getStatusBg(journal.IsPosted)">
+                </ds-pill>
+              </div>
+              @if (journal.JournalDescription) {
+                <div class="card-item">
+                  <ion-icon name="document-text-outline"></ion-icon>
+                  {{ journal.JournalDescription }}
+                </div>
+              }
+              <div class="card-meta">
+                @if (journal.ProductionOrderNumber) {
+                  <span>
+                    <ion-icon name="construct-outline"></ion-icon>
+                    {{ journal.ProductionOrderNumber }}
+                  </span>
+                }
+                <span>
+                  <ion-icon name="list-outline"></ion-icon>
+                  {{ journal.LineCount }} {{ journal.LineCount === 1 ? 'line' : 'lines' }}
+                </span>
+                @if (journal.PostedDateTime) {
+                  <span>
+                    <ion-icon name="calendar-outline"></ion-icon>
+                    {{ journal.PostedDateTime | date: 'MMM d, y' }}
+                  </span>
+                }
+              </div>
+            </div>
+            <div class="card-chevron">
+              <ion-icon name="chevron-forward-outline"></ion-icon>
+            </div>
+          </div>
+        </ion-card>
+      }
+    </div>
+  }
+
+  @if (!isLoading && displayedJournals.length === 0) {
+    <ds-empty-state
+      icon="list-outline"
+      title="No Picking List Journals"
+      [message]="searchTerm ? 'No results for &quot;' + searchTerm + '&quot;' : 'No production picking list journals found'">
+    </ds-empty-state>
+  }
+
+  <ion-infinite-scroll (ionInfinite)="loadMore($event)" [disabled]="!hasMore">
+    <ion-infinite-scroll-content loadingSpinner="crescent" loadingText="Loading more...">
+    </ion-infinite-scroll-content>
+  </ion-infinite-scroll>
+</ion-content>

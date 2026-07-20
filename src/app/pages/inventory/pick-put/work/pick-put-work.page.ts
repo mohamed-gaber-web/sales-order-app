@@ -112,7 +112,7 @@ export class PickPutWorkPage implements OnInit {
   async done(): Promise<void> {
     const toast = await this.toastCtrl.create({
       message: 'Work order completed',
-      duration: 2000,
+      buttons: [{ text: 'Dismiss', role: 'cancel' }],
       color: 'success',
       position: 'bottom',
       icon: 'checkmark-circle-outline',

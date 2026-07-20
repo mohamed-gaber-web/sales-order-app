@@ -83,7 +83,7 @@ export class AssemblyFormPage implements OnInit {
       this.isSubmitting = false;
       const t = await this.toastCtrl.create({
         message: `Assembly posted for order ${this.orderNumber}.`,
-        duration: 3500,
+        buttons: [{ text: 'Dismiss', role: 'cancel' }],
         color: 'success',
         position: 'bottom',
       });

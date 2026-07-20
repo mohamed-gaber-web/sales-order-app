@@ -3,12 +3,17 @@
     <ion-buttons slot="start">
       <ion-menu-button></ion-menu-button>
     </ion-buttons>
-    <ion-title>Sales Orders</ion-title>
-    <ion-buttons slot="end">
-      <ion-button (click)="createOrder()" class="mobile-add-btn">
-        <ion-icon slot="icon-only" name="add-outline"></ion-icon>
-      </ion-button>
-    </ion-buttons>
+    <ion-title>{{ isReturnMode ? 'Return Orders' : 'Sales Orders' }}</ion-title>
+    @if (!isReturnMode) {
+      <ion-buttons slot="end">
+        <ion-button (click)="scanOrder()" class="mobile-add-btn">
+          <ion-icon slot="icon-only" name="scan-outline"></ion-icon>
+        </ion-button>
+        <ion-button (click)="createOrder()" class="mobile-add-btn">
+          <ion-icon slot="icon-only" name="add-outline"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+    }
   </ion-toolbar>
   <ion-toolbar class="search-toolbar">
     <ds-search
@@ -28,8 +33,8 @@
   <!-- Hero Banner -->
   <div class="hero-banner">
     <div class="hero-badge"><span class="hero-badge-dot"></span>Live</div>
-    <h1 class="hero-heading">Sales <span class="hero-accent">Orders</span></h1>
-    <p class="hero-sub">Process and ship customer orders efficiently</p>
+    <h1 class="hero-heading">{{ isReturnMode ? 'Return' : 'Sales' }} <span class="hero-accent">Orders</span></h1>
+    <p class="hero-sub">{{ isReturnMode ? 'Pick and process customer return orders' : 'Process and ship customer orders efficiently' }}</p>
     <div class="hero-stats">
       <div class="hero-stat">
         <span class="hero-stat-value">{{ totalCount }}</span>
@@ -117,7 +122,7 @@
     <ds-empty-state
       icon="document-text-outline"
       title="No Orders Found"
-      [message]="searchTerm ? 'No results for &quot;' + searchTerm + '&quot;' : 'Create your first sales order to get started'">
+      [message]="searchTerm ? 'No results for &quot;' + searchTerm + '&quot;' : (isReturnMode ? 'No return orders to pick right now' : 'Create your first sales order to get started')">
     </ds-empty-state>
   }
 
@@ -149,9 +154,11 @@
   </ion-infinite-scroll>
 
   <!-- FAB Button (mobile only) -->
-  <ion-fab slot="fixed" vertical="bottom" horizontal="end" class="mobile-fab">
-    <ion-fab-button (click)="createOrder()">
-      <ion-icon name="add"></ion-icon>
-    </ion-fab-button>
-  </ion-fab>
+  @if (!isReturnMode) {
+    <ion-fab slot="fixed" vertical="bottom" horizontal="end" class="mobile-fab">
+      <ion-fab-button (click)="createOrder()">
+        <ion-icon name="add"></ion-icon>
+      </ion-fab-button>
+    </ion-fab>
+  }
 </ion-content>

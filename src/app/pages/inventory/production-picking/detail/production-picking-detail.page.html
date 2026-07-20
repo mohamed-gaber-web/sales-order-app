@@ -1,0 +1,130 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/inventory/production-picking" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Journal {{ journalNumber }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" (click)="loadLines()">
+        <ion-icon name="refresh-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="detail-content">
+  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- Journal Summary -->
+  @if (journal) {
+    <div class="summary-card">
+      <div class="summary-top">
+        <span class="summary-number">{{ journal.JournalNumber }}</span>
+        <ds-pill
+          [label]="journal.IsPosted === 'Yes' ? 'Posted' : 'Not posted'"
+          [color]="getStatusColor(journal.IsPosted)"
+          [bg]="getStatusBg(journal.IsPosted)">
+        </ds-pill>
+      </div>
+      @if (journal.JournalDescription) {
+        <p class="summary-desc">{{ journal.JournalDescription }}</p>
+      }
+      <div class="summary-meta">
+        @if (journal.ProductionOrderNumber) {
+          <span>
+            <ion-icon name="construct-outline"></ion-icon>
+            {{ journal.ProductionOrderNumber }}
+          </span>
+        }
+        <span>
+          <ion-icon name="list-outline"></ion-icon>
+          {{ lines.length }} {{ lines.length === 1 ? 'line' : 'lines' }}
+        </span>
+        @if (journal.PostedDateTime) {
+          <span>
+            <ion-icon name="calendar-outline"></ion-icon>
+            {{ journal.PostedDateTime | date: 'MMM d, y h:mm a' }}
+          </span>
+        }
+      </div>
+    </div>
+  }
+
+  @if (isLoading) {
+    <div class="lines-list">
+      @for (i of [1,2,3,4]; track i) {
+        <ion-card class="line-card skeleton-card">
+          <ion-card-content>
+            <ion-skeleton-text animated style="width: 45%; height: 16px; border-radius: 6px"></ion-skeleton-text>
+            <ion-skeleton-text animated style="width: 65%; height: 13px; margin-top: 8px; border-radius: 6px"></ion-skeleton-text>
+          </ion-card-content>
+        </ion-card>
+      }
+    </div>
+  }
+
+  @if (!isLoading && lines.length > 0) {
+    <div class="lines-list">
+      @for (line of lines; track line.JournalLineNumber) {
+        <ion-card class="line-card">
+          <div class="card-layout">
+            <div class="line-index">{{ line.JournalLineNumber }}</div>
+            <div class="card-body">
+              <div class="card-top">
+                <span class="line-item">{{ line.ItemNumber }}</span>
+                <span class="line-qty">{{ line.ConsumptionBOMQuantity }} {{ line.BOMUnitSymbol }}</span>
+              </div>
+              <div class="card-meta">
+                <span>
+                  <ion-icon name="layers-outline"></ion-icon>
+                  Proposed: {{ line.ProposalBOMQuantity }} {{ line.BOMUnitSymbol }}
+                </span>
+                @if (line.OperationNumber) {
+                  <span>
+                    <ion-icon name="cog-outline"></ion-icon>
+                    Op {{ line.OperationNumber }}
+                  </span>
+                }
+              </div>
+              <div class="card-meta">
+                @if (line.WarehouseId) {
+                  <span>
+                    <ion-icon name="business-outline"></ion-icon>
+                    {{ line.WarehouseId }}{{ line.WarehouseLocationId ? ' / ' + line.WarehouseLocationId : '' }}
+                  </span>
+                }
+                @if (line.ItemBatchNumber) {
+                  <span>
+                    <ion-icon name="pricetag-outline"></ion-icon>
+                    Batch {{ line.ItemBatchNumber }}
+                  </span>
+                }
+                @if (line.ItemSerialNumber) {
+                  <span>
+                    <ion-icon name="barcode-outline"></ion-icon>
+                    SN {{ line.ItemSerialNumber }}
+                  </span>
+                }
+              </div>
+            </div>
+          </div>
+        </ion-card>
+      }
+    </div>
+
+    <div class="lines-total">
+      <span>Total consumption</span>
+      <strong>{{ totalConsumption }}</strong>
+    </div>
+  }
+
+  @if (!isLoading && lines.length === 0) {
+    <ds-empty-state
+      icon="list-outline"
+      title="No Lines"
+      message="This journal has no picking list lines">
+    </ds-empty-state>
+  }
+</ion-content>

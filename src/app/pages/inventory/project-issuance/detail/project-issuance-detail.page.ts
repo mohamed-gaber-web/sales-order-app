@@ -67,7 +67,7 @@ export class ProjectIssuanceDetailPage implements OnInit {
       },
       error: async () => {
         this.isLoading = false;
-        const t = await this.toastCtrl.create({ message: 'Could not load item requirements.', duration: 3000, color: 'danger', position: 'bottom' });
+        const t = await this.toastCtrl.create({ message: 'Could not load item requirements.', buttons: [{ text: 'Dismiss', role: 'cancel' }], color: 'danger', position: 'bottom' });
         await t.present();
       }
     });

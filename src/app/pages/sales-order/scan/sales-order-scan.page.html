@@ -1,0 +1,357 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/sales-order/list"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Scan to Order</ion-title>
+    <ion-buttons slot="end">
+      <ion-button
+        (click)="onSubmit()"
+        [disabled]="!canSubmit"
+        color="light">
+        <ion-icon slot="start" name="checkmark-outline"></ion-icon>
+        Create
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="form-content">
+  @if (isLoading) {
+    <div class="loading-container">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Loading form options...</p>
+    </div>
+  } @else {
+    <!-- Web Page Header (desktop only) -->
+    <div class="web-form-header">
+      <div class="web-form-header-inner">
+        <div class="web-breadcrumb">
+          <a (click)="goBack()" class="breadcrumb-link">Sales Orders</a>
+          <ion-icon name="chevron-forward-outline"></ion-icon>
+          <span>Scan to Order</span>
+        </div>
+        <h1 class="web-form-title">Create Order by Scan</h1>
+      </div>
+    </div>
+
+    <div class="form-wrapper">
+
+      <!-- Order Information -->
+      <form [formGroup]="headerForm">
+        <div class="form-section">
+          <div class="section-header">
+            <ion-icon name="document-text-outline"></ion-icon>
+            <h3>Order Information</h3>
+          </div>
+
+          <ion-list lines="none">
+
+            <ion-item class="form-item">
+              <ion-input
+                formControlName="SalesOrderNumber"
+                label="Sales Order Number *"
+                labelPlacement="stacked"
+                placeholder="e.g., SO-0042">
+              </ion-input>
+            </ion-item>
+
+            <div class="field-row">
+              <!-- Customer -->
+              <ion-item class="form-item" button (click)="closePopovers(); showCustomerPopover = true; filteredCustomers = customers()">
+                <ion-select
+                  formControlName="OrderingCustomerAccountNumber"
+                  label="Customer *"
+                  labelPlacement="stacked"
+                  interface="popover"
+                  placeholder="Select customer"
+                  style="pointer-events: none;">
+                  @for (customer of customers(); track customer.CustomerAccount) {
+                    <ion-select-option [value]="customer.CustomerAccount">
+                      {{ customer.CustomerName }} ({{ customer.CustomerAccount }})
+                    </ion-select-option>
+                  }
+                </ion-select>
+              </ion-item>
+
+              <!-- Currency -->
+              <ion-item class="form-item" button (click)="closePopovers(); showCurrencyPopover = true; filteredCurrencies = currencies()">
+                <ion-select
+                  formControlName="CurrencyCode"
+                  label="Currency *"
+                  labelPlacement="stacked"
+                  interface="popover"
+                  placeholder="Select currency"
+                  style="pointer-events: none;">
+                  @for (currency of currencies(); track currency.CurrencyCode) {
+                    <ion-select-option [value]="currency.CurrencyCode">
+                      {{ currency.CurrencyCode }} – {{ currency.Name }}
+                    </ion-select-option>
+                  }
+                </ion-select>
+              </ion-item>
+            </div>
+
+            @if (showCustomerPopover) {
+              <div class="select-dropdown">
+                <ion-searchbar
+                  placeholder="Search customers..."
+                  [debounce]="100"
+                  (ionInput)="onCustomerSearch($any($event).detail.value || '')">
+                </ion-searchbar>
+                <div class="select-dropdown-list">
+                  @for (customer of filteredCustomers; track customer.CustomerAccount) {
+                    <div
+                      class="select-dropdown-item"
+                      [class.active]="headerForm.get('OrderingCustomerAccountNumber')?.value === customer.CustomerAccount"
+                      (click)="selectCustomer(customer)">
+                      <ion-icon name="checkmark-outline" class="check-icon"></ion-icon>
+                      <span>{{ customer.CustomerName }} ({{ customer.CustomerAccount }})</span>
+                    </div>
+                  }
+                  @if (filteredCustomers.length === 0) {
+                    <div class="select-dropdown-empty">No customers found</div>
+                  }
+                </div>
+              </div>
+            }
+
+            @if (showCurrencyPopover) {
+              <div class="select-dropdown">
+                <ion-searchbar
+                  placeholder="Search currencies..."
+                  [debounce]="100"
+                  (ionInput)="onCurrencySearch($any($event).detail.value || '')">
+                </ion-searchbar>
+                <div class="select-dropdown-list">
+                  @for (currency of filteredCurrencies; track currency.CurrencyCode) {
+                    <div
+                      class="select-dropdown-item"
+                      [class.active]="headerForm.get('CurrencyCode')?.value === currency.CurrencyCode"
+                      (click)="selectCurrency(currency)">
+                      <ion-icon name="checkmark-outline" class="check-icon"></ion-icon>
+                      <span>{{ currency.CurrencyCode }} – {{ currency.Name }}</span>
+                    </div>
+                  }
+                  @if (filteredCurrencies.length === 0) {
+                    <div class="select-dropdown-empty">No currencies found</div>
+                  }
+                </div>
+              </div>
+            }
+
+            <div class="field-row">
+              <!-- Site -->
+              <ion-item class="form-item" button (click)="closePopovers(); showSitePopover = true; filteredSites = sites">
+                <ion-select
+                  formControlName="ShippingSiteId"
+                  label="Site *"
+                  labelPlacement="stacked"
+                  interface="popover"
+                  placeholder="Select site"
+                  style="pointer-events: none;">
+                  @for (site of sites; track site.SiteId) {
+                    <ion-select-option [value]="site.SiteId">
+                      {{ site.SiteId }} – {{ site.SiteName }}
+                    </ion-select-option>
+                  }
+                </ion-select>
+              </ion-item>
+
+              <!-- Warehouse -->
+              <ion-item class="form-item" button (click)="closePopovers(); showWarehousePopover = true; filteredWarehouses = allWarehouses">
+                <ion-select
+                  formControlName="ShippingWarehouseId"
+                  label="Warehouse *"
+                  labelPlacement="stacked"
+                  interface="popover"
+                  placeholder="Select warehouse"
+                  style="pointer-events: none;">
+                  @for (wh of allWarehouses; track wh.WarehouseId) {
+                    <ion-select-option [value]="wh.WarehouseId">
+                      {{ wh.WarehouseId }} – {{ wh.WarehouseName }}
+                    </ion-select-option>
+                  }
+                </ion-select>
+              </ion-item>
+            </div>
+
+            @if (showSitePopover) {
+              <div class="select-dropdown">
+                <ion-searchbar
+                  placeholder="Search sites..."
+                  [debounce]="100"
+                  (ionInput)="onSiteSearch($any($event).detail.value || '')">
+                </ion-searchbar>
+                <div class="select-dropdown-list">
+                  @for (site of filteredSites; track site.SiteId) {
+                    <div
+                      class="select-dropdown-item"
+                      [class.active]="headerForm.get('ShippingSiteId')?.value === site.SiteId"
+                      (click)="selectSite(site)">
+                      <ion-icon name="checkmark-outline" class="check-icon"></ion-icon>
+                      <span>{{ site.SiteId }} – {{ site.SiteName }}</span>
+                    </div>
+                  }
+                  @if (filteredSites.length === 0) {
+                    <div class="select-dropdown-empty">No sites found</div>
+                  }
+                </div>
+              </div>
+            }
+
+            @if (showWarehousePopover) {
+              <div class="select-dropdown">
+                <ion-searchbar
+                  placeholder="Search warehouses..."
+                  [debounce]="100"
+                  (ionInput)="onWarehouseSearch($any($event).detail.value || '')">
+                </ion-searchbar>
+                <div class="select-dropdown-list">
+                  @for (wh of filteredWarehouses; track wh.WarehouseId) {
+                    <div
+                      class="select-dropdown-item"
+                      [class.active]="headerForm.get('ShippingWarehouseId')?.value === wh.WarehouseId"
+                      (click)="selectWarehouse(wh)">
+                      <ion-icon name="checkmark-outline" class="check-icon"></ion-icon>
+                      <span>{{ wh.WarehouseId }} – {{ wh.WarehouseName }}</span>
+                    </div>
+                  }
+                  @if (filteredWarehouses.length === 0) {
+                    <div class="select-dropdown-empty">No warehouses found</div>
+                  }
+                </div>
+              </div>
+            }
+
+          </ion-list>
+        </div>
+      </form>
+
+      <!-- Scanned Lines -->
+      <div class="form-section">
+        <div class="section-header">
+          <ion-icon name="barcode-outline"></ion-icon>
+          <h3>Items</h3>
+          @if (lines.length > 0) {
+            <span class="lines-count">{{ lines.length }} items · {{ totalQuantity }} qty</span>
+          }
+        </div>
+
+        <ion-button
+          expand="block"
+          class="scan-cta"
+          (click)="openScanner()"
+          [disabled]="isResolving">
+          @if (isResolving) {
+            <ion-spinner slot="start" name="crescent"></ion-spinner>
+            Looking up item...
+          } @else {
+            <ion-icon slot="start" name="scan-outline"></ion-icon>
+            Scan Item
+          }
+        </ion-button>
+
+        @if (lines.length === 0) {
+          <div class="empty-lines">
+            <ion-icon name="barcode-outline"></ion-icon>
+            <p>Scan an item barcode to add the first line.<br>Scanning the same item again adds quantity.</p>
+          </div>
+        }
+
+        @for (line of lines; track line.itemNumber; let i = $index) {
+          <div class="line-card">
+            <div class="line-head">
+              <div class="line-title">
+                <span class="line-item-number">{{ line.itemNumber }}</span>
+                @if (line.productName) {
+                  <span class="line-product-name">{{ line.productName }}</span>
+                }
+              </div>
+              <ion-button fill="clear" size="small" color="medium" (click)="removeLine(i)" aria-label="Remove line">
+                <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+              </ion-button>
+            </div>
+
+            @if (line.availableConfigurations.length || line.availableSizes.length || line.availableColors.length || line.availableStyles.length) {
+              <div class="line-variants">
+                @if (line.availableConfigurations.length) {
+                  <ion-select label="Config" interface="popover" [(ngModel)]="line.configurationId">
+                    @for (c of line.availableConfigurations; track c) {
+                      <ion-select-option [value]="c">{{ c }}</ion-select-option>
+                    }
+                  </ion-select>
+                }
+                @if (line.availableSizes.length) {
+                  <ion-select label="Size" interface="popover" [(ngModel)]="line.sizeId">
+                    @for (s of line.availableSizes; track s) {
+                      <ion-select-option [value]="s">{{ s }}</ion-select-option>
+                    }
+                  </ion-select>
+                }
+                @if (line.availableColors.length) {
+                  <ion-select label="Color" interface="popover" [(ngModel)]="line.colorId">
+                    @for (c of line.availableColors; track c) {
+                      <ion-select-option [value]="c">{{ c }}</ion-select-option>
+                    }
+                  </ion-select>
+                }
+                @if (line.availableStyles.length) {
+                  <ion-select label="Style" interface="popover" [(ngModel)]="line.styleId">
+                    @for (s of line.availableStyles; track s) {
+                      <ion-select-option [value]="s">{{ s }}</ion-select-option>
+                    }
+                  </ion-select>
+                }
+              </div>
+            }
+
+            <div class="line-controls">
+              <div class="qty-stepper">
+                <ion-button fill="clear" size="small" (click)="decreaseQuantity(line)" [disabled]="line.quantity <= 1" aria-label="Decrease quantity">
+                  <ion-icon slot="icon-only" name="remove-outline"></ion-icon>
+                </ion-button>
+                <ion-input
+                  type="number"
+                  inputmode="numeric"
+                  min="1"
+                  [(ngModel)]="line.quantity"
+                  aria-label="Quantity">
+                </ion-input>
+                <ion-button fill="clear" size="small" (click)="increaseQuantity(line)" aria-label="Increase quantity">
+                  <ion-icon slot="icon-only" name="add-outline"></ion-icon>
+                </ion-button>
+              </div>
+              <div class="price-input">
+                <ion-input
+                  type="number"
+                  inputmode="decimal"
+                  min="0"
+                  label="Price"
+                  labelPlacement="stacked"
+                  [(ngModel)]="line.price"
+                  aria-label="Unit price">
+                </ion-input>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="form-actions">
+        <ion-button expand="block" fill="outline" (click)="goBack()">
+          Cancel
+        </ion-button>
+        <ion-button
+          expand="block"
+          (click)="onSubmit()"
+          [disabled]="!canSubmit">
+          <ion-icon slot="start" name="checkmark-outline"></ion-icon>
+          Create Order
+        </ion-button>
+      </div>
+
+    </div>
+  }
+</ion-content>

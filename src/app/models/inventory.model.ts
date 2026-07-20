@@ -48,8 +48,7 @@ export interface InventoryOnHand {
 export interface InventoryProduct {
   ProductNumber: string;
   ProductName?: string;
-  SearchName?: string;
-  UnitSymbol?: string;
+  ProductSearchName?: string;
   ProductType?: string;
   ProductSubType?: string;
   TrackingDimensionGroupName?: string;
@@ -356,4 +355,38 @@ export interface CycleCountJournalLine {
   CountedQuantity?: number;
   AdjustmentQuantity?: number;
   [key: string]: unknown;
+}
+
+export interface ProductionPickingListEntry {
+  dataAreaId: string;
+  JournalNumber: string;
+  JournalLineNumber: number;
+  JournalName: string;
+  JournalDescription: string;
+  IsPosted: string;
+  PostedDateTime?: string;
+  ConsumptionDate?: string;
+  ItemNumber: string;
+  ProductionOrderNumber: string;
+  ProposalBOMQuantity: number;
+  ConsumptionBOMQuantity: number;
+  ScrapBOMQuantity?: number;
+  BOMUnitSymbol: string;
+  WarehouseId?: string;
+  WarehouseLocationId?: string;
+  ProductionSiteId?: string;
+  OperationNumber?: number;
+  ItemBatchNumber?: string;
+  ItemSerialNumber?: string;
+}
+
+export interface ProductionPickingJournal {
+  JournalNumber: string;
+  JournalName: string;
+  JournalDescription: string;
+  IsPosted: string;
+  PostedDateTime?: string;
+  ProductionOrderNumber: string;
+  LineCount: number;
+  dataAreaId: string;
 }

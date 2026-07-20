@@ -62,7 +62,7 @@ export class DisassemblyFormPage implements OnInit {
       this.isSubmitting = false;
       const t = await this.toastCtrl.create({
         message: `Disassembly posted for "${this.parentItemNumber}".`,
-        duration: 3500,
+        buttons: [{ text: 'Dismiss', role: 'cancel' }],
         color: 'success',
         position: 'bottom',
       });

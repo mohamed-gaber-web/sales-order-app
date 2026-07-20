@@ -71,7 +71,7 @@ export class TransferOrderListPage {
         this.isLoading = false;
         const toast = await this.toastCtrl.create({
           message: 'Couldn\'t load transfers. Pull down to refresh.',
-          duration: 3000,
+          buttons: [{ text: 'Dismiss', role: 'cancel' }],
           color: 'danger',
           position: 'bottom'
         });
@@ -101,7 +101,7 @@ export class TransferOrderListPage {
         (event.target as HTMLIonInfiniteScrollElement).complete();
         const toast = await this.toastCtrl.create({
           message: 'Couldn\'t load more transfers.',
-          duration: 3000,
+          buttons: [{ text: 'Dismiss', role: 'cancel' }],
           color: 'danger',
           position: 'bottom'
         });
@@ -123,7 +123,7 @@ export class TransferOrderListPage {
         this.isLoadingMore = false;
         const toast = await this.toastCtrl.create({
           message: 'Couldn\'t load more transfers.',
-          duration: 3000,
+          buttons: [{ text: 'Dismiss', role: 'cancel' }],
           color: 'danger',
           position: 'bottom'
         });
@@ -170,7 +170,7 @@ export class TransferOrderListPage {
         this.isSearching = false;
         const toast = await this.toastCtrl.create({
           message: 'Search failed. Try again.',
-          duration: 3000,
+          buttons: [{ text: 'Dismiss', role: 'cancel' }],
           color: 'danger',
           position: 'bottom'
         });
@@ -211,7 +211,7 @@ export class TransferOrderListPage {
         (event.target as HTMLIonRefresherElement).complete();
         const toast = await this.toastCtrl.create({
           message: 'Refresh failed. Try again.',
-          duration: 3000,
+          buttons: [{ text: 'Dismiss', role: 'cancel' }],
           color: 'danger',
           position: 'bottom'
         });

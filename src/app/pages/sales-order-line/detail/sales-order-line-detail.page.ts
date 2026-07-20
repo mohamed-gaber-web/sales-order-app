@@ -1,4 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { finalize } from 'rxjs/operators';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AlertController, LoadingController, ToastController } from '@ionic/angular';
 import {
@@ -22,17 +24,17 @@ export class SalesOrderLineDetailPage implements OnInit {
 
   isSubmittingSlip = false;
   linePhotos = new Map<string, string>();
+  selectedLines = new Map<string, { line: SalesOrderLineResponse; lineNum: number }>();
   private pendingPhotoKey = '';
+  private destroyRef = inject(DestroyRef);
 
-  constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private toastCtrl: ToastController,
-    private alertCtrl: AlertController,
-    private loadingCtrl: LoadingController,
-    private orderLineService: SalesOrderLineService,
-    private salesOrderService: SalesOrderService,
-  ) {}
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private toastCtrl = inject(ToastController);
+  private alertCtrl = inject(AlertController);
+  private loadingCtrl = inject(LoadingController);
+  private orderLineService = inject(SalesOrderLineService);
+  private salesOrderService = inject(SalesOrderService);
 
   ngOnInit() {
     this.salesOrderNumber =
@@ -46,6 +48,7 @@ export class SalesOrderLineDetailPage implements OnInit {
   loadLines() {
     if (!this.salesOrderNumber) return;
     this.isLoading = true;
+    this.selectedLines.clear();
     this.orderLineService.getOrderLines(this.salesOrderNumber).subscribe({
       next: (res) => {
         this.allLines = res.value;
@@ -56,7 +59,7 @@ export class SalesOrderLineDetailPage implements OnInit {
         this.isLoading = false;
         const toast = await this.toastCtrl.create({
           message: 'Failed to load order lines.',
-          duration: 3000,
+          buttons: [{ text: 'Dismiss', role: 'cancel' }],
           color: 'danger',
           position: 'bottom',
         });
@@ -156,14 +159,14 @@ export class SalesOrderLineDetailPage implements OnInit {
         if (res.Success) {
           const toast = await this.toastCtrl.create({
             message: `Packing slip created for line ${lineNum}.`,
-            duration: 3000, color: 'success', position: 'bottom',
+            buttons: [{ text: 'Dismiss', role: 'cancel' }], color: 'success', position: 'bottom',
           });
           await toast.present();
           this.loadLines();
         } else {
           const toast = await this.toastCtrl.create({
             message: res.ErrorMessage || res.DebugMessage || 'Failed to create packing slip.',
-            duration: 5000, color: 'danger', position: 'bottom',
+            buttons: [{ text: 'Dismiss', role: 'cancel' }], color: 'danger', position: 'bottom',
           });
           await toast.present();
         }
@@ -174,7 +177,7 @@ export class SalesOrderLineDetailPage implements OnInit {
         const e = err as { error?: { Message?: string; message?: string }; message?: string };
         const msg = e?.error?.Message ?? e?.error?.message ?? e?.message ?? 'Failed to create packing slip.';
         const toast = await this.toastCtrl.create({
-          message: msg, duration: 5000, color: 'danger', position: 'bottom',
+          message: msg, buttons: [{ text: 'Dismiss', role: 'cancel' }], color: 'danger', position: 'bottom',
         });
         await toast.present();
       },
@@ -183,6 +186,117 @@ export class SalesOrderLineDetailPage implements OnInit {
 
   lineKey(line: SalesOrderLineResponse, i: number): string {
     return String(line.LineNumber ?? i);
+  }
+
+  toggleLine(line: SalesOrderLineResponse, i: number) {
+    const key = this.lineKey(line, i);
+    if (this.selectedLines.has(key)) {
+      this.selectedLines.delete(key);
+    } else {
+      this.selectedLines.set(key, { line, lineNum: line.LineNumber ?? i + 1 });
+    }
+  }
+
+  clearSelection() {
+    this.selectedLines.clear();
+  }
+
+  async createMultiPackingSlip() {
+    if (this.selectedLines.size === 0 || this.isSubmittingSlip) return;
+
+    const selected = Array.from(this.selectedLines.values());
+    const missingQty = selected.filter((s) => !(Number(s.line.OrderedSalesQuantity) > 0));
+    if (missingQty.length > 0) {
+      const toast = await this.toastCtrl.create({
+        message: `${missingQty[0].line.ItemNumber} has no quantity. Deselect it or fix the line first.`,
+        buttons: [{ text: 'Dismiss', role: 'cancel' }], color: 'danger', position: 'bottom',
+      });
+      await toast.present();
+      return;
+    }
+
+    const alert = await this.alertCtrl.create({
+      header: 'Create Packing Slip',
+      subHeader: `${selected.length} lines selected`,
+      inputs: [
+        {
+          name: 'packingSlipId',
+          type: 'text',
+          placeholder: 'Packing Slip ID (optional)',
+        },
+      ],
+      buttons: [
+        { text: 'Cancel', role: 'cancel' },
+        {
+          text: 'Create',
+          handler: (data) => {
+            this.submitMultiPackingSlip(selected, data.packingSlipId ?? '');
+            return true;
+          },
+        },
+      ],
+    });
+    await alert.present();
+  }
+
+  private async submitMultiPackingSlip(
+    selected: { line: SalesOrderLineResponse; lineNum: number }[],
+    packingSlipId: string,
+  ) {
+    if (this.isSubmittingSlip) return;
+    this.isSubmittingSlip = true;
+
+    const loading = await this.loadingCtrl.create({
+      message: `Creating packing slip for ${selected.length} lines...`,
+      spinner: 'crescent',
+    });
+    await loading.present();
+
+    const dataAreaId = (selected[0].line.dataAreaId ?? 'usmf').toUpperCase();
+
+    this.salesOrderService.createPackingSlip({
+      _request: {
+        DataAreaId: dataAreaId,
+        SalesOrderID: this.salesOrderNumber,
+        packingSlipId,
+        salesLineNum: selected.map((s) => s.lineNum),
+        packingSlipQty: selected.map((s) => Number(s.line.OrderedSalesQuantity)),
+      },
+    })
+      .pipe(
+        finalize(() => {
+          loading.dismiss();
+          this.isSubmittingSlip = false;
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: async (res) => {
+          if (res.Success) {
+            const toast = await this.toastCtrl.create({
+              message: `Packing slip created for ${selected.length} lines.`,
+              buttons: [{ text: 'Dismiss', role: 'cancel' }], color: 'success', position: 'bottom',
+            });
+            await toast.present();
+            this.clearSelection();
+            this.loadLines();
+          } else {
+            const toast = await this.toastCtrl.create({
+              message: res.ErrorMessage || res.DebugMessage || 'Failed to create packing slip.',
+              buttons: [{ text: 'Dismiss', role: 'cancel' }], color: 'danger', position: 'bottom',
+            });
+            await toast.present();
+          }
+        },
+        error: async (err: unknown) => {
+          const e = err as { error?: { Message?: string; message?: string }; message?: string };
+          const msg = e?.error?.Message ?? e?.error?.message ?? e?.message ?? 'Failed to create packing slip.';
+          const toast = await this.toastCtrl.create({
+            message: msg, buttons: [{ text: 'Dismiss', role: 'cancel' }], color: 'danger', position: 'bottom',
+          });
+          await toast.present();
+        },
+      });
   }
 
   takePhoto(line: SalesOrderLineResponse, i: number) {

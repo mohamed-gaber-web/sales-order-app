@@ -208,7 +208,7 @@ export class LocationMgmtPage implements OnInit {
   }
 
   private async showToast(message: string, color = 'success') {
-    const toast = await this.toastCtrl.create({ message, color, duration: 2500, position: 'bottom' });
+    const toast = await this.toastCtrl.create({ message, color, buttons: [{ text: 'Dismiss', role: 'cancel' }], position: 'bottom' });
     toast.present();
   }
 

@@ -61,12 +61,26 @@
             }
             <div class="summary-field">
               <span class="summary-field-label">Lines Shipped</span>
-              <span class="summary-field-value">All remaining</span>
+              <span class="summary-field-value">{{ lastSlipLinesLabel }}</span>
             </div>
           </div>
 
         </ion-card-content>
       </ion-card>
+
+      <!-- Slips created this session -->
+      @if (createdSlips.length > 1) {
+        <div class="session-slips">
+          <p class="session-slips-title">Packing slips created this session</p>
+          @for (slip of createdSlips; track $index) {
+            <div class="session-slip-row">
+              <ion-icon name="document-text-outline"></ion-icon>
+              <span class="session-slip-id">{{ slip.packingSlipId }}</span>
+              <span class="session-slip-lines">{{ slip.linesLabel }}</span>
+            </div>
+          }
+        </div>
+      }
 
       <!-- PDF Actions -->
       <div class="pdf-actions">
@@ -93,6 +107,17 @@
           Share Packing Slip
         </ion-button>
       </div>
+
+      @if (hasShippableRemaining) {
+        <ion-button
+          expand="block"
+          fill="outline"
+          class="another-btn"
+          (click)="createAnotherSlip()">
+          <ion-icon slot="start" name="add-outline"></ion-icon>
+          Create Another Packing Slip
+        </ion-button>
+      }
 
       <ion-button expand="block" fill="clear" class="back-btn" (click)="goBack()">
         Back to Sales Orders
@@ -138,9 +163,57 @@
         </ion-item>
       </div>
 
+      <div class="form-section">
+        <p class="form-label">Lines to Ship *</p>
+        <ion-segment formControlName="shipMode" class="mode-segment" (ionChange)="onModeChange()">
+          <ion-segment-button value="all">
+            <ion-label>All Remaining</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="select">
+            <ion-label>Select Lines</ion-label>
+          </ion-segment-button>
+        </ion-segment>
+      </div>
+
+      @if (shipMode === 'select') {
+        <div class="form-section" formArrayName="lines">
+          @for (line of shippableLines; track line.lineNumber; let i = $index) {
+            <div class="line-row" [formGroupName]="i">
+              <ion-checkbox formControlName="selected" (ionChange)="onLineToggle(i)" aria-label="Include line"></ion-checkbox>
+              <div class="line-info">
+                <p class="line-item">{{ line.itemNumber }}</p>
+                @if (line.productName) {
+                  <p class="line-name">{{ line.productName }}</p>
+                }
+                <p class="line-remaining">{{ line.remaining }} {{ line.unit }} remaining</p>
+              </div>
+              <ion-input
+                class="line-qty"
+                type="number"
+                inputmode="decimal"
+                formControlName="qty"
+                aria-label="Quantity to ship">
+              </ion-input>
+            </div>
+          } @empty {
+            <div class="info-box">
+              <ion-icon name="alert-circle-outline" color="medium"></ion-icon>
+              <p>No lines with remaining quantity on this order.</p>
+            </div>
+          }
+          @if (noLineSelected && shippableLines.length > 0) {
+            <p class="selection-hint">Select at least one line to ship.</p>
+          }
+        </div>
+      }
+
       <div class="info-box">
         <ion-icon name="information-circle-outline" color="primary"></ion-icon>
-        <p>This will post a packing slip for all remaining lines on sales order {{ soNumber }}. Ensure items are physically packed before confirming.</p>
+        @if (shipMode === 'all') {
+          <p>This will post a packing slip for all remaining lines on sales order {{ soNumber }}. Ensure items are physically packed before confirming.</p>
+        } @else {
+          <p>This will post a packing slip for the selected lines and quantities on sales order {{ soNumber }}. You can create more packing slips for the rest afterwards.</p>
+        }
       </div>
 
       <ion-button expand="block" class="action-btn" (click)="submitShipment()" [disabled]="form.invalid || isSubmitting">

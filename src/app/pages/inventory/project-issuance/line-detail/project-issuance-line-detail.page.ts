@@ -118,7 +118,7 @@ export class ProjectIssuanceLineDetailPage implements OnInit {
         const msg = this.postPackingSlip
           ? `Picking List and Packing Slip posted for ${this.itemNumber}.`
           : `Picking List posted for ${this.itemNumber}.`;
-        const t = await this.toastCtrl.create({ message: msg, duration: 3000, color: 'success', position: 'bottom' });
+        const t = await this.toastCtrl.create({ message: msg, buttons: [{ text: 'Dismiss', role: 'cancel' }], color: 'success', position: 'bottom' });
         await t.present();
         this.router.navigate(['/inventory/project-issuance/detail', this.projectId], {
           state: { projectName: this.projectName, dataAreaId: this.dataAreaId }
@@ -128,7 +128,7 @@ export class ProjectIssuanceLineDetailPage implements OnInit {
         await loading.dismiss();
         this.isSubmitting = false;
         const msg = err?.error?.Message ?? err?.error?.message ?? err?.message ?? 'Posting failed. Try again.';
-        const t = await this.toastCtrl.create({ message: msg, duration: 5000, color: 'danger', position: 'bottom' });
+        const t = await this.toastCtrl.create({ message: msg, buttons: [{ text: 'Dismiss', role: 'cancel' }], color: 'danger', position: 'bottom' });
         await t.present();
       }
     });

@@ -81,7 +81,7 @@ export class ProductionIssueFormPage implements OnInit {
         this.isSubmitting = false;
         const t = await this.toastCtrl.create({
           message: `Issue posted for order ${this.orderNumber}.`,
-          duration: 3000,
+          buttons: [{ text: 'Dismiss', role: 'cancel' }],
           color: 'success',
           position: 'bottom',
         });
@@ -92,7 +92,7 @@ export class ProductionIssueFormPage implements OnInit {
         await loading.dismiss();
         this.isSubmitting = false;
         const msg = err?.error?.Message ?? err?.error?.message ?? err?.message ?? 'Issue posting failed. Try again.';
-        const t = await this.toastCtrl.create({ message: msg, duration: 5000, color: 'danger', position: 'bottom' });
+        const t = await this.toastCtrl.create({ message: msg, buttons: [{ text: 'Dismiss', role: 'cancel' }], color: 'danger', position: 'bottom' });
         await t.present();
       }
     });

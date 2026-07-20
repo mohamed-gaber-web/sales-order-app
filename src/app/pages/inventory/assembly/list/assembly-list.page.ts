@@ -23,7 +23,7 @@ export class AssemblyListPage {
     if (!order) {
       const t = await this.toastCtrl.create({
         message: 'Enter an assembly order number.',
-        duration: 2500,
+        buttons: [{ text: 'Dismiss', role: 'cancel' }],
         color: 'warning',
         position: 'bottom',
       });
@@ -38,7 +38,7 @@ export class AssemblyListPage {
     if (!order) {
       const t = await this.toastCtrl.create({
         message: 'Enter a parent item or license plate number.',
-        duration: 2500,
+        buttons: [{ text: 'Dismiss', role: 'cancel' }],
         color: 'warning',
         position: 'bottom',
       });

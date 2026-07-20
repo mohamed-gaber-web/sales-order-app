@@ -54,7 +54,7 @@ export class OnHandPage {
         this.isLoading = false;
         const t = await this.toastCtrl.create({
           message: 'Could not load on-hand data.',
-          duration: 3000, color: 'danger', position: 'bottom',
+          buttons: [{ text: 'Dismiss', role: 'cancel' }], color: 'danger', position: 'bottom',
         });
         await t.present();
       }
@@ -79,7 +79,7 @@ export class OnHandPage {
         this.isLoading = false;
         const t = await this.toastCtrl.create({
           message: 'Search failed.',
-          duration: 3000, color: 'danger', position: 'bottom',
+          buttons: [{ text: 'Dismiss', role: 'cancel' }], color: 'danger', position: 'bottom',
         });
         await t.present();
       }

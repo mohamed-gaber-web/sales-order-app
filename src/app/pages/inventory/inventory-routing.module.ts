@@ -31,6 +31,10 @@ const routes: Routes = [
     loadChildren: () => import('./production-issue/production-issue.module').then(m => m.ProductionIssueModule)
   },
   {
+    path: 'production-picking',
+    loadChildren: () => import('./production-picking/production-picking.module').then(m => m.ProductionPickingModule)
+  },
+  {
     path: 'cycle-count',
     loadChildren: () => import('./cycle-count/cycle-count.module').then(m => m.CycleCountModule)
   },

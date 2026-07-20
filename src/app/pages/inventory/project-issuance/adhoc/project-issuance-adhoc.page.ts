@@ -113,7 +113,7 @@ export class ProjectIssuanceAdhocPage implements OnInit {
         this.isSubmitting = false;
         const t = await this.toastCtrl.create({
           message: `Item ${v.itemNumber} issued to project ${effectiveProjectId}.`,
-          duration: 3000, color: 'success', position: 'bottom'
+          buttons: [{ text: 'Dismiss', role: 'cancel' }], color: 'success', position: 'bottom'
         });
         await t.present();
         if (this.isProjectFixed) {
@@ -128,7 +128,7 @@ export class ProjectIssuanceAdhocPage implements OnInit {
         await loading.dismiss();
         this.isSubmitting = false;
         const msg = err?.error?.Message ?? err?.error?.message ?? err?.message ?? 'Issuance failed. Try again.';
-        const t = await this.toastCtrl.create({ message: msg, duration: 5000, color: 'danger', position: 'bottom' });
+        const t = await this.toastCtrl.create({ message: msg, buttons: [{ text: 'Dismiss', role: 'cancel' }], color: 'danger', position: 'bottom' });
         await t.present();
       }
     });

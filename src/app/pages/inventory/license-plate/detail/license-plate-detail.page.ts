@@ -68,7 +68,7 @@ export class LicensePlateDetailPage implements OnInit {
     await loading.onDidDismiss();
     const toast = await this.toastCtrl.create({
       message: 'Label sent to printer',
-      duration: 2500,
+      buttons: [{ text: 'Dismiss', role: 'cancel' }],
       color: 'success',
       position: 'bottom',
       icon: 'print-outline',

@@ -68,7 +68,7 @@ export class ProductionIssueListPage {
       },
       error: async () => {
         this.isLoading = false;
-        const t = await this.toastCtrl.create({ message: 'Could not load production orders.', duration: 3000, color: 'danger', position: 'bottom' });
+        const t = await this.toastCtrl.create({ message: 'Could not load production orders.', buttons: [{ text: 'Dismiss', role: 'cancel' }], color: 'danger', position: 'bottom' });
         await t.present();
       }
     });

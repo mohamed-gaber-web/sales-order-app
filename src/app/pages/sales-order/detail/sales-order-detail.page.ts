@@ -140,7 +140,7 @@ export class SalesOrderDetailPage implements OnInit {
   async printOrder() {
     const toast = await this.toastCtrl.create({
       message: 'Preparing print preview...',
-      duration: 2000,
+      buttons: [{ text: 'Dismiss', role: 'cancel' }],
       position: 'bottom'
     });
     await toast.present();
@@ -149,7 +149,7 @@ export class SalesOrderDetailPage implements OnInit {
   async shareOrder() {
     const toast = await this.toastCtrl.create({
       message: 'Share functionality coming soon',
-      duration: 2000,
+      buttons: [{ text: 'Dismiss', role: 'cancel' }],
       position: 'bottom'
     });
     await toast.present();
@@ -179,7 +179,7 @@ export class SalesOrderDetailPage implements OnInit {
     // Replace with API call
     const toast = await this.toastCtrl.create({
       message: 'Order deleted.',
-      duration: 2000,
+      buttons: [{ text: 'Dismiss', role: 'cancel' }],
       color: 'success',
       position: 'bottom'
     });
@@ -206,7 +206,7 @@ export class SalesOrderDetailPage implements OnInit {
             this.order!.status = newStatus;
             const toast = await this.toastCtrl.create({
               message: 'Status updated.',
-              duration: 2000,
+              buttons: [{ text: 'Dismiss', role: 'cancel' }],
               color: 'success',
               position: 'bottom'
             });

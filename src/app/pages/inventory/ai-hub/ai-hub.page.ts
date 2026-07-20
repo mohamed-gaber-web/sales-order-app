@@ -119,7 +119,7 @@ export class AiHubPage implements OnInit, OnDestroy {
     if (!this.selectedFeature) return;
     const toast = await this.toastCtrl.create({
       message: 'Logged. Thank you for the suggestion.',
-      duration: 3000,
+      buttons: [{ text: 'Dismiss', role: 'cancel' }],
       color: 'success',
       position: 'bottom',
     });

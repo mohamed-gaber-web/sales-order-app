@@ -63,7 +63,7 @@ export class TransferShipActionPage implements OnInit {
         this.loadError = true;
         const toast = await this.toastCtrl.create({
           message: 'Could not load transfer order. Check your connection.',
-          duration: 3000,
+          buttons: [{ text: 'Dismiss', role: 'cancel' }],
           color: 'danger',
           position: 'bottom',
         });
@@ -114,14 +114,14 @@ export class TransferShipActionPage implements OnInit {
         if (res.Success) {
           const toast = await this.toastCtrl.create({
             message: `Transfer order ${this.toNumber} shipped successfully.`,
-            duration: 3000, color: 'success', position: 'bottom',
+            buttons: [{ text: 'Dismiss', role: 'cancel' }], color: 'success', position: 'bottom',
           });
           await toast.present();
           this.router.navigate(['/inventory/transfer-ship']);
         } else {
           const toast = await this.toastCtrl.create({
             message: res.ErrorMessage || res.DebugMessage || 'Shipment failed. Try again.',
-            duration: 5000, color: 'danger', position: 'bottom',
+            buttons: [{ text: 'Dismiss', role: 'cancel' }], color: 'danger', position: 'bottom',
           });
           await toast.present();
         }
@@ -132,7 +132,7 @@ export class TransferShipActionPage implements OnInit {
         const e = err as { error?: { Message?: string; message?: string }; message?: string };
         const msg = e?.error?.Message ?? e?.error?.message ?? e?.message ?? 'Shipment failed. Check your connection and try again.';
         const toast = await this.toastCtrl.create({
-          message: msg, duration: 5000, color: 'danger', position: 'bottom',
+          message: msg, buttons: [{ text: 'Dismiss', role: 'cancel' }], color: 'danger', position: 'bottom',
         });
         await toast.present();
       },

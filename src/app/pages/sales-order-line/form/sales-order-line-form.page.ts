@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LoadingController, ToastController } from '@ionic/angular';
@@ -9,6 +9,8 @@ import {
   Warehouse,
   ProductVariant,
 } from '../../../core/services/sales-order-line.service';
+import { InventoryService } from '../../../core/services/inventory.service';
+import { InventoryProduct } from '../../../models/inventory.model';
 
 @Component({
   selector: 'app-sales-order-line-form',
@@ -17,6 +19,8 @@ import {
   standalone: false,
 })
 export class SalesOrderLineFormPage implements OnInit {
+  private inventoryService = inject(InventoryService);
+
   lineForm: FormGroup;
   isLoading = false;
   isSubmitting = false;
@@ -36,6 +40,12 @@ export class SalesOrderLineFormPage implements OnInit {
   filteredWarehouses: Warehouse[] = [];
   showSitePopover = false;
   showWarehousePopover = false;
+
+  // Item search (live autocomplete on the Item Number field)
+  itemResults: InventoryProduct[] = [];
+  showItemDropdown = false;
+  isSearchingItems = false;
+  private itemSearchSeq = 0;
 
   salesOrderNumber = '';
 
@@ -87,7 +97,7 @@ export class SalesOrderLineFormPage implements OnInit {
         this.isLoading = false;
         const toast = await this.toastCtrl.create({
           message: 'Failed to load lookup data. Please try again.',
-          duration: 3000,
+          buttons: [{ text: 'Dismiss', role: 'cancel' }],
           color: 'danger',
           position: 'bottom',
         });
@@ -124,6 +134,48 @@ export class SalesOrderLineFormPage implements OnInit {
   selectWarehouse(wh: Warehouse) {
     this.lineForm.patchValue({ ShippingWarehouseId: wh.WarehouseId });
     this.showWarehousePopover = false;
+  }
+
+  // ── Item search (autocomplete) ────────────────────────────
+  onItemNumberInput(term: string) {
+    const trimmed = term.trim();
+    const seq = ++this.itemSearchSeq;
+    if (trimmed.length < 2) {
+      this.itemResults = [];
+      this.showItemDropdown = false;
+      this.isSearchingItems = false;
+      return;
+    }
+    this.isSearchingItems = true;
+    this.showItemDropdown = true;
+    this.inventoryService.searchProducts(trimmed).subscribe({
+      next: (products) => {
+        if (seq !== this.itemSearchSeq) return; // stale response, a newer search is running
+        this.itemResults = products;
+        this.isSearchingItems = false;
+      },
+      error: () => {
+        if (seq !== this.itemSearchSeq) return;
+        this.itemResults = [];
+        this.isSearchingItems = false;
+      },
+    });
+  }
+
+  selectItem(product: InventoryProduct) {
+    this.lineForm.patchValue({ ItemNumber: product.ProductNumber });
+    this.showItemDropdown = false;
+    this.itemResults = [];
+    this.searchProductVariants();
+  }
+
+  closeItemDropdown() {
+    this.showItemDropdown = false;
+  }
+
+  onItemInputBlur() {
+    // Delay so a tap on a result registers before the list hides
+    setTimeout(() => (this.showItemDropdown = false), 200);
   }
 
   searchProductVariants() {
@@ -194,7 +246,7 @@ export class SalesOrderLineFormPage implements OnInit {
         this.lineForm.get('ProductStyleId')?.enable();
         const toast = await this.toastCtrl.create({
           message: 'Failed to load product variants.',
-          duration: 3000,
+          buttons: [{ text: 'Dismiss', role: 'cancel' }],
           color: 'danger',
           position: 'bottom',
         });
@@ -208,7 +260,7 @@ export class SalesOrderLineFormPage implements OnInit {
       this.lineForm.markAllAsTouched();
       const toast = await this.toastCtrl.create({
         message: 'Please fill in all required fields',
-        duration: 2000,
+        buttons: [{ text: 'Dismiss', role: 'cancel' }],
         color: 'danger',
         position: 'bottom',
       });
@@ -234,7 +286,7 @@ export class SalesOrderLineFormPage implements OnInit {
         await loading.dismiss();
         const toast = await this.toastCtrl.create({
           message: 'Sales order line created successfully',
-          duration: 2000,
+          buttons: [{ text: 'Dismiss', role: 'cancel' }],
           color: 'success',
           position: 'bottom',
         });
@@ -246,7 +298,7 @@ export class SalesOrderLineFormPage implements OnInit {
         await loading.dismiss();
         const toast = await this.toastCtrl.create({
           message: 'Failed to create sales order line. Please try again.',
-          duration: 3000,
+          buttons: [{ text: 'Dismiss', role: 'cancel' }],
           color: 'danger',
           position: 'bottom',
         });

@@ -63,8 +63,15 @@ ion-header {
 // ── Line Header ────────────────────────────────────────────
 .line-header {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 10px;
+
+  .line-select {
+    flex-shrink: 0;
+    --size: 20px;
+    --checkbox-background-checked: var(--gp-navy);
+    --border-color-checked: var(--gp-navy);
+  }
   margin-bottom: 12px;
   padding-bottom: 10px;
   border-bottom: 1px solid var(--gp-border, #e5e7eb);
@@ -406,4 +413,9 @@ ion-fab-button {
   .empty-state {
     padding: 120px 32px;
   }
+}
+
+// ── Multi-line packing slip bar ──────────────────────────────
+.multi-slip-footer.footer-hidden {
+  display: none;
 }

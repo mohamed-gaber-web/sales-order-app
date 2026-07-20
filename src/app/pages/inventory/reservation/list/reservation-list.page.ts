@@ -60,7 +60,7 @@ export class ReservationListPage {
     await loading.onDidDismiss();
     const toast = await this.toastCtrl.create({
       message: 'Reservation created (stub)',
-      duration: 2500,
+      buttons: [{ text: 'Dismiss', role: 'cancel' }],
       color: 'success',
       position: 'bottom',
       icon: 'checkmark-circle-outline',
@@ -79,7 +79,7 @@ export class ReservationListPage {
     await loading.onDidDismiss();
     const toast = await this.toastCtrl.create({
       message: 'Reservation released (stub)',
-      duration: 2500,
+      buttons: [{ text: 'Dismiss', role: 'cancel' }],
       color: 'warning',
       position: 'bottom',
       icon: 'refresh-circle-outline',

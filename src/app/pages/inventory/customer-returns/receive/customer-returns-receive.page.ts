@@ -53,7 +53,7 @@ export class CustomerReturnsReceivePage implements OnInit {
       this.isSubmitting = false;
       const t = await this.toastCtrl.create({
         message: `Return for order ${this.returnNumber} recorded.`,
-        duration: 3000, color: 'success', position: 'bottom'
+        buttons: [{ text: 'Dismiss', role: 'cancel' }], color: 'success', position: 'bottom'
       });
       await t.present();
       this.router.navigate(['/inventory/customer-returns']);

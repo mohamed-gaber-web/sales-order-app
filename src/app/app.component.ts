@@ -40,10 +40,16 @@ export class AppComponent implements OnInit, OnDestroy {
       icon: 'cart',
       expanded: false,
       items: [
-        { title: 'Packing Slip',    url: '/sales-order/list', icon: 'archive' },
-        { title: 'Return Customer', url: null, icon: 'person-remove', comingSoon: true },
-        { title: 'Return Order',    url: null, icon: 'arrow-undo', comingSoon: true },
-        { title: 'Reservation',     url: '/inventory/reservation', icon: 'bookmark' },
+        { title: 'Packing Slip', url: '/sales-order/list', icon: 'archive' },
+        { title: 'Reservation',  url: '/inventory/reservation', icon: 'bookmark' },
+      ]
+    },
+    {
+      title: 'Return Order',
+      icon: 'arrow-undo',
+      expanded: false,
+      items: [
+        { title: 'Picking Slip', url: '/sales-order/return-list', icon: 'list' },
       ]
     },
     {
@@ -61,7 +67,7 @@ export class AppComponent implements OnInit, OnDestroy {
       icon: 'construct',
       expanded: false,
       items: [
-        { title: 'Picking List',       url: null, icon: 'list',             comingSoon: true },
+        { title: 'Picking List',       url: '/inventory/production-picking', icon: 'list' },
         { title: 'Report As Finished', url: null, icon: 'checkmark-circle', comingSoon: true },
       ]
     },
@@ -82,6 +88,61 @@ export class AppComponent implements OnInit, OnDestroy {
       items: [
         { title: 'On Hand List',      url: '/inventory/on-hand',  icon: 'stats-chart' },
         { title: 'Inventory Inquiry', url: '/inventory/inquiry',  icon: 'search' },
+      ]
+    },
+    {
+      title: 'Van Sales',
+      icon: 'car',
+      expanded: false,
+      items: [
+        { title: 'Pre-Sales',        url: null, icon: 'clipboard',     comingSoon: true },
+        { title: 'Van Sales',        url: null, icon: 'car',           comingSoon: true },
+        { title: 'Order Management', url: null, icon: 'receipt',       comingSoon: true },
+        { title: 'Mobile Invoicing', url: null, icon: 'document-text', comingSoon: true },
+        { title: 'Van Stock',        url: null, icon: 'cube',          comingSoon: true },
+      ]
+    },
+    {
+      title: 'Route & Tracking',
+      icon: 'navigate',
+      expanded: false,
+      items: [
+        { title: 'Journey Plan',        url: null, icon: 'calendar', comingSoon: true },
+        { title: 'Route Management',    url: null, icon: 'map',      comingSoon: true },
+        { title: 'GPS Tracking',        url: null, icon: 'locate',   comingSoon: true },
+        { title: 'Dispatch & Delivery', url: null, icon: 'send',     comingSoon: true },
+      ]
+    },
+    {
+      title: 'Trade & Payments',
+      icon: 'pricetag',
+      expanded: false,
+      items: [
+        { title: 'Promotions & Deals', url: null, icon: 'pricetags',  comingSoon: true },
+        { title: 'Merchandising',      url: null, icon: 'storefront', comingSoon: true },
+        { title: 'Customer Credit',    url: null, icon: 'card',       comingSoon: true },
+        { title: 'E-Payment',          url: null, icon: 'wallet',     comingSoon: true },
+      ]
+    },
+    {
+      title: 'Performance',
+      icon: 'trending-up',
+      expanded: false,
+      items: [
+        { title: 'KPIs & Targets', url: null, icon: 'speedometer', comingSoon: true },
+        { title: 'Commission',     url: null, icon: 'cash',        comingSoon: true },
+        { title: 'Dashboards',     url: null, icon: 'bar-chart',   comingSoon: true },
+        { title: 'Smart Reports',  url: null, icon: 'analytics',   comingSoon: true },
+      ]
+    },
+    {
+      title: 'Distribution',
+      icon: 'git-network',
+      expanded: false,
+      items: [
+        { title: 'Distributor Management', url: null, icon: 'people', comingSoon: true },
+        { title: 'Supervisor App',         url: null, icon: 'eye',    comingSoon: true },
+        { title: 'ERP Integration',        url: null, icon: 'sync',   comingSoon: true },
       ]
     },
   ];
@@ -123,7 +184,7 @@ export class AppComponent implements OnInit, OnDestroy {
   async openProfile() {
     const toast = await this.toastCtrl.create({
       message: 'Profile — Coming Soon',
-      duration: 2000,
+      buttons: [{ text: 'Dismiss', role: 'cancel' }],
       position: 'bottom',
       color: 'dark',
     });

@@ -5,6 +5,7 @@ import { IonicModule } from '@ionic/angular';
 import { RouterModule, Routes } from '@angular/router';
 import { PurchaseOrderListPage } from './purchase-order-list.page';
 import { DesignSystemModule } from '../../../shared/design-system/design-system.module';
+import { ScannerModalModule } from '../../inventory/scanner/scanner-modal.module';
 
 const routes: Routes = [
   {
@@ -19,7 +20,8 @@ const routes: Routes = [
     FormsModule,
     IonicModule,
     RouterModule.forChild(routes),
-    DesignSystemModule
+    DesignSystemModule,
+    ScannerModalModule
   ],
   declarations: [PurchaseOrderListPage]
 })

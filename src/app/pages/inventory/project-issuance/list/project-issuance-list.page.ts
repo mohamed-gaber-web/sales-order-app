@@ -90,7 +90,7 @@ export class ProjectIssuanceListPage {
       },
       error: async () => {
         this.isLoading = false;
-        const t = await this.toastCtrl.create({ message: 'Could not load projects.', duration: 3000, color: 'danger', position: 'bottom' });
+        const t = await this.toastCtrl.create({ message: 'Could not load projects.', buttons: [{ text: 'Dismiss', role: 'cancel' }], color: 'danger', position: 'bottom' });
         await t.present();
       }
     });

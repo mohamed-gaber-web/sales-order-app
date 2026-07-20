@@ -4,6 +4,11 @@
       <ion-menu-button></ion-menu-button>
     </ion-buttons>
     <ion-title>Purchase Orders</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="scanOrder()">
+        <ion-icon slot="icon-only" name="scan-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
   <ion-toolbar class="search-toolbar">
     <ds-search

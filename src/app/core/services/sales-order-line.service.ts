@@ -37,6 +37,7 @@ export interface SalesOrderLineResponse {
   ProductColorId: string;
   ProductStyleId: string;
   OrderedSalesQuantity?: number;
+  RemainingSalesPhysicalQuantity?: number;
   SalesUnitSymbol?: string;
   SalesPrice?: number;
   LineAmount?: number;

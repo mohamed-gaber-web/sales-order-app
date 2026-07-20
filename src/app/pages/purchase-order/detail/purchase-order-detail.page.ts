@@ -1,8 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { finalize } from 'rxjs/operators';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ToastController } from '@ionic/angular';
+import { AlertController, LoadingController, ModalController, ToastController } from '@ionic/angular';
 import { PurchaseOrderService } from '../../../core/services/purchase-order.service';
 import { PurchaseOrderHeader, PurchaseOrderLine } from '../../../models/purchase-order.model';
+import { ScannerModalComponent } from '../../inventory/scanner/scanner-modal.component';
 
 @Component({
   selector: 'app-purchase-order-detail',
@@ -15,6 +18,9 @@ export class PurchaseOrderDetailPage implements OnInit {
   po: PurchaseOrderHeader | null = null;
   isLoading = false;
   searchTerm = '';
+  isSubmitting = false;
+  selectedLines = new Map<number, PurchaseOrderLine>();
+  private destroyRef = inject(DestroyRef);
 
   get filteredLines(): PurchaseOrderLine[] {
     const lines = this.po?.PurchaseOrderLinesV2 ?? [];
@@ -27,12 +33,13 @@ export class PurchaseOrderDetailPage implements OnInit {
     );
   }
 
-  constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private toastCtrl: ToastController,
-    private poService: PurchaseOrderService
-  ) {}
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private toastCtrl = inject(ToastController);
+  private alertCtrl = inject(AlertController);
+  private loadingCtrl = inject(LoadingController);
+  private modalCtrl = inject(ModalController);
+  private poService = inject(PurchaseOrderService);
 
   ngOnInit() {
     this.poNumber = this.route.snapshot.paramMap.get('poNumber') ?? '';
@@ -44,6 +51,7 @@ export class PurchaseOrderDetailPage implements OnInit {
   loadDetail() {
     this.isLoading = true;
     this.po = null;
+    this.selectedLines.clear();
     this.poService.getOrderWithLines(this.poNumber).subscribe({
       next: (res) => {
         this.po = res;
@@ -53,7 +61,7 @@ export class PurchaseOrderDetailPage implements OnInit {
         this.isLoading = false;
         const toast = await this.toastCtrl.create({
           message: 'Couldn\'t load this order. Tap retry.',
-          duration: 3000,
+          buttons: [{ text: 'Dismiss', role: 'cancel' }],
           color: 'danger',
           position: 'bottom'
         });
@@ -62,11 +70,161 @@ export class PurchaseOrderDetailPage implements OnInit {
     });
   }
 
+  async scanToReceive() {
+    const modal = await this.modalCtrl.create({
+      component: ScannerModalComponent,
+      cssClass: 'scanner-modal',
+      breakpoints: [0, 0.75, 1],
+      initialBreakpoint: 0.75,
+    });
+    await modal.present();
+    const { data } = await modal.onWillDismiss<string>();
+    const value = data?.trim();
+    if (value) {
+      await this.handleScannedItem(value);
+    }
+  }
+
+  private async handleScannedItem(value: string) {
+    const v = value.toLowerCase();
+    const lines = this.po?.PurchaseOrderLinesV2 ?? [];
+    const matches = lines.filter(l => l.ItemNumber.toLowerCase() === v);
+
+    if (matches.length === 0) {
+      this.searchTerm = value;
+      const toast = await this.toastCtrl.create({
+        message: `No line for "${value}" on this order.`,
+        buttons: [{ text: 'Dismiss', role: 'cancel' }],
+        color: 'danger',
+        position: 'bottom',
+      });
+      await toast.present();
+      return;
+    }
+
+    const open = matches.find(l => !this.isFullyReceived(l));
+    if (!open) {
+      const toast = await this.toastCtrl.create({
+        message: `${matches[0].ItemNumber} is already fully received.`,
+        buttons: [{ text: 'Dismiss', role: 'cancel' }],
+        color: 'warning',
+        position: 'bottom',
+      });
+      await toast.present();
+      return;
+    }
+
+    this.receiveLine(open);
+  }
+
   receiveLine(line: PurchaseOrderLine) {
     this.router.navigate(
       ['/purchase-order/receive', this.poNumber, line.LineNumber],
       { state: { line, po: this.po } }
     );
+  }
+
+  toggleLine(line: PurchaseOrderLine) {
+    if (this.selectedLines.has(line.LineNumber)) {
+      this.selectedLines.delete(line.LineNumber);
+    } else {
+      this.selectedLines.set(line.LineNumber, line);
+    }
+  }
+
+  clearSelection() {
+    this.selectedLines.clear();
+  }
+
+  async receiveSelected() {
+    if (this.selectedLines.size === 0 || this.isSubmitting) return;
+    const selected = Array.from(this.selectedLines.values());
+
+    const alert = await this.alertCtrl.create({
+      header: 'Receive Items',
+      subHeader: `${selected.length} lines — full remaining quantity`,
+      inputs: [
+        {
+          name: 'packingSlipId',
+          type: 'text',
+          placeholder: 'Packing Slip ID',
+        },
+      ],
+      buttons: [
+        { text: 'Cancel', role: 'cancel' },
+        {
+          text: 'Receive',
+          handler: (data) => {
+            const slipId = String(data.packingSlipId ?? '').trim();
+            if (!slipId) return false;
+            this.submitMultiReceipt(selected, slipId);
+            return true;
+          },
+        },
+      ],
+    });
+    await alert.present();
+  }
+
+  private async submitMultiReceipt(selected: PurchaseOrderLine[], packingSlipId: string) {
+    if (this.isSubmitting) return;
+    this.isSubmitting = true;
+
+    const loading = await this.loadingCtrl.create({
+      message: `Recording receipt for ${selected.length} lines...`,
+      spinner: 'crescent',
+    });
+    await loading.present();
+
+    this.poService.createProductReceipt({
+      _request: {
+        DataAreaId: ((this.po?.dataAreaId as string) ?? 'usmf').toUpperCase(),
+        purchaseOrderID: this.poNumber,
+        packingSlipId,
+        purchaseLineNum: selected.map((l) => l.LineNumber),
+        productReceiptQty: selected.map((l) => this.getRemainingQty(l)),
+      },
+    })
+      .pipe(
+        finalize(() => {
+          loading.dismiss();
+          this.isSubmitting = false;
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: async (res) => {
+          if (res.Success) {
+            const toast = await this.toastCtrl.create({
+              message: `Receipt recorded for ${selected.length} lines.`,
+              buttons: [{ text: 'Dismiss', role: 'cancel' }],
+              color: 'success',
+              position: 'bottom',
+            });
+            await toast.present();
+            this.loadDetail();
+          } else {
+            const toast = await this.toastCtrl.create({
+              message: res.Message ? `Receipt failed: ${res.Message}` : 'Receipt failed. Try again.',
+              buttons: [{ text: 'Dismiss', role: 'cancel' }],
+              color: 'danger',
+              position: 'bottom',
+            });
+            await toast.present();
+          }
+        },
+        error: async (err: unknown) => {
+          const e = err as { error?: { Message?: string; message?: string }; message?: string };
+          const msg = e?.error?.Message ?? e?.error?.message ?? e?.message;
+          const toast = await this.toastCtrl.create({
+            message: msg ? `Receipt failed: ${msg}` : 'Receipt failed. Check your connection and try again.',
+            buttons: [{ text: 'Dismiss', role: 'cancel' }],
+            color: 'danger',
+            position: 'bottom',
+          });
+          await toast.present();
+        },
+      });
   }
 
   goBack() {

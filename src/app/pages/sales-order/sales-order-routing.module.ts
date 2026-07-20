@@ -12,8 +12,17 @@ const routes: Routes = [
     loadChildren: () => import('./list/sales-order-list.module').then(m => m.SalesOrderListModule)
   },
   {
+    path: 'return-list',
+    data: { mode: 'return' },
+    loadChildren: () => import('./list/sales-order-list.module').then(m => m.SalesOrderListModule)
+  },
+  {
     path: 'create',
     loadChildren: () => import('./form/sales-order-form.module').then(m => m.SalesOrderFormModule)
+  },
+  {
+    path: 'scan',
+    loadChildren: () => import('./scan/sales-order-scan.module').then(m => m.SalesOrderScanModule)
   },
   {
     path: 'edit/:id',

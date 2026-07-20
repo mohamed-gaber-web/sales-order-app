@@ -117,7 +117,7 @@ export class LicensePlateListPage {
     await loading.onDidDismiss();
     const toast = await this.toastCtrl.create({
       message,
-      duration: 2500,
+      buttons: [{ text: 'Dismiss', role: 'cancel' }],
       color: 'success',
       position: 'bottom',
       icon: 'checkmark-circle-outline',

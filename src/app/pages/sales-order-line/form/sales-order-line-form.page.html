@@ -191,26 +191,49 @@
 
           <ion-list lines="none">
             <!-- Item Number + Search -->
-            <div class="item-search-row">
-              <ion-item class="form-item item-input">
-                <ion-input
-                  formControlName="ItemNumber"
-                  label="Item Number *"
-                  labelPlacement="stacked"
-                  placeholder="e.g., T-shirt">
-                </ion-input>
-              </ion-item>
-              <ion-button
-                class="search-btn"
-                (click)="searchProductVariants()"
-                [disabled]="!lineForm.get('ItemNumber')?.value || isLoadingVariants">
-                @if (isLoadingVariants) {
-                  <ion-spinner name="dots"></ion-spinner>
-                } @else {
-                  <ion-icon name="search-outline"></ion-icon>
-                }
-              </ion-button>
-            </div>
+            <ion-item class="form-item">
+              <ion-input
+                formControlName="ItemNumber"
+                label="Item Number *"
+                labelPlacement="stacked"
+                placeholder="Type to search items..."
+                [debounce]="300"
+                (ionInput)="onItemNumberInput($any($event).detail.value || '')"
+                (ionBlur)="onItemInputBlur()">
+              </ion-input>
+              @if (isLoadingVariants) {
+                <ion-spinner slot="end" name="dots"></ion-spinner>
+              }
+            </ion-item>
+
+            <!-- Item search results -->
+            @if (showItemDropdown) {
+              <div class="select-dropdown">
+                <div class="select-dropdown-close">
+                  <ion-button fill="clear" size="small" color="medium" (click)="closeItemDropdown()" aria-label="Close results">
+                    <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+                  </ion-button>
+                </div>
+                <div class="select-dropdown-list">
+                  @if (isSearchingItems) {
+                    <div class="select-dropdown-empty">Searching...</div>
+                  } @else {
+                    @for (product of itemResults; track product.ProductNumber) {
+                      <div
+                        class="select-dropdown-item"
+                        [class.active]="lineForm.get('ItemNumber')?.value === product.ProductNumber"
+                        (click)="selectItem(product)">
+                        <ion-icon name="checkmark-outline" class="check-icon"></ion-icon>
+                        <span>{{ product.ProductName ? product.ProductNumber + ' – ' + product.ProductName : product.ProductNumber }}</span>
+                      </div>
+                    }
+                    @if (itemResults.length === 0) {
+                      <div class="select-dropdown-empty">No items found</div>
+                    }
+                  }
+                </div>
+              </div>
+            }
 
             @if (variantMessage) {
               <div class="variant-message" [class.success]="productVariants.length > 0" [class.empty]="productVariants.length === 0">

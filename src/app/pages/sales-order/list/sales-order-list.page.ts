@@ -1,5 +1,5 @@
 import { Component, ViewChild } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { IonInfiniteScroll, ToastController } from '@ionic/angular';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
@@ -24,6 +24,7 @@ export class SalesOrderListPage {
   isSearching = false;
   totalCount = 0;
   company = 'usmf';
+  isReturnMode = false;
   private allDataLoaded = false;
 
   private searchSubject = new Subject<string>();
@@ -34,9 +35,11 @@ export class SalesOrderListPage {
 
   constructor(
     private router: Router,
+    private route: ActivatedRoute,
     private toastCtrl: ToastController,
     private salesOrderService: SalesOrderService
   ) {
+    this.isReturnMode = this.route.snapshot.data['mode'] === 'return';
     this.searchSubject.pipe(
       debounceTime(400),
       distinctUntilChanged(),
@@ -55,7 +58,7 @@ export class SalesOrderListPage {
     this.isLoading = true;
     this.orders = [];
     this.totalCount = 0;
-    this.salesOrderService.getOrderHeaders(0).subscribe({
+    this.salesOrderService.getOrderHeaders(0, this.isReturnMode).subscribe({
       next: (res) => {
         this.orders = this.deduplicate(res.value);
         this.filteredOrders = [...this.orders];
@@ -69,7 +72,7 @@ export class SalesOrderListPage {
         this.isLoading = false;
         const toast = await this.toastCtrl.create({
           message: 'Couldn\'t load orders. Pull down to refresh.',
-          duration: 3000,
+          buttons: [{ text: 'Dismiss', role: 'cancel' }],
           color: 'danger',
           position: 'bottom'
         });
@@ -84,7 +87,7 @@ export class SalesOrderListPage {
       return;
     }
     this.isLoadingMore = true;
-    this.salesOrderService.getOrderHeaders(this.orders.length).subscribe({
+    this.salesOrderService.getOrderHeaders(this.orders.length, this.isReturnMode).subscribe({
       next: (res) => {
         this.orders = this.deduplicate([...this.orders, ...res.value]);
         this.filteredOrders = [...this.orders];
@@ -99,7 +102,7 @@ export class SalesOrderListPage {
         event.target.complete();
         const toast = await this.toastCtrl.create({
           message: 'Couldn\'t load more orders.',
-          duration: 3000,
+          buttons: [{ text: 'Dismiss', role: 'cancel' }],
           color: 'danger',
           position: 'bottom'
         });
@@ -111,7 +114,7 @@ export class SalesOrderListPage {
   loadMoreWeb() {
     if (!this.hasMore || this.isLoadingMore) return;
     this.isLoadingMore = true;
-    this.salesOrderService.getOrderHeaders(this.orders.length).subscribe({
+    this.salesOrderService.getOrderHeaders(this.orders.length, this.isReturnMode).subscribe({
       next: (res) => {
         this.orders = this.deduplicate([...this.orders, ...res.value]);
         this.filteredOrders = [...this.orders];
@@ -121,7 +124,7 @@ export class SalesOrderListPage {
         this.isLoadingMore = false;
         const toast = await this.toastCtrl.create({
           message: 'Couldn\'t load more orders.',
-          duration: 3000,
+          buttons: [{ text: 'Dismiss', role: 'cancel' }],
           color: 'danger',
           position: 'bottom'
         });
@@ -157,7 +160,7 @@ export class SalesOrderListPage {
 
     // Load all data from API then filter
     this.isSearching = true;
-    this.salesOrderService.getAllOrderHeaders().subscribe({
+    this.salesOrderService.getAllOrderHeaders(this.isReturnMode).subscribe({
       next: (res) => {
         this.allOrders = this.deduplicate(res.value);
         this.allDataLoaded = true;
@@ -171,7 +174,7 @@ export class SalesOrderListPage {
         this.isSearching = false;
         const toast = await this.toastCtrl.create({
           message: 'Search failed. Try again.',
-          duration: 3000,
+          buttons: [{ text: 'Dismiss', role: 'cancel' }],
           color: 'danger',
           position: 'bottom'
         });
@@ -194,6 +197,10 @@ export class SalesOrderListPage {
     this.router.navigate(['/sales-order/create']);
   }
 
+  scanOrder() {
+    this.router.navigate(['/sales-order/scan']);
+  }
+
   openOrderLine(salesId: string) {
     this.router.navigate(['/sales-order-line/detail', salesId]);
   }
@@ -203,7 +210,7 @@ export class SalesOrderListPage {
     this.allOrders = [];
     this.orders = [];
     this.totalCount = 0;
-    this.salesOrderService.getOrderHeaders(0).subscribe({
+    this.salesOrderService.getOrderHeaders(0, this.isReturnMode).subscribe({
       next: (res) => {
         this.orders = this.deduplicate(res.value);
         this.filteredOrders = [...this.orders];
@@ -217,7 +224,7 @@ export class SalesOrderListPage {
         event.target.complete();
         const toast = await this.toastCtrl.create({
           message: 'Refresh failed. Try again.',
-          duration: 3000,
+          buttons: [{ text: 'Dismiss', role: 'cancel' }],
           color: 'danger',
           position: 'bottom'
         });

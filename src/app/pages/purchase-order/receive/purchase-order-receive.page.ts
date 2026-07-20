@@ -1,10 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { LoadingController, ToastController } from '@ionic/angular';
+import { LoadingController, ModalController, ToastController } from '@ionic/angular';
 import { PurchaseOrderService } from '../../../core/services/purchase-order.service';
 import { PurchaseOrderHeader, PurchaseOrderLine } from '../../../models/purchase-order.model';
 import { PdfService, ReceiptPdfData } from '../../../core/services/pdf.service';
+import { ScannerModalComponent } from '../../inventory/scanner/scanner-modal.component';
 
 @Component({
   selector: 'app-purchase-order-receive',
@@ -59,6 +60,8 @@ export class PurchaseOrderReceivePage implements OnInit {
     private pdfService: PdfService
   ) {}
 
+  private modalCtrl = inject(ModalController);
+
   ngOnInit() {
     this.poNumber = this.route.snapshot.paramMap.get('poNumber') ?? '';
     this.lineNumber = Number(this.route.snapshot.paramMap.get('lineNumber') ?? '0');
@@ -79,6 +82,22 @@ export class PurchaseOrderReceivePage implements OnInit {
 
   setMaxQty() {
     this.form.patchValue({ receiptQty: this.remainingQty });
+  }
+
+  async scanPackingSlip() {
+    const modal = await this.modalCtrl.create({
+      component: ScannerModalComponent,
+      cssClass: 'scanner-modal',
+      breakpoints: [0, 0.75, 1],
+      initialBreakpoint: 0.75,
+    });
+    await modal.present();
+    const { data } = await modal.onWillDismiss<string>();
+    const value = data?.trim();
+    if (value) {
+      this.form.patchValue({ packingSlipId: value });
+      this.form.get('packingSlipId')?.markAsTouched();
+    }
   }
 
   async submitReceipt() {
@@ -125,7 +144,7 @@ export class PurchaseOrderReceivePage implements OnInit {
         } else {
           const toast = await this.toastCtrl.create({
             message: res.Message ? `Receipt failed: ${res.Message}` : 'Receipt failed. Try again.',
-            duration: 5000,
+            buttons: [{ text: 'Dismiss', role: 'cancel' }],
             color: 'danger',
             position: 'bottom'
           });
@@ -140,7 +159,7 @@ export class PurchaseOrderReceivePage implements OnInit {
           message: d365Message
             ? `Receipt failed: ${d365Message}`
             : 'Receipt failed. Check your connection and try again.',
-          duration: 5000,
+          buttons: [{ text: 'Dismiss', role: 'cancel' }],
           color: 'danger',
           position: 'bottom'
         });
@@ -157,7 +176,7 @@ export class PurchaseOrderReceivePage implements OnInit {
     } catch {
       const toast = await this.toastCtrl.create({
         message: 'Could not generate PDF. Try again.',
-        duration: 3000,
+        buttons: [{ text: 'Dismiss', role: 'cancel' }],
         color: 'danger',
         position: 'bottom'
       });
@@ -175,7 +194,7 @@ export class PurchaseOrderReceivePage implements OnInit {
     } catch {
       const toast = await this.toastCtrl.create({
         message: 'Could not share PDF. Try again.',
-        duration: 3000,
+        buttons: [{ text: 'Dismiss', role: 'cancel' }],
         color: 'danger',
         position: 'bottom'
       });

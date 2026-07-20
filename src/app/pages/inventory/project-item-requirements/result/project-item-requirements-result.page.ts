@@ -80,7 +80,7 @@ export class ProjectItemRequirementsResultPage implements OnInit {
         this.errorPayload = JSON.stringify(err?.error ?? err);
         const t = await this.toastCtrl.create({
           message: 'Retry failed. ' + this.errorMessage,
-          duration: 4000, color: 'danger', position: 'bottom',
+          buttons: [{ text: 'Dismiss', role: 'cancel' }], color: 'danger', position: 'bottom',
         });
         await t.present();
       }

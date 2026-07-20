@@ -83,6 +83,12 @@
           <ion-card-content>
             <!-- Header -->
             <div class="line-header">
+              <ion-checkbox
+                class="line-select"
+                [checked]="selectedLines.has(lineKey(line, i))"
+                (ionChange)="toggleLine(line, i)"
+                aria-label="Select line for packing slip">
+              </ion-checkbox>
               <span class="line-item-number">{{ line.ItemNumber }}</span>
               @if (line.ProductName) {
                 <span class="line-product-name">{{ line.ProductName }}</span>
@@ -198,3 +204,15 @@
   <input id="gp-photo-input" type="file" accept="image/*"
     style="display:none" (change)="onFileSelected($event)">
 </ion-content>
+
+<!-- Multi-line packing slip bar -->
+<ion-footer class="ion-no-border multi-slip-footer" [class.footer-hidden]="selectedLines.size === 0">
+  <ds-cta-bar
+    [label]="'Create Packing Slip (' + selectedLines.size + ')'"
+    icon="document-text-outline"
+    [loading]="isSubmittingSlip"
+    secondaryLabel="Clear"
+    (ctaClick)="createMultiPackingSlip()"
+    (secondaryClick)="clearSelection()">
+  </ds-cta-bar>
+</ion-footer>

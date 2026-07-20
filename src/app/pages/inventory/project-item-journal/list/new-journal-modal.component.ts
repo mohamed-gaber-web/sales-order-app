@@ -76,7 +76,7 @@ export class NewJournalModalComponent {
   private async showToast(message: string) {
     const t = await this.toastCtrl.create({
       message,
-      duration: 4000,
+      buttons: [{ text: 'Dismiss', role: 'cancel' }],
       color: 'danger',
       position: 'bottom',
     });

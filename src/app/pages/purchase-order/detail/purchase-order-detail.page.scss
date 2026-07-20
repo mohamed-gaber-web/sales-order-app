@@ -420,3 +420,22 @@ ion-header ion-toolbar {
     margin: 0 auto;
   }
 }
+
+// ── Multi-line receive bar ───────────────────────────────────
+.line-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+
+  .line-select {
+    flex-shrink: 0;
+    --size: 20px;
+    --checkbox-background-checked: var(--gp-navy);
+    --border-color-checked: var(--gp-navy);
+  }
+}
+
+.multi-receive-footer.footer-hidden {
+  display: none;
+}

@@ -203,13 +203,18 @@
           <ion-label class="field-label">
             Product Receipt ID <span class="required">*</span>
           </ion-label>
-          <ion-input
-            formControlName="packingSlipId"
-            type="text"
-            placeholder="e.g. RCP-2024-001"
-            class="custom-input"
-            [class.invalid]="form.get('packingSlipId')?.invalid && form.get('packingSlipId')?.touched">
-          </ion-input>
+          <div class="input-with-scan">
+            <ion-input
+              formControlName="packingSlipId"
+              type="text"
+              placeholder="e.g. RCP-2024-001"
+              class="custom-input"
+              [class.invalid]="form.get('packingSlipId')?.invalid && form.get('packingSlipId')?.touched">
+            </ion-input>
+            <ion-button fill="outline" class="scan-btn" (click)="scanPackingSlip()">
+              <ion-icon slot="icon-only" name="scan-outline"></ion-icon>
+            </ion-button>
+          </div>
           @if (form.get('packingSlipId')?.invalid && form.get('packingSlipId')?.touched) {
             <p class="field-error">
               <ion-icon name="alert-circle-outline"></ion-icon>

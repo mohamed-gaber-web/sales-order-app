@@ -197,7 +197,7 @@ export class ProjectItemJournalNewLinePage {
         this.service.saveLastUsed(this.siteId.trim(), this.warehouseId.trim());
         const t = await this.toastCtrl.create({
           message: 'Line added successfully.',
-          duration: 2000,
+          buttons: [{ text: 'Dismiss', role: 'cancel' }],
           color: 'success',
           position: 'bottom',
         });
@@ -212,7 +212,6 @@ export class ProjectItemJournalNewLinePage {
         const serverMsg = this.extractErrorMessage(err);
         const t = await this.toastCtrl.create({
           message: serverMsg || 'Failed to add line. Please try again.',
-          duration: 5000,
           color: 'danger',
           position: 'bottom',
           buttons: [{ text: 'Dismiss', role: 'cancel' }],

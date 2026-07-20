@@ -59,7 +59,7 @@ export class TransferOrderDetailPage implements OnInit {
         this.isLoading = false;
         const toast = await this.toastCtrl.create({
           message: 'Couldn\'t load this transfer. Tap retry.',
-          duration: 3000, color: 'danger', position: 'bottom'
+          buttons: [{ text: 'Dismiss', role: 'cancel' }], color: 'danger', position: 'bottom'
         });
         await toast.present();
       }
@@ -145,14 +145,14 @@ export class TransferOrderDetailPage implements OnInit {
         if (res.Success) {
           const toast = await this.toastCtrl.create({
             message: `Line ${line.LineNumber} shipped successfully.`,
-            duration: 3000, color: 'success', position: 'bottom'
+            buttons: [{ text: 'Dismiss', role: 'cancel' }], color: 'success', position: 'bottom'
           });
           await toast.present();
           this.loadDetail();
         } else {
           const toast = await this.toastCtrl.create({
             message: res.ErrorMessage || res.DebugMessage || 'Ship failed. Try again.',
-            duration: 5000, color: 'danger', position: 'bottom'
+            buttons: [{ text: 'Dismiss', role: 'cancel' }], color: 'danger', position: 'bottom'
           });
           await toast.present();
         }
@@ -162,7 +162,7 @@ export class TransferOrderDetailPage implements OnInit {
         const msg = err?.error?.Message ?? err?.error?.message ?? err?.message;
         const toast = await this.toastCtrl.create({
           message: msg ? `Ship failed: ${msg}` : 'Ship failed. Try again.',
-          duration: 5000, color: 'danger', position: 'bottom'
+          buttons: [{ text: 'Dismiss', role: 'cancel' }], color: 'danger', position: 'bottom'
         });
         await toast.present();
       }
@@ -186,14 +186,14 @@ export class TransferOrderDetailPage implements OnInit {
         if (res.Success) {
           const toast = await this.toastCtrl.create({
             message: `Line ${line.LineNumber} received successfully.`,
-            duration: 3000, color: 'success', position: 'bottom'
+            buttons: [{ text: 'Dismiss', role: 'cancel' }], color: 'success', position: 'bottom'
           });
           await toast.present();
           this.loadDetail();
         } else {
           const toast = await this.toastCtrl.create({
             message: res.ErrorMessage || res.DebugMessage || 'Receive failed. Try again.',
-            duration: 5000, color: 'danger', position: 'bottom'
+            buttons: [{ text: 'Dismiss', role: 'cancel' }], color: 'danger', position: 'bottom'
           });
           await toast.present();
         }
@@ -203,7 +203,7 @@ export class TransferOrderDetailPage implements OnInit {
         const msg = err?.error?.Message ?? err?.error?.message ?? err?.message;
         const toast = await this.toastCtrl.create({
           message: msg ? `Receive failed: ${msg}` : 'Receive failed. Try again.',
-          duration: 5000, color: 'danger', position: 'bottom'
+          buttons: [{ text: 'Dismiss', role: 'cancel' }], color: 'danger', position: 'bottom'
         });
         await toast.present();
       }
