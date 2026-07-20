@@ -1,4 +1,4 @@
-package ionic.app.base;
+package com.growpath.app;
 
 import com.getcapacitor.BridgeActivity;
 

@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">ionic-app-base</string>
-    <string name="title_activity_main">ionic-app-base</string>
-    <string name="package_name">ionic.app.base</string>
-    <string name="custom_url_scheme">ionic.app.base</string>
+    <string name="app_name">Grow Path</string>
+    <string name="title_activity_main">Grow Path</string>
+    <string name="package_name">com.growpath.app</string>
+    <string name="custom_url_scheme">com.growpath.app</string>
 </resources>
