@@ -1,7 +1,7 @@
 export const environment = {
   production: true,
   auth: {
-    tokenUrl: 'https://login.microsoftonline.com/fairleaonline.com/oauth2/v2.0/token',
+    tokenUrl: 'https://login.microsoftonline.com/26c58d65-b577-4f92-aed2-cec1395d146d/oauth2/v2.0/token',
     clientId: 'db61ee09-84a1-4912-b319-709480fa243a',
     clientSecret: '', // Used on native only; web goes through Vercel /api/token which injects it server-side
     scope: 'https://gp-customers.sandbox.operations.eu.dynamics.com/.default',
