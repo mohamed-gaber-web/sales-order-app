@@ -22,6 +22,20 @@ export interface SalesOrderHeaderResponse {
   SalesTable_DocumentStatus?: string;       // Release / document status (e.g. Invoice)
   // Dates
   ShippingDateRequested?: string;
+  // Lines, when fetched via SalesOrderHeadersV3?$expand=SalesOrderLines
+  SalesOrderLines?: unknown[];
+}
+
+// ── D365 Sales Order Header (SalesOrderHeadersV3 raw shape) ────
+export interface SalesOrderHeaderV3Response {
+  dataAreaId: string;
+  SalesOrderNumber: string;
+  OrderingCustomerAccountNumber: string;
+  SalesOrderName?: string;
+  InvoiceCustomerAccountNumber?: string;
+  SalesOrderStatus?: string;
+  CurrencyCode: string;
+  SalesOrderLines?: unknown[];
 }
 
 // ── Packing Slip ───────────────────────────────────────────
