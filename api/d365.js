@@ -11,7 +11,7 @@
  * with the target encoded in a query param sidesteps that limitation.
  */
 
-const D365_BASE = 'https://growpath.sandbox.operations.eu.dynamics.com';
+const D365_BASE = 'https://gp-customers.sandbox.operations.eu.dynamics.com';
 const FORWARDED_HEADERS = ['authorization', 'content-type', 'accept', 'if-match', 'prefer'];
 
 module.exports = async function handler(req, res) {
