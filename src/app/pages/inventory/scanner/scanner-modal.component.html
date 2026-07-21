@@ -11,8 +11,8 @@
 
 <ion-content class="scanner-content">
 
-  <!-- Camera viewfinder -->
-  @if (canScan && isScanning) {
+  <!-- Camera viewfinder (web) -->
+  @if (canScan && !isNative && isScanning) {
     <div class="viewfinder-wrap">
       <video #videoEl class="camera-video" autoplay playsinline muted></video>
       <div class="scan-overlay">
@@ -28,6 +28,14 @@
     </div>
   }
 
+  <!-- Native scan in progress -->
+  @if (canScan && isNative && isScanning) {
+    <div class="no-camera-state">
+      <ion-spinner name="crescent" color="light"></ion-spinner>
+      <p class="no-camera-msg">Opening camera…</p>
+    </div>
+  }
+
   <!-- Camera not supported / error -->
   @if (!canScan || scanError) {
     <div class="no-camera-state">
@@ -37,6 +45,11 @@
       <p class="no-camera-msg">
         {{ scanError || 'Camera scanning is not available in this browser. Use manual entry below.' }}
       </p>
+      @if (isNative && scanError) {
+        <ion-button fill="outline" color="light" (click)="startNativeScan()">
+          Try Again
+        </ion-button>
+      }
     </div>
   }
 

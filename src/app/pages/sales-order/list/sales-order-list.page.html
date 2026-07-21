@@ -30,6 +30,28 @@
     </ion-refresher-content>
   </ion-refresher>
 
+  <!-- Web Page Header (desktop only) -->
+  <div class="web-page-header">
+    <div class="web-page-header-inner">
+      <div class="web-title-group">
+        <h1 class="web-page-title">{{ isReturnMode ? 'Return Orders' : 'Sales Orders' }}</h1>
+        @if (!isLoading) {
+          <span class="web-count-chip">{{ totalCount }}</span>
+        }
+      </div>
+      <div class="web-actions">
+        <ion-searchbar
+          [(ngModel)]="searchTerm"
+          (ionInput)="onSearchChange()"
+          placeholder="Search by order number or customer..."
+          debounce="300"
+          animated="false"
+          class="web-searchbar">
+        </ion-searchbar>
+      </div>
+    </div>
+  </div>
+
   <!-- Hero Banner -->
   <div class="hero-banner">
     <div class="hero-badge"><span class="hero-badge-dot"></span>Live</div>

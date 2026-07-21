@@ -23,6 +23,7 @@ export class ScannerModalComponent implements OnInit, OnDestroy {
   scanError = '';
   lastResult: ScanResult | null = null;
   readonly canScan: boolean;
+  readonly isNative: boolean;
 
   private stream: MediaStream | null = null;
   private rafId: number | null = null;
@@ -33,12 +34,35 @@ export class ScannerModalComponent implements OnInit, OnDestroy {
     private zone: NgZone,
   ) {
     this.canScan = this.scannerService.canScan;
+    this.isNative = this.scannerService.isNative;
   }
 
   ngOnInit() {
-    if (this.canScan) {
+    if (!this.canScan) return;
+    if (this.isNative) {
+      this.startNativeScan();
+    } else {
       // slight delay to let the modal render the video element
       setTimeout(() => this.startCamera(), 300);
+    }
+  }
+
+  async startNativeScan() {
+    this.scanError = '';
+    this.isScanning = true;
+    try {
+      const result = await this.scannerService.scanNative();
+      this.zone.run(() => {
+        this.isScanning = false;
+        if (result) {
+          this.onScanSuccess(result);
+        }
+      });
+    } catch (err) {
+      this.zone.run(() => {
+        this.isScanning = false;
+        this.scanError = err instanceof Error ? err.message : 'Camera scan failed. Use manual entry below.';
+      });
     }
   }
 

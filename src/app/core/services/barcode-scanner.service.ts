@@ -1,5 +1,9 @@
 import { Injectable } from '@angular/core';
-import { Observable, Subject } from 'rxjs';
+import { Platform } from '@ionic/angular';
+import {
+  BarcodeScanner,
+  BarcodeFormat,
+} from '@capacitor-mlkit/barcode-scanning';
 
 export interface ScanResult {
   rawValue: string;
@@ -15,13 +19,55 @@ declare global {
   }
 }
 
+const SCAN_FORMATS = [
+  BarcodeFormat.QrCode,
+  BarcodeFormat.Code128,
+  BarcodeFormat.Code39,
+  BarcodeFormat.Ean13,
+  BarcodeFormat.Ean8,
+  BarcodeFormat.DataMatrix,
+  BarcodeFormat.Pdf417,
+];
+
 @Injectable({ providedIn: 'root' })
 export class BarcodeScannerService {
   readonly isNativeApiSupported = typeof window !== 'undefined' && 'BarcodeDetector' in window;
 
-  /** Returns true if the browser can scan without a plugin */
+  constructor(private platform: Platform) {}
+
+  get isNative(): boolean {
+    return this.platform.is('capacitor') || this.platform.is('cordova');
+  }
+
+  /** Returns true if this device/browser can scan without falling back to manual entry */
   get canScan(): boolean {
-    return this.isNativeApiSupported;
+    return this.isNative || this.isNativeApiSupported;
+  }
+
+  /**
+   * Native (ML Kit) scan — opens the device's full-screen barcode scanner.
+   * Returns null if the user cancels without scanning anything.
+   */
+  async scanNative(): Promise<ScanResult | null> {
+    const { camera } = await BarcodeScanner.checkPermissions();
+    if (camera !== 'granted' && camera !== 'limited') {
+      const requested = await BarcodeScanner.requestPermissions();
+      if (requested.camera !== 'granted' && requested.camera !== 'limited') {
+        throw new Error('Camera permission denied');
+      }
+    }
+
+    const { available } = await BarcodeScanner.isGoogleBarcodeScannerModuleAvailable();
+    if (!available) {
+      await BarcodeScanner.installGoogleBarcodeScannerModule();
+      throw new Error('Downloading the scanner module. Try again in a moment.');
+    }
+
+    const { barcodes } = await BarcodeScanner.scan({ formats: SCAN_FORMATS });
+    if (barcodes.length > 0) {
+      return { rawValue: barcodes[0].rawValue, format: barcodes[0].format };
+    }
+    return null;
   }
 
   /**
