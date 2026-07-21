@@ -26,18 +26,6 @@ export interface SalesOrderHeaderResponse {
   SalesOrderLines?: unknown[];
 }
 
-// ── D365 Sales Order Header (SalesOrderHeadersV3 raw shape) ────
-export interface SalesOrderHeaderV3Response {
-  dataAreaId: string;
-  SalesOrderNumber: string;
-  OrderingCustomerAccountNumber: string;
-  SalesOrderName?: string;
-  InvoiceCustomerAccountNumber?: string;
-  SalesOrderStatus?: string;
-  CurrencyCode: string;
-  SalesOrderLines?: unknown[];
-}
-
 // ── Packing Slip ───────────────────────────────────────────
 export interface CreatePackingSlipRequest {
   _request: {

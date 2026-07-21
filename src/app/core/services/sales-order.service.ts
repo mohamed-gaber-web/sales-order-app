@@ -6,7 +6,6 @@ import { ODataResponse } from '../models/lookup.models';
 import {
   CreateSalesOrderHeaderDto,
   SalesOrderHeaderResponse,
-  SalesOrderHeaderV3Response,
   CreatePackingSlipRequest,
   PackingSlipResponse,
 } from '../../models/sales-order.model';
@@ -25,6 +24,10 @@ export interface CreateOrderWithLinesResult {
 
 export const SALES_PAGE_SIZE = 10;
 
+const SALES_FILTER =
+  "dataAreaId eq 'usmf' and RemainInventPhysical gt 0 " +
+  "and SalesTable_SalesStatus eq Microsoft.Dynamics.DataEntities.SalesStatus'Backorder' " +
+  "and SalesStatus eq Microsoft.Dynamics.DataEntities.SalesStatus'Backorder'";
 const RETURN_FILTER =
   "dataAreaId eq 'usmf' " +
   "and (SalesType eq Microsoft.Dynamics.DataEntities.SalesType'ReturnItem' or RemainInventPhysical lt 0) " +
@@ -34,81 +37,34 @@ const SALES_SELECT =
   'SalesId,CustAccount,SalesType,SalesTable_SalesName,SalesTable_InvoiceAccount,' +
   'SalesTable_SalesStatus,SalesTable_DocumentStatus,dataAreaId,CurrencyCode';
 
-const CONFIRMED_ORDERS_FILTER =
-  "dataAreaId eq 'usmf' and SalesOrderProcessingStatus eq Microsoft.Dynamics.DataEntities.SalesOrderProcessingStatus'Confirmed'";
-const CONFIRMED_ORDERS_SELECT =
-  'dataAreaId,SalesOrderNumber,OrderingCustomerAccountNumber,SalesOrderName,' +
-  'InvoiceCustomerAccountNumber,SalesOrderStatus,CurrencyCode';
-
-function mapV3ToHeaderResponse(row: SalesOrderHeaderV3Response): SalesOrderHeaderResponse {
-  return {
-    dataAreaId: row.dataAreaId,
-    CurrencyCode: row.CurrencyCode,
-    SalesId: row.SalesOrderNumber,
-    CustAccount: row.OrderingCustomerAccountNumber,
-    SalesTable_SalesName: row.SalesOrderName,
-    SalesTable_InvoiceAccount: row.InvoiceCustomerAccountNumber,
-    SalesTable_SalesStatus: row.SalesOrderStatus,
-    SalesOrderLines: row.SalesOrderLines,
-  };
-}
-
 @Injectable({ providedIn: 'root' })
 export class SalesOrderService {
   private api = inject(ApiService);
   private orderLineService = inject(SalesOrderLineService);
 
   getOrderHeaders(skip = 0, returnsOnly = false): Observable<ODataResponse<SalesOrderHeaderResponse>> {
-    if (returnsOnly) {
-      return this.api.get<ODataResponse<SalesOrderHeaderResponse>>(
-        '/data/GP_SalesHeaderAndLineData',
-        {
-          '$top': String(SALES_PAGE_SIZE),
-          '$skip': String(skip),
-          '$count': 'true',
-          '$filter': RETURN_FILTER,
-          '$select': SALES_SELECT,
-          '$orderby': 'SalesId desc',
-        }
-      );
-    }
-    return this.getConfirmedOrders({
-      '$top': String(SALES_PAGE_SIZE),
-      '$skip': String(skip),
-    });
+    return this.api.get<ODataResponse<SalesOrderHeaderResponse>>(
+      '/data/GP_SalesHeaderAndLineData',
+      {
+        '$top': String(SALES_PAGE_SIZE),
+        '$skip': String(skip),
+        '$count': 'true',
+        '$filter': returnsOnly ? RETURN_FILTER : SALES_FILTER,
+        '$select': SALES_SELECT,
+        '$orderby': 'SalesId desc',
+      }
+    );
   }
 
   getAllOrderHeaders(returnsOnly = false): Observable<ODataResponse<SalesOrderHeaderResponse>> {
-    if (returnsOnly) {
-      return this.api.get<ODataResponse<SalesOrderHeaderResponse>>(
-        '/data/GP_SalesHeaderAndLineData',
-        {
-          '$count': 'true',
-          '$filter': RETURN_FILTER,
-          '$select': SALES_SELECT,
-          '$orderby': 'SalesId desc',
-        }
-      );
-    }
-    return this.getConfirmedOrders({});
-  }
-
-  private getConfirmedOrders(pagination: Record<string, string>): Observable<ODataResponse<SalesOrderHeaderResponse>> {
-    return this.api.get<ODataResponse<SalesOrderHeaderV3Response>>(
-      '/data/SalesOrderHeadersV3',
+    return this.api.get<ODataResponse<SalesOrderHeaderResponse>>(
+      '/data/GP_SalesHeaderAndLineData',
       {
-        ...pagination,
         '$count': 'true',
-        '$filter': CONFIRMED_ORDERS_FILTER,
-        '$select': CONFIRMED_ORDERS_SELECT,
-        '$expand': 'SalesOrderLines',
-        '$orderby': 'SalesOrderNumber desc',
+        '$filter': returnsOnly ? RETURN_FILTER : SALES_FILTER,
+        '$select': SALES_SELECT,
+        '$orderby': 'SalesId desc',
       }
-    ).pipe(
-      map((res) => ({
-        ...res,
-        value: res.value.map(mapV3ToHeaderResponse),
-      }))
     );
   }
 
