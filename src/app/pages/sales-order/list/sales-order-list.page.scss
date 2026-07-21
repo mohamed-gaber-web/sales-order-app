@@ -270,11 +270,6 @@
   }
 }
 
-// ── Web Load More (hidden on mobile) ───────────────────────
-.web-load-more {
-  display: none;
-}
-
 // ── FAB ────────────────────────────────────────────────────
 ion-fab-button {
   --background: linear-gradient(135deg, var(--gp-accent) 0%, var(--gp-accent-end) 100%);
@@ -487,36 +482,6 @@ ion-fab-button {
     padding: 120px 32px;
   }
 
-  // Hide mobile infinite scroll on desktop
-  ion-infinite-scroll {
-    display: none !important;
-  }
-
-  // Show web load more button
-  .web-load-more {
-    display: flex;
-    justify-content: center;
-    padding: 8px 40px 36px;
-    max-width: 1400px;
-    margin: 0 auto;
-
-    .web-load-more-btn {
-      --border-radius: var(--gp-radius-md);
-      --border-color: var(--gp-navy);
-      --color: var(--gp-navy);
-      font-weight: 600;
-      font-size: 14px;
-      text-transform: none;
-      height: 40px;
-      min-width: 160px;
-      letter-spacing: -0.01em;
-
-      ion-spinner {
-        width: 16px;
-        height: 16px;
-      }
-    }
-  }
 }
 
 // ── Large desktop (≥ 1400px) ───────────────────────────────

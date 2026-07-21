@@ -1,8 +1,6 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { IonInfiniteScroll, ToastController } from '@ionic/angular';
-import { Subject } from 'rxjs';
-import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { ToastController } from '@ionic/angular';
 import { SalesOrderService } from '../../../core/services/sales-order.service';
 import { SalesOrderHeaderResponse } from '../../../models/sales-order.model';
 
@@ -13,25 +11,13 @@ import { SalesOrderHeaderResponse } from '../../../models/sales-order.model';
   standalone: false
 })
 export class SalesOrderListPage {
-  @ViewChild(IonInfiniteScroll) infiniteScroll!: IonInfiniteScroll;
-
   orders: SalesOrderHeaderResponse[] = [];
-  allOrders: SalesOrderHeaderResponse[] = [];
   filteredOrders: SalesOrderHeaderResponse[] = [];
   searchTerm = '';
   isLoading = false;
-  isLoadingMore = false;
-  isSearching = false;
   totalCount = 0;
   company = 'usmf';
   isReturnMode = false;
-  private allDataLoaded = false;
-
-  private searchSubject = new Subject<string>();
-
-  get hasMore(): boolean {
-    return !this.searchTerm.trim() && this.orders.length < this.totalCount;
-  }
 
   constructor(
     private router: Router,
@@ -40,33 +26,20 @@ export class SalesOrderListPage {
     private salesOrderService: SalesOrderService
   ) {
     this.isReturnMode = this.route.snapshot.data['mode'] === 'return';
-    this.searchSubject.pipe(
-      debounceTime(400),
-      distinctUntilChanged(),
-    ).subscribe((term) => {
-      this.handleSearch(term);
-    });
   }
 
   ionViewWillEnter() {
-    this.allDataLoaded = false;
-    this.allOrders = [];
     this.loadOrders();
   }
 
   loadOrders() {
     this.isLoading = true;
-    this.orders = [];
-    this.totalCount = 0;
-    this.salesOrderService.getOrderHeaders(0, this.isReturnMode).subscribe({
+    this.salesOrderService.getAllOrderHeaders(this.isReturnMode).subscribe({
       next: (res) => {
         this.orders = this.deduplicate(res.value);
-        this.filteredOrders = [...this.orders];
-        this.totalCount = res['@odata.count'] ?? res.value.length;
+        this.totalCount = res['@odata.count'] ?? this.orders.length;
+        this.filterLocally(this.searchTerm);
         this.isLoading = false;
-        if (this.infiniteScroll) {
-          this.infiniteScroll.disabled = !this.hasMore;
-        }
       },
       error: async () => {
         this.isLoading = false;
@@ -81,111 +54,22 @@ export class SalesOrderListPage {
     });
   }
 
-  loadMore(event: any) {
-    if (!this.hasMore) {
-      event.target.complete();
-      return;
-    }
-    this.isLoadingMore = true;
-    this.salesOrderService.getOrderHeaders(this.orders.length, this.isReturnMode).subscribe({
-      next: (res) => {
-        this.orders = this.deduplicate([...this.orders, ...res.value]);
-        this.filteredOrders = [...this.orders];
-        this.isLoadingMore = false;
-        event.target.complete();
-        if (!this.hasMore) {
-          event.target.disabled = true;
-        }
-      },
-      error: async () => {
-        this.isLoadingMore = false;
-        event.target.complete();
-        const toast = await this.toastCtrl.create({
-          message: 'Couldn\'t load more orders.',
-          buttons: [{ text: 'Dismiss', role: 'cancel' }],
-          color: 'danger',
-          position: 'bottom'
-        });
-        await toast.present();
-      }
-    });
-  }
-
-  loadMoreWeb() {
-    if (!this.hasMore || this.isLoadingMore) return;
-    this.isLoadingMore = true;
-    this.salesOrderService.getOrderHeaders(this.orders.length, this.isReturnMode).subscribe({
-      next: (res) => {
-        this.orders = this.deduplicate([...this.orders, ...res.value]);
-        this.filteredOrders = [...this.orders];
-        this.isLoadingMore = false;
-      },
-      error: async () => {
-        this.isLoadingMore = false;
-        const toast = await this.toastCtrl.create({
-          message: 'Couldn\'t load more orders.',
-          buttons: [{ text: 'Dismiss', role: 'cancel' }],
-          color: 'danger',
-          position: 'bottom'
-        });
-        await toast.present();
-      }
-    });
-  }
-
   onQueryChange(term: string) {
     this.searchTerm = term;
-    this.searchSubject.next(term);
+    this.filterLocally(term);
   }
 
   onSearchChange() {
-    this.searchSubject.next(this.searchTerm.trim());
-  }
-
-  private handleSearch(term: string) {
-    if (!term) {
-      // Search cleared — show paginated data
-      this.filteredOrders = [...this.orders];
-      if (this.infiniteScroll) {
-        this.infiniteScroll.disabled = !this.hasMore;
-      }
-      return;
-    }
-
-    // If all data already loaded, filter locally
-    if (this.allDataLoaded) {
-      this.filterLocally(term);
-      return;
-    }
-
-    // Load all data from API then filter
-    this.isSearching = true;
-    this.salesOrderService.getAllOrderHeaders(this.isReturnMode).subscribe({
-      next: (res) => {
-        this.allOrders = this.deduplicate(res.value);
-        this.allDataLoaded = true;
-        this.isSearching = false;
-        this.filterLocally(term);
-        if (this.infiniteScroll) {
-          this.infiniteScroll.disabled = true;
-        }
-      },
-      error: async () => {
-        this.isSearching = false;
-        const toast = await this.toastCtrl.create({
-          message: 'Search failed. Try again.',
-          buttons: [{ text: 'Dismiss', role: 'cancel' }],
-          color: 'danger',
-          position: 'bottom'
-        });
-        await toast.present();
-      }
-    });
+    this.filterLocally(this.searchTerm);
   }
 
   private filterLocally(term: string) {
-    const t = term.toLowerCase();
-    this.filteredOrders = this.allOrders.filter((order) =>
+    const t = term.trim().toLowerCase();
+    if (!t) {
+      this.filteredOrders = [...this.orders];
+      return;
+    }
+    this.filteredOrders = this.orders.filter((order) =>
       order.SalesId.toLowerCase().includes(t) ||
       order.CustAccount.toLowerCase().includes(t) ||
       (order.SalesTable_SalesName ?? '').toLowerCase().includes(t) ||
@@ -206,19 +90,12 @@ export class SalesOrderListPage {
   }
 
   doRefresh(event: any) {
-    this.allDataLoaded = false;
-    this.allOrders = [];
-    this.orders = [];
-    this.totalCount = 0;
-    this.salesOrderService.getOrderHeaders(0, this.isReturnMode).subscribe({
+    this.salesOrderService.getAllOrderHeaders(this.isReturnMode).subscribe({
       next: (res) => {
         this.orders = this.deduplicate(res.value);
-        this.filteredOrders = [...this.orders];
-        this.totalCount = res['@odata.count'] ?? res.value.length;
+        this.totalCount = res['@odata.count'] ?? this.orders.length;
+        this.filterLocally(this.searchTerm);
         event.target.complete();
-        if (this.infiniteScroll) {
-          this.infiniteScroll.disabled = !this.hasMore;
-        }
       },
       error: async () => {
         event.target.complete();
