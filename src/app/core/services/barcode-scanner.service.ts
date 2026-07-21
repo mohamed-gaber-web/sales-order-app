@@ -64,8 +64,9 @@ export class BarcodeScannerService {
     }
 
     const { barcodes } = await BarcodeScanner.scan({ formats: SCAN_FORMATS });
-    if (barcodes.length > 0) {
-      return { rawValue: barcodes[0].rawValue, format: barcodes[0].format };
+    const [first] = barcodes;
+    if (first?.rawValue) {
+      return { rawValue: first.rawValue, format: first.format };
     }
     return null;
   }
