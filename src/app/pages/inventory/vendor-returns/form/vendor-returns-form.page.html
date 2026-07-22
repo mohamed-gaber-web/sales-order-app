@@ -68,7 +68,7 @@
 
       <div formArrayName="lines" class="lines-list">
         @for (line of lines.controls; track $index) {
-          <div [formGroupName]="$index" class="line-card" [class.line-selected]="line.get('selected')?.value">
+          <div [id]="'vr-line-' + line.get('lineNumber')?.value" [formGroupName]="$index" class="line-card" [class.line-selected]="line.get('selected')?.value">
             <!-- Line header row -->
             <div class="line-header" (click)="line.patchValue({ selected: !line.get('selected')?.value })">
               <ion-checkbox formControlName="selected" class="line-check" (click)="$event.stopPropagation()"></ion-checkbox>

@@ -1,0 +1,273 @@
+// ── Header ─────────────────────────────────────────────────
+ion-header ion-toolbar {
+  --background: var(--gp-toolbar-bg);
+  --color: var(--gp-toolbar-color);
+  --border-color: transparent;
+
+  ion-title {
+    font-weight: 700;
+    font-size: 17px;
+    letter-spacing: -0.02em;
+  }
+}
+
+// ── Content ────────────────────────────────────────────────
+.scan-receive-content {
+  --background: var(--gp-bg);
+}
+
+// ── Web Page Header (hidden on mobile) ─────────────────────
+.web-page-header {
+  display: none;
+}
+
+// ── Search Section ───────────────────────────────────────────
+.search-section {
+  padding: 16px;
+  position: relative;
+}
+
+// ── Selected PO context bar ──────────────────────────────────
+.po-context {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--gp-card-bg);
+  border-radius: 12px;
+  padding: 10px 14px;
+  margin-bottom: 10px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07);
+
+  .po-context-info {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+  }
+
+  .po-context-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ion-color-medium);
+  }
+
+  .po-context-number {
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--gp-navy);
+    letter-spacing: -0.02em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .change-po-btn {
+    --color: var(--gp-accent);
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: none;
+    height: 30px;
+    flex-shrink: 0;
+  }
+}
+
+.input-with-scan {
+  display: flex;
+  align-items: stretch;
+  gap: var(--ds-space-2);
+
+  .custom-input {
+    flex: 1;
+    min-width: 0;
+    --background: var(--gp-card-bg);
+    --border-radius: 12px;
+    --padding-start: 14px;
+    --padding-end: 14px;
+    --padding-top: 12px;
+    --padding-bottom: 12px;
+    --color: var(--ion-text-color, #111827);
+    --placeholder-color: var(--ion-color-medium);
+    font-size: 15px;
+    font-weight: 500;
+    border-radius: 12px;
+    border: 1.5px solid transparent;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07);
+    transition: border-color 0.15s ease;
+
+    &.ion-focused {
+      border-color: var(--gp-accent);
+    }
+  }
+
+  .scan-btn {
+    margin: 0;
+    height: auto;
+    --border-color: var(--ds-line, var(--ion-color-medium));
+    --border-radius: var(--ds-radius-md, 10px);
+    --color: var(--ds-navy);
+    --padding-start: 14px;
+    --padding-end: 14px;
+  }
+}
+
+// ── Autocomplete Dropdown ────────────────────────────────────
+.select-dropdown {
+  background: var(--gp-card-bg, #fff);
+  border: 1px solid var(--gp-border, #e5e7eb);
+  border-radius: var(--gp-radius-sm, 8px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  margin-top: 8px;
+  overflow: hidden;
+  animation: fadeSlideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+.select-dropdown-close {
+  display: flex;
+  justify-content: flex-end;
+  border-bottom: 1px solid var(--gp-border, #e5e7eb);
+
+  ion-button {
+    margin: 0;
+    --padding-start: 8px;
+    --padding-end: 8px;
+    height: 32px;
+  }
+}
+
+.select-dropdown-list {
+  max-height: 340px;
+  overflow-y: auto;
+}
+
+.select-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  & + & {
+    border-top: 1px solid var(--gp-border, #e5e7eb);
+  }
+
+  &:hover {
+    background: rgba(var(--ion-color-secondary-rgb), 0.06);
+  }
+
+  .dropdown-item-icon {
+    font-size: 20px;
+    color: var(--gp-navy);
+    flex-shrink: 0;
+  }
+
+  .dropdown-item-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .dropdown-item-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .dropdown-item-number {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--gp-navy);
+      letter-spacing: -0.01em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .dropdown-item-po {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--ion-color-medium);
+      background: var(--gp-bg);
+      padding: 2px 8px;
+      border-radius: 999px;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+  }
+
+  .dropdown-item-name {
+    font-size: 12px;
+    color: var(--ion-color-medium);
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .dropdown-item-qty {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--gp-accent);
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+}
+
+.select-dropdown-empty {
+  padding: 16px 14px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--ion-color-medium);
+}
+
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .select-dropdown {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+// DESKTOP (≥ 992px)
+// ══════════════════════════════════════════════════════════
+@media (min-width: 992px) {
+  ion-header { display: none; }
+
+  .web-page-header {
+    display: block;
+    background: var(--gp-card-bg);
+    border-bottom: 1px solid var(--gp-border);
+    padding: 0 40px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+
+    .web-page-header-inner {
+      display: flex;
+      align-items: center;
+      height: 68px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .web-page-title {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--gp-navy);
+      margin: 0;
+      letter-spacing: -0.03em;
+    }
+  }
+
+  .search-section {
+    max-width: 580px;
+    margin: 28px auto 0;
+    padding: 0 40px;
+  }
+}

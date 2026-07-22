@@ -198,31 +198,6 @@
       <ion-card-content>
         <h3 class="section-title">Receipt Details</h3>
 
-        <!-- Packing Slip ID -->
-        <div class="form-field">
-          <ion-label class="field-label">
-            Product Receipt ID <span class="required">*</span>
-          </ion-label>
-          <div class="input-with-scan">
-            <ion-input
-              formControlName="packingSlipId"
-              type="text"
-              placeholder="e.g. RCP-2024-001"
-              class="custom-input"
-              [class.invalid]="form.get('packingSlipId')?.invalid && form.get('packingSlipId')?.touched">
-            </ion-input>
-            <ion-button fill="outline" class="scan-btn" (click)="scanPackingSlip()">
-              <ion-icon slot="icon-only" name="scan-outline"></ion-icon>
-            </ion-button>
-          </div>
-          @if (form.get('packingSlipId')?.invalid && form.get('packingSlipId')?.touched) {
-            <p class="field-error">
-              <ion-icon name="alert-circle-outline"></ion-icon>
-              Product Receipt ID is required.
-            </p>
-          }
-        </div>
-
         <!-- Receipt Quantity -->
         <div class="form-field">
           <div class="qty-label-row">

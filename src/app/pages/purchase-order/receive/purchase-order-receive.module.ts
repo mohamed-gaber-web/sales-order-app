@@ -4,7 +4,6 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 import { RouterModule, Routes } from '@angular/router';
 import { PurchaseOrderReceivePage } from './purchase-order-receive.page';
-import { ScannerModalModule } from '../../inventory/scanner/scanner-modal.module';
 
 const routes: Routes = [
   {
@@ -19,8 +18,7 @@ const routes: Routes = [
     FormsModule,
     ReactiveFormsModule,
     IonicModule,
-    RouterModule.forChild(routes),
-    ScannerModalModule
+    RouterModule.forChild(routes)
   ],
   declarations: [PurchaseOrderReceivePage]
 })

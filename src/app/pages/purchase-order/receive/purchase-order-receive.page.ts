@@ -1,11 +1,10 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { LoadingController, ModalController, ToastController } from '@ionic/angular';
+import { LoadingController, ToastController } from '@ionic/angular';
 import { PurchaseOrderService } from '../../../core/services/purchase-order.service';
 import { PurchaseOrderHeader, PurchaseOrderLine } from '../../../models/purchase-order.model';
 import { PdfService, ReceiptPdfData } from '../../../core/services/pdf.service';
-import { ScannerModalComponent } from '../../inventory/scanner/scanner-modal.component';
 
 @Component({
   selector: 'app-purchase-order-receive',
@@ -60,8 +59,6 @@ export class PurchaseOrderReceivePage implements OnInit {
     private pdfService: PdfService
   ) {}
 
-  private modalCtrl = inject(ModalController);
-
   ngOnInit() {
     this.poNumber = this.route.snapshot.paramMap.get('poNumber') ?? '';
     this.lineNumber = Number(this.route.snapshot.paramMap.get('lineNumber') ?? '0');
@@ -75,8 +72,7 @@ export class PurchaseOrderReceivePage implements OnInit {
       receiptQty: [
         this.remainingQty,
         [Validators.required, Validators.min(0.001), Validators.max(this.remainingQty)]
-      ],
-      packingSlipId: ['', [Validators.required, Validators.minLength(1)]]
+      ]
     });
   }
 
@@ -84,39 +80,29 @@ export class PurchaseOrderReceivePage implements OnInit {
     this.form.patchValue({ receiptQty: this.remainingQty });
   }
 
-  async scanPackingSlip() {
-    const modal = await this.modalCtrl.create({
-      component: ScannerModalComponent,
-      cssClass: 'scanner-modal',
-      breakpoints: [0, 0.75, 1],
-      initialBreakpoint: 0.75,
-    });
-    await modal.present();
-    const { data } = await modal.onWillDismiss<string>();
-    const value = data?.trim();
-    if (value) {
-      this.form.patchValue({ packingSlipId: value });
-      this.form.get('packingSlipId')?.markAsTouched();
-    }
+  /** The create-receipt call requires a packing slip / receipt ID — generated silently since the user no longer enters one. */
+  private generatePackingSlipId(): string {
+    return `RCP-${this.poNumber}-${this.lineNumber}-${Date.now()}`;
   }
 
   async submitReceipt() {
     if (this.form.invalid || this.isSubmitting) return;
+    this.isSubmitting = true;
 
-    const { receiptQty, packingSlipId } = this.form.value as { receiptQty: number; packingSlipId: string };
+    const { receiptQty } = this.form.value as { receiptQty: number };
+    const packingSlipId = this.generatePackingSlipId();
 
     const loading = await this.loadingCtrl.create({
       message: 'Recording receipt...',
       spinner: 'crescent'
     });
     await loading.present();
-    this.isSubmitting = true;
 
     this.poService.createProductReceipt({
       _request: {
         DataAreaId: (this.po?.dataAreaId as string ?? 'usmf').toUpperCase(),
         purchaseOrderID: this.poNumber,
-        packingSlipId: packingSlipId.trim(),
+        packingSlipId,
         purchaseLineNum: [this.lineNumber],
         productReceiptQty: [receiptQty]
       }
@@ -129,7 +115,7 @@ export class PurchaseOrderReceivePage implements OnInit {
             poNumber: this.poNumber,
             lineNumber: this.lineNumber,
             dataAreaId: (this.po?.dataAreaId as string ?? 'usmf'),
-            packingSlipId: packingSlipId.trim(),
+            packingSlipId,
             receiptQty: receiptQty,
             itemNumber: this.line?.ItemNumber ?? '',
             productName: this.line?.ProductName,
@@ -142,8 +128,9 @@ export class PurchaseOrderReceivePage implements OnInit {
           };
           this.receiptConfirmed = true;
         } else {
+          const serverMsg = (res.ErrorMessage || res.DebugMessage || '').trim();
           const toast = await this.toastCtrl.create({
-            message: res.Message ? `Receipt failed: ${res.Message}` : 'Receipt failed. Try again.',
+            message: serverMsg ? `Receipt failed: ${serverMsg}` : 'Receipt failed. Try again.',
             buttons: [{ text: 'Dismiss', role: 'cancel' }],
             color: 'danger',
             position: 'bottom'

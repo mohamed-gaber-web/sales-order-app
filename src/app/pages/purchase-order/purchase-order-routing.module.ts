@@ -16,6 +16,14 @@ const routes: Routes = [
     loadChildren: () => import('./detail/purchase-order-detail.module').then(m => m.PurchaseOrderDetailModule)
   },
   {
+    path: 'receive-by-barcode',
+    loadChildren: () => import('./select-po/purchase-order-select-po.module').then(m => m.PurchaseOrderSelectPoModule)
+  },
+  {
+    path: 'receive-by-barcode/:poNumber',
+    loadChildren: () => import('./scan-receive/purchase-order-scan-receive.module').then(m => m.PurchaseOrderScanReceiveModule)
+  },
+  {
     path: 'receive/:poNumber/:lineNumber',
     loadChildren: () => import('./receive/purchase-order-receive.module').then(m => m.PurchaseOrderReceiveModule)
   }

@@ -30,6 +30,7 @@ export class VendorReturnsFormPage implements OnInit {
   readonly reasonCodes = REASON_CODES;
 
   form!: FormGroup;
+  private preselectLineNumber: number | null = null;
 
   get lines(): FormArray {
     return this.form.get('lines') as FormArray;
@@ -46,6 +47,8 @@ export class VendorReturnsFormPage implements OnInit {
 
   ngOnInit() {
     this.poNumber = this.route.snapshot.paramMap.get('poNumber') ?? '';
+    const state = history.state as { preselectLineNumber?: number };
+    this.preselectLineNumber = state?.preselectLineNumber ?? null;
     this.form = this.fb.group({ lines: this.fb.array([]) });
     this.loadOrder();
   }
@@ -73,7 +76,7 @@ export class VendorReturnsFormPage implements OnInit {
     arr.clear();
     for (const line of poLines) {
       arr.push(this.fb.group({
-        selected:   [false],
+        selected:   [line.LineNumber === this.preselectLineNumber],
         lineNumber: [line.LineNumber],
         itemNumber: [line.ItemNumber],
         unitSymbol: [line.PurchaseUnitSymbol ?? ''],
@@ -81,6 +84,13 @@ export class VendorReturnsFormPage implements OnInit {
         returnQty:  [null, [Validators.min(0.001)]],
         reasonCode: ['', Validators.required],
       }));
+    }
+
+    if (this.preselectLineNumber != null) {
+      setTimeout(() => {
+        document.getElementById(`vr-line-${this.preselectLineNumber}`)
+          ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 150);
     }
   }
 

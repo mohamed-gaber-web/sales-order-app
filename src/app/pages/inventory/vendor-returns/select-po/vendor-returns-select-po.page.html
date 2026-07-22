@@ -1,0 +1,87 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Barcode Return</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="select-po-content">
+
+  <!-- Web Page Header (desktop only) -->
+  <div class="web-page-header">
+    <div class="web-page-header-inner">
+      <div class="web-title-group">
+        <h1 class="web-page-title">Barcode Return</h1>
+      </div>
+    </div>
+  </div>
+
+  <div class="search-section">
+    <p class="step-hint">Search or scan the purchase order you're returning against.</p>
+
+    <!-- Search + Scan -->
+    <div class="input-with-scan">
+      <ion-input
+        [(ngModel)]="searchTerm"
+        type="text"
+        placeholder="Search PO number or vendor..."
+        [debounce]="300"
+        [clearInput]="true"
+        class="custom-input"
+        (ionInput)="onSearchInput($any($event).detail.value || '')"
+        (ionBlur)="onSearchBlur()">
+      </ion-input>
+      <ion-button fill="outline" class="scan-btn" (click)="scanPo()" title="Scan PO barcode">
+        <ion-icon slot="icon-only" name="scan-outline"></ion-icon>
+      </ion-button>
+    </div>
+
+    <!-- Autocomplete dropdown -->
+    @if (showDropdown) {
+      <div class="select-dropdown">
+        <div class="select-dropdown-close">
+          <ion-button fill="clear" size="small" color="medium" (click)="closeDropdown()" aria-label="Close results">
+            <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+          </ion-button>
+        </div>
+        <div class="select-dropdown-list">
+          @if (isSearching) {
+            <div class="select-dropdown-empty">Searching purchase orders...</div>
+          } @else if (matches.length === 0) {
+            <div class="select-dropdown-empty">
+              PO not found for "{{ searchTerm }}".
+            </div>
+          } @else {
+            @for (po of matches; track po.PurchaseOrderNumber) {
+              <div class="select-dropdown-item" (click)="selectPo(po)">
+                <ion-icon name="document-text-outline" class="dropdown-item-icon"></ion-icon>
+                <div class="dropdown-item-info">
+                  <div class="dropdown-item-top">
+                    <span class="dropdown-item-number">{{ po.PurchaseOrderNumber }}</span>
+                    @if (po.PurchaseOrderStatus) {
+                      <span class="dropdown-item-po">{{ po.PurchaseOrderStatus }}</span>
+                    }
+                  </div>
+                  <div class="dropdown-item-name">{{ vendorOf(po) || 'No vendor' }}</div>
+                </div>
+              </div>
+            }
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Intro prompt (nothing searched yet) -->
+    @if (!showDropdown && !searchTerm) {
+      <ds-empty-state
+        icon="document-text-outline"
+        title="Search or Scan a PO"
+        message="Enter a purchase order number or vendor, or tap the scan icon, to choose the order you're returning items from.">
+      </ds-empty-state>
+    }
+
+  </div>
+
+</ion-content>

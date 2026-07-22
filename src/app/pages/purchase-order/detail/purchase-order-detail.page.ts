@@ -204,8 +204,9 @@ export class PurchaseOrderDetailPage implements OnInit {
             await toast.present();
             this.loadDetail();
           } else {
+            const serverMsg = (res.ErrorMessage || res.DebugMessage || '').trim();
             const toast = await this.toastCtrl.create({
-              message: res.Message ? `Receipt failed: ${res.Message}` : 'Receipt failed. Try again.',
+              message: serverMsg ? `Receipt failed: ${serverMsg}` : 'Receipt failed. Try again.',
               buttons: [{ text: 'Dismiss', role: 'cancel' }],
               color: 'danger',
               position: 'bottom',

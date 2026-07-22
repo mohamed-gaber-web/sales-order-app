@@ -43,6 +43,19 @@ export class PurchaseOrderService {
     );
   }
 
+  /** All open (Confirmed + Backorder) orders with their lines expanded — used for cross-order item/barcode lookup. */
+  getAllOpenOrdersWithLines(): Observable<ODataResponse<PurchaseOrderHeader>> {
+    return this.api.get<ODataResponse<PurchaseOrderHeader>>(
+      '/data/PurchaseOrderHeadersV2',
+      {
+        '$count': 'true',
+        '$filter': PO_FILTER,
+        '$orderby': 'PurchaseOrderNumber desc',
+        '$expand': 'PurchaseOrderLinesV2',
+      }
+    );
+  }
+
   getOrderWithLines(poNumber: string, dataAreaId = 'usmf'): Observable<PurchaseOrderHeader> {
     return this.api.get<PurchaseOrderHeader>(
       `/data/PurchaseOrderHeadersV2(dataAreaId='${dataAreaId}',PurchaseOrderNumber='${poNumber}')`,

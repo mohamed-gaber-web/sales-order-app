@@ -51,5 +51,7 @@ export interface CreateProductReceiptRequest {
 
 export interface CreateProductReceiptResponse {
   Success: boolean;
-  Message?: string;
+  ErrorMessage?: string;
+  DebugMessage?: string;
+  PackingSlipId?: string;
 }
