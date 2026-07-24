@@ -1,0 +1,224 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      @if (!receiptConfirmed) {
+        <ion-back-button [defaultHref]="'/purchase-order/receive-by-barcode/' + poNumber"></ion-back-button>
+      }
+    </ion-buttons>
+    <ion-title>{{ receiptConfirmed ? 'Receipt Confirmed' : 'Confirm Receipt' }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="confirm-content">
+
+  <!-- ── Success State ─────────────────────────────────────── -->
+  @if (receiptConfirmed) {
+    <div class="success-wrap">
+
+      <div class="success-icon-ring">
+        <ion-icon name="checkmark-circle" class="success-icon"></ion-icon>
+      </div>
+
+      <h2 class="success-title">Receipt Confirmed</h2>
+      <p class="success-sub">
+        {{ confirmedCount }} item{{ confirmedCount === 1 ? '' : 's' }} received on {{ poNumber }}
+      </p>
+
+      <ion-card class="receipt-summary-card">
+        <ion-card-content>
+          <div class="summary-hero">
+            <div>
+              <p class="summary-label">Purchase Order</p>
+              <p class="summary-value primary">{{ poNumber }}</p>
+            </div>
+            <div class="summary-badge">{{ confirmedCount }} items</div>
+          </div>
+          <div class="summary-divider"></div>
+          <div class="summary-grid">
+            <div class="summary-field">
+              <span class="summary-field-label">Receipt ID</span>
+              <span class="summary-field-value">{{ confirmedPackingSlipId }}</span>
+            </div>
+            <div class="summary-field">
+              <span class="summary-field-label">Total Qty</span>
+              <span class="summary-field-value accent">{{ confirmedTotalQty | number:'1.0-3' }}</span>
+            </div>
+          </div>
+        </ion-card-content>
+      </ion-card>
+
+      <div class="receipt-card">
+        <div class="receipt-row header">
+          <span>Item</span>
+          <span>Qty received</span>
+        </div>
+        @for (ci of confirmedItems; track ci.itemNumber) {
+          <div class="receipt-row">
+            <div class="receipt-item">
+              <span class="receipt-item-number">{{ ci.itemNumber }}</span>
+              @if (ci.productName) {
+                <span class="receipt-item-name">{{ ci.productName }}</span>
+              }
+            </div>
+            <span class="receipt-item-qty">
+              {{ ci.qty | number:'1.0-3' }}{{ ci.unit ? ' ' + ci.unit : '' }}
+            </span>
+          </div>
+        }
+      </div>
+
+      <ion-button expand="block" class="submit-btn" (click)="scanAnother()">
+        <ion-icon slot="start" name="scan-outline"></ion-icon>
+        Receive More Items
+      </ion-button>
+
+      <ion-button expand="block" fill="clear" class="back-order-btn" (click)="goToOrder()">
+        Back to Purchase Order
+      </ion-button>
+
+    </div>
+  }
+
+  <!-- ── Review Form ─────────────────────────────────────── -->
+  @if (!receiptConfirmed && form) {
+    <div class="po-context">
+      <div class="po-context-info">
+        <span class="po-context-label">Purchase Order</span>
+        <span class="po-context-number">{{ poNumber }}</span>
+      </div>
+      <div class="po-context-count">{{ items.length }} item{{ items.length === 1 ? '' : 's' }}</div>
+    </div>
+
+    <div class="po-number-field">
+      <ion-label class="field-label">
+        Purchase Order Number <span class="required">*</span>
+      </ion-label>
+      <ion-input
+        [(ngModel)]="purchaseOrderNumberInput"
+        [ngModelOptions]="{standalone: true}"
+        type="text"
+        placeholder="Enter purchase order number"
+        class="custom-input po-number-input">
+      </ion-input>
+      @if (!purchaseOrderNumberInput.trim()) {
+        <p class="field-error">
+          <ion-icon name="alert-circle-outline"></ion-icon>
+          Purchase order number is required to send the receipt.
+        </p>
+      }
+    </div>
+
+    <form [formGroup]="form">
+      <div formArrayName="lines" class="lines-list">
+        @for (item of items; track item.line.LineNumber; let i = $index) {
+          <ion-card class="line-card" [formGroupName]="i">
+            <ion-card-content>
+              <div class="line-top">
+                <div class="line-info">
+                  <ion-label class="field-label">Product Item ID</ion-label>
+                  <div class="item-id-field">
+                    <ion-icon name="cube-outline" class="item-id-icon"></ion-icon>
+                    <ion-input
+                      [value]="item.line.ItemNumber"
+                      [readonly]="true"
+                      class="item-id-input">
+                    </ion-input>
+                  </div>
+                  @if (item.line.ProductName) {
+                    <p class="line-item-name">{{ item.line.ProductName }}</p>
+                  }
+                </div>
+                <ion-button
+                  fill="clear"
+                  size="small"
+                  color="medium"
+                  class="remove-btn"
+                  (click)="removeItem(i)"
+                  aria-label="Remove item">
+                  <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+                </ion-button>
+              </div>
+
+              <!-- Progress: already received vs. this receipt -->
+              <div class="qty-progress">
+                <div class="qty-track">
+                  <div class="qty-fill done" [style.width.%]="receivedPct(i)"></div>
+                  <div class="qty-fill pending" [style.width.%]="thisReceiptPct(i)" [style.left.%]="receivedPct(i)"></div>
+                </div>
+                <div class="qty-progress-labels">
+                  <span>{{ item.alreadyReceivedQty | number:'1.0-3' }} received</span>
+                  <span>{{ item.totalQty | number:'1.0-3' }} ordered</span>
+                </div>
+              </div>
+
+              <ion-label class="field-label">
+                Receipt Quantity <span class="required">*</span>
+              </ion-label>
+              <div class="qbox">
+                <ion-button fill="clear" class="step-btn" (click)="adjustQty(i, -1)" aria-label="Decrease quantity">
+                  <ion-icon slot="icon-only" name="remove-outline"></ion-icon>
+                </ion-button>
+                <div class="qbox-value">
+                  <ion-input
+                    formControlName="qty"
+                    type="number"
+                    [min]="0.001"
+                    [max]="item.remainingQty"
+                    step="0.001"
+                    class="qbox-input"
+                    [class.invalid]="qtyControl(i)?.invalid && qtyControl(i)?.touched">
+                  </ion-input>
+                  @if (item.line.PurchaseUnitSymbol) {
+                    <span class="qbox-unit">{{ item.line.PurchaseUnitSymbol }}</span>
+                  }
+                </div>
+                <ion-button fill="clear" class="step-btn" (click)="adjustQty(i, 1)" aria-label="Increase quantity">
+                  <ion-icon slot="icon-only" name="add-outline"></ion-icon>
+                </ion-button>
+              </div>
+              <ion-button fill="clear" size="small" class="max-btn" (click)="setMaxQty(i)">
+                Use Max ({{ item.remainingQty }})
+              </ion-button>
+
+              @if (qtyControl(i)?.errors?.['required'] && qtyControl(i)?.touched) {
+                <p class="field-error">
+                  <ion-icon name="alert-circle-outline"></ion-icon>
+                  Quantity is required.
+                </p>
+              }
+              @if (qtyControl(i)?.errors?.['min'] && qtyControl(i)?.touched) {
+                <p class="field-error">
+                  <ion-icon name="alert-circle-outline"></ion-icon>
+                  Quantity must be greater than 0.
+                </p>
+              }
+              @if (qtyControl(i)?.errors?.['max'] && qtyControl(i)?.touched) {
+                <p class="field-error">
+                  <ion-icon name="alert-circle-outline"></ion-icon>
+                  Cannot exceed remaining quantity ({{ item.remainingQty }}).
+                </p>
+              }
+            </ion-card-content>
+          </ion-card>
+        }
+      </div>
+
+      <div class="total-summary">
+        <span class="total-label">Total quantity</span>
+        <span class="total-value">{{ totalQty | number:'1.0-3' }}</span>
+      </div>
+    </form>
+  }
+
+</ion-content>
+
+<!-- Confirm receipt bar -->
+<ion-footer class="ion-no-border confirm-footer" [class.footer-hidden]="receiptConfirmed || !form">
+  <ds-cta-bar
+    [label]="'Confirm Receipt (' + items.length + ')'"
+    icon="checkmark-circle-outline"
+    [loading]="isSubmitting"
+    [disabled]="!canSubmit"
+    (ctaClick)="submitReceipt()">
+  </ds-cta-bar>
+</ion-footer>

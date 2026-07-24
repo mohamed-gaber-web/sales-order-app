@@ -157,6 +157,28 @@ export class SalesShipmentShipPage implements OnInit {
     }
   }
 
+  isLineSelected(index: number): boolean {
+    return this.lineRows.at(index).get('selected')?.value === true;
+  }
+
+  toggleLineSelected(index: number) {
+    const row = this.lineRows.at(index);
+    row.get('selected')?.setValue(!this.isLineSelected(index));
+    this.onLineToggle(index);
+  }
+
+  qtyControl(index: number) {
+    return this.lineRows.at(index).get('qty');
+  }
+
+  adjustQty(index: number, delta: number) {
+    const qty = this.qtyControl(index);
+    const meta = this.shippableLines[index];
+    if (!qty || qty.disabled || !meta) return;
+    const next = Math.min(meta.remaining, Math.max(0.0001, Number(qty.value || 0) + delta));
+    qty.setValue(Math.round(next * 10000) / 10000);
+  }
+
   async submitShipment() {
     if (this.form.invalid || this.isSubmitting) return;
     const { packingSlipId, dataAreaId } = this.form.value as { packingSlipId: string; dataAreaId: string };

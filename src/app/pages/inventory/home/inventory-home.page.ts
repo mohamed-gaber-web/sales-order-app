@@ -135,6 +135,14 @@ export class InventoryHomePage {
       route: '/inventory/inquiry',
     },
     {
+      id: 'US-15',
+      title: 'Quality Control',
+      subtitle: 'Inspect, decide, release from QI',
+      icon: 'flask-outline',
+      color: '#0f766e',
+      route: '/inventory/quality',
+    },
+    {
       id: 'US-PRJ',
       title: 'Project',
       subtitle: 'Issue items to projects',

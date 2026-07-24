@@ -1,0 +1,1266 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>الدورة الكاملة — شاشات المخازن والإنتاج والجودة | D365 F&O</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Libre+Barcode+39&display=swap" rel="stylesheet">
+<style>
+:root{
+  --steel:#131C24; --steel-2:#1B2833; --line:#2E404E;
+  --paper:#F7F6F3; --paper-2:#ECEAE4;
+  --ink:#111A21; --muted:#69787F;
+  --orange:#FF6B1A; --orange-d:#E15709;
+  --green:#0E8A63; --red:#CE2F22; --amber:#B97400; --blue:#1F6FEB; --purple:#6D4AC7;
+  --r:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--steel);color:#DCE5EA;font-family:"IBM Plex Sans Arabic",system-ui,sans-serif;-webkit-font-smoothing:antialiased;line-height:1.6}
+.mono{font-family:"IBM Plex Mono",monospace;direction:ltr;unicode-bidi:isolate}
+.wrap{max-width:1320px;margin:0 auto;padding:0 24px}
+.hazard{height:12px;background:repeating-linear-gradient(-45deg,var(--orange) 0 14px,#131C24 14px 28px);opacity:.9}
+
+.hero{padding:64px 0 44px;border-bottom:1px solid var(--line)}
+.eyebrow{font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--orange);direction:ltr;text-align:right}
+h1{font-size:clamp(28px,5vw,50px);font-weight:700;line-height:1.15;letter-spacing:-.02em;margin:14px 0 16px;color:#fff;max-width:18ch}
+.lede{font-size:17px;color:#9FB0BA;max-width:64ch;font-weight:300}
+.meta-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
+.tag{border:1px solid var(--line);border-radius:999px;padding:6px 14px;font-size:13px;color:#B7C6CE;background:var(--steel-2)}
+.tag b{color:var(--orange);font-weight:600}
+
+/* nav */
+.nav{display:flex;gap:8px;flex-wrap:wrap;padding:20px 0;border-bottom:1px solid var(--line);position:sticky;top:0;background:rgba(19,28,36,.94);backdrop-filter:blur(8px);z-index:20}
+.nav a{color:#9FB0BA;text-decoration:none;font-size:13px;border:1px solid var(--line);border-radius:999px;padding:6px 14px;background:var(--steel-2)}
+.nav a:hover,.nav a:focus-visible{color:#fff;border-color:var(--orange);outline:none}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:56px 40px;padding:20px 0 40px}
+.stage{opacity:0;transform:translateY(18px);transition:opacity .5s ease,transform .5s ease}
+.stage.in{opacity:1;transform:none}
+.stage-head{display:flex;align-items:baseline;gap:12px;margin-bottom:6px}
+.num{font-family:"IBM Plex Mono",monospace;font-size:13px;font-weight:600;color:var(--steel);background:var(--orange);padding:2px 8px;border-radius:4px;direction:ltr}
+.stage-head h2{font-size:19px;font-weight:600;color:#fff}
+.stage-sub{font-size:14px;color:#8A9BA5;margin-bottom:18px;min-height:44px}
+
+/* module band */
+.mod{grid-column:1/-1;display:flex;align-items:center;gap:18px;padding:26px 0 4px;border-top:1px solid var(--line);margin-top:16px}
+.mod-k{font-family:"IBM Plex Mono",monospace;font-size:34px;font-weight:600;color:var(--steel);background:#DCE5EA;width:56px;height:56px;border-radius:12px;display:flex;align-items:center;justify-content:center;direction:ltr;flex:none}
+.mod h2{font-size:24px;font-weight:700;color:#fff;letter-spacing:-.01em}
+.mod p{font-size:14px;color:#8A9BA5;font-weight:300;max-width:60ch}
+.mod-n{margin-right:auto;font-size:12px;color:var(--orange);font-family:"IBM Plex Mono",monospace;border:1px solid var(--line);border-radius:999px;padding:5px 12px;flex:none;direction:ltr}
+
+/* device */
+.device{background:linear-gradient(180deg,#33434F,#243440);border-radius:26px;padding:14px 12px 26px;box-shadow:0 24px 50px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.12);position:relative;border:1px solid #3E4F5C}
+.device::after{content:"";position:absolute;top:120px;left:-4px;width:5px;height:64px;background:var(--orange);border-radius:3px;box-shadow:0 0 12px rgba(255,107,26,.5)}
+.scanwin{height:16px;margin:0 auto 10px;width:72%;background:#0C1319;border-radius:4px;display:flex;align-items:center;justify-content:center;gap:5px}
+.scanwin i{display:block;width:5px;height:5px;border-radius:50%;background:#2C3B46}
+.scanwin i.on{background:var(--orange);box-shadow:0 0 6px var(--orange)}
+.screen{background:var(--paper);color:var(--ink);border-radius:8px;overflow:hidden;height:600px;display:flex;flex-direction:column;font-size:14px}
+.sbar{display:flex;justify-content:space-between;align-items:center;padding:5px 12px;background:#0F1720;color:#93A3AC;font-size:10px;font-family:"IBM Plex Mono",monospace;direction:ltr}
+.sbar .right{display:flex;gap:8px;align-items:center}
+.dot-live{color:#4ADE80}.dot-off{color:var(--orange)}
+.abar{background:var(--steel);color:#fff;padding:12px 14px;display:flex;align-items:center;gap:10px}
+.abar .back{color:#7F929D;font-size:18px;line-height:1}
+.abar h3{font-size:15px;font-weight:600;flex:1}
+.abar .ctx{font-size:11px;color:var(--orange);font-family:"IBM Plex Mono",monospace;direction:ltr}
+.body{padding:14px;overflow:hidden;flex:1;display:flex;flex-direction:column;gap:12px}
+.body.tight{gap:9px}
+.spacer{flex:1}
+
+.label{font-size:11px;color:var(--muted);font-weight:500}
+.field{background:#fff;border:1px solid #DCD8CF;border-radius:var(--r);padding:10px 12px;font-size:14px;color:var(--ink)}
+.field.focus{border-color:var(--ink);box-shadow:0 0 0 3px rgba(17,26,33,.08)}
+.field .val{font-weight:600}
+.selectish{display:flex;justify-content:space-between;align-items:center}
+.selectish::after{content:"▾";color:var(--muted);font-size:11px}
+.btn{display:block;width:100%;text-align:center;background:var(--orange);color:#fff;font-weight:600;font-size:15px;border:none;border-radius:var(--r);padding:14px;font-family:inherit;box-shadow:0 2px 0 var(--orange-d)}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid #CFCAC0;box-shadow:none;font-weight:500}
+.btn.dark{background:var(--ink);box-shadow:0 2px 0 #000}
+.btn.green{background:var(--green);box-shadow:0 2px 0 #0A6B4D}
+.btn.red{background:var(--red);box-shadow:0 2px 0 #A32319}
+.btn.sm{padding:10px;font-size:13px}
+.card{background:#fff;border:1px solid #E3DFD6;border-radius:var(--r);padding:12px}
+.card.flat{background:var(--paper-2);border-color:#DFDBD2}
+.rowb{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.strong{font-weight:600}
+.tiny{font-size:11px;color:var(--muted)}
+.code{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--muted);direction:ltr}
+.bar{height:5px;background:var(--paper-2);border-radius:3px;margin-top:9px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--amber);border-radius:3px}
+.bar i.ok{background:var(--green)}.bar i.low{background:var(--red)}.bar i.bl{background:var(--blue)}
+.chips{display:flex;gap:7px;flex-wrap:wrap}
+.chip{font-size:12px;padding:5px 12px;border-radius:999px;border:1px solid #D6D1C7;color:var(--muted);background:#fff}
+.chip.on{background:var(--ink);border-color:var(--ink);color:#fff;font-weight:500}
+.chip.g{background:#E8F5EF;border-color:#B7DFCC;color:var(--green);font-weight:500}
+.chip.r{background:#FDECEA;border-color:#F2C2BD;color:var(--red);font-weight:500}
+.chip.a{background:#FFF4E0;border-color:#F0D7A6;color:#8A5600;font-weight:500}
+.chip.b{background:#EAF1FE;border-color:#C3D6F7;color:#1A4FA8;font-weight:500}
+.alert{border-radius:var(--r);padding:10px 12px;font-size:12px;font-weight:500;display:flex;gap:8px;align-items:flex-start;line-height:1.5}
+.alert.warn{background:#FFF4E0;color:#8A5600;border:1px solid #F0D7A6}
+.alert.err{background:#FDECEA;color:#9C221A;border:1px solid #F2C2BD}
+.alert.ok{background:#E8F5EF;color:#0B6B4E;border:1px solid #B7DFCC}
+.alert.info{background:#EAF1FE;color:#1A4FA8;border:1px solid #C3D6F7}
+
+/* line */
+.line{background:#fff;border:1px solid #E3DFD6;border-radius:var(--r);padding:11px 12px}
+.line .top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.line .nm{font-size:13px;font-weight:600;line-height:1.35}
+.qty3{display:flex;gap:12px;margin-top:8px;font-family:"IBM Plex Mono",monospace;direction:ltr;justify-content:flex-end}
+.qty3 div{text-align:center}
+.qty3 b{display:block;font-size:14px;font-weight:600;color:var(--ink)}
+.qty3 span{font-size:9px;color:var(--muted);font-family:"IBM Plex Sans Arabic"}
+.line.done{background:#F1F8F5;border-color:#BFE2D3}
+.line.hot{background:#FDECEA;border-color:#F2C2BD}
+
+/* reticle */
+.reticle{position:relative;background:#0F1720;border-radius:var(--r);height:150px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.reticle .corner{position:absolute;width:24px;height:24px;border:3px solid var(--orange)}
+.reticle .c1{top:14px;right:14px;border-left:0;border-bottom:0}
+.reticle .c2{top:14px;left:14px;border-right:0;border-bottom:0}
+.reticle .c3{bottom:14px;right:14px;border-left:0;border-top:0}
+.reticle .c4{bottom:14px;left:14px;border-right:0;border-top:0}
+.reticle .bc{font-family:"Libre Barcode 39",monospace;font-size:44px;color:#E8EEF1;direction:ltr;line-height:1;user-select:none}
+.beam{position:absolute;left:14%;right:14%;height:2px;background:var(--orange);box-shadow:0 0 14px 3px rgba(255,107,26,.65);animation:sweep 2.4s ease-in-out infinite}
+@keyframes sweep{0%,100%{top:30%}50%{top:70%}}
+.hint{text-align:center;font-size:12px;color:var(--muted)}
+
+/* new: guided step */
+.step{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
+.step .dots{display:flex;gap:3px;flex:1}
+.step .dots i{flex:1;height:4px;border-radius:2px;background:#DCD8CF}
+.step .dots i.d{background:var(--ink)}
+.step b{font-family:"IBM Plex Mono",monospace;color:var(--ink);font-weight:600;direction:ltr}
+
+/* new: goto location */
+.goto{background:#0F1720;border-radius:var(--r);padding:16px;text-align:center;color:#fff}
+.goto .lbl{font-size:11px;color:#8FA3AE;letter-spacing:.05em}
+.goto .loc{font-family:"IBM Plex Mono",monospace;font-size:34px;font-weight:600;letter-spacing:-.01em;line-height:1.2;direction:ltr}
+.goto .sub{font-size:11px;color:#8FA3AE}
+
+/* new: qty box */
+.qbox{background:#fff;border:1px solid #E3DFD6;border-radius:var(--r);padding:14px;text-align:center}
+.qbox .big{font-family:"IBM Plex Mono",monospace;font-size:44px;font-weight:600;line-height:1;direction:ltr}
+.qbox .unit{font-size:12px;color:var(--muted);margin-top:4px}
+.quick{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:11px}
+.quick button{font-family:inherit;font-size:12px;font-weight:500;padding:9px 0;border:1px solid #D6D1C7;background:var(--paper-2);border-radius:8px;color:var(--ink)}
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.pad button{font-family:"IBM Plex Mono",monospace;font-size:17px;font-weight:500;padding:11px 0;border:1px solid #DCD8CF;background:#fff;border-radius:8px;color:var(--ink)}
+.pad button.act{background:var(--paper-2)}
+
+/* new: table */
+.tbl{background:#fff;border:1px solid #E3DFD6;border-radius:var(--r);overflow:hidden}
+.tbl .tr{display:flex;justify-content:space-between;padding:9px 12px;border-bottom:1px solid #EFECE5;font-size:12px;gap:8px}
+.tbl .tr:last-child{border-bottom:0}
+.tbl .tr.h{background:var(--paper-2);font-size:10px;color:var(--muted);font-weight:600}
+.tbl .tr.tot{background:#0F1720;color:#fff;font-weight:600;font-size:13px}
+.tbl .tr.neg{background:#FDECEA}
+.tbl .tr.pos{background:#F1F8F5}
+
+/* new: test rows */
+.test{background:#fff;border:1px solid #E3DFD6;border-radius:var(--r);padding:10px 12px;display:flex;align-items:center;gap:10px}
+.test .info{flex:1;min-width:0}
+.test .nm{font-size:13px;font-weight:600}
+.test .spec{font-size:10px;color:var(--muted);font-family:"IBM Plex Mono",monospace;direction:ltr;text-align:right}
+.test .res{font-family:"IBM Plex Mono",monospace;font-size:16px;font-weight:600;direction:ltr}
+.test .vd{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;flex:none}
+.test.pass .vd{background:var(--green)} .test.pass .res{color:var(--green)}
+.test.fail{background:#FDECEA;border-color:#F2C2BD}
+.test.fail .vd{background:var(--red)} .test.fail .res{color:var(--red)}
+.test.wait .vd{background:#DCD8CF;color:var(--muted)}
+
+/* new: 3-way decision */
+.dec3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.dec3 button{font-family:inherit;font-size:12px;font-weight:600;padding:14px 4px;border-radius:var(--r);border:1.5px solid;background:#fff;line-height:1.4}
+.dec3 .ac{color:var(--green);border-color:#B7DFCC}
+.dec3 .cd{color:var(--amber);border-color:#F0D7A6}
+.dec3 .rj{color:var(--red);border-color:#F2C2BD}
+.dec3 button.on{color:#fff}
+.dec3 .ac.on{background:var(--green);border-color:var(--green)}
+.dec3 .cd.on{background:var(--amber);border-color:var(--amber)}
+.dec3 .rj.on{background:var(--red);border-color:var(--red)}
+
+/* new: photo slot */
+.photo{border:1.5px dashed #C9C4B9;border-radius:var(--r);padding:14px;text-align:center;color:var(--muted);font-size:12px;background:#FCFBF9}
+.photo b{display:block;font-size:20px;margin-bottom:2px;color:#B3ACA0}
+
+.receipt{background:#fff;border:1px dashed #C9C4B9;border-radius:var(--r);padding:12px}
+.receipt .bc{font-family:"Libre Barcode 39",monospace;font-size:40px;text-align:center;display:block;line-height:1;direction:ltr}
+.rrow{display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-bottom:1px solid #EFECE5}
+.rrow:last-child{border-bottom:0}
+
+.notes{margin-top:18px;border-top:1px solid var(--line);padding-top:14px}
+.notes h5{font-size:12px;color:var(--orange);font-family:"IBM Plex Mono",monospace;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;direction:ltr;text-align:right}
+.notes ul{list-style:none;display:flex;flex-direction:column;gap:7px}
+.notes li{font-size:13px;color:#9CADB7;line-height:1.55;padding-right:14px;position:relative}
+.notes li::before{content:"";position:absolute;right:0;top:9px;width:5px;height:5px;background:var(--line);border-radius:1px}
+.notes li b{color:#DCE5EA;font-weight:500}
+
+.foot{border-top:1px solid var(--line);padding:48px 0 80px;margin-top:20px}
+.foot h3{font-size:20px;color:#fff;font-weight:600;margin-bottom:8px}
+.foot p{color:#8A9BA5;font-size:15px;max-width:64ch;font-weight:300}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px;margin-top:28px}
+.fcard{background:var(--steel-2);border:1px solid var(--line);border-radius:12px;padding:18px}
+.fcard b{display:block;color:#fff;font-size:14px;font-weight:600;margin-bottom:6px}
+.fcard span{font-size:13px;color:#8FA3AE;line-height:1.6}
+
+@media (prefers-reduced-motion:reduce){.beam{animation:none;top:50%}.stage{transition:none;opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<div class="hazard"></div>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow">D365 F&amp;O · Full Cycle · Mobile Screens 11–32</div>
+    <h1>الدورة الكاملة: البيع والجرد والحركة والإنتاج والجودة</h1>
+    <p class="lede">استكمال لديك الاستلام. سبع وحدات تغطي الحركة الكاملة للمخزون من لحظة دخوله لحد خروجه — وطبقة جودة مستقلة بتمسك المشتريات والإنتاج ومرتجعات المبيعات في نظام واحد.</p>
+    <div class="meta-row">
+      <span class="tag">22 شاشة · 7 وحدات</span>
+      <span class="tag">الجودة بتتحكم في <b>حالة المخزون</b> مش في ورق منفصل</span>
+      <span class="tag">كل حركة ليها <b>سبب</b> و<b>أثر مالي</b></span>
+      <span class="tag">FEFO للدفعات</span>
+    </div>
+  </div>
+</header>
+
+<nav class="nav">
+  <div class="wrap" style="display:flex;gap:8px;flex-wrap:wrap">
+    <a href="#m-a">أ · البيع والشحن</a>
+    <a href="#m-b">ب · الجرد</a>
+    <a href="#m-c">ج · حركة وتعديل</a>
+    <a href="#m-d">د · التحويل</a>
+    <a href="#m-e">هـ · الصرف للإنتاج</a>
+    <a href="#m-f">و · الاستلام من الإنتاج</a>
+    <a href="#m-g">ز · الجودة والمرتجعات</a>
+  </div>
+</nav>
+
+<main class="wrap">
+<div class="grid">
+
+<!-- ============ MODULE A ============ -->
+<div class="mod" id="m-a">
+  <div class="mod-k">A</div>
+  <div>
+    <h2>المبيعات والشحن</h2>
+    <p>من الموجة للتجميع للتغليف لتأكيد الشحن. الفكرة الأساسية: النظام هو اللي بيقول للعامل يروح فين، مش العامل هو اللي بيدوّر.</p>
+  </div>
+  <span class="mod-n">4 شاشات</span>
+</div>
+
+<!-- 11 -->
+<section class="stage">
+  <div class="stage-head"><span class="num">11</span><h2>أحمال الشحن اليوم</h2></div>
+  <p class="stage-sub">العامل بيشوف الأحمال مرتبة بموعد المغادرة مش بترتيب الإدخال — الوقت هو الأولوية في الشحن.</p>
+  <div class="device">
+    <div class="scanwin"><i></i><i class="on"></i><i></i></div>
+    <div class="screen">
+      <div class="sbar"><span>09:40</span><div class="right"><span class="dot-live">● متصل</span><span>76%</span></div></div>
+      <div class="abar"><span class="back">→</span><h3>الشحن</h3><span class="ctx">EG-01 / FG</span></div>
+      <div class="body tight">
+        <div class="chips"><span class="chip on">جاهز للتجميع (4)</span><span class="chip">قيد التجميع (2)</span><span class="chip">جاهز للشحن (1)</span></div>
+        <div class="line hot">
+          <div class="top"><span class="nm">كارفور مصر — أكتوبر</span><span class="code">LOAD-00318</span></div>
+          <div class="rowb" style="margin-top:6px"><span class="tiny">12 سطر · 6 طرود متوقعة</span><span class="chip r">المغادرة 11:30</span></div>
+          <div class="bar"><i class="low" style="width:0%"></i></div>
+        </div>
+        <div class="line">
+          <div class="top"><span class="nm">سبينس — المعادي</span><span class="code">LOAD-00319</span></div>
+          <div class="rowb" style="margin-top:6px"><span class="tiny">6/14 سطر مجمّع</span><span class="chip a">المغادرة 14:00</span></div>
+          <div class="bar"><i style="width:43%"></i></div>
+        </div>
+        <div class="line">
+          <div class="top"><span class="nm">توزيع الدلتا</span><span class="code">LOAD-00320</span></div>
+          <div class="rowb" style="margin-top:6px"><span class="tiny">8 سطور</span><span class="chip">المغادرة 16:30</span></div>
+          <div class="bar"><i class="low" style="width:0%"></i></div>
+        </div>
+        <div class="alert warn"><span>⏱</span><span>حمل كارفور باقي له ساعة و50 دقيقة — ابدأ بيه.</span></div>
+        <div class="spacer"></div>
+        <button class="btn">ابدأ تجميع LOAD-00318</button>
+      </div>
+    </div>
+  </div>
+  <div class="notes">
+    <h5>Binding</h5>
+    <ul>
+      <li>القائمة من <b>WHSLoadTable</b> + <b>WHSWorkTable</b> بحالة العمل المفتوح.</li>
+      <li>الترتيب حسب <b>موعد المغادرة</b> — لو الحمل اتأخر، يتصبغ أحمر تلقائي.</li>
+      <li>بدون WHS: المصدر يبقى <b>Sales order picking list</b>.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- 12 -->
+<section class="stage">
+  <div class="stage-head"><span class="num">12</span><h2>التجميع الموجّه</h2></div>
+  <p class="stage-sub">الشاشة بتقول حاجة واحدة بس: روح فين وخد كام. الموقع مكتوب بحجم يتقرا وانت ماشي بالعربية.</p>
+  <div class="device">
+    <div class="scanwin"><i class="on"></i><i class="on"></i><i class="on"></i></div>
+    <div class="screen">
+      <div class="sbar"><span>09:47</span><div class="right"><span class="dot-live">● متصل</span><span>75%</span></div></div>
+      <div class="abar"><span class="back">→</span><h3>تجميع</h3><span class="ctx">LOAD-00318</span></div>
+      <div class="body tight">
+        <div class="step"><b>3 / 12</b><span class="dots"><i class="d"></i><i class="d"></i><i class="d"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span></div>
+        <div class="goto">
+          <div class="lbl">اذهب إلى</div>
+          <div class="loc">A-04-C-02</div>
+          <div class="sub">ممر A · الرف الرابع · العين 2</div>
+        </div>
+        <div class="card">
+          <div class="rowb"><span class="strong" style="font-size:13px">عصير مانجو 1 لتر</span><span class="code">FG-2201</span></div>
+          <div class="rowb" style="margin-top:8px">
+            <span class="tiny">الدفعة المطلوبة (FEFO)</span>
+            <span class="mono strong" style="font-size:13px">B-2604</span>
+          </div>
+        </div>
+        <div class="qbox" style="padding:12px">
+          <div class="big">24</div>
+          <div class="unit">قطعة · كرتونتين</div>
+        </div>
+        <div class="field focus rowb"><span class="tiny">امسح الموقع للتأكيد…</span><span>▮</span></div>
+        <div class="spacer"></div>
+        <button class="btn">تأكيد الالتقاط</button>
+        <button class="btn ghost sm">الكمية ناقصة / الموقع فاضي</button>
+      </div>
+    </div>
+  </div>
+  <div class="notes">
+    <h5>Rules</h5>
+    <ul>
+      <li>مسح الموقع <b>إجباري</b> قبل الكمية — ده اللي بيمنع الالتقاط من رف غلط.</li>
+      <li>الدفعة مقترحة بـ <b>FEFO</b>؛ دفعة مختلفة تحتاج سبب.</li>
+      <li>«الموقع فاضي» بيفتح <b>Short pick</b> ويولّد إعادة تجميع من موقع بديل تلقائيًا.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- 13 -->
+<section class="stage">
+  <div class="stage-head"><span class="num">13</span><h2>التغليف</h2></div>
+  <p class="stage-sub">الطرد بيتقفل مرة واحدة وبيطلع منه ليبل عليه باركود. بعد الإقفال مفيش تعديل إلا بفتح رسمي.</p>
+  <div class="device">
+    <div class="scanwin"><i class="on"></i><i></i><i class="on"></i></div>
+    <div class="screen">
+      <div class="sbar"><span>10:12</span><div class="right"><span class="dot-live">● متصل</span><span>73%</span></div></div>
+      <div class="abar"><span class="back">→</span><h3>تغليف</h3><span class="ctx">BOX-0091</span></div>
+      <div class="body tight">
+        <div class="card flat rowb">
+          <div><div class="strong" style="font-size:13px">كرتونة كبيرة 60×40</div><div class="tiny">الطرد 4 من 6</div></div>
+          <div style="text-align:left"><div class="mono strong" style="font-size:15px">14.2</div><div class="tiny">كجم</div></div>
+        </div>
+        <div class="tbl">
+          <div class="tr h"><span>محتوى الطرد</span><span>الكمية</span></div>
+          <div class="tr"><span>عصير مانجو 1ل</span><span class="mono">24</span></div>
+          <div class="tr"><span>عصير برتقال 1ل</span><span class="mono">12</span></div>
+          <div class="tr"><span>عصير جوافة 250مل</span><span class="mono">36</span></div>
+        </div>
+        <div class="field focus rowb"><span class="tiny">امسح الصنف لإضافته للطرد…</span><span>▮</span></div>
+        <div class="alert info">الطرد الممتلئ بيتقفل تلقائيًا لما يوصل الحد الأقصى للوزن (18 كجم).</div>
+        <div class="spacer"></div>
+        <button class="btn dark">إغلاق الطرد وطباعة الليبل</button>
+        <button class="btn ghost sm">فتح طرد جديد</button>
+      </div>
+    </div>
+  </div>
+  <div class="notes">
+    <h5>Packing</h5>
+    <ul>
+      <li>الطرد = <b>Container</b> في WHS، والحاويات كلها بتتربط بالـ Load.</li>
+      <li>الوزن بيتحسب من <b>Item weight</b> ويتقارن بحد الكرتونة.</li>
+      <li>ليبل الطرد لازم يكون فيه: العميل، رقم الطرد، «3 من 6»، وباركود.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- 14 -->
+<section class="stage">
+  <div class="stage-head"><span class="num">14</span><h2>تأكيد الشحن</h2></div>
+  <p class="stage-sub">آخر بوابة قبل ما البضاعة تسيب المصنع. مسح كل طرد على العربية بيمنع الشحن الناقص والزائد.</p>
+  <div class="device">
+    <div class="scanwin"><i class="on"></i><i class="on"></i><i></i></div>
+    <div class="screen">
+      <div class="sbar"><span>11:04</span><div class="right"><span class="dot-live">● متصل</span><span>70%</span></div></div>
+      <div class="abar"><span class="back">→</span><h3>تأكيد الشحن</h3><span class="ctx">LOAD-00318</span></div>
+      <div class="body tight">
+        <div class="card flat">
+          <div class="rowb"><span class="strong" style="font-size:13px">كارفور مصر — أكتوبر</span><span class="chip a">4 / 6 محمّل</span></div>
+          <div class="tiny">إجمالي الوزن 84.6 كجم · باب التحميل D-02</div>
+          <div class="bar"><i style="width:67%"></i></div>
+        </div>
+        <div class="tbl">
+          <div class="tr h"><span>الطرود</span><span>الحالة</span></div>
+          <div class="tr pos"><span class="mono">BOX-0088</span><span class="chip g">محمّل</span></div>
+          <div class="tr pos"><span class="mono">BOX-0089</span><span class="chip g">محمّل</span></div>
+          <div class="tr pos"><span class="mono">BOX-0090</span><span class="chip g">محمّل</span></div>
+          <div class="tr pos"><span class="mono">BOX-0091</span><span class="chip g">محمّل</span></div>
+          <div class="tr"><span class="mono">BOX-0092</span><span class="chip">في الانتظار</span></div>
+        </div>
+        <div class="rowb" style="gap:8px">
+          <div class="field" style="flex:1.3"><div class="label">السائق</div><div class="val" style="font-size:13px">سمير فؤاد</div></div>
+          <div class="field" style="flex:1"><div class="label">السيارة</div><div class="val mono" style="font-size:13px">ق ط ص 4821</div></div>
+        </div>
+        <div class="alert warn"><span>⚠</span><span>لسه طردين ما اتمسحوش. الشحن مقفول لحد ما يكتملوا.</span></div>
+        <div class="spacer"></div>
+        <button class="btn" style="opacity:.45">تأكيد الشحن وترحيل إذن الصرف</button>
+      </div>
+    </div>
+  </div>
+  <div class="notes">
+    <h5>Posting</h5>
+    <ul>
+      <li>تأكيد الشحن يرحّل <b>Packing slip</b> لأمر البيع ويقفل الحمل.</li>
+      <li>زرار الترحيل مقفول لحد ما كل الطرود تتمسح — <b>مفيش شحن جزئي بالغلط</b>.</li>
+      <li>بيانات السائق والسيارة تتخزّن للتتبع والمطالبات.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ MODULE B ============ -->
+<div class="mod" id="m-b">
+  <div class="mod-k">B</div>
+  <div>
+    <h2>الجرد</h2>
+    <p>العدّ الأعمى هو القاعدة: العامل ما يشوفش الكمية النظرية قبل ما يعدّ، وإلا هيكتب اللي على الشاشة.</p>
+  </div>
+  <span class="mod-n">3 شاشات</span>
+</div>
+
+<!-- 15 -->
+<section class="stage">
+  <div class="stage-head"><span class="num">15</span><h2>مهام الجرد</h2></div>
+  <p class="stage-sub">الجرد الدوري بيتولّد تلقائي من النظام، والجرد الطارئ بيتعمل يدوي على موقع أو صنف محدد.</p>
+  <div class="device">
+    <div class="scanwin"><i></i><i class="on"></i><i></i></div>
+    <div class="screen">
+      <div class="sbar"><span>13:20</span><div class="right"><span class="dot-live">● متصل</span><span>62%</span></div></div>
+      <div class="abar"><span class="back">→</span><h3>الجرد</h3><span class="ctx">EG-01 / FG</span></div>
+      <div class="body tight">
+        <div class="chips"><span class="chip on">دوري (3)</span><span class="chip">موقع محدد</span><span class="chip">صنف محدد</span></div>
+        <div class="line">
+          <div class="top"><span class="nm">ممر A — أرفف علوية</span><span class="code">CNT-0042</span></div>
+          <div class="rowb" style="margin-top:6px"><span class="tiny">18 موقع · 6 مكتملة</span><span class="chip a">اليوم</span></div>
+          <div class="bar"><i style="width:33%"></i></div>
+        </div>
+        <div class="line">
+          <div class="top"><span class="nm">أصناف عالية القيمة</span><span class="code">CNT-0043</span></div>
+          <div class="rowb" style="margin-top:6px"><span class="tiny">9 مواقع</span><span class="chip r">متأخر يومين</span></div>
+          <div class="bar"><i class="low" style="width:0%"></i></div>
+        </div>
+        <div class="line done">
+          <div class="top"><span class="nm">منطقة الحجر QI</span><span class="code">CNT-0041</span></div>
+          <div class="rowb" style="margin-top:6px"><span class="tiny">4 مواقع</span><span class="chip g">مكتمل</span></div>
+          <div class="bar"><i class="ok" style="width:100%"></i></div>
+        </div>
+        <div class="alert info">الأصناف عالية القيمة بتتجرد كل أسبوع، والباقي كل 90 يوم.</div>
+        <div class="spacer"></div>
+        <button class="btn">ابدأ CNT-0042</button>
+        <button class="btn ghost sm">جرد سريع لموقع (امسح الموقع)</button>
+      </div>
+    </div>
+  </div>
+  <div class="notes">
+    <h5>Setup</h5>
+    <ul>
+      <li>الدورية من <b>Cycle counting work</b> أو <b>Counting group</b> لكل صنف.</li>
+      <li>تصنيف ABC بيحدد التكرار — العالي قيمة أكتر عدًا.</li>
+      <li>الجرد بيقفل الموقع مؤقتًا فما ينفعش يتجمّع منه في نفس الوقت.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- 16 -->
+<section class="stage">
+  <div class="stage-head"><span class="num">16</span><h2>العدّ الأعمى</h2></div>
+  <p class="stage-sub">مفيش رقم نظري على الشاشة خالص. لو العدّ اختلف كتير، النظام بيطلب إعادة عد قبل ما يقبل الرقم.</p>
+  <div class="device">
+    <div class="scanwin"><i class="on"></i><i class="on"></i><i></i></div>
+    <div class="screen">
+      <div class="sbar"><span>13:26</span><div class="right"><span class="dot-live">● متصل</span><span>62%</span></div></div>
+      <div class="abar"><span class="back">→</span><h3>عدّ</h3><span class="ctx">7 / 18</span></div>
+      <div class="body tight">
+        <div class="goto" style="padding:12px">
+          <div class="lbl">الموقع</div>
+          <div class="loc" style="font-size:28px">A-02-B-04</div>
+        </div>
+        <div class="card">
+          <div class="rowb"><span class="strong" style="font-size:13px">عصير جوافة 250 مل</span><span class="code">FG-2208</span></div>
+          <div class="rowb" style="margin-top:6px"><span class="tiny">الدفعة</span><span class="mono strong" style="font-size:12px">B-2531</span></div>
+        </div>
+        <div class="chip" style="align-self:flex-start">👁 الكمية النظرية مخفية</div>
+        <div class="qbox" style="padding:12px">
+          <div class="big" style="color:var(--muted)">0</div>
+          <div class="unit">قطعة</div>
+        </div>
+        <div class="pad">
+          <button>7</button><button>8</button><button>9</button>
+          <button>4</button><button>5</button><button>6</button>
+        </div>
+        <button class="btn">تأكيد العدّ</button>
+        <button class="btn ghost sm">الموقع فاضي</button>
+      </div>
+    </div>
+  </div>
+  <div class="notes">
+    <h5>Blind count</h5>
+    <ul>
+      <li>إخفاء الكمية النظرية من إعداد <b>Mobile device menu item</b> — مش خيار تجميلي.</li>
+      <li>فرق أكبر من حد معيّن ← <b>طلب إعادة عد فوري</b> قبل الحفظ.</li>
+      <li>«الموقع فاضي» لازم يكون زرار صريح، وإلا العامل هيسيبه ويعدّي.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- 17 -->
+<section class="stage">
+  <div class="stage-head"><span class="num">17</span><h2>الفروقات والاعتماد</h2></div>
+  <p class="stage-sub">الفرق مش رقم — ده مصروف. عرض القيمة المالية بيخلي الاعتماد قرار واعي مش ضغطة زرار.</p>
+  <div class="device">
+    <div class="scanwin"><i class="on"></i><i></i><i></i></div>
+    <div class="screen">
+      <div class="sbar"><span>14:05</span><div class="right"><span class="dot-live">● متصل</span><span>58%</span></div></div>
+      <div class="abar"><span class="back">→</span><h3>فروقات CNT-0042</h3></div>
+      <div class="body tight">
+        <div class="tbl">
+          <div class="tr h"><span>الصنف / الموقع</span><span>النظام · المعدود · الفرق</span></div>
+          <div class="tr neg"><span>FG-2208<br><span class="tiny">A-02-B-04</span></span><span class="mono">144 · 138 · <b style="color:var(--red)">-6</b></span></div>
+          <div class="tr pos"><span>FG-2201<br><span class="tiny">A-04-C-02</span></span><span class="mono">240 · 244 · <b style="color:var(--green)">+4</b></span></div>
+          <div class="tr neg"><span>FG-2115<br><span class="tiny">A-01-A-01</span></span><span class="mono">60 · 48 · <b style="color:var(--red)">-12</b></span></div>
+          <div class="tr tot"><span>صافي أثر التكلفة</span><span class="mono">-1,240 EGP</span></div>
+        </div>
+        <div class="alert warn"><span>⚠</span><span>سطر FG-2115 فرقه 20% — أعلى من حد الـ 5%. محتاج اعتماد مدير المخزن.</span></div>
+        <div class="card">
+          <div class="label" style="margin-bottom:7px">سبب الفرق</div>
+          <div class="chips"><span class="chip on">تالف غير مسجّل</span><span class="chip">خطأ التقاط</span><span class="chip">فقد</span></div>
+        </div>
+        <div class="spacer"></div>
+        <button class="btn dark">رفع للاعتماد</button>
+        <button class="btn ghost sm">إعادة عدّ السطور المختلفة</button>
+      </div>
+    </div>
+  </div>
+  <div class="notes">
+    <h5>Approval</h5>
+    <ul>
+      <li>الترحيل عن طريق <b>Counting journal</b> — والقيمة من متوسط التكلفة الحالي.</li>
+      <li>حدود الاعتماد بالقيمة أو بالنسبة، بتتظبط في <b>Workflow</b>.</li>
+      <li>كود السبب إجباري — من غيره التحليل بعد كده مستحيل.</li>
+    </ul>
+  </div>
+</section>
+
+
+<!-- ============ MODULE C ============ -->
+<div class="mod" id="m-c">
+  <div class="mod-k">C</div>
+  <div>
+    <h2>حركة المخزون والتعديل</h2>
+    <p>فرق جوهري: النقل بيغيّر المكان بس، والتعديل بيغيّر الكمية والقيمة. الاتنين لازم يبقوا شاشتين منفصلتين بصلاحيات مختلفة.</p>
+  </div>
+  <span class="mod-n">2 شاشة</span>
+</div>
+
+<!-- 18 -->
+<section class="stage">
+  <div class="stage-head"><span class="num">18</span><h2>نقل مخزون</h2></div>
+  <p class="stage-sub">نقل اللوحة كاملة هو الافتراضي لأنه أسرع وأقل خطأ. نقل صنف بكمية خيار تاني.</p>
+  <div class="device">
+    <div class="scanwin"><i class="on"></i><i class="on"></i><i class="on"></i></div>
+    <div class="screen">
+      <div class="sbar"><span>14:30</span><div class="right"><span class="dot-live">● متصل</span><span>55%</span></div></div>
+      <div class="abar"><span class="back">→</span><h3>نقل مخزون</h3></div>
+      <div class="body tight">
+        <div class="chips"><span class="chip on">نقل لوحة كاملة</span><span class="chip">نقل صنف بكمية</span></div>
+        <div>
+          <div class="label">من (امسح اللوحة)</div>
+          <div class="field rowb"><span class="val mono">LP-00043128</span><span class="chip g">✓ مقروء</span></div>
+        </div>
+        <div class="card flat">
+          <div class="tiny">محتوى اللوحة</div>
+          <div class="rowb" style="margin-top:5px"><span class="strong" style="font-size:13px">مسمار صلب 8×40</span><span class="mono strong">126</span></div>
+          <div class="rowb" style="margin-top:3px"><span class="strong" style="font-size:13px">شريط لاصق 48مم</span><span class="mono strong">60</span></div>
+          <div class="tiny" style="margin-top:6px">الموقع الحالي: RECV-01-A</div>
+        </div>
+        <div>
+          <div class="label">إلى (امسح الموقع)</div>
+          <div class="field focus rowb"><span class="tiny">في انتظار المسح…</span><span>▮</span></div>
+        </div>
+        <div class="alert info">نقل اللوحة بينقل كل محتوياتها بحركة واحدة — مفيش صنف صنف.</div>
+        <div class="spacer"></div>
+        <button class="btn">تنفيذ النقل</button>
+      </div>
+    </div>
+  </div>
+  <div class="notes">
+    <h5>Rules</h5>
+    <ul>
+      <li>النقل <b>ما بيغيّرش الكمية ولا القيمة</b> — عشان كده صلاحيته واسعة نسبيًا.</li>
+      <li>منع النقل من أو إلى <b>منطقة الحجر</b> إلا من شاشة الجودة.</li>
+      <li>تحقق من سعة الموقع ونوعه قبل قبول الوجهة.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- 19 -->
+<section class="stage">
+  <div class="stage-head"><span class="num">19</span><h2>تعديل مخزون</h2></div>
+  <p class="stage-sub">الشاشة الوحيدة اللي بتخلق أو تعدم مخزون. عشان كده: سبب إجباري، صورة إجبارية للتلف، وصلاحية مقيّدة.</p>
+  <div class="device">
+    <div class="scanwin"><i class="on"></i><i></i><i></i></div>
+    <div class="screen">
+      <div class="sbar"><span>14:52</span><div class="right"><span class="dot-live">● متصل</span><span>53%</span></div></div>
+      <div class="abar"><span class="back">→</span><h3>تعديل مخزون</h3><span class="ctx">مقيّد</span></div>
+      <div class="body tight">
+        <div class="chips"><span class="chip">إضافة (+)</span><span class="chip on">خصم (−)</span></div>
+        <div class="card">
+          <div class="rowb"><span class="strong" style="font-size:13px">عصير جوافة 250 مل</span><span class="code">FG-2208</span></div>
+          <div class="tiny">A-02-B-04 · الدفعة B-2531 · المتاح 138</div>
+        </div>
+        <div class="rowb" style="gap:8px">
+          <div class="field" style="flex:1"><div class="label">الكمية</div><div class="val mono" style="font-size:18px">6</div></div>
+          <div class="field selectish" style="flex:1.4"><div><div class="label">السبب</div><div class="val" style="font-size:13px">تلف بالمناولة</div></div></div>
+        </div>
+        <div class="photo"><b>⧉</b>صورة التلف مطلوبة قبل الترحيل</div>
+        <div class="alert err"><span>!</span><span>الخصم هيقلل قيمة المخزون بـ <b class="mono">312 EGP</b> ويترحّل على حساب المصروف المرتبط بالسبب.</span></div>
+        <div class="spacer"></div>
+        <button class="btn red">ترحيل التعديل</button>
+      </div>
+    </div>
+  </div>
+  <div class="notes">
+    <h5>Control</h5>
+    <ul>
+      <li>كل سبب مربوط بـ <b>Counting reason code</b> وبحساب أستاذ مختلف.</li>
+      <li>عرض الأثر المالي قبل الترحيل بيقلل التعديلات العشوائية بشكل ملحوظ.</li>
+      <li>الصور تترفع كـ <b>Attachment</b> على الحركة نفسها للمراجعة.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ MODULE D ============ -->
+<div class="mod" id="m-d">
+  <div class="mod-k">D</div>
+  <div>
+    <h2>التحويل بين المخازن</h2>
+    <p>أكتر مكان بتضيع فيه بضاعة هو «في الطريق». الشاشتين دول مبنيين على إن الفرق بين المرسل والمستلم لازم يتمسك في نفس اللحظة.</p>
+  </div>
+  <span class="mod-n">2 شاشة</span>
+</div>
+
+<!-- 20 -->
+<section class="stage">
+  <div class="stage-head"><span class="num">20</span><h2>التحويل — الصرف</h2></div>
+  <p class="stage-sub">بعد الترحيل البضاعة بتدخل حالة «في الطريق» وتبقى ملك المخزن المرسل لحد ما تُستلم.</p>
+  <div class="device">
+    <div class="scanwin"><i class="on"></i><i class="on"></i><i></i></div>
+    <div class="screen">
+      <div class="sbar"><span>15:10</span><div class="right"><span class="dot-live">● متصل</span><span>50%</span></div></div>
+      <div class="abar"><span class="back">→</span><h3>صرف تحويل</h3><span class="ctx">TRN-000112</span></div>
+      <div class="body tight">
+        <div class="card flat">
+          <div class="rowb"><span class="strong" style="font-size:13px">EG-01 / FG</span><span style="color:var(--orange)">←</span><span class="strong" style="font-size:13px">EG-02 / DIST</span></div>
+          <div class="tiny">مصنع العاشر ← مستودع الإسكندرية · 3 سطور</div>
+        </div>
+        <div class="line">
+          <div class="top"><span class="nm">عصير مانجو 1ل</span><span class="code">FG-2201</span></div>
+          <div class="qty3"><div><b>0</b><span>متبقي</span></div><div><b>120</b><span>محمّل</span></div><div><b>120</b><span>مطلوب</span></div></div>
+          <div class="bar"><i class="ok" style="width:100%"></i></div>
+        </div>
+        <div class="line">
+          <div class="top"><span class="nm">عصير برتقال 1ل</span><span class="code">FG-2202</span></div>
+          <div class="qty3"><div><b>36</b><span>متبقي</span></div><div><b>24</b><span>محمّل</span></div><div><b>60</b><span>مطلوب</span></div></div>
+          <div class="bar"><i style="width:40%"></i></div>
+        </div>
+        <div class="field focus rowb"><span class="tiny">امسح اللوحة أو الصنف…</span><span>▮</span></div>
+        <div class="rowb" style="gap:8px">
+          <div class="field" style="flex:1.3"><div class="label">السائق</div><div class="val" style="font-size:13px">مصطفى نبيل</div></div>
+          <div class="field" style="flex:1"><div class="label">السيارة</div><div class="val mono" style="font-size:13px">ر ع د 1190</div></div>
+        </div>
+        <div class="spacer"></div>
+        <button class="btn">ترحيل الصرف</button>
+      </div>
+    </div>
+  </div>
+  <div class="notes">
+    <h5>In transit</h5>
+    <ul>
+      <li>الترحيل بينشئ حركة <b>Transfer order shipment</b> والمخزون يروح لحساب «في الطريق».</li>
+      <li>الصرف الجزئي مسموح — التحويل بيفضل مفتوح للباقي.</li>
+      <li>اطبع بوليصة التحويل من الموبايل مباشرة عشان تمشي مع العربية.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- 21 -->
+<section class="stage">
+  <div class="stage-head"><span class="num">21</span><h2>التحويل — الاستلام</h2></div>
+  <p class="stage-sub">الفرق بين المرسل والمستلم بيتمسك هنا بسبب واضح، ومحدش يقدر يقفل التحويل من غير ما يتصرف فيه.</p>
+  <div class="device">
+    <div class="scanwin"><i class="on"></i><i class="on"></i><i class="on"></i></div>
+    <div class="screen">
+      <div class="sbar"><span>18:40</span><div class="right"><span class="dot-live">● متصل</span><span>44%</span></div></div>
+      <div class="abar"><span class="back">→</span><h3>استلام تحويل</h3><span class="ctx">TRN-000112</span></div>
+      <div class="body tight">
+        <div class="card flat">
+          <div class="rowb"><span class="strong" style="font-size:13px">وارد من EG-01 / FG</span><span class="chip b">في الطريق</span></div>
+          <div class="tiny">صُرف 15:22 · السائق مصطفى نبيل</div>
+        </div>
+        <div class="tbl">
+          <div class="tr h"><span>الصنف</span><span>مُرسل · مستلم</span></div>
+          <div class="tr pos"><span>عصير مانجو 1ل</span><span class="mono">120 · 120</span></div>
+          <div class="tr neg"><span>عصير برتقال 1ل</span><span class="mono">24 · <b style="color:var(--red)">22</b></span></div>
+          <div class="tr"><span>عصير جوافة 250مل</span><span class="mono">36 · 36</span></div>
+        </div>
+        <div class="alert err"><span>!</span><span>نقص قطعتين في FG-2202. لازم تحدد السبب قبل إقفال التحويل.</span></div>
+        <div class="card">
+          <div class="label" style="margin-bottom:7px">سبب النقص</div>
+          <div class="chips"><span class="chip on">تالف في الطريق</span><span class="chip">نقص عند الصرف</span><span class="chip">فقد</span></div>
+        </div>
+        <div class="spacer"></div>
+        <button class="btn">ترحيل الاستلام</button>
+      </div>
+    </div>
+  </div>
+  <div class="notes">
+    <h5>Reconciliation</h5>
+    <ul>
+      <li>الفرق يتسجّل كـ <b>Transfer loss</b> على المخزن المسؤول حسب السبب المختار.</li>
+      <li>صور التلف تترفق هنا — دي اللي بتفرق في المطالبة من شركة النقل.</li>
+      <li>لو الاستلام بعد مدة معينة، نبّه على التحويلات المعلقة تلقائيًا.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ MODULE E ============ -->
+<div class="mod" id="m-e">
+  <div class="mod-k">E</div>
+  <div>
+    <h2>الصرف للإنتاج</h2>
+    <p>هنا بيتحدد كام تكلفة المنتج. صرف دفعة غلط مش مشكلة مخزون بس — دي مشكلة تتبع لو حصل استدعاء منتج.</p>
+  </div>
+  <span class="mod-n">3 شاشات</span>
+</div>
+
+<!-- 22 -->
+<section class="stage">
+  <div class="stage-head"><span class="num">22</span><h2>أوامر الإنتاج</h2></div>
+  <p class="stage-sub">مرتّبة بخط الإنتاج ووقت البدء. العامل بيشوف الأوامر اللي على خطه هو بس.</p>
+  <div class="device">
+    <div class="scanwin"><i></i><i class="on"></i><i></i></div>
+    <div class="screen">
+      <div class="sbar"><span>06:50</span><div class="right"><span class="dot-live">● متصل</span><span>96%</span></div></div>
+      <div class="abar"><span class="back">→</span><h3>الإنتاج</h3><span class="ctx">خط L-02</span></div>
+      <div class="body tight">
+        <div class="chips"><span class="chip on">جاري (2)</span><span class="chip">مجدول (5)</span></div>
+        <div class="line">
+          <div class="top"><span class="nm">عصير مانجو 1 لتر</span><span class="code">PROD-000230</span></div>
+          <div class="rowb" style="margin-top:6px"><span class="tiny">الهدف 5,000 وحدة · بدأ 06:00</span><span class="chip a">4 مكونات متبقية</span></div>
+          <div class="bar"><i class="bl" style="width:32%"></i></div>
+        </div>
+        <div class="line">
+          <div class="top"><span class="nm">عصير جوافة 250 مل</span><span class="code">PROD-000231</span></div>
+          <div class="rowb" style="margin-top:6px"><span class="tiny">الهدف 12,000 وحدة · يبدأ 11:00</span><span class="chip">لم يبدأ</span></div>
+          <div class="bar"><i class="low" style="width:0%"></i></div>
+        </div>
+        <div class="card flat">
+          <div class="label">قائمة الصرف — PROD-000230</div>
+          <div class="rowb" style="margin-top:6px"><span class="tiny">بيوريه مانجو</span><span class="mono">800 / 1,250 كجم</span></div>
+          <div class="rowb" style="margin-top:3px"><span class="tiny">سكر</span><span class="mono">0 / 400 كجم</span></div>
+          <div class="rowb" style="margin-top:3px"><span class="tiny">عبوات 1ل</span><span class="mono">0 / 5,050</span></div>
+        </div>
+        <div class="spacer"></div>
+        <button class="btn">صرف مكونات PROD-000230</button>
+      </div>
+    </div>
+  </div>
+  <div class="notes">
+    <h5>Binding</h5>
+    <ul>
+      <li>المصدر <b>ProdTable</b> + <b>ProdBOM</b> بحالة «بدأ / مُطلق».</li>
+      <li>الفلترة بخط الإنتاج من <b>Resource group</b> المرتبط بالمستخدم.</li>
+      <li>الكميات المتبقية بتتحدث لحظيًا مع كل صرف.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- 23 -->
+<section class="stage">
+  <div class="stage-head"><span class="num">23</span><h2>صرف مكوّن</h2></div>
+  <p class="stage-sub">الدفعة مقترحة بـ FEFO والانحراف عنها محتاج تبرير. ده اللي بيخلي شجرة التتبع سليمة وقت الأزمة.</p>
+  <div class="device">
+    <div class="scanwin"><i class="on"></i><i class="on"></i><i class="on"></i></div>
+    <div class="screen">
+      <div class="sbar"><span>07:15</span><div class="right"><span class="dot-live">● متصل</span><span>94%</span></div></div>
+      <div class="abar"><span class="back">→</span><h3>صرف مكوّن</h3><span class="ctx">PROD-000230</span></div>
+      <div class="body tight">
+        <div class="card flat">
+          <div class="rowb"><span class="strong" style="font-size:13px">بيوريه مانجو 28 بركس</span><span class="code">RM-0410</span></div>
+          <div class="rowb" style="margin-top:5px"><span class="tiny">مطلوب 1,250 كجم</span><span class="tiny">مصروف 800 كجم</span></div>
+          <div class="bar"><i class="bl" style="width:64%"></i></div>
+        </div>
+        <div class="card" style="border-color:var(--green);border-width:1.5px">
+          <div class="rowb"><span class="mono strong" style="font-size:16px">B-2312</span><span class="chip g">مقترح FEFO</span></div>
+          <div class="tiny">صلاحية 2026/09/30 · متاح 620 كجم · موقع RM-03-B</div>
+        </div>
+        <div class="qbox" style="padding:12px">
+          <div class="big">450</div>
+          <div class="unit">كجم · المتبقي بعد الصرف 0</div>
+        </div>
+        <div class="alert warn"><span>⚠</span><span>لو مسحت دفعة غير المقترحة، هيتطلب منك سبب ويتسجّل على أمر الإنتاج.</span></div>
+        <div class="field focus rowb"><span class="tiny">امسح لوحة الخام…</span><span>▮</span></div>
+        <div class="spacer"></div>
+        <button class="btn">صرف للخط</button>
+      </div>
+    </div>
+  </div>
+  <div class="notes">
+    <h5>Traceability</h5>
+    <ul>
+      <li>الترحيل عن طريق <b>Picking list journal</b> — بيربط دفعة الخام بأمر الإنتاج.</li>
+      <li>خام محجوز في الجودة <b>ما يظهرش أصلًا</b> كخيار للصرف.</li>
+      <li>الدفعة منتهية أو قريبة الانتهاء ← منع مش تحذير.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- 24 -->
+<section class="stage">
+  <div class="stage-head"><span class="num">24</span><h2>رد فائض للمخزن</h2></div>
+  <p class="stage-sub">الخام اللي رجع من الخط لازم يترد بنفس دفعته، وإلا التكلفة والتتبع الاتنين هيبوظوا.</p>
+  <div class="device">
+    <div class="scanwin"><i class="on"></i><i></i><i class="on"></i></div>
+    <div class="screen">
+      <div class="sbar"><span>15:40</span><div class="right"><span class="dot-live">● متصل</span><span>61%</span></div></div>
+      <div class="abar"><span class="back">→</span><h3>رد فائض</h3><span class="ctx">PROD-000230</span></div>
+      <div class="body tight">
+        <div class="tbl">
+          <div class="tr h"><span>مصروف على الأمر</span><span>الكمية</span></div>
+          <div class="tr"><span>بيوريه مانجو · B-2312</span><span class="mono">1,250 كجم</span></div>
+          <div class="tr"><span>سكر · B-2477</span><span class="mono">400 كجم</span></div>
+          <div class="tr"><span>عبوات 1ل · —</span><span class="mono">5,050</span></div>
+        </div>
+        <div>
+          <div class="label">الصنف المرتجع</div>
+          <div class="field rowb"><span class="val" style="font-size:13px">سكر · B-2477</span><span class="chip g">دفعة مطابقة</span></div>
+        </div>
+        <div class="rowb" style="gap:8px">
+          <div class="field" style="flex:1"><div class="label">الكمية</div><div class="val mono" style="font-size:18px">18</div></div>
+          <div class="field selectish" style="flex:1.3"><div><div class="label">الحالة</div><div class="val" style="font-size:13px">صالح للاستخدام</div></div></div>
+        </div>
+        <div>
+          <div class="label">الموقع المرتجع إليه</div>
+          <div class="field focus rowb"><span class="tiny">امسح الموقع…</span><span>▮</span></div>
+        </div>
+        <div class="alert info">الرد بيقلل الكمية المصروفة على أمر الإنتاج وبالتالي بيصحّح تكلفة المنتج.</div>
+        <div class="spacer"></div>
+        <button class="btn">ترحيل الرد</button>
+      </div>
+    </div>
+  </div>
+  <div class="notes">
+    <h5>Costing</h5>
+    <ul>
+      <li>الرد = سطر بكمية سالبة في <b>Picking list journal</b>، مش تعديل مخزون.</li>
+      <li>الخام المفتوح أو الملوث يتحدد «غير صالح» ويروح للحجر مش للمخزن المتاح.</li>
+      <li>من غير الشاشة دي، تكلفة أوامر الإنتاج بتبقى متضخمة دايمًا.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ MODULE F ============ -->
+<div class="mod" id="m-f">
+  <div class="mod-k">F</div>
+  <div>
+    <h2>الاستلام من الإنتاج</h2>
+    <p>لحظة ميلاد المنتج التام ودفعته الجديدة. أي خطأ في التاريخ أو الصلاحية هنا بيتنقل للعميل مباشرة.</p>
+  </div>
+  <span class="mod-n">2 شاشة</span>
+</div>
+
+<!-- 25 -->
+<section class="stage">
+  <div class="stage-head"><span class="num">25</span><h2>الإبلاغ كتام الصنع</h2></div>
+  <p class="stage-sub">الكمية الجيدة والتالفة بيتسجلوا في نفس الشاشة، لأن اللي بيفصلهم بيسجّل التالف صفر دايمًا.</p>
+  <div class="device">
+    <div class="scanwin"><i class="on"></i><i class="on"></i><i></i></div>
+    <div class="screen">
+      <div class="sbar"><span>16:20</span><div class="right"><span class="dot-live">● متصل</span><span>57%</span></div></div>
+      <div class="abar"><span class="back">→</span><h3>تام الصنع</h3><span class="ctx">PROD-000230</span></div>
+      <div class="body tight">
+        <div class="card flat">
+          <div class="rowb"><span class="strong" style="font-size:13px">عصير مانجو 1 لتر</span><span class="code">FG-2201</span></div>
+          <div class="tiny">الهدف 5,000 · مُبلّغ سابقًا 0</div>
+        </div>
+        <div class="rowb" style="gap:8px">
+          <div class="card" style="flex:1;text-align:center;border-color:#B7DFCC">
+            <div class="label">كمية جيدة</div>
+            <div class="mono strong" style="font-size:26px;color:var(--green)">4,860</div>
+          </div>
+          <div class="card" style="flex:1;text-align:center;border-color:#F2C2BD">
+            <div class="label">تالف</div>
+            <div class="mono strong" style="font-size:26px;color:var(--red)">140</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="rowb"><span class="tiny">الدفعة الجديدة</span><span class="mono strong">B-2607</span></div>
+          <div class="rowb" style="margin-top:4px"><span class="tiny">تاريخ الإنتاج</span><span class="mono strong">2026-07-23</span></div>
+          <div class="rowb" style="margin-top:4px"><span class="tiny">الصلاحية (9 شهور)</span><span class="mono strong">2027-04-23</span></div>
+        </div>
+        <div class="alert warn"><span>⚗</span><span>الصنف ده محتاج فحص جودة — هيتوجّه لمنطقة الحجر <b class="mono">QI-01</b> مش للمخزن المتاح.</span></div>
+        <div class="spacer"></div>
+        <button class="btn">ترحيل الإنتاج</button>
+      </div>
+    </div>
+  </div>
+  <div class="notes">
+    <h5>RAF</h5>
+    <ul>
+      <li>الترحيل عن طريق <b>Report as finished journal</b> مع <b>Error quantity</b> للتالف.</li>
+      <li>رقم الدفعة يتولّد من <b>Number sequence</b>، والصلاحية من <b>Shelf life</b> للصنف.</li>
+      <li>لو الصنف عليه <b>Item sampling</b>، أمر الجودة يتولّد تلقائي عند الترحيل.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- 26 -->
+<section class="stage">
+  <div class="stage-head"><span class="num">26</span><h2>ليبل المنتج التام</h2></div>
+  <p class="stage-sub">الليبل هو اللي بيربط الصندوق بالدفعة. من غيره كل التتبع اللي فات بيبقى نظري.</p>
+  <div class="device">
+    <div class="scanwin"><i class="on"></i><i class="on"></i><i class="on"></i></div>
+    <div class="screen">
+      <div class="sbar"><span>16:22</span><div class="right"><span class="dot-live">● متصل</span><span>57%</span></div></div>
+      <div class="abar"><h3>تم الترحيل</h3></div>
+      <div class="body tight">
+        <div class="alert ok"><span>✓</span><span>اتسجّل 4,860 وحدة على الدفعة B-2607.</span></div>
+        <div class="receipt">
+          <span class="bc">*B2607*</span>
+          <div class="rrow"><span class="tiny">المنتج</span><span class="strong" style="font-size:12px">عصير مانجو 1 لتر</span></div>
+          <div class="rrow"><span class="tiny">الدفعة</span><span class="mono strong">B-2607</span></div>
+          <div class="rrow"><span class="tiny">الإنتاج / الصلاحية</span><span class="mono strong">23/07/26 · 23/04/27</span></div>
+          <div class="rrow"><span class="tiny">اللوحة</span><span class="mono strong">LP-00043877</span></div>
+          <div class="rrow"><span class="tiny">الحالة</span><span class="strong" style="color:var(--amber);font-size:12px">محجوز — تحت الفحص</span></div>
+        </div>
+        <div class="rowb" style="gap:8px">
+          <div class="field" style="flex:1"><div class="label">عدد اللوحات</div><div class="val mono" style="font-size:16px">6</div></div>
+          <div class="field" style="flex:1"><div class="label">نسخ لكل لوحة</div><div class="val mono" style="font-size:16px">2</div></div>
+        </div>
+        <div class="spacer"></div>
+        <button class="btn dark">طباعة 12 ليبل</button>
+        <button class="btn ghost sm">أمر إنتاج تاني</button>
+      </div>
+    </div>
+  </div>
+  <div class="notes">
+    <h5>Labeling</h5>
+    <ul>
+      <li>الليبل لازم يوضّح حالة «محجوز» بشكل بصري صارخ — لون أو شريط مائل.</li>
+      <li>الطباعة <b>ZPL</b> مباشرة على طابعة الخط، مع إعادة طباعة مسجّلة ومتتبعة.</li>
+      <li>باركود الدفعة هو اللي هيتقرا بعد كده في التجميع والشحن.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ MODULE G ============ -->
+<div class="mod" id="m-g">
+  <div class="mod-k">G</div>
+  <div>
+    <h2>الجودة والمرتجعات</h2>
+    <p>نظام واحد بيخدم ثلاث مداخل: المشتريات، الإنتاج، ومرتجع المبيعات. المبدأ الحاكم: الجودة مش ورقة تقرير — الجودة هي اللي بتتحكم في <b>حالة المخزون</b> وقدرته على البيع أو الصرف.</p>
+  </div>
+  <span class="mod-n">6 شاشات</span>
+</div>
+
+<!-- 27 -->
+<section class="stage">
+  <div class="stage-head"><span class="num">27</span><h2>طابور الفحص</h2></div>
+  <p class="stage-sub">كل أوامر الفحص في مكان واحد مهما كان مصدرها. المفتش مش محتاج يعرف إن ده جاي من مشتريات ولا إنتاج عشان يشتغل.</p>
+  <div class="device">
+    <div class="scanwin"><i></i><i class="on"></i><i></i></div>
+    <div class="screen">
+      <div class="sbar"><span>08:30</span><div class="right"><span class="dot-live">● متصل</span><span>91%</span></div></div>
+      <div class="abar"><span class="back">→</span><h3>فحص الجودة</h3><span class="ctx">معمل QC-01</span></div>
+      <div class="body tight">
+        <div class="chips"><span class="chip on">الكل (10)</span><span class="chip">مشتريات (5)</span><span class="chip">إنتاج (3)</span><span class="chip">مرتجعات (2)</span></div>
+        <div class="line hot">
+          <div class="top"><span class="nm">مسمار صلب مجلفن 8×40</span><span class="code">QO-000412</span></div>
+          <div class="rowb" style="margin-top:6px"><span class="tiny">من PO-000481 · عينة 8 من 126</span><span class="chip r">متأخر 4 ساعات</span></div>
+        </div>
+        <div class="line">
+          <div class="top"><span class="nm">عصير مانجو 1ل · B-2607</span><span class="code">QO-000413</span></div>
+          <div class="rowb" style="margin-top:6px"><span class="tiny">من PROD-000230 · عينة 5</span><span class="chip a">اليوم</span></div>
+        </div>
+        <div class="line">
+          <div class="top"><span class="nm">مرتجع كارفور — عبوات مهروسة</span><span class="code">QO-000414</span></div>
+          <div class="rowb" style="margin-top:6px"><span class="tiny">من RMA-000078 · 40 وحدة</span><span class="chip b">مرتجع</span></div>
+        </div>
+        <div class="alert warn"><span>⏱</span><span>4 أوامر تخطت زمن الفحص المستهدف. البضاعة محجوزة والفواتير موقوفة.</span></div>
+        <div class="spacer"></div>
+        <button class="btn">ابدأ QO-000412</button>
+        <button class="btn ghost sm">امسح ليبل لفتح أمر الفحص</button>
+      </div>
+    </div>
+  </div>
+  <div class="notes">
+    <h5>Binding</h5>
+    <ul>
+      <li>المصدر <b>InventQualityOrderTable</b> — بيتولّد تلقائي من <b>Quality associations</b>.</li>
+      <li>حجم العينة من <b>Item sampling</b> (نسبة، كمية ثابتة، أو كل الكمية).</li>
+      <li>زمن الفحص المستهدف مؤشر إداري حقيقي — البضاعة المحجوزة كاش واقف.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- 28 -->
+<section class="stage">
+  <div class="stage-head"><span class="num">28</span><h2>تنفيذ الاختبارات</h2></div>
+  <p class="stage-sub">المفتش بيدخل القراءة الفعلية بس، والنظام هو اللي بيحكم نجاح أو رسوب. مفيش حكم يدوي على الاختبار.</p>
+  <div class="device">
+    <div class="scanwin"><i class="on"></i><i></i><i></i></div>
+    <div class="screen">
+      <div class="sbar"><span>08:44</span><div class="right"><span class="dot-live">● متصل</span><span>90%</span></div></div>
+      <div class="abar"><span class="back">→</span><h3>اختبارات</h3><span class="ctx">QO-000412</span></div>
+      <div class="body tight">
+        <div class="step"><b>4 / 5</b><span class="dots"><i class="d"></i><i class="d"></i><i class="d"></i><i class="d"></i><i></i></span></div>
+        <div class="test pass">
+          <div class="vd">✓</div>
+          <div class="info"><div class="nm">القطر الخارجي</div><div class="spec">8.0 ± 0.2 mm</div></div>
+          <div class="res">8.05</div>
+        </div>
+        <div class="test pass">
+          <div class="vd">✓</div>
+          <div class="info"><div class="nm">مقاومة الشد</div><div class="spec">≥ 400 N/mm²</div></div>
+          <div class="res">438</div>
+        </div>
+        <div class="test fail">
+          <div class="vd">✕</div>
+          <div class="info"><div class="nm">سُمك الجلفنة</div><div class="spec">≥ 40 µm</div></div>
+          <div class="res">36</div>
+        </div>
+        <div class="test pass">
+          <div class="vd">✓</div>
+          <div class="info"><div class="nm">المظهر العام</div><div class="spec">no defects</div></div>
+          <div class="res">OK</div>
+        </div>
+        <div class="test wait">
+          <div class="vd">•</div>
+          <div class="info"><div class="nm">اختبار الرش الملحي</div><div class="spec">≥ 96 h</div></div>
+          <div class="res" style="color:var(--muted)">—</div>
+        </div>
+        <div class="alert err"><span>✕</span><span>اختبار الجلفنة رسب. الأمر ما ينفعش يتقبل من غير قرار صريح.</span></div>
+        <div class="spacer"></div>
+        <button class="btn">إدخال نتيجة الاختبار الأخير</button>
+      </div>
+    </div>
+  </div>
+  <div class="notes">
+    <h5>Testing</h5>
+    <ul>
+      <li>الاختبارات من <b>Test groups</b> المربوطة بالصنف — والقيم المرجعية من <b>Test variables</b>.</li>
+      <li>الحكم <b>محسوب مش مُدخل</b> — ده اللي يمنع تمرير عينة راسبة.</li>
+      <li>اختبارات طويلة (زي الرش الملحي) تفضل مفتوحة والبضاعة محجوزة.</li>
+      <li>ارفق صور العينة والشهادة من الموبايل مباشرة.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- 29 -->
+<section class="stage">
+  <div class="stage-head"><span class="num">29</span><h2>قرار الجودة</h2></div>
+  <p class="stage-sub">ثلاث نتائج بس، وكل واحدة ليها مسار مختلف تمامًا. «القبول المشروط» هو اللي بيمنع تعطيل الإنتاج على فروق بسيطة.</p>
+  <div class="device">
+    <div class="scanwin"><i class="on"></i><i class="on"></i><i></i></div>
+    <div class="screen">
+      <div class="sbar"><span>09:05</span><div class="right"><span class="dot-live">● متصل</span><span>89%</span></div></div>
+      <div class="abar"><span class="back">→</span><h3>القرار</h3><span class="ctx">QO-000412</span></div>
+      <div class="body tight">
+        <div class="card flat">
+          <div class="rowb"><span class="strong" style="font-size:13px">مسمار صلب 8×40</span><span class="chip r">4 نجح · 1 رسب</span></div>
+          <div class="tiny">الكمية المحجوزة 126 · المورد: الأهرام للتوريدات</div>
+        </div>
+        <div class="dec3">
+          <button class="ac">قبول<br><span style="font-weight:400;font-size:10px">للمخزون المتاح</span></button>
+          <button class="cd on">قبول مشروط<br><span style="font-weight:400;font-size:10px">مع خصم</span></button>
+          <button class="rj">رفض<br><span style="font-weight:400;font-size:10px">إرجاع أو إتلاف</span></button>
+        </div>
+        <div class="card">
+          <div class="label" style="margin-bottom:7px">شرط القبول</div>
+          <div class="field rowb"><span class="val" style="font-size:13px">خصم 8% من قيمة الفاتورة</span></div>
+          <div class="label" style="margin:9px 0 5px">التصرف في المخزون</div>
+          <div class="chips"><span class="chip on">إفراج للمخزون المتاح</span><span class="chip">تقييد على أمر إنتاج واحد</span></div>
+        </div>
+        <div class="alert warn"><span>⚑</span><span>هيتفتح تقرير <b>عدم مطابقة</b> على المورد ويتسجّل في تقييمه.</span></div>
+        <div class="rowb" style="gap:8px">
+          <div class="field" style="flex:1"><div class="label">المعتمِد</div><div class="val" style="font-size:13px">م. هبة سليم</div></div>
+          <div class="field" style="flex:.8"><div class="label">التوقيع</div><div class="val" style="font-size:13px">✓ مُوقّع</div></div>
+        </div>
+        <div class="spacer"></div>
+        <button class="btn dark">اعتماد القرار</button>
+      </div>
+    </div>
+  </div>
+  <div class="notes">
+    <h5>Impact</h5>
+    <ul>
+      <li><b>قبول</b> ← Approve + نقل من QI للمتاح. <b>رفض</b> ← Nonconformance + إرجاع للمورد أو إتلاف.</li>
+      <li><b>قبول مشروط</b> بيسجّل <b>Correction</b> ويربطها بخصم على الفاتورة.</li>
+      <li>القرار بيتفتح لدور واحد بس — <b>مفتش الجودة مش بيقرر لوحده في حالات الرفض</b>.</li>
+      <li>كل قرار بيغذّي <b>تقييم الموردين</b> ونسبة الرفض لكل مورد.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- 30 -->
+<section class="stage">
+  <div class="stage-head"><span class="num">30</span><h2>الحجر والإفراج</h2></div>
+  <p class="stage-sub">منطقة الحجر مش مكان — دي حالة. البضاعة اللي فيها مش موجودة أصلًا في نتيجة أي بحث عن مخزون متاح.</p>
+  <div class="device">
+    <div class="scanwin"><i class="on"></i><i class="on"></i><i class="on"></i></div>
+    <div class="screen">
+      <div class="sbar"><span>09:20</span><div class="right"><span class="dot-live">● متصل</span><span>88%</span></div></div>
+      <div class="abar"><span class="back">→</span><h3>منطقة الحجر</h3><span class="ctx">QI-01</span></div>
+      <div class="body tight">
+        <div class="card flat rowb">
+          <div><div class="strong" style="font-size:13px">محجوز حاليًا</div><div class="tiny">6 لوحات · 3 أصناف</div></div>
+          <div class="mono strong" style="font-size:17px;color:var(--amber)">48,300<span style="font-size:10px"> EGP</span></div>
+        </div>
+        <div class="line done">
+          <div class="top"><span class="nm">مسمار صلب 8×40</span><span class="code">LP-00043128</span></div>
+          <div class="rowb" style="margin-top:6px"><span class="tiny">126 قطعة · QO-000412</span><span class="chip g">تم الاعتماد</span></div>
+        </div>
+        <div class="line">
+          <div class="top"><span class="nm">عصير مانجو 1ل · B-2607</span><span class="code">LP-00043877</span></div>
+          <div class="rowb" style="margin-top:6px"><span class="tiny">4,860 وحدة · QO-000413</span><span class="chip a">تحت الفحص</span></div>
+        </div>
+        <div class="line hot">
+          <div class="top"><span class="nm">شريط لاصق 48مم</span><span class="code">LP-00043901</span></div>
+          <div class="rowb" style="margin-top:6px"><span class="tiny">60 لفة · QO-000410</span><span class="chip r">مرفوض — للإرجاع</span></div>
+        </div>
+        <div class="alert info">الإفراج بينقل البضاعة من QI-01 للمخزون المتاح ويخليها قابلة للبيع والصرف.</div>
+        <div class="spacer"></div>
+        <button class="btn green">إفراج LP-00043128</button>
+        <button class="btn ghost sm">تجهيز المرفوض للإرجاع للمورد</button>
+      </div>
+    </div>
+  </div>
+  <div class="notes">
+    <h5>Status control</h5>
+    <ul>
+      <li>نفّذها بـ <b>Inventory status</b> (QI / Blocked / Available) مش بمجرد موقع منفصل.</li>
+      <li>حالة QI بتمنع الحجز والتجميع والصرف تلقائيًا في كل الشاشات التانية.</li>
+      <li>عرض <b>القيمة المحجوزة</b> بيخلي الإدارة تضغط على تسريع الفحص.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- 31 -->
+<section class="stage">
+  <div class="stage-head"><span class="num">31</span><h2>مرتجع المبيعات — الاستلام</h2></div>
+  <p class="stage-sub">المرتجع بيدخل محجوز دايمًا. ممنوع أي بضاعة راجعة من عميل تدخل المخزون المتاح من غير فحص.</p>
+  <div class="device">
+    <div class="scanwin"><i class="on"></i><i class="on"></i><i></i></div>
+    <div class="screen">
+      <div class="sbar"><span>11:15</span><div class="right"><span class="dot-live">● متصل</span><span>82%</span></div></div>
+      <div class="abar"><span class="back">→</span><h3>استلام مرتجع</h3><span class="ctx">RMA-000078</span></div>
+      <div class="body tight">
+        <div class="card flat">
+          <div class="rowb"><span class="strong" style="font-size:13px">كارفور مصر — أكتوبر</span><span class="code">RMA-000078</span></div>
+          <div class="tiny">مرتبط بفاتورة INV-004412 · مصرّح بـ 48 وحدة</div>
+        </div>
+        <div class="card">
+          <div class="rowb"><span class="strong" style="font-size:13px">عصير مانجو 1ل</span><span class="code">FG-2201</span></div>
+          <div class="rowb" style="margin-top:6px"><span class="tiny">الدفعة المسحوبة</span><span class="mono strong">B-2604</span></div>
+        </div>
+        <div class="rowb" style="gap:8px">
+          <div class="field" style="flex:1"><div class="label">المستلم فعليًا</div><div class="val mono" style="font-size:18px">40</div></div>
+          <div class="field selectish" style="flex:1.4"><div><div class="label">سبب الإرجاع</div><div class="val" style="font-size:13px">تلف في النقل</div></div></div>
+        </div>
+        <div class="card">
+          <div class="label" style="margin-bottom:7px">حالة البضاعة الظاهرية</div>
+          <div class="chips"><span class="chip">سليمة</span><span class="chip on">تالفة جزئيًا</span><span class="chip">تالفة كليًا</span></div>
+        </div>
+        <div class="photo"><b>⧉</b>صورتان مرفقتان · اضغط للإضافة</div>
+        <div class="alert warn"><span>⚠</span><span>ناقص 8 وحدات عن المصرّح — الإشعار الدائن هيتحسب على 40 بس.</span></div>
+        <div class="spacer"></div>
+        <button class="btn">استلام وإرسال للفحص</button>
+      </div>
+    </div>
+  </div>
+  <div class="notes">
+    <h5>Returns</h5>
+    <ul>
+      <li>المصدر <b>Return order</b> مربوط بأمر البيع الأصلي — التصريح المسبق (RMA) إجباري.</li>
+      <li>الاستلام بيروح لحالة <b>QI</b> مباشرة، والفحص بيتولّد تلقائي.</li>
+      <li>سبب الإرجاع من <b>Return reason codes</b> — وده أساس تحليل شكاوى العملاء.</li>
+      <li>الفرق بين المصرّح والمستلم بيتوثّق قبل أي إشعار دائن.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- 32 -->
+<section class="stage">
+  <div class="stage-head"><span class="num">32</span><h2>مرتجع المبيعات — التصرف</h2></div>
+  <p class="stage-sub">القرار هنا بيمس المخزون والعميل والمحاسبة في نفس اللحظة، فالشاشة بتعرض الأثر الثلاثي قبل الترحيل.</p>
+  <div class="device">
+    <div class="scanwin"><i class="on"></i><i></i><i class="on"></i></div>
+    <div class="screen">
+      <div class="sbar"><span>13:50</span><div class="right"><span class="dot-live">● متصل</span><span>77%</span></div></div>
+      <div class="abar"><span class="back">→</span><h3>تصرف المرتجع</h3><span class="ctx">QO-000414</span></div>
+      <div class="body tight">
+        <div class="card flat">
+          <div class="rowb"><span class="strong" style="font-size:13px">40 وحدة · B-2604</span><span class="chip a">فحص مكتمل</span></div>
+          <div class="tiny">12 سليمة · 28 عبوة مهروسة</div>
+        </div>
+        <div class="dec3">
+          <button class="ac">إعادة للمخزون<br><span style="font-weight:400;font-size:10px">12 وحدة</span></button>
+          <button class="cd">إعادة تشغيل<br><span style="font-weight:400;font-size:10px">0</span></button>
+          <button class="rj on">إتلاف<br><span style="font-weight:400;font-size:10px">28 وحدة</span></button>
+        </div>
+        <div class="tbl">
+          <div class="tr h"><span>الأثر</span><span>القيمة</span></div>
+          <div class="tr"><span>إشعار دائن للعميل</span><span class="mono">40 × 22.50 = 900</span></div>
+          <div class="tr"><span>رسوم إعادة تخزين</span><span class="mono">0 (تلف نقل)</span></div>
+          <div class="tr neg"><span>خسارة إتلاف</span><span class="mono">-476 EGP</span></div>
+          <div class="tr tot"><span>صافي الأثر</span><span class="mono">-1,376 EGP</span></div>
+        </div>
+        <div class="alert info">دفعة B-2604 عليها 3 مرتجعات هذا الشهر — هيتفتح تحقيق جودة على الدفعة.</div>
+        <div class="spacer"></div>
+        <button class="btn dark">ترحيل التصرف وإصدار الإشعار الدائن</button>
+      </div>
+    </div>
+  </div>
+  <div class="notes">
+    <h5>Disposition</h5>
+    <ul>
+      <li><b>Disposition code</b> هو اللي بيحدد: يرجع للمخزون، يتصلّح، يتخرد، أو يترجع للمورد.</li>
+      <li>الإشعار الدائن مش تلقائي — بيتربط بقرار التصرف وسبب الإرجاع.</li>
+      <li>تكرار المرتجعات على نفس الدفعة لازم يفتح <b>تحقيق جودة</b> أوتوماتيك، ده أهم عائد من ربط النظامين.</li>
+    </ul>
+  </div>
+</section>
+
+</div>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <h3>الخيط الرابط بين كل الشاشات</h3>
+    <p>الدورة كلها بتشتغل على أربع أفكار متكررة. لو التزمت بيهم، أي شاشة جديدة هتتصمم نفسها.</p>
+    <div class="fgrid">
+      <div class="fcard"><b>حالة المخزون هي المتحكم</b><span>مش الموقع ولا التقارير. Available / QI / Blocked هي اللي بتسمح أو تمنع البيع والصرف والتجميع في كل شاشة.</span></div>
+      <div class="fcard"><b>كل حركة ليها سبب</b><span>أي كمية بتتغير من غير Reason code هتبقى مستحيلة التحليل بعد 3 شهور. السبب حقل إجباري مش اختياري.</span></div>
+      <div class="fcard"><b>الدفعة تتسحب لا تتكتب</b><span>FEFO مقترح، والانحراف عنه يتسجّل بتبرير. ده اللي بيخلي شجرة التتبع شغالة وقت الاستدعاء.</span></div>
+      <div class="fcard"><b>افصل التسجيل عن الترحيل</b><span>العامل بيسجّل الواقع، والمشرف بيرحّل الأثر المالي. الفصل ده بيمنع أغلب الأخطاء المكلفة.</span></div>
+    </div>
+  </div>
+</footer>
+
+<script>
+const io = new IntersectionObserver((es)=>{
+  es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} });
+},{threshold:.12});
+document.querySelectorAll('.stage').forEach((s,i)=>{ s.style.transitionDelay=(i%3)*70+'ms'; io.observe(s); });
+</script>
+</body>
+</html>

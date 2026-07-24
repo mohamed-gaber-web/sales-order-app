@@ -68,6 +68,12 @@ export class PickPutWorkPage implements OnInit {
     if (this.workItem) {
       this.state = 'WorkAssigned';
     }
+    this.confirmedQty = this.stubLine.requestedQty;
+  }
+
+  adjustConfirmedQty(delta: number): void {
+    const current = this.confirmedQty ?? this.stubLine.requestedQty;
+    this.confirmedQty = Math.max(0, current + delta);
   }
 
   get stateIndex(): number {

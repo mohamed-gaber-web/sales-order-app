@@ -20,15 +20,20 @@
 
   <div class="search-section">
 
-    <!-- Selected PO context -->
-    <div class="po-context">
-      <div class="po-context-info">
-        <span class="po-context-label">Purchase Order</span>
-        <span class="po-context-number">{{ poNumber }}</span>
+    <!-- Selected PO hero -->
+    <div class="po-hero">
+      <div class="po-hero-info">
+        <span class="po-hero-label">Purchase Order</span>
+        <span class="po-hero-number">{{ poNumber }}</span>
       </div>
       <ion-button fill="clear" size="small" class="change-po-btn" (click)="changeOrder()">
         Change
       </ion-button>
+    </div>
+
+    <div class="tip-banner">
+      <ion-icon name="information-circle" class="tip-icon"></ion-icon>
+      <span>Scan or search each item — add as many as you need, then confirm receipt below.</span>
     </div>
 
     <!-- Search + Scan -->
@@ -43,10 +48,48 @@
         (ionInput)="onSearchInput($any($event).detail.value || '')"
         (ionBlur)="onSearchBlur()">
       </ion-input>
-      <ion-button fill="outline" class="scan-btn" (click)="scanItem()" title="Scan QR / Barcode">
+      <ion-button class="scan-btn" (click)="scanItem()" title="Scan QR / Barcode">
         <ion-icon slot="icon-only" name="scan-outline"></ion-icon>
       </ion-button>
     </div>
+
+    <!-- Manual entry fallback -->
+    <div class="manual-toggle">
+      <ion-button fill="clear" size="small" class="manual-toggle-btn" (click)="toggleManualEntry()">
+        <ion-icon slot="start" name="create-outline"></ion-icon>
+        {{ showManualEntry ? 'Cancel manual entry' : "Can't find it? Add manually" }}
+      </ion-button>
+    </div>
+
+    @if (showManualEntry) {
+      <div class="manual-entry-card">
+        <div class="manual-entry-row">
+          <ion-input
+            [(ngModel)]="manualItemNumber"
+            type="text"
+            placeholder="Item number"
+            class="custom-input manual-item-input"
+            (keyup.enter)="addManualItem()">
+          </ion-input>
+          <ion-input
+            [(ngModel)]="manualQty"
+            type="number"
+            [min]="0.001"
+            placeholder="Qty"
+            class="custom-input manual-qty-input"
+            (keyup.enter)="addManualItem()">
+          </ion-input>
+        </div>
+        <ion-button
+          expand="block"
+          class="manual-add-btn"
+          [disabled]="!manualItemNumber.trim()"
+          (click)="addManualItem()">
+          <ion-icon slot="start" name="add-outline"></ion-icon>
+          Add to Receipt
+        </ion-button>
+      </div>
+    }
 
     <!-- Autocomplete dropdown -->
     @if (showDropdown) {
@@ -65,7 +108,7 @@
             </div>
           } @else {
             @for (line of matches; track line.LineNumber) {
-              <div class="select-dropdown-item" (click)="receive(line)">
+              <div class="select-dropdown-item" (click)="addItem(line)">
                 <ion-icon name="cube-outline" class="dropdown-item-icon"></ion-icon>
                 <div class="dropdown-item-info">
                   <div class="dropdown-item-top">
@@ -88,15 +131,71 @@
       </div>
     }
 
-    <!-- Intro prompt (nothing searched yet) -->
-    @if (!showDropdown && !searchTerm) {
+    <!-- Items added to this receipt -->
+    @if (cart.length > 0) {
+      <div class="cart-card">
+        <div class="cart-header">
+          <h3 class="cart-title">Items to Receive <span class="cart-count">{{ cart.length }}</span></h3>
+          <ion-button fill="clear" size="small" color="medium" class="cart-clear-btn" (click)="clearCart()">
+            Clear
+          </ion-button>
+        </div>
+        @for (line of cart; track line.LineNumber) {
+          <div class="cart-row">
+            <div class="cart-row-icon">
+              <ion-icon name="cube-outline"></ion-icon>
+            </div>
+            <div class="cart-row-info">
+              <div class="cart-row-top">
+                <span class="cart-row-number">{{ line.ItemNumber }}</span>
+                @if (line.ReceivingWarehouseId) {
+                  <span class="cart-row-wh">{{ line.ReceivingWarehouseId }}</span>
+                }
+              </div>
+              @if (line.ProductName) {
+                <div class="cart-row-name">{{ line.ProductName }}</div>
+              }
+            </div>
+            <span class="cart-row-qty">
+              {{ getRemainingQty(line) }}{{ line.PurchaseUnitSymbol ? ' ' + line.PurchaseUnitSymbol : '' }}
+            </span>
+            <ion-button
+              fill="clear"
+              size="small"
+              color="medium"
+              class="cart-row-remove"
+              (click)="removeFromCart(line)"
+              aria-label="Remove item">
+              <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+            </ion-button>
+          </div>
+        }
+      </div>
+
+      <div class="scan-more-hint">
+        <ion-icon name="scan-outline"></ion-icon>
+        <span>Scan or search the next item to add it above.</span>
+      </div>
+    }
+
+    <!-- Intro prompt (nothing searched or added yet) -->
+    @if (!showDropdown && !searchTerm && cart.length === 0) {
       <ds-empty-state
         icon="barcode-outline"
-        title="Scan or Search an Item"
-        [message]="'Enter an item number or name, or tap the scan icon, to receive a line from PO ' + poNumber + '.'">
+        title="Scan or Search Items"
+        [message]="'Enter an item number or name, or tap the scan icon, to add lines from PO ' + poNumber + '. Scan as many items as you need — they\'ll appear here.'">
       </ds-empty-state>
     }
 
   </div>
 
 </ion-content>
+
+<!-- Confirm receipt bar -->
+<ion-footer class="ion-no-border cart-footer" [class.footer-hidden]="cart.length === 0">
+  <ds-cta-bar
+    [label]="'Confirm Receipt (' + cart.length + ')'"
+    icon="checkmark-circle-outline"
+    (ctaClick)="confirmReceipt()">
+  </ds-cta-bar>
+</ion-footer>

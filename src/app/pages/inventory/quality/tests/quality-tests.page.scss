@@ -1,0 +1,215 @@
+ion-header ion-toolbar {
+  --background: var(--gp-toolbar-bg);
+  --color: var(--gp-toolbar-color);
+  --border-color: transparent;
+  ion-title { font-size: 17px; font-weight: 700; letter-spacing: -0.02em; }
+}
+
+.page-content { --background: var(--gp-bg); }
+
+.loading-state {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 80px 32px; gap: 14px;
+  ion-spinner { width: 32px; height: 32px; }
+  p { color: var(--ion-color-medium); font-size: 14px; margin: 0; }
+}
+
+.page-body {
+  padding: 16px 16px 100px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+// ── Item hero ─────────────────────────────────────────────────
+.item-hero {
+  background: linear-gradient(135deg, var(--gp-navy, #002559) 0%, #1a3b6a 100%);
+  border-radius: 16px;
+  padding: 16px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  box-shadow: 0 4px 16px rgba(0, 37, 89, 0.22);
+
+  .item-hero-info {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+  }
+
+  .item-hero-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  .item-hero-name {
+    font-size: 16px;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -0.02em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .verdict-summary {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 3px;
+    flex-shrink: 0;
+
+    .v-pass { font-size: 12px; font-weight: 700; color: #4ade80; white-space: nowrap; }
+    .v-fail { font-size: 12px; font-weight: 700; color: #f87171; white-space: nowrap; }
+  }
+}
+
+// ── Tests list ────────────────────────────────────────────────
+.tests-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.test-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--gp-card-bg);
+  border: 1.5px solid var(--gp-border, #e5e7eb);
+  border-radius: 14px;
+  padding: 12px 14px;
+
+  &.fail {
+    background: rgba(var(--ion-color-danger-rgb), 0.05);
+    border-color: rgba(var(--ion-color-danger-rgb), 0.25);
+  }
+}
+
+.test-verdict-icon {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: var(--gp-bg);
+  color: var(--ion-color-medium);
+
+  ion-icon { font-size: 14px; }
+
+  .test-row.pass & { background: var(--ion-color-success); color: #fff; }
+  .test-row.fail & { background: var(--ion-color-danger); color: #fff; }
+}
+
+.test-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+
+  .test-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ion-text-color, #111827);
+  }
+
+  .test-spec {
+    font-size: 11px;
+    color: var(--ion-color-medium);
+    font-family: var(--ds-font-mono, monospace);
+  }
+}
+
+.test-result {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--gp-navy);
+  flex-shrink: 0;
+
+  .test-row.fail & { color: var(--ion-color-danger); }
+}
+
+.test-passfail-btns {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.pf-btn {
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1.5px solid;
+  cursor: pointer;
+  background: #fff;
+
+  &.pf-pass { color: var(--ion-color-success); border-color: var(--ion-color-success); }
+  &.pf-fail { color: var(--ion-color-danger); border-color: var(--ion-color-danger); }
+}
+
+.test-input-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.test-input {
+  width: 72px;
+  height: 36px;
+  border: 1.5px solid var(--gp-border, #e5e7eb);
+  border-radius: 8px;
+  background: var(--gp-bg);
+  text-align: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ion-text-color);
+  font-family: inherit;
+  outline: none;
+
+  &:focus { border-color: var(--gp-accent); }
+
+  &::-webkit-inner-spin-button,
+  &::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+}
+
+.test-submit-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: none;
+  background: var(--gp-navy);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+
+  ion-icon { font-size: 16px; }
+}
+
+// ── Fail banner ───────────────────────────────────────────────
+.fail-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: rgba(var(--ion-color-danger-rgb), 0.08);
+  border: 1px solid rgba(var(--ion-color-danger-rgb), 0.25);
+  border-radius: 12px;
+  padding: 12px 14px;
+
+  ion-icon { font-size: 18px; color: var(--ion-color-danger); flex-shrink: 0; margin-top: 1px; }
+  p { margin: 0; font-size: 13px; color: var(--ion-color-danger); line-height: 1.5; }
+}
+
+.tests-footer.footer-hidden { display: none; }

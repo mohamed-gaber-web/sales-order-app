@@ -201,39 +201,75 @@ ion-header ion-toolbar {
   }
 }
 
-.qty-row {
+.qty-target {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-bottom: 14px;
+
+  .qty-target-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ion-color-medium);
+  }
+
+  .qty-target-value {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--gp-navy);
+  }
+}
+
+// ── Quantity stepper (qbox) ───────────────────────────────────
+.qbox {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 10px;
 
-  .qty-target {
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
+  .step-btn {
+    --background: var(--gp-bg);
+    --border-radius: 12px;
+    --color: var(--gp-navy);
+    width: 48px;
+    height: 48px;
+    margin: 0;
     flex-shrink: 0;
+    font-size: 20px;
+  }
 
-    .qty-target-label {
-      font-size: 10px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: var(--ion-color-medium);
-    }
+  .qbox-value {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 6px;
+    background: var(--gp-bg);
+    border-radius: 12px;
+    padding: 4px 10px;
+  }
 
-    .qty-target-value {
-      font-size: 20px;
-      font-weight: 800;
-      color: var(--gp-navy);
+  .qbox-input {
+    text-align: center;
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--gp-navy);
+    letter-spacing: -0.02em;
+    --padding-start: 0;
+    --padding-end: 0;
+
+    &.ion-focused {
+      color: var(--gp-accent);
     }
   }
 
-  .qty-input {
-    flex: 1;
-    --border-radius: 10px;
-    --border-color: var(--gp-border);
-    --padding-start: 12px;
-    font-size: 20px;
-    font-weight: 700;
+  .qbox-unit {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ion-color-medium);
+    white-space: nowrap;
   }
 }
 

@@ -123,18 +123,27 @@
         <ion-icon name="calculator-outline" class="section-icon"></ion-icon>
         <span class="section-title">Enter Quantity</span>
       </div>
-      <div class="qty-row">
-        <div class="qty-target">
-          <span class="qty-target-label">Target</span>
-          <span class="qty-target-value">{{ stubLine.requestedQty }} {{ stubLine.unitSymbol }}</span>
+      <div class="qty-target">
+        <span class="qty-target-label">Target</span>
+        <span class="qty-target-value">{{ stubLine.requestedQty }} {{ stubLine.unitSymbol }}</span>
+      </div>
+      <div class="qbox">
+        <ion-button fill="clear" class="step-btn" (click)="adjustConfirmedQty(-1)" aria-label="Decrease quantity">
+          <ion-icon slot="icon-only" name="remove-outline"></ion-icon>
+        </ion-button>
+        <div class="qbox-value">
+          <ion-input
+            [(ngModel)]="confirmedQty"
+            type="number"
+            class="qbox-input">
+          </ion-input>
+          @if (stubLine.unitSymbol) {
+            <span class="qbox-unit">{{ stubLine.unitSymbol }}</span>
+          }
         </div>
-        <ion-input
-          [(ngModel)]="confirmedQty"
-          type="number"
-          fill="outline"
-          placeholder="{{ stubLine.requestedQty }}"
-          class="qty-input">
-        </ion-input>
+        <ion-button fill="clear" class="step-btn" (click)="adjustConfirmedQty(1)" aria-label="Increase quantity">
+          <ion-icon slot="icon-only" name="add-outline"></ion-icon>
+        </ion-button>
       </div>
       <p class="qty-hint">Enter the actual quantity picked. Tap "Confirm Quantity" to continue.</p>
     </div>

@@ -56,24 +56,23 @@
   <!-- Active Container -->
   @if (container) {
 
-    <!-- Container Header Card -->
-    <div class="container-card" [class.container-closed]="container.status === 'Closed'">
-      <div class="container-top">
-        <div class="container-info">
-          <span class="container-id-label">Container</span>
-          <span class="container-id">{{ container.containerId }}</span>
-          <span class="container-order">{{ salesOrderNumber }}</span>
+    <!-- Container Header Hero -->
+    <div class="container-hero" [class.container-closed]="container.status === 'Closed'">
+      <div class="container-hero-top">
+        <div class="container-hero-info">
+          <span class="container-hero-label">Container · {{ salesOrderNumber }}</span>
+          <span class="container-hero-id">{{ container.containerId }}</span>
         </div>
-        <div class="container-right">
-          <ion-badge [color]="container.status === 'Open' ? 'success' : 'medium'" class="status-badge">
-            {{ container.status }}
-          </ion-badge>
-          <div class="weight-display">
-            <ion-icon name="scale-outline"></ion-icon>
-            <span>{{ totalWeight | number:'1.1-1' }} kg</span>
-          </div>
-        </div>
+        <ion-badge [color]="container.status === 'Open' ? 'success' : 'medium'" class="status-badge">
+          {{ container.status }}
+        </ion-badge>
       </div>
+
+      <div class="container-hero-weight">
+        <span class="weight-big">{{ totalWeight | number:'1.1-1' }}</span>
+        <span class="weight-unit">kg</span>
+      </div>
+
       @if (container.maxWeight) {
         <div class="weight-bar-wrap">
           <div class="weight-bar-track">
@@ -131,12 +130,16 @@
         <div class="items-list">
           @for (item of container.items; track item.itemNumber) {
             <div class="item-row">
-              <div class="item-number">{{ item.itemNumber }}</div>
-              <div class="item-qty-wrap">
-                <span class="item-qty">{{ item.quantity }}</span>
-                <span class="item-unit">{{ item.unitSymbol ?? 'EA' }}</span>
+              <div class="item-row-icon">
+                <ion-icon name="cube-outline"></ion-icon>
+              </div>
+              <div class="item-row-info">
+                <span class="item-number">{{ item.itemNumber }}</span>
                 <span class="item-weight">{{ (item.quantity * 0.5) | number:'1.1-1' }} kg</span>
               </div>
+              <span class="item-qty-badge">
+                {{ item.quantity }} {{ item.unitSymbol ?? 'EA' }}
+              </span>
             </div>
           }
         </div>

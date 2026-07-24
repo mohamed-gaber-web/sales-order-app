@@ -1,0 +1,87 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/inventory/quality" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Quarantine — QI-01</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="page-content">
+
+  @if (isLoading) {
+    <div class="skeleton-list">
+      @for (i of [1,2,3]; track i) {
+        <div class="skeleton-card">
+          <ion-skeleton-text animated style="width: 45%; height: 16px; border-radius: 6px"></ion-skeleton-text>
+          <ion-skeleton-text animated style="width: 70%; height: 13px; margin-top: 8px; border-radius: 6px"></ion-skeleton-text>
+        </div>
+      }
+    </div>
+  }
+
+  @if (!isLoading) {
+    <div class="page-body">
+
+      <div class="hold-hero">
+        <div>
+          <span class="hold-label">Currently Held</span>
+          <span class="hold-count">{{ orders.length }} license plate{{ orders.length === 1 ? '' : 's' }}</span>
+        </div>
+        <div class="hold-value">
+          {{ totalValue | number:'1.0-0' }}
+          <span class="hold-value-unit">EGP</span>
+        </div>
+      </div>
+
+      @if (orders.length === 0) {
+        <ds-empty-state
+          icon="shield-checkmark-outline"
+          title="Nothing Held"
+          message="No license plates are currently in quarantine.">
+        </ds-empty-state>
+      }
+
+      @for (order of orders; track order.qualityOrderId) {
+        <div class="lp-card" [class.rejected]="order.decision === 'Reject'">
+          <div class="lp-top">
+            <span class="lp-item">{{ order.itemName || order.itemNumber }}</span>
+            <span class="lp-id">{{ order.licensePlateId || order.qualityOrderId }}</span>
+          </div>
+          <div class="lp-meta">
+            <span>{{ order.quantity }} {{ order.unitSymbol }} · {{ order.qualityOrderId }}</span>
+            <ion-badge [color]="statusColor(order)" class="lp-status-badge">{{ statusLabel(order) }}</ion-badge>
+          </div>
+          @if (canRelease(order)) {
+            <ion-button
+              expand="block"
+              size="small"
+              class="release-btn"
+              [disabled]="releasingId === order.qualityOrderId"
+              (click)="release(order)">
+              @if (releasingId === order.qualityOrderId) {
+                <ion-spinner name="crescent" slot="start" style="width:14px;height:14px"></ion-spinner>
+                Releasing...
+              } @else {
+                <ion-icon slot="start" name="lock-open-outline"></ion-icon>
+                Release {{ order.licensePlateId || order.qualityOrderId }}
+              }
+            </ion-button>
+          } @else if (order.decision === 'Reject') {
+            <ion-button expand="block" size="small" fill="outline" class="return-btn" [routerLink]="['/inventory/quality/decision', order.qualityOrderId]">
+              <ion-icon slot="start" name="arrow-undo-outline"></ion-icon>
+              Prepare for Return
+            </ion-button>
+          } @else {
+            <ion-button expand="block" size="small" fill="outline" class="inspect-btn" [routerLink]="['/inventory/quality/tests', order.qualityOrderId]">
+              <ion-icon slot="start" name="flask-outline"></ion-icon>
+              Continue Inspection
+            </ion-button>
+          }
+        </div>
+      }
+
+    </div>
+  }
+
+</ion-content>

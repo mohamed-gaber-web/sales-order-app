@@ -1,0 +1,81 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/inventory" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Quality Control</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="loadQueue()" [disabled]="isLoading">
+        <ion-icon slot="icon-only" name="refresh-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="page-content">
+
+  @if (isLoading) {
+    <div class="skeleton-list">
+      @for (i of [1,2,3]; track i) {
+        <div class="skeleton-card">
+          <ion-skeleton-text animated style="width: 45%; height: 16px; border-radius: 6px"></ion-skeleton-text>
+          <ion-skeleton-text animated style="width: 70%; height: 13px; margin-top: 8px; border-radius: 6px"></ion-skeleton-text>
+        </div>
+      }
+    </div>
+  }
+
+  @if (!isLoading) {
+    <div class="page-body">
+
+      <!-- Source filter chips -->
+      <div class="filter-row">
+        @for (f of filters; track f) {
+          <button class="filter-chip" [class.active]="activeFilter === f" (click)="activeFilter = f">
+            {{ f }} <span class="chip-count">{{ countFor(f) }}</span>
+          </button>
+        }
+      </div>
+
+      @if (overdueCount > 0) {
+        <div class="overdue-banner">
+          <ion-icon name="time-outline"></ion-icon>
+          <p>{{ overdueCount }} order{{ overdueCount === 1 ? '' : 's' }} past the target inspection time. Stock is held and invoicing is on hold.</p>
+        </div>
+      }
+
+      @if (filteredOrders.length === 0) {
+        <ds-empty-state
+          icon="checkmark-done-circle-outline"
+          title="Queue Clear"
+          message="No open quality orders for this filter.">
+        </ds-empty-state>
+      }
+
+      @for (order of filteredOrders; track order.qualityOrderId) {
+        <div class="qo-card" (click)="open(order)">
+          <div class="qo-icon-wrap">
+            <ion-icon [name]="sourceIcon(order.source)"></ion-icon>
+          </div>
+          <div class="qo-body">
+            <div class="qo-top">
+              <span class="qo-item">{{ order.itemName || order.itemNumber }}</span>
+              <span class="qo-id">{{ order.qualityOrderId }}</span>
+            </div>
+            <div class="qo-meta">
+              <span>{{ order.sourceReference }} · Sample {{ order.sampleSize }} of {{ order.lotSize }}</span>
+              @if (isOverdue(order)) {
+                <span class="qo-overdue-chip">Overdue {{ ageHours(order) }}h</span>
+              } @else {
+                <span class="qo-age-chip">{{ ageHours(order) }}h ago</span>
+              }
+            </div>
+          </div>
+          <ion-icon name="chevron-forward-outline" class="qo-arrow"></ion-icon>
+        </div>
+      }
+
+    </div>
+  }
+
+</ion-content>

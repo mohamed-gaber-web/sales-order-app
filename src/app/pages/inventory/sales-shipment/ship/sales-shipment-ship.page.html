@@ -130,16 +130,15 @@
   @if (!slipConfirmed) {
     <div class="page-body" [formGroup]="form">
 
-      <div class="order-banner">
-        <ion-icon name="cube-outline" color="primary"></ion-icon>
-        <div>
-          <p class="banner-label">Sales Order</p>
-          <p class="banner-value">{{ soNumber }}</p>
+      <div class="order-hero">
+        <div class="order-hero-info">
+          <span class="order-hero-label">Sales Order</span>
+          <span class="order-hero-number">{{ soNumber }}</span>
         </div>
         @if (order?.CustomerName) {
-          <div class="banner-customer">
-            <p class="banner-label">Customer</p>
-            <p class="banner-value">{{ order!.CustomerName }}</p>
+          <div class="order-hero-customer">
+            <span class="order-hero-label">Customer</span>
+            <span class="order-hero-value">{{ order!.CustomerName }}</span>
           </div>
         }
       </div>
@@ -178,22 +177,57 @@
       @if (shipMode === 'select') {
         <div class="form-section" formArrayName="lines">
           @for (line of shippableLines; track line.lineNumber; let i = $index) {
-            <div class="line-row" [formGroupName]="i">
-              <ion-checkbox formControlName="selected" (ionChange)="onLineToggle(i)" aria-label="Include line"></ion-checkbox>
-              <div class="line-info">
-                <p class="line-item">{{ line.itemNumber }}</p>
-                @if (line.productName) {
-                  <p class="line-name">{{ line.productName }}</p>
-                }
-                <p class="line-remaining">{{ line.remaining }} {{ line.unit }} remaining</p>
+            <div
+              class="line-card"
+              [class.line-selected]="isLineSelected(i)"
+              [formGroupName]="i"
+              (click)="toggleLineSelected(i)">
+              <div class="line-check-col">
+                <div class="checkbox" [class.checkbox-on]="isLineSelected(i)">
+                  @if (isLineSelected(i)) {
+                    <ion-icon name="checkmark"></ion-icon>
+                  }
+                </div>
               </div>
-              <ion-input
-                class="line-qty"
-                type="number"
-                inputmode="decimal"
-                formControlName="qty"
-                aria-label="Quantity to ship">
-              </ion-input>
+              <div class="line-card-body">
+                <div class="line-top-row">
+                  <span class="line-item-id">{{ line.itemNumber }}</span>
+                  <span class="line-num-tag">Line {{ line.lineNumber }}</span>
+                </div>
+                @if (line.productName) {
+                  <p class="line-product-name">{{ line.productName }}</p>
+                }
+                <div class="line-meta-row">
+                  <span class="line-qty-badge">
+                    <ion-icon name="cube-outline"></ion-icon>
+                    {{ line.remaining }} {{ line.unit }} remaining
+                  </span>
+                </div>
+
+                @if (isLineSelected(i)) {
+                  <div class="qty-stepper" (click)="$event.stopPropagation()">
+                    <span class="qty-label">
+                      <ion-icon name="create-outline"></ion-icon>
+                      Ship Qty
+                    </span>
+                    <div class="stepper-controls">
+                      <button
+                        type="button"
+                        class="step-btn"
+                        [disabled]="(qtyControl(i)?.value ?? 0) <= 0.0001"
+                        (click)="adjustQty(i, -1)"
+                        aria-label="Decrease quantity">−</button>
+                      <span class="qty-value">{{ qtyControl(i)?.value }}</span>
+                      <button
+                        type="button"
+                        class="step-btn"
+                        [disabled]="(qtyControl(i)?.value ?? 0) >= line.remaining"
+                        (click)="adjustQty(i, 1)"
+                        aria-label="Increase quantity">+</button>
+                    </div>
+                  </div>
+                }
+              </div>
             </div>
           } @empty {
             <div class="info-box">

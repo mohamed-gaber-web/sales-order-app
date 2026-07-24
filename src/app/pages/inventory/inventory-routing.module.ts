@@ -67,6 +67,10 @@ const routes: Routes = [
     loadChildren: () => import('./location-mgmt/location-mgmt.module').then(m => m.LocationMgmtModule)
   },
   {
+    path: 'quality',
+    loadChildren: () => import('./quality/quality.module').then(m => m.QualityModule)
+  },
+  {
     path: 'inquiry',
     loadChildren: () => import('./inquiry/inquiry.module').then(m => m.InquiryModule)
   },

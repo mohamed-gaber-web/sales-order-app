@@ -27,36 +27,36 @@ ion-header ion-toolbar {
   position: relative;
 }
 
-// ── Selected PO context bar ──────────────────────────────────
-.po-context {
+// ── Selected PO hero banner ───────────────────────────────────
+.po-hero {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: var(--gp-card-bg);
-  border-radius: 12px;
-  padding: 10px 14px;
-  margin-bottom: 10px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07);
+  background: linear-gradient(135deg, var(--gp-navy, #002559) 0%, #1a3b6a 100%);
+  border-radius: 16px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 4px 16px rgba(0, 37, 89, 0.22);
 
-  .po-context-info {
+  .po-hero-info {
     display: flex;
     flex-direction: column;
-    gap: 1px;
+    gap: 2px;
     min-width: 0;
   }
 
-  .po-context-label {
+  .po-hero-label {
     font-size: 10px;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--ion-color-medium);
+    letter-spacing: 0.08em;
+    color: rgba(255, 255, 255, 0.6);
   }
 
-  .po-context-number {
-    font-size: 15px;
+  .po-hero-number {
+    font-size: 18px;
     font-weight: 800;
-    color: var(--gp-navy);
+    color: #fff;
     letter-spacing: -0.02em;
     white-space: nowrap;
     overflow: hidden;
@@ -64,12 +64,38 @@ ion-header ion-toolbar {
   }
 
   .change-po-btn {
-    --color: var(--gp-accent);
+    --color: #fff;
+    background: rgba(255, 255, 255, 0.14);
+    border-radius: 999px;
     font-size: 12px;
     font-weight: 700;
     text-transform: none;
-    height: 30px;
+    height: 32px;
     flex-shrink: 0;
+  }
+}
+
+.tip-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background: rgba(0, 37, 89, 0.06);
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin: 0 0 14px;
+
+  .tip-icon {
+    font-size: 16px;
+    color: var(--gp-navy);
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  span {
+    font-size: 12.5px;
+    line-height: 1.45;
+    color: var(--gp-navy);
+    font-weight: 500;
   }
 }
 
@@ -104,11 +130,65 @@ ion-header ion-toolbar {
   .scan-btn {
     margin: 0;
     height: auto;
-    --border-color: var(--ds-line, var(--ion-color-medium));
-    --border-radius: var(--ds-radius-md, 10px);
-    --color: var(--ds-navy);
-    --padding-start: 14px;
-    --padding-end: 14px;
+    width: 52px;
+    --background: linear-gradient(90deg, var(--gp-accent) 0%, var(--gp-accent-end) 100%);
+    --border-radius: 12px;
+    --box-shadow: 0 4px 12px rgba(242, 76, 26, 0.3);
+    --color: #fff;
+    font-size: 20px;
+  }
+}
+
+// ── Manual entry fallback ─────────────────────────────────────
+.manual-toggle {
+  display: flex;
+  justify-content: center;
+  margin-top: 6px;
+
+  .manual-toggle-btn {
+    --color: var(--gp-accent);
+    font-size: 12.5px;
+    font-weight: 700;
+    text-transform: none;
+    height: 30px;
+  }
+}
+
+.manual-entry-card {
+  background: var(--gp-card-bg);
+  border: 1.5px dashed var(--gp-border, #d6d1c7);
+  border-radius: var(--gp-radius-md, 14px);
+  padding: 14px;
+  margin-top: 4px;
+  animation: fadeSlideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+.manual-entry-row {
+  display: flex;
+  gap: var(--ds-space-2);
+  margin-bottom: 10px;
+
+  .manual-item-input {
+    flex: 2;
+    min-width: 0;
+  }
+
+  .manual-qty-input {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+.manual-add-btn {
+  --background: var(--gp-navy);
+  --border-radius: 12px;
+  font-weight: 700;
+  font-size: 14px;
+  height: 46px;
+  margin: 0;
+
+  &[disabled] {
+    opacity: 0.5;
   }
 }
 
@@ -218,6 +298,160 @@ ion-header ion-toolbar {
   text-align: center;
   font-size: 13px;
   color: var(--ion-color-medium);
+}
+
+// ── Items to Receive (cart) ──────────────────────────────────
+.cart-card {
+  margin-top: 18px;
+  background: var(--gp-card-bg, #fff);
+  border-radius: var(--gp-radius-md, 14px);
+  box-shadow: var(--gp-shadow-md, 0 4px 12px rgba(0, 0, 0, 0.08));
+  overflow: hidden;
+  animation: fadeSlideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+.cart-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 10px;
+
+  .cart-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--gp-navy);
+    letter-spacing: -0.01em;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .cart-count {
+    background: var(--gp-accent);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 1px 8px;
+    border-radius: 999px;
+  }
+
+  .cart-clear-btn {
+    --color: var(--ion-color-medium);
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: none;
+    height: 28px;
+  }
+}
+
+.cart-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--gp-border, #e5e7eb);
+
+  .cart-row-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: var(--gp-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    ion-icon {
+      font-size: 20px;
+      color: var(--gp-navy);
+    }
+  }
+
+  .cart-row-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .cart-row-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .cart-row-number {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--gp-navy);
+      letter-spacing: -0.01em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .cart-row-wh {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--ion-color-medium);
+      background: var(--gp-bg);
+      padding: 2px 8px;
+      border-radius: 999px;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+  }
+
+  .cart-row-name {
+    font-size: 12px;
+    color: var(--ion-color-medium);
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .cart-row-qty {
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--gp-accent);
+    background: rgba(242, 76, 26, 0.1);
+    padding: 4px 10px;
+    border-radius: 999px;
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+
+  .cart-row-remove {
+    margin: 0;
+    --padding-start: 6px;
+    --padding-end: 6px;
+    height: 32px;
+    flex-shrink: 0;
+  }
+}
+
+.scan-more-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px 12px;
+  margin-top: 10px;
+  border: 1.5px dashed var(--gp-border, #d6d1c7);
+  border-radius: var(--gp-radius-md, 14px);
+  color: var(--ion-color-medium);
+  font-size: 12.5px;
+  font-weight: 500;
+  text-align: center;
+
+  ion-icon {
+    font-size: 16px;
+    color: var(--gp-accent);
+  }
+}
+
+// ── Confirm receipt footer ───────────────────────────────────
+.cart-footer.footer-hidden {
+  display: none;
 }
 
 @keyframes fadeSlideUp {

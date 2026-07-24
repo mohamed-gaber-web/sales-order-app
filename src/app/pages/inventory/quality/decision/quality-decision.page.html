@@ -1,0 +1,106 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      @if (!decisionSubmitted) {
+        <ion-back-button [defaultHref]="'/inventory/quality/tests/' + qualityOrderId" text=""></ion-back-button>
+      }
+    </ion-buttons>
+    <ion-title>{{ decisionSubmitted ? 'Decision Recorded' : 'Quality Decision' }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="page-content">
+
+  @if (isLoading) {
+    <div class="loading-state">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Loading order...</p>
+    </div>
+  }
+
+  @if (!isLoading && order && !decisionSubmitted) {
+    <div class="page-body">
+
+      <div class="summary-card">
+        <div class="summary-top">
+          <span class="summary-item">{{ order.itemName || order.itemNumber }}</span>
+          <span class="summary-chip">{{ passCount }} passed · {{ failCount }} failed</span>
+        </div>
+        <p class="summary-sub">
+          {{ order.quantity }} {{ order.unitSymbol }} held · {{ order.sourceReference }}{{ order.vendorOrCustomer ? ' · ' + order.vendorOrCustomer : '' }}
+        </p>
+      </div>
+
+      <div class="dec3">
+        <button class="dec-btn dec-accept" [class.active]="selectedDecision === 'Accept'" (click)="selectDecision('Accept')">
+          <ion-icon name="checkmark-circle-outline"></ion-icon>
+          <span>Accept</span>
+          <small>To available stock</small>
+        </button>
+        <button class="dec-btn dec-conditional" [class.active]="selectedDecision === 'ConditionalAccept'" (click)="selectDecision('ConditionalAccept')">
+          <ion-icon name="alert-circle-outline"></ion-icon>
+          <span>Conditional</span>
+          <small>Accept with note</small>
+        </button>
+        <button class="dec-btn dec-reject" [class.active]="selectedDecision === 'Reject'" (click)="selectDecision('Reject')">
+          <ion-icon name="close-circle-outline"></ion-icon>
+          <span>Reject</span>
+          <small>Return or scrap</small>
+        </button>
+      </div>
+
+      @if (selectedDecision === 'ConditionalAccept') {
+        <div class="note-field">
+          <ion-label class="field-label">Condition Note</ion-label>
+          <ion-textarea
+            [(ngModel)]="conditionNote"
+            placeholder="e.g. 8% invoice deduction for cosmetic damage"
+            rows="3"
+            autoGrow="true"
+            class="note-input">
+          </ion-textarea>
+        </div>
+      }
+
+      @if (selectedDecision === 'Reject') {
+        <div class="warn-banner">
+          <ion-icon name="flag-outline"></ion-icon>
+          <p>A nonconformance report will be opened against the vendor and recorded on their scorecard.</p>
+        </div>
+      }
+
+    </div>
+  }
+
+  @if (decisionSubmitted && order) {
+    <div class="success-wrap">
+      <div class="success-icon-ring" [class.ring-reject]="order.decision === 'Reject'">
+        <ion-icon [name]="order.decision === 'Reject' ? 'close-circle' : 'checkmark-circle'" class="success-icon"></ion-icon>
+      </div>
+      <h2 class="success-title">Decision Recorded</h2>
+      <p class="success-sub">
+        {{ order.qualityOrderId }} —
+        {{ order.decision === 'Accept' ? 'Accepted to stock' : order.decision === 'ConditionalAccept' ? 'Conditionally accepted' : 'Rejected' }}
+      </p>
+
+      <ion-button expand="block" class="submit-btn" (click)="goToQuarantine()">
+        <ion-icon slot="start" name="albums-outline"></ion-icon>
+        View Quarantine
+      </ion-button>
+      <ion-button expand="block" fill="clear" class="back-btn" (click)="goToQueue()">
+        Back to Quality Queue
+      </ion-button>
+    </div>
+  }
+
+</ion-content>
+
+<ion-footer class="ion-no-border decision-footer" [class.footer-hidden]="isLoading || !order || decisionSubmitted">
+  <ds-cta-bar
+    label="Confirm Decision"
+    icon="checkmark-done-outline"
+    [loading]="isSubmitting"
+    [disabled]="!selectedDecision"
+    (ctaClick)="submit()">
+  </ds-cta-bar>
+</ion-footer>

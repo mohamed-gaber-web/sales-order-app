@@ -1,0 +1,95 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/inventory/quality" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ qualityOrderId }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="page-content">
+
+  @if (isLoading) {
+    <div class="loading-state">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Loading tests...</p>
+    </div>
+  }
+
+  @if (!isLoading && order) {
+    <div class="page-body">
+
+      <!-- Item hero -->
+      <div class="item-hero">
+        <div class="item-hero-info">
+          <span class="item-hero-label">{{ order.sourceReference }}</span>
+          <span class="item-hero-name">{{ order.itemName || order.itemNumber }}</span>
+        </div>
+        <div class="verdict-summary">
+          <span class="v-pass">{{ passedCount }} passed</span>
+          @if (failedCount > 0) {
+            <span class="v-fail">{{ failedCount }} failed</span>
+          }
+        </div>
+      </div>
+
+      <!-- Test rows -->
+      <div class="tests-list">
+        @for (test of order.tests; track test.testId) {
+          <div class="test-row" [class.pass]="test.verdict === 'Pass'" [class.fail]="test.verdict === 'Fail'">
+            <div class="test-verdict-icon">
+              @if (test.verdict === 'Pass') { <ion-icon name="checkmark"></ion-icon> }
+              @if (test.verdict === 'Fail') { <ion-icon name="close"></ion-icon> }
+              @if (test.verdict === 'Pending') { <ion-icon name="ellipse-outline"></ion-icon> }
+            </div>
+            <div class="test-info">
+              <span class="test-name">{{ test.name }}</span>
+              <span class="test-spec">{{ test.specLabel }}</span>
+            </div>
+
+            @if (test.verdict !== 'Pending') {
+              <span class="test-result">
+                {{ test.kind === 'passfail' ? (test.measuredValue ? 'OK' : 'Fail') : test.measuredValue }}
+              </span>
+            } @else if (test.kind === 'passfail') {
+              <div class="test-passfail-btns">
+                <button class="pf-btn pf-pass" (click)="markPassFail(test, true)">Pass</button>
+                <button class="pf-btn pf-fail" (click)="markPassFail(test, false)">Fail</button>
+              </div>
+            } @else {
+              <div class="test-input-row">
+                <input
+                  type="number"
+                  class="test-input"
+                  placeholder="Value"
+                  [(ngModel)]="inputValues[test.testId]"
+                  (keyup.enter)="submitResult(test)" />
+                <button class="test-submit-btn" (click)="submitResult(test)" aria-label="Save result">
+                  <ion-icon name="checkmark-outline"></ion-icon>
+                </button>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      @if (failedCount > 0) {
+        <div class="fail-banner">
+          <ion-icon name="close-circle-outline"></ion-icon>
+          <p>{{ failedCount }} test{{ failedCount === 1 ? '' : 's' }} failed. This order cannot be accepted without an explicit decision.</p>
+        </div>
+      }
+
+    </div>
+  }
+
+</ion-content>
+
+<ion-footer class="ion-no-border tests-footer" [class.footer-hidden]="isLoading || !order">
+  <ds-cta-bar
+    [label]="allDone ? 'Go to Decision' : 'Enter Remaining Results (' + pendingTests.length + ')'"
+    icon="arrow-forward-outline"
+    [disabled]="!allDone"
+    (ctaClick)="goToDecision()">
+  </ds-cta-bar>
+</ion-footer>

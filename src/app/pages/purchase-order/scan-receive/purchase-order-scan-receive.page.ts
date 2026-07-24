@@ -20,9 +20,19 @@ export class PurchaseOrderScanReceivePage implements OnInit {
   isSearching = false;
   matches: PurchaseOrderLine[] = [];
 
+  showManualEntry = false;
+  manualItemNumber = '';
+  manualQty: number | null = null;
+
+  private cartMap = new Map<number, PurchaseOrderLine>();
+  private qtyOverrides = new Map<number, number>();
   private openLines: PurchaseOrderLine[] = [];
   private linesLoaded = false;
   private searchSeq = 0;
+
+  get cart(): PurchaseOrderLine[] {
+    return Array.from(this.cartMap.values());
+  }
 
   private route = inject(ActivatedRoute);
   private router = inject(Router);
@@ -108,7 +118,7 @@ export class PurchaseOrderScanReceivePage implements OnInit {
         this.matches = candidates;
         if (candidates.length === 1) {
           this.showDropdown = false;
-          this.receive(candidates[0]);
+          this.addItem(candidates[0]);
           return;
         }
       } else {
@@ -143,12 +153,88 @@ export class PurchaseOrderScanReceivePage implements OnInit {
     });
   }
 
-  receive(line: PurchaseOrderLine) {
-    if (!this.po) return;
+  async addItem(line: PurchaseOrderLine) {
     this.showDropdown = false;
+    this.clearSearch();
+
+    if (this.cartMap.has(line.LineNumber)) {
+      const toast = await this.toastCtrl.create({
+        message: `${line.ItemNumber} is already in your list below.`,
+        duration: 2000,
+        color: 'warning',
+        position: 'bottom',
+      });
+      await toast.present();
+      return;
+    }
+
+    this.cartMap.set(line.LineNumber, line);
+  }
+
+  removeFromCart(line: PurchaseOrderLine) {
+    this.cartMap.delete(line.LineNumber);
+    this.qtyOverrides.delete(line.LineNumber);
+  }
+
+  clearCart() {
+    this.cartMap.clear();
+    this.qtyOverrides.clear();
+  }
+
+  toggleManualEntry() {
+    this.showManualEntry = !this.showManualEntry;
+    this.manualItemNumber = '';
+    this.manualQty = null;
+  }
+
+  async addManualItem() {
+    const itemNum = this.manualItemNumber.trim();
+    if (!itemNum) return;
+
+    if (!this.linesLoaded) {
+      try {
+        await this.loadOrderLines();
+      } catch {
+        const toast = await this.toastCtrl.create({
+          message: `Could not load PO ${this.poNumber}. Check your connection.`,
+          buttons: [{ text: 'Dismiss', role: 'cancel' }],
+          color: 'danger',
+          position: 'bottom',
+        });
+        await toast.present();
+        return;
+      }
+    }
+
+    const match = this.openLines.find(l => l.ItemNumber.toLowerCase() === itemNum.toLowerCase());
+    if (!match) {
+      const toast = await this.toastCtrl.create({
+        message: `"${itemNum}" is not an open line on PO ${this.poNumber}.`,
+        buttons: [{ text: 'Dismiss', role: 'cancel' }],
+        color: 'danger',
+        position: 'bottom',
+      });
+      await toast.present();
+      return;
+    }
+
+    if (this.manualQty && this.manualQty > 0) {
+      this.qtyOverrides.set(match.LineNumber, Math.min(this.manualQty, this.getRemainingQty(match)));
+    }
+
+    await this.addItem(match);
+    this.showManualEntry = false;
+    this.manualItemNumber = '';
+    this.manualQty = null;
+  }
+
+  confirmReceipt() {
+    if (!this.po || this.cartMap.size === 0) return;
+    const qtyOverrides: Record<number, number> = {};
+    this.qtyOverrides.forEach((qty, lineNumber) => (qtyOverrides[lineNumber] = qty));
     this.router.navigate(
-      ['/purchase-order/receive', this.poNumber, line.LineNumber],
-      { state: { line, po: this.po } }
+      ['/purchase-order/receive-by-barcode', this.poNumber, 'confirm'],
+      { state: { po: this.po, items: this.cart, qtyOverrides } }
     );
   }
 
