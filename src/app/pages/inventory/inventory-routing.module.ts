@@ -35,6 +35,10 @@ const routes: Routes = [
     loadChildren: () => import('./production-picking/production-picking.module').then(m => m.ProductionPickingModule)
   },
   {
+    path: 'report-as-finished',
+    loadChildren: () => import('./report-as-finished/report-as-finished.module').then(m => m.ReportAsFinishedModule)
+  },
+  {
     path: 'cycle-count',
     loadChildren: () => import('./cycle-count/cycle-count.module').then(m => m.CycleCountModule)
   },

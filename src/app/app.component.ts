@@ -6,6 +6,20 @@ import { Subject } from 'rxjs';
 import { ThemeService } from './core';
 import { UserAuthService } from './core/services/user-auth.service';
 
+interface MenuItem {
+  title: string;
+  url: string | null;
+  icon: string;
+  comingSoon?: boolean;
+}
+
+interface MenuGroup {
+  title: string;
+  icon: string;
+  expanded: boolean;
+  items: MenuItem[];
+}
+
 @Component({
   selector: 'app-root',
   templateUrl: 'app.component.html',
@@ -15,7 +29,7 @@ import { UserAuthService } from './core/services/user-auth.service';
 export class AppComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   currentUrl = '';
-  public menuGroups = [
+  public menuGroups: MenuGroup[] = [
     {
       title: 'Inventory',
       icon: 'layers',
@@ -71,7 +85,7 @@ export class AppComponent implements OnInit, OnDestroy {
       expanded: false,
       items: [
         { title: 'Picking List',       url: '/inventory/production-picking', icon: 'list' },
-        { title: 'Report As Finished', url: null, icon: 'checkmark-circle', comingSoon: true },
+        { title: 'Report As Finished', url: '/inventory/report-as-finished', icon: 'checkmark-circle' },
       ]
     },
     {

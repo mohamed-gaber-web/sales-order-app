@@ -1,0 +1,323 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      @if (!reportConfirmed) {
+        <ion-back-button defaultHref="/inventory" text=""></ion-back-button>
+      }
+    </ion-buttons>
+    <ion-title>{{ reportConfirmed ? 'Report Confirmed' : 'Report as Finished' }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="raf-content">
+
+  <!-- ── Success State ─────────────────────────────────────── -->
+  @if (reportConfirmed) {
+    <div class="success-wrap">
+
+      <div class="success-icon-ring">
+        <ion-icon name="checkmark-circle" class="success-icon"></ion-icon>
+      </div>
+
+      <h2 class="success-title">Report Confirmed</h2>
+      <p class="success-sub">
+        {{ confirmedCount }} production order{{ confirmedCount === 1 ? '' : 's' }} reported as finished
+      </p>
+
+      <ion-card class="report-summary-card">
+        <ion-card-content>
+          <div class="summary-hero">
+            <div>
+              <p class="summary-label">Report ID</p>
+              <p class="summary-value primary">{{ confirmedReportId }}</p>
+            </div>
+            <div class="summary-badge">{{ confirmedCount }} orders</div>
+          </div>
+          <div class="summary-divider"></div>
+          <div class="summary-grid">
+            <div class="summary-field">
+              <span class="summary-field-label">Total Qty Finished</span>
+              <span class="summary-field-value accent">{{ confirmedTotalQty | number:'1.0-3' }}</span>
+            </div>
+          </div>
+        </ion-card-content>
+      </ion-card>
+
+      <div class="report-card">
+        <div class="report-row header">
+          <span>Production Order</span>
+          <span>Qty finished</span>
+        </div>
+        @for (ci of confirmedItems; track ci.productionOrderNumber) {
+          <div class="report-row">
+            <div class="report-item">
+              <span class="report-item-number">{{ ci.productionOrderNumber }}</span>
+              <span class="report-item-name">{{ ci.itemNumber }}{{ ci.itemName ? ' — ' + ci.itemName : '' }}</span>
+            </div>
+            <span class="report-item-qty">
+              {{ ci.qty | number:'1.0-3' }}
+            </span>
+          </div>
+        }
+      </div>
+
+      <ion-button expand="block" class="submit-btn" (click)="reportMore()">
+        <ion-icon slot="start" name="scan-outline"></ion-icon>
+        Report More Orders
+      </ion-button>
+
+      <ion-button expand="block" fill="outline" class="label-print-btn" (click)="printLabel()">
+        <ion-icon slot="start" name="print-outline"></ion-icon>
+        Print Label
+      </ion-button>
+
+      <ion-button expand="block" fill="clear" class="back-order-btn" (click)="goToInventory()">
+        Back to Inventory
+      </ion-button>
+
+    </div>
+  }
+
+  <!-- ── Scan / Cart flow ─────────────────────────────────── -->
+  @if (!reportConfirmed) {
+
+  <div class="search-section">
+
+    <div class="tip-banner">
+      <ion-icon name="information-circle" class="tip-icon"></ion-icon>
+      <span>Scan or search each production order, set the quantity finished, then scan the next — confirm below when you're done.</span>
+    </div>
+
+    <!-- Search + Scan -->
+    <div class="input-with-scan">
+      <ion-input
+        [(ngModel)]="searchTerm"
+        type="text"
+        placeholder="Search production order or item..."
+        [debounce]="300"
+        [clearInput]="true"
+        class="custom-input"
+        (ionInput)="onSearchInput($any($event).detail.value || '')"
+        (ionBlur)="onSearchBlur()">
+      </ion-input>
+      <ion-button class="scan-btn" (click)="scanOrder()" title="Scan QR / Barcode">
+        <ion-icon slot="icon-only" name="scan-outline"></ion-icon>
+      </ion-button>
+    </div>
+
+    <!-- Manual entry fallback -->
+    <div class="manual-toggle">
+      <ion-button fill="clear" size="small" class="manual-toggle-btn" (click)="toggleManualEntry()">
+        <ion-icon slot="start" name="create-outline"></ion-icon>
+        {{ showManualEntry ? 'Cancel manual entry' : "Can't find it? Add manually" }}
+      </ion-button>
+    </div>
+
+    @if (showManualEntry) {
+      <div class="manual-entry-card">
+        <div class="manual-entry-row">
+          <ion-input
+            [(ngModel)]="manualOrderNumber"
+            type="text"
+            placeholder="Production order number"
+            class="custom-input manual-item-input"
+            (keyup.enter)="addManualItem()">
+          </ion-input>
+          <ion-input
+            [(ngModel)]="manualQty"
+            type="number"
+            [min]="0.001"
+            placeholder="Qty"
+            class="custom-input manual-qty-input"
+            (keyup.enter)="addManualItem()">
+          </ion-input>
+        </div>
+        <ion-button
+          expand="block"
+          class="manual-add-btn"
+          [disabled]="!manualOrderNumber.trim()"
+          (click)="addManualItem()">
+          <ion-icon slot="start" name="add-outline"></ion-icon>
+          Add to Report
+        </ion-button>
+      </div>
+    }
+
+    <!-- Autocomplete dropdown -->
+    @if (showDropdown) {
+      <div class="select-dropdown">
+        <div class="select-dropdown-close">
+          <ion-button fill="clear" size="small" color="medium" (click)="closeDropdown()" aria-label="Close results">
+            <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+          </ion-button>
+        </div>
+        <div class="select-dropdown-list">
+          @if (isSearching) {
+            <div class="select-dropdown-empty">Searching production orders...</div>
+          } @else if (matches.length === 0) {
+            <div class="select-dropdown-empty">
+              No open production order for "{{ searchTerm }}".
+            </div>
+          } @else {
+            @for (order of matches; track order.ProductionOrderNumber) {
+              <div class="select-dropdown-item" (click)="addItem(order)">
+                <ion-icon name="construct-outline" class="dropdown-item-icon"></ion-icon>
+                <div class="dropdown-item-info">
+                  <div class="dropdown-item-top">
+                    <span class="dropdown-item-number">{{ order.ProductionOrderNumber }}</span>
+                    @if (order.ProductionOrderStatus) {
+                      <span class="dropdown-item-po">{{ order.ProductionOrderStatus }}</span>
+                    }
+                  </div>
+                  <div class="dropdown-item-name">{{ order.ItemNumber }}{{ order.ItemName ? ' — ' + order.ItemName : '' }}</div>
+                </div>
+                <span class="dropdown-item-qty">
+                  {{ getRemainingQty(order) }}
+                </span>
+              </div>
+            }
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Items added to this report -->
+    @if (cart.length > 0) {
+      <div class="cart-card">
+        <div class="cart-header">
+          <h3 class="cart-title">Orders to Report <span class="cart-count">{{ cart.length }}</span></h3>
+          <ion-button fill="clear" size="small" color="medium" class="cart-clear-btn" (click)="clearCart()">
+            Clear
+          </ion-button>
+        </div>
+        @for (item of cart; track item.order.ProductionOrderNumber) {
+          <div class="cart-item">
+            <div class="cart-item-top">
+              <div class="cart-item-info">
+                <div class="cart-item-name-row">
+                  <span class="cart-item-number">{{ item.order.ProductionOrderNumber }}</span>
+                  @if (item.order.WarehouseId) {
+                    <span class="cart-item-wh">{{ item.order.WarehouseId }}</span>
+                  }
+                </div>
+                <div class="cart-item-name">{{ item.order.ItemNumber }}{{ item.order.ItemName ? ' — ' + item.order.ItemName : '' }}</div>
+              </div>
+              <ion-button
+                fill="clear"
+                size="small"
+                color="medium"
+                class="cart-item-remove"
+                (click)="removeFromCart(item)"
+                aria-label="Remove item">
+                <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+              </ion-button>
+            </div>
+
+            <div class="cart-item-controls">
+              <div class="qbox">
+                <ion-button fill="clear" class="step-btn" (click)="adjustQty(item, -1)" aria-label="Decrease quantity">
+                  <ion-icon slot="icon-only" name="remove-outline"></ion-icon>
+                </ion-button>
+                <div class="qbox-value">
+                  <ion-input
+                    type="number"
+                    [(ngModel)]="item.qty"
+                    [ngModelOptions]="{standalone: true}"
+                    (ionBlur)="clampQty(item)"
+                    [min]="0.001"
+                    [max]="item.remainingQty"
+                    step="0.001"
+                    class="qbox-input"
+                    [class.invalid]="!isQtyValid(item)">
+                  </ion-input>
+                </div>
+                <ion-button fill="clear" class="step-btn" (click)="adjustQty(item, 1)" aria-label="Increase quantity">
+                  <ion-icon slot="icon-only" name="add-outline"></ion-icon>
+                </ion-button>
+              </div>
+            </div>
+
+            <div class="cart-item-meta">
+              <ion-button fill="clear" size="small" class="max-btn" (click)="setMaxQty(item)">
+                Use Max ({{ item.remainingQty }})
+              </ion-button>
+              @if (!isQtyValid(item)) {
+                <p class="field-error">
+                  <ion-icon name="alert-circle-outline"></ion-icon>
+                  @if (item.qty <= 0) {
+                    Quantity must be greater than 0.
+                  } @else {
+                    Cannot exceed remaining quantity ({{ item.remainingQty }}).
+                  }
+                </p>
+              }
+            </div>
+          </div>
+        }
+
+        <div class="cart-total">
+          <span>Total quantity</span>
+          <span>{{ totalQty | number:'1.0-3' }}</span>
+        </div>
+      </div>
+
+      <div class="scan-more-hint">
+        <ion-icon name="scan-outline"></ion-icon>
+        <span>Scan or search the next production order to add it above.</span>
+      </div>
+    }
+
+    <!-- Browsable list of open production orders (the "production table") -->
+    @if (!showDropdown && !searchTerm) {
+      @if (isLoadingOrders) {
+        <div class="orders-loading">
+          <ion-spinner name="crescent"></ion-spinner>
+          <p>Loading production orders...</p>
+        </div>
+      } @else if (availableOrders.length > 0) {
+        <div class="orders-list-wrap">
+          <p class="orders-list-title">Open Production Orders</p>
+          <div class="orders-list">
+            @for (order of availableOrders; track order.ProductionOrderNumber) {
+              <div class="order-row" (click)="addItem(order)">
+                <div class="order-row-info">
+                  <div class="order-row-top">
+                    <span class="order-row-number">{{ order.ProductionOrderNumber }}</span>
+                    @if (order.ProductionOrderStatus) {
+                      <span class="order-row-status">{{ order.ProductionOrderStatus }}</span>
+                    }
+                  </div>
+                  <div class="order-row-item">{{ order.ItemNumber }}{{ order.ItemName ? ' — ' + order.ItemName : '' }}</div>
+                </div>
+                <div class="order-row-qty">
+                  <span>{{ getRemainingQty(order) }}</span>
+                  <ion-icon name="add-circle-outline"></ion-icon>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      } @else if (cart.length === 0) {
+        <ds-empty-state
+          icon="construct-outline"
+          title="No Open Production Orders"
+          message="There are no production orders awaiting a finished-goods report right now.">
+        </ds-empty-state>
+      }
+    }
+
+  </div>
+  }
+
+</ion-content>
+
+<!-- Confirm report bar -->
+<ion-footer class="ion-no-border cart-footer" [class.footer-hidden]="reportConfirmed || cart.length === 0">
+  <ds-cta-bar
+    [label]="'Confirm Report (' + cart.length + ')'"
+    icon="checkmark-circle-outline"
+    [loading]="isSubmitting"
+    [disabled]="!canSubmit"
+    (ctaClick)="submitReport()">
+  </ds-cta-bar>
+</ion-footer>

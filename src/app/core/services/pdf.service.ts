@@ -30,6 +30,16 @@ export interface ReceiptLabelData {
   receiptDate: Date;
 }
 
+export interface FinishedGoodsLabelData {
+  productionOrderNumber: string;
+  itemNumber: string;
+  productName?: string;
+  qty: number;
+  unit?: string;
+  reportId: string;
+  reportDate: Date;
+}
+
 export interface PackingSlipLine {
   itemNumber: string;
   productName?: string;
@@ -663,6 +673,140 @@ export class PdfService {
     ctx.textAlign = 'right';
     ctx.fillText(
       data.receiptDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+      W - margin,
+      H - 8
+    );
+    ctx.textAlign = 'left';
+  }
+
+  // ── Finished Goods Label (one per reported production order, with a Code 128 barcode) ──
+
+  /** Renders the label to a data URL so it can be shown on-screen before the user downloads or shares it. */
+  getFinishedGoodsLabelPreviewDataUrl(data: FinishedGoodsLabelData): string {
+    return this.renderFinishedGoodsLabelToCanvas(data).toDataURL('image/png');
+  }
+
+  async downloadFinishedGoodsLabel(data: FinishedGoodsLabelData): Promise<string | null> {
+    const blob = await this.generateFinishedGoodsLabelPdf(data);
+    return this.savePdf(blob, `label-${data.itemNumber}-${data.reportId}.pdf`);
+  }
+
+  async shareFinishedGoodsLabel(data: FinishedGoodsLabelData): Promise<void> {
+    const blob = await this.generateFinishedGoodsLabelPdf(data);
+    await this.sharePdfBlob(blob, `label-${data.itemNumber}-${data.reportId}.pdf`);
+  }
+
+  private async generateFinishedGoodsLabelPdf(data: FinishedGoodsLabelData): Promise<Blob> {
+    const canvas = this.renderFinishedGoodsLabelToCanvas(data);
+    const jpegBytes = await this.canvasToJpeg(canvas);
+    return this.buildPdf(jpegBytes, canvas.width, canvas.height);
+  }
+
+  private renderFinishedGoodsLabelToCanvas(data: FinishedGoodsLabelData): HTMLCanvasElement {
+    const W = 400;
+    const H = 260;
+    const S = 3; // extra scale — keeps the barcode bars crisp at print resolution
+    const canvas = document.createElement('canvas');
+    canvas.width = W * S;
+    canvas.height = H * S;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('Canvas not supported');
+    ctx.scale(S, S);
+    this.drawFinishedGoodsLabel(ctx, data, W, H);
+    return canvas;
+  }
+
+  private drawFinishedGoodsLabel(ctx: CanvasRenderingContext2D, data: FinishedGoodsLabelData, W: number, H: number): void {
+    const margin = 16;
+    const navy = '#002559';
+    const orange = '#F24C1A';
+    const dark = '#121c30';
+    const muted = '#5b6478';
+
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, W, H);
+    ctx.strokeStyle = '#d8dce6';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(0.5, 0.5, W - 1, H - 1);
+
+    // ── Header ─────────────────────────────────────────────
+    ctx.fillStyle = navy;
+    ctx.fillRect(0, 0, W, 34);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 14px Arial,Helvetica,sans-serif';
+    ctx.fillText('GROW PATH', margin, 22);
+    ctx.textAlign = 'right';
+    ctx.fillStyle = 'rgba(255,255,255,0.75)';
+    ctx.font = '10px Arial,Helvetica,sans-serif';
+    ctx.fillText('FINISHED GOODS LABEL', W - margin, 22);
+    ctx.textAlign = 'left';
+
+    ctx.fillStyle = orange;
+    ctx.fillRect(0, 34, W, 3);
+
+    const contentW = W - margin * 2;
+    const clamp = (text: string, font: string, maxW: number): string => {
+      ctx.font = font;
+      if (ctx.measureText(text).width <= maxW) return text;
+      let t = text;
+      while (t.length > 1 && ctx.measureText(t + '…').width > maxW) t = t.slice(0, -1);
+      return t + '…';
+    };
+
+    let y = 56;
+
+    // ── Production order ────────────────────────────────────
+    ctx.fillStyle = muted;
+    ctx.font = '9px Arial,Helvetica,sans-serif';
+    ctx.fillText('PRODUCTION ORDER', margin, y);
+    ctx.fillStyle = dark;
+    ctx.font = 'bold 15px Arial,Helvetica,sans-serif';
+    ctx.fillText(clamp(data.productionOrderNumber, 'bold 15px Arial,Helvetica,sans-serif', contentW), margin, y + 17);
+    y += 36;
+
+    // ── Item ─────────────────────────────────────────────────
+    ctx.fillStyle = muted;
+    ctx.font = '9px Arial,Helvetica,sans-serif';
+    ctx.fillText('ITEM', margin, y);
+    ctx.fillStyle = dark;
+    ctx.font = 'bold 20px Arial,Helvetica,sans-serif';
+    ctx.fillText(clamp(data.itemNumber, 'bold 20px Arial,Helvetica,sans-serif', contentW), margin, y + 20);
+    y += 24;
+    if (data.productName) {
+      ctx.fillStyle = muted;
+      ctx.font = '11px Arial,Helvetica,sans-serif';
+      ctx.fillText(clamp(data.productName, '11px Arial,Helvetica,sans-serif', contentW), margin, y + 10);
+      y += 16;
+    }
+    y += 8;
+
+    // ── Quantity finished ────────────────────────────────────
+    ctx.fillStyle = muted;
+    ctx.font = '9px Arial,Helvetica,sans-serif';
+    ctx.fillText('QTY FINISHED', margin, y);
+    ctx.fillStyle = orange;
+    ctx.font = 'bold 22px Arial,Helvetica,sans-serif';
+    const qtyStr = `${Number(data.qty).toLocaleString('en-US', { maximumFractionDigits: 3 })}${data.unit ? ' ' + data.unit : ''}`;
+    ctx.fillText(qtyStr, margin, y + 22);
+
+    // ── Barcode (encodes the item number) ───────────────────
+    const barcodeHeight = 40;
+    const barcodeY = H - 68;
+    this.drawBarcode(ctx, data.itemNumber, margin, barcodeY, contentW, barcodeHeight);
+
+    ctx.textAlign = 'center';
+    ctx.fillStyle = dark;
+    ctx.font = '10px Arial,Helvetica,sans-serif';
+    ctx.fillText(data.itemNumber, W / 2, barcodeY + barcodeHeight + 13);
+    ctx.textAlign = 'left';
+
+    // ── Footer ────────────────────────────────────────────────
+    ctx.fillStyle = muted;
+    ctx.font = '8px Arial,Helvetica,sans-serif';
+    ctx.fillText(`Report ${data.reportId}`, margin, H - 8);
+    ctx.textAlign = 'right';
+    ctx.fillText(
+      data.reportDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
       W - margin,
       H - 8
     );

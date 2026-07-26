@@ -1,0 +1,33 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-title>Finished Goods Label</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="dismiss()" aria-label="Close">
+        <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="label-preview-content">
+  <div class="label-preview-wrap">
+    <img [src]="previewSrc" class="label-preview-img" alt="Finished goods label preview for {{ labelData.itemNumber }}" />
+  </div>
+</ion-content>
+
+<ion-footer class="ion-no-border">
+  <div class="label-preview-actions">
+    <ion-button expand="block" class="share-btn" [disabled]="isBusy" (click)="share()">
+      @if (isBusy) {
+        <ion-spinner name="crescent" slot="start"></ion-spinner>
+      } @else {
+        <ion-icon slot="start" name="share-outline"></ion-icon>
+      }
+      Share / Print
+    </ion-button>
+    <ion-button expand="block" fill="outline" class="download-btn" [disabled]="isBusy" (click)="download()">
+      <ion-icon slot="start" name="download-outline"></ion-icon>
+      Download
+    </ion-button>
+  </div>
+</ion-footer>

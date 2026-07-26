@@ -192,6 +192,10 @@ export interface ProductionOrder {
   ItemNumber: string;
   ItemName?: string;
   OrderedQuantity: number;
+  // Optional — not returned by ProductionOrdersV2 itself; populate once the
+  // Report as Finished source confirms how remaining-to-report qty is derived.
+  ReportedQuantity?: number;
+  RemainingQuantity?: number;
   WarehouseId?: string;
   ProductionOrderStatus?: string;
   dataAreaId?: string;
@@ -216,6 +220,25 @@ export interface ProductionIssuePayload {
     warehouseId: string;
     batchId?: string;
   }>;
+}
+
+// ── Report As Finished ───────────────────────────────────────────────────────
+
+export interface ReportAsFinishedPayload {
+  dataAreaId: string;
+  reportId: string;
+  lines: Array<{
+    productionOrderNumber: string;
+    itemNumber: string;
+    reportedQty: number;
+  }>;
+}
+
+export interface ReportAsFinishedResponse {
+  Success: boolean;
+  ErrorMessage?: string;
+  DebugMessage?: string;
+  ReportId?: string;
 }
 
 // ── Vendor Returns (US-08) ───────────────────────────────────────────────────
