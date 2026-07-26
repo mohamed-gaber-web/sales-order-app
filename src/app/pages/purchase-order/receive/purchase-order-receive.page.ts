@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LoadingController, ToastController } from '@ionic/angular';
+import { TimeoutError } from 'rxjs';
 import { PurchaseOrderService } from '../../../core/services/purchase-order.service';
 import { PurchaseOrderHeader, PurchaseOrderLine } from '../../../models/purchase-order.model';
 import { PdfService, ReceiptPdfData } from '../../../core/services/pdf.service';
@@ -47,6 +48,14 @@ export class PurchaseOrderReceivePage implements OnInit {
 
   get receivedPct(): number {
     return this.totalQty > 0 ? Math.min(100, (this.receivedQty / this.totalQty) * 100) : 0;
+  }
+
+  /** Share of the bar this receipt will add once submitted — keeps the bar in sync with the entered quantity. */
+  get pendingPct(): number {
+    if (this.totalQty <= 0) return 0;
+    const qty = Number(this.form?.get('receiptQty')?.value) || 0;
+    const room = Math.max(0, 100 - this.receivedPct);
+    return Math.min(room, (qty / this.totalQty) * 100);
   }
 
   constructor(
@@ -102,9 +111,9 @@ export class PurchaseOrderReceivePage implements OnInit {
       _request: {
         DataAreaId: (this.po?.dataAreaId as string ?? 'usmf').toUpperCase(),
         purchaseOrderID: this.poNumber,
-        packingSlipId,
+        productReceiptId: packingSlipId,
         purchaseLineNum: [this.lineNumber],
-        productReceiptQty: [receiptQty]
+        productReceiptQty: [receiptQty],
       }
     }).subscribe({
       next: async (res) => {
@@ -141,6 +150,18 @@ export class PurchaseOrderReceivePage implements OnInit {
       error: async (err) => {
         await loading.dismiss();
         this.isSubmitting = false;
+
+        if (err instanceof TimeoutError) {
+          const toast = await this.toastCtrl.create({
+            message: 'Taking longer than expected. This receipt may have already gone through — check the order before submitting again.',
+            buttons: [{ text: 'Check order', handler: () => this.goBack() }],
+            color: 'warning',
+            position: 'bottom'
+          });
+          await toast.present();
+          return;
+        }
+
         const d365Message = err?.error?.Message ?? err?.error?.message ?? err?.message;
         const toast = await this.toastCtrl.create({
           message: d365Message

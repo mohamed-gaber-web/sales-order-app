@@ -63,6 +63,10 @@ const routes: Routes = [
     loadChildren: () => import('./vendor-returns/vendor-returns.module').then(m => m.VendorReturnsModule)
   },
   {
+    path: 'transfer-journal',
+    loadChildren: () => import('./transfer-journal/transfer-journal.module').then(m => m.TransferJournalModule)
+  },
+  {
     path: 'location-mgmt',
     loadChildren: () => import('./location-mgmt/location-mgmt.module').then(m => m.LocationMgmtModule)
   },

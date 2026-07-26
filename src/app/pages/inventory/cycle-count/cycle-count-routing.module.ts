@@ -9,6 +9,14 @@ const routes: Routes = [
   {
     path: 'detail/:journalNumber',
     loadChildren: () => import('./form/cycle-count-form.module').then(m => m.CycleCountFormModule)
+  },
+  {
+    path: 'count-by-barcode',
+    loadChildren: () => import('./start/cycle-count-start.module').then(m => m.CycleCountStartModule)
+  },
+  {
+    path: 'count-by-barcode/scan',
+    loadChildren: () => import('./scan/cycle-count-scan.module').then(m => m.CycleCountScanModule)
   }
 ];
 

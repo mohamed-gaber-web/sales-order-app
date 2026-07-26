@@ -14,6 +14,8 @@ interface TokenResponse {
 const STORAGE_KEYS = {
   ACCESS_TOKEN: 'access_token',
   TOKEN_EXPIRY: 'token_expiry',
+  TEST_PO_ACCESS_TOKEN: 'test_po_access_token',
+  TEST_PO_TOKEN_EXPIRY: 'test_po_token_expiry',
 } as const;
 
 @Injectable({ providedIn: 'root' })
@@ -90,6 +92,38 @@ export class AuthService {
   clearToken(): void {
     localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
     localStorage.removeItem(STORAGE_KEYS.TOKEN_EXPIRY);
+  }
+
+  /**
+   * TEMPORARY: separate cached token for testing PurchaseOrderService (list + confirm-receipt)
+   * against the Elsewedy sandbox (environment.testPurchaseOrderAuth). On native, calls Azure
+   * directly; on web, goes through the `/api/test-token` proxy route (no proxy on native).
+   * Remove alongside environment.useTestPurchaseOrderEnv.
+   */
+  async getTestPurchaseOrderToken(): Promise<string> {
+    const cachedToken = localStorage.getItem(STORAGE_KEYS.TEST_PO_ACCESS_TOKEN);
+    const cachedExpiry = localStorage.getItem(STORAGE_KEYS.TEST_PO_TOKEN_EXPIRY);
+    if (cachedToken && cachedExpiry && Date.now() < Number(cachedExpiry) - this.REFRESH_BUFFER_MS) {
+      return cachedToken;
+    }
+
+    const { clientId, clientSecret, scope, grantType, tokenUrl } = environment.testPurchaseOrderAuth;
+    const body = new HttpParams()
+      .set('grant_type', grantType)
+      .set('client_id', clientId)
+      .set('scope', scope)
+      .set('client_secret', clientSecret);
+
+    const response = await firstValueFrom(
+      this.http.post<TokenResponse>(this.isNativePlatform() ? tokenUrl : '/api/test-token', body.toString(), {
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      })
+    );
+
+    const expiryTime = Date.now() + response.expires_in * 1000;
+    localStorage.setItem(STORAGE_KEYS.TEST_PO_ACCESS_TOKEN, response.access_token);
+    localStorage.setItem(STORAGE_KEYS.TEST_PO_TOKEN_EXPIRY, String(expiryTime));
+    return response.access_token;
   }
 
   private isNativePlatform(): boolean {

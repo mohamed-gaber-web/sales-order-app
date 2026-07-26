@@ -1,19 +1,24 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ActionSheetController, LoadingController, ModalController, ToastController } from '@ionic/angular';
-import { TimeoutError } from 'rxjs';
-import { PurchaseOrderService } from '../../../core/services/purchase-order.service';
-import { PurchaseOrderHeader, PurchaseOrderLine } from '../../../models/purchase-order.model';
-import { ReceiptLabelData } from '../../../core/services/pdf.service';
-import { ScannerModalComponent } from '../../inventory/scanner/scanner-modal.component';
-import { LabelPreviewModalComponent } from '../label-preview/label-preview-modal.component';
+import { LoadingController, ModalController, ToastController } from '@ionic/angular';
+import { SalesOrderLineService, SalesOrderLineResponse } from '../../../../core/services/sales-order-line.service';
+import { TransferJournalService } from '../../../../core/services/transfer-journal.service';
+import { TransferJournalConfirmPayload, TransferJournalLine } from '../../../../models/transfer-journal.model';
+import { ScannerModalComponent } from '../../scanner/scanner-modal.component';
 
-interface ReceiptCartItem {
-  line: PurchaseOrderLine;
+interface TransferHeaderState {
+  fromSiteId: string; fromSiteName: string;
+  fromWarehouseId: string; fromWarehouseName: string;
+  fromLocationId: string;
+  toSiteId: string; toSiteName: string;
+  toWarehouseId: string; toWarehouseName: string;
+  toLocationId: string;
+}
+
+interface TransferCartItem {
+  line: SalesOrderLineResponse;
   qty: number;
   remainingQty: number;
-  totalQty: number;
-  alreadyReceivedQty: number;
 }
 
 interface ConfirmedItem {
@@ -25,37 +30,39 @@ interface ConfirmedItem {
 }
 
 @Component({
-  selector: 'app-purchase-order-scan-receive',
-  templateUrl: './purchase-order-scan-receive.page.html',
-  styleUrls: ['./purchase-order-scan-receive.page.scss'],
+  selector: 'app-transfer-journal-scan',
+  templateUrl: './transfer-journal-scan.page.html',
+  styleUrls: ['./transfer-journal-scan.page.scss'],
   standalone: false,
 })
-export class PurchaseOrderScanReceivePage implements OnInit {
-  poNumber = '';
-  po: PurchaseOrderHeader | null = null;
+export class TransferJournalScanPage implements OnInit {
+  soNumber = '';
+  header: TransferHeaderState = {
+    fromSiteId: '', fromSiteName: '', fromWarehouseId: '', fromWarehouseName: '', fromLocationId: '',
+    toSiteId: '', toSiteName: '', toWarehouseId: '', toWarehouseName: '', toLocationId: '',
+  };
 
   searchTerm = '';
   showDropdown = false;
   isSearching = false;
-  matches: PurchaseOrderLine[] = [];
+  matches: SalesOrderLineResponse[] = [];
 
   showManualEntry = false;
   manualItemNumber = '';
   manualQty: number | null = null;
 
   isSubmitting = false;
-  receiptConfirmed = false;
-  confirmedCount = 0;
-  confirmedPackingSlipId = '';
+  transferConfirmed = false;
+  confirmedJournalNumber = '';
   confirmedItems: ConfirmedItem[] = [];
   confirmedTotalQty = 0;
 
-  private cartMap = new Map<number, ReceiptCartItem>();
-  private openLines: PurchaseOrderLine[] = [];
+  private cartMap = new Map<number, TransferCartItem>();
+  private openLines: SalesOrderLineResponse[] = [];
   private linesLoaded = false;
   private searchSeq = 0;
 
-  get cart(): ReceiptCartItem[] {
+  get cart(): TransferCartItem[] {
     return Array.from(this.cartMap.values());
   }
 
@@ -72,35 +79,54 @@ export class PurchaseOrderScanReceivePage implements OnInit {
   private modalCtrl = inject(ModalController);
   private loadingCtrl = inject(LoadingController);
   private toastCtrl = inject(ToastController);
-  private actionSheetCtrl = inject(ActionSheetController);
-  private poService = inject(PurchaseOrderService);
+  private lineService = inject(SalesOrderLineService);
+  private transferJournalService = inject(TransferJournalService);
 
   private safeNum(val: unknown, fallback = 0): number {
     const n = Number(val);
     return isNaN(n) || n < 0 ? fallback : n;
   }
 
-  getRemainingQty(line: PurchaseOrderLine): number {
-    const rem = Number(line.RemainingPurchaseQuantity);
+  getRemainingQty(line: SalesOrderLineResponse): number {
+    const rem = Number(line.RemainingSalesPhysicalQuantity);
     if (!isNaN(rem) && rem >= 0) return rem;
-    return this.safeNum(line.OrderedPurchaseQuantity ?? line.PurchaseQuantity);
+    return this.safeNum(line.OrderedSalesQuantity);
   }
 
-  isQtyValid(item: ReceiptCartItem): boolean {
+  isQtyValid(item: TransferCartItem): boolean {
     return item.qty > 0 && item.qty <= item.remainingQty;
   }
 
   ngOnInit() {
-    this.poNumber = this.route.snapshot.paramMap.get('poNumber') ?? '';
-    if (!this.poNumber) {
-      this.router.navigate(['/purchase-order/receive-by-barcode']);
+    this.soNumber = this.route.snapshot.paramMap.get('soNumber') ?? '';
+    if (!this.soNumber) {
+      this.router.navigate(['/inventory/transfer-journal']);
+      return;
     }
+
+    const state = history.state as Partial<TransferHeaderState>;
+    if (!state?.fromWarehouseId || !state?.fromLocationId || !state?.toWarehouseId || !state?.toLocationId) {
+      this.router.navigate(['/inventory/transfer-journal/from-to', this.soNumber]);
+      return;
+    }
+    this.header = {
+      fromSiteId: state.fromSiteId ?? '',
+      fromSiteName: state.fromSiteName ?? '',
+      fromWarehouseId: state.fromWarehouseId,
+      fromWarehouseName: state.fromWarehouseName ?? '',
+      fromLocationId: state.fromLocationId,
+      toSiteId: state.toSiteId ?? '',
+      toSiteName: state.toSiteName ?? '',
+      toWarehouseId: state.toWarehouseId,
+      toWarehouseName: state.toWarehouseName ?? '',
+      toLocationId: state.toLocationId,
+    };
   }
 
   /**
    * Ionic keeps this page alive in the nav stack, so ngOnInit only fires once.
-   * "Receive More Items" resets state in place on this same page — without invalidating
-   * the cache, the next search would keep using pre-receipt remaining quantities.
+   * "Transfer More Items" resets state in place on this same page — without invalidating
+   * the cache, the next search would keep using pre-transfer remaining quantities.
    */
   ionViewWillEnter() {
     this.linesLoaded = false;
@@ -176,7 +202,7 @@ export class PurchaseOrderScanReceivePage implements OnInit {
       if (seq !== this.searchSeq) return;
       this.matches = [];
       const toast = await this.toastCtrl.create({
-        message: `Could not load PO ${this.poNumber}. Check your connection.`,
+        message: `Could not load sales order ${this.soNumber}. Check your connection.`,
         buttons: [{ text: 'Dismiss', role: 'cancel' }],
         color: 'danger',
         position: 'bottom',
@@ -189,31 +215,31 @@ export class PurchaseOrderScanReceivePage implements OnInit {
 
   private loadOrderLines(): Promise<void> {
     return new Promise((resolve, reject) => {
-      this.poService.getOrderWithLines(this.poNumber).subscribe({
-        next: (po) => {
-          this.po = po;
-          this.openLines = (po.PurchaseOrderLinesV2 ?? []).filter(l => this.getRemainingQty(l) > 0);
+      this.lineService.getOrderLines(this.soNumber).subscribe({
+        next: (res) => {
+          this.openLines = res.value.filter(
+            (l) => l.LineNumber != null && this.getRemainingQty(l) > 0
+          );
           this.linesLoaded = true;
           resolve();
         },
-        error: (err) => reject(err instanceof Error ? err : new Error('Failed to load purchase order')),
+        error: (err) => reject(err instanceof Error ? err : new Error('Failed to load sales order')),
       });
     });
   }
 
-  private buildCartItem(line: PurchaseOrderLine, initialQty?: number): ReceiptCartItem {
+  private buildCartItem(line: SalesOrderLineResponse, initialQty?: number): TransferCartItem {
     const remainingQty = this.getRemainingQty(line);
-    const totalQty = this.safeNum(line.OrderedPurchaseQuantity ?? line.PurchaseQuantity) || remainingQty;
-    const alreadyReceivedQty = Math.max(0, totalQty - remainingQty);
     const qty = initialQty && initialQty > 0 ? Math.min(initialQty, remainingQty) : remainingQty;
-    return { line, qty, remainingQty, totalQty, alreadyReceivedQty };
+    return { line, qty, remainingQty };
   }
 
-  async addItem(line: PurchaseOrderLine, initialQty?: number) {
+  async addItem(line: SalesOrderLineResponse, initialQty?: number) {
     this.showDropdown = false;
     this.clearSearch();
 
-    if (this.cartMap.has(line.LineNumber)) {
+    const lineNumber = line.LineNumber as number;
+    if (this.cartMap.has(lineNumber)) {
       const toast = await this.toastCtrl.create({
         message: `${line.ItemNumber} is already in your list below.`,
         duration: 2000,
@@ -224,29 +250,27 @@ export class PurchaseOrderScanReceivePage implements OnInit {
       return;
     }
 
-    this.cartMap.set(line.LineNumber, this.buildCartItem(line, initialQty));
+    this.cartMap.set(lineNumber, this.buildCartItem(line, initialQty));
   }
 
-  removeFromCart(item: ReceiptCartItem) {
-    this.cartMap.delete(item.line.LineNumber);
+  removeFromCart(item: TransferCartItem) {
+    this.cartMap.delete(item.line.LineNumber as number);
   }
 
   clearCart() {
     this.cartMap.clear();
   }
 
-  adjustQty(item: ReceiptCartItem, delta: number) {
-    // Clamp to 0 (not 0.001) so a decrement lands on a clean value instead of a
-    // near-invisible sliver; landing on 0 trips the "must be greater than 0" validation.
+  adjustQty(item: TransferCartItem, delta: number) {
     const next = Math.min(item.remainingQty, Math.max(0, item.qty + delta));
     item.qty = Math.round(next * 1000) / 1000;
   }
 
-  setMaxQty(item: ReceiptCartItem) {
+  setMaxQty(item: TransferCartItem) {
     item.qty = item.remainingQty;
   }
 
-  clampQty(item: ReceiptCartItem) {
+  clampQty(item: TransferCartItem) {
     const clamped = Math.min(item.remainingQty, Math.max(0, Number(item.qty) || 0));
     item.qty = Math.round(clamped * 1000) / 1000;
   }
@@ -266,7 +290,7 @@ export class PurchaseOrderScanReceivePage implements OnInit {
         await this.loadOrderLines();
       } catch {
         const toast = await this.toastCtrl.create({
-          message: `Could not load PO ${this.poNumber}. Check your connection.`,
+          message: `Could not load sales order ${this.soNumber}. Check your connection.`,
           buttons: [{ text: 'Dismiss', role: 'cancel' }],
           color: 'danger',
           position: 'bottom',
@@ -279,7 +303,7 @@ export class PurchaseOrderScanReceivePage implements OnInit {
     const match = this.openLines.find(l => l.ItemNumber.toLowerCase() === itemNum.toLowerCase());
     if (!match) {
       const toast = await this.toastCtrl.create({
-        message: `"${itemNum}" is not an open line on PO ${this.poNumber}.`,
+        message: `"${itemNum}" is not an open line on sales order ${this.soNumber}.`,
         buttons: [{ text: 'Dismiss', role: 'cancel' }],
         color: 'danger',
         position: 'bottom',
@@ -294,57 +318,59 @@ export class PurchaseOrderScanReceivePage implements OnInit {
     this.manualQty = null;
   }
 
-  private generatePackingSlipId(): string {
-    return `RCP-${this.poNumber}-${Date.now()}`;
-  }
-
-  async submitReceipt() {
-    if (!this.canSubmit || this.isSubmitting || !this.po) return;
+  async confirmTransfer() {
+    if (!this.canSubmit || this.isSubmitting) return;
     this.isSubmitting = true;
 
     const items = this.cart;
-    const packingSlipId = this.generatePackingSlipId();
-    const purchaseLineNum = items.map(i => i.line.LineNumber);
-    const productReceiptQty = items.map(i => i.qty);
+    const lines: TransferJournalLine[] = items.map((item) => ({
+      soLineNumber: item.line.LineNumber as number,
+      itemNumber: item.line.ItemNumber,
+      itemName: item.line.ProductName,
+      qty: item.qty,
+      unitSymbol: item.line.SalesUnitSymbol,
+    }));
+
+    const payload: TransferJournalConfirmPayload = {
+      salesOrderNumber: this.soNumber,
+      dataAreaId: 'usmf',
+      fromSiteId: this.header.fromSiteId,
+      fromWarehouseId: this.header.fromWarehouseId,
+      fromLocationId: this.header.fromLocationId,
+      toSiteId: this.header.toSiteId,
+      toWarehouseId: this.header.toWarehouseId,
+      toLocationId: this.header.toLocationId,
+      lines,
+    };
 
     const loading = await this.loadingCtrl.create({
-      message: 'Recording receipt...',
-      spinner: 'crescent'
+      message: 'Confirming transfer...',
+      spinner: 'crescent',
     });
     await loading.present();
 
-    this.poService.createProductReceipt({
-      _request: {
-        DataAreaId: ((this.po?.dataAreaId as string) ?? 'usmf').toUpperCase(),
-        purchaseOrderID: this.poNumber,
-        productReceiptId: packingSlipId,
-        purchaseLineNum,
-        productReceiptQty,
-      }
-    }).subscribe({
+    this.transferJournalService.confirmTransfer(payload).subscribe({
       next: async (res) => {
         await loading.dismiss();
         this.isSubmitting = false;
-        if (res.Success) {
-          this.confirmedCount = items.length;
-          this.confirmedPackingSlipId = packingSlipId;
-          this.confirmedTotalQty = productReceiptQty.reduce((sum, q) => sum + q, 0);
-          this.confirmedItems = items.map((item, i) => ({
+        if (res.success) {
+          this.confirmedJournalNumber = res.journalNumber ?? '';
+          this.confirmedTotalQty = items.reduce((sum, i) => sum + i.qty, 0);
+          this.confirmedItems = items.map((item) => ({
             itemNumber: item.line.ItemNumber,
             productName: item.line.ProductName,
-            lineNumber: item.line.LineNumber,
-            qty: productReceiptQty[i],
-            unit: item.line.PurchaseUnitSymbol
+            lineNumber: item.line.LineNumber as number,
+            qty: item.qty,
+            unit: item.line.SalesUnitSymbol,
           }));
-          this.receiptConfirmed = true;
+          this.transferConfirmed = true;
           this.cartMap.clear();
         } else {
-          const serverMsg = (res.ErrorMessage || res.DebugMessage || '').trim();
           const toast = await this.toastCtrl.create({
-            message: serverMsg ? `Receipt failed: ${serverMsg}` : 'Receipt failed. Try again.',
+            message: res.errorMessage ? `Transfer failed: ${res.errorMessage}` : 'Transfer failed. Try again.',
             buttons: [{ text: 'Dismiss', role: 'cancel' }],
             color: 'danger',
-            position: 'bottom'
+            position: 'bottom',
           });
           await toast.present();
         }
@@ -352,99 +378,37 @@ export class PurchaseOrderScanReceivePage implements OnInit {
       error: async (err) => {
         await loading.dismiss();
         this.isSubmitting = false;
-
-        if (err instanceof TimeoutError) {
-          const toast = await this.toastCtrl.create({
-            message: 'Taking longer than expected. This receipt may have already gone through — check the order before submitting again.',
-            buttons: [{ text: 'Check order', handler: () => this.goToOrder() }],
-            color: 'warning',
-            position: 'bottom'
-          });
-          await toast.present();
-          return;
-        }
-
         const d365Message = err?.error?.Message ?? err?.error?.message ?? err?.message;
         const toast = await this.toastCtrl.create({
           message: d365Message
-            ? `Receipt failed: ${d365Message}`
-            : 'Receipt failed. Check your connection and try again.',
+            ? `Transfer failed: ${d365Message}`
+            : 'Transfer failed. Check your connection and try again.',
           buttons: [{ text: 'Dismiss', role: 'cancel' }],
           color: 'danger',
-          position: 'bottom'
+          position: 'bottom',
         });
         await toast.present();
-      }
+      },
     });
   }
 
-  receiveMore() {
-    this.receiptConfirmed = false;
+  transferMore() {
+    this.transferConfirmed = false;
     this.confirmedItems = [];
     this.linesLoaded = false;
   }
 
-  goToOrder() {
-    this.router.navigate(['/purchase-order/detail', this.poNumber]);
+  changeLocations() {
+    this.router.navigate(['/inventory/transfer-journal/from-to', this.soNumber]);
   }
 
-  async printLabel() {
-    if (this.confirmedItems.length === 0) return;
-
-    if (this.confirmedItems.length === 1) {
-      await this.openLabelPreview(this.confirmedItems[0]);
-      return;
-    }
-
-    const actionSheet = await this.actionSheetCtrl.create({
-      header: 'Print label for…',
-      buttons: [
-        ...this.confirmedItems.map((item) => ({
-          text: `${item.itemNumber} — ${item.qty}${item.unit ? ' ' + item.unit : ''}`,
-          icon: 'pricetag-outline',
-          handler: () => this.openLabelPreview(item)
-        })),
-        {
-          text: 'Cancel',
-          icon: 'close-outline',
-          role: 'cancel'
-        }
-      ]
-    });
-    await actionSheet.present();
-  }
-
-  private async openLabelPreview(item: ConfirmedItem) {
-    const modal = await this.modalCtrl.create({
-      component: LabelPreviewModalComponent,
-      componentProps: { labelData: this.buildLabelData(item) },
-      cssClass: 'label-preview-modal',
-      breakpoints: [0, 0.9],
-      initialBreakpoint: 0.9,
-    });
-    await modal.present();
-  }
-
-  private buildLabelData(item: ConfirmedItem): ReceiptLabelData {
-    return {
-      poNumber: this.poNumber,
-      lineNumber: item.lineNumber,
-      packingSlipId: this.confirmedPackingSlipId,
-      itemNumber: item.itemNumber,
-      productName: item.productName,
-      qty: item.qty,
-      unit: item.unit,
-      receiptDate: new Date(),
-    };
+  changeSo() {
+    this.router.navigate(['/inventory/transfer-journal']);
   }
 
   clearSearch() {
     this.searchTerm = '';
     this.matches = [];
     this.showDropdown = false;
-  }
-
-  changeOrder() {
-    this.router.navigate(['/purchase-order/receive-by-barcode']);
   }
 }

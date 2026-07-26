@@ -162,6 +162,12 @@
                   <span class="field-value">{{ line.OrderedPurchaseQuantity ?? line.PurchaseQuantity }}</span>
                 </div>
                 <div class="field-item">
+                  <span class="field-label">Remaining</span>
+                  <span class="field-value" [class.warning]="!isFullyReceived(line)" [class.success]="isFullyReceived(line)">
+                    {{ getRemainingQty(line) }}
+                  </span>
+                </div>
+                <div class="field-item">
                   <span class="field-label">Unit</span>
                   <span class="field-value">{{ line.PurchaseUnitSymbol || '—' }}</span>
                 </div>
@@ -169,12 +175,6 @@
                   <div class="field-item">
                     <span class="field-label">Warehouse</span>
                     <span class="field-value">{{ line.ReceivingWarehouseId }}</span>
-                  </div>
-                }
-                @if (line.PurchasePrice !== null && line.PurchasePrice !== undefined) {
-                  <div class="field-item">
-                    <span class="field-label">Unit Price</span>
-                    <span class="field-value">{{ line.PurchasePrice | number:'1.2-2' }}</span>
                   </div>
                 }
               </div>

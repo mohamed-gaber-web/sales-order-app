@@ -19,6 +19,17 @@ export interface ReceiptPdfData {
   receiptDate: Date;
 }
 
+export interface ReceiptLabelData {
+  poNumber: string;
+  lineNumber: number;
+  packingSlipId: string;
+  itemNumber: string;
+  productName?: string;
+  qty: number;
+  unit?: string;
+  receiptDate: Date;
+}
+
 export interface PackingSlipLine {
   itemNumber: string;
   productName?: string;
@@ -241,30 +252,7 @@ export class PdfService {
       minimumFractionDigits: 3, maximumFractionDigits: 3
     })}${data.unit ? '  ' + data.unit : ''}`;
     field('Quantity Received', qtyStr, margin);
-    if (data.unitPrice !== undefined) {
-      const priceStr = `${Number(data.unitPrice).toLocaleString('en-US', {
-        minimumFractionDigits: 2
-      })}${data.currency ? '  ' + data.currency : ''}`;
-      field('Unit Price', priceStr, midX);
-    }
     y += 32;
-
-    // Total box
-    if (data.unitPrice !== undefined) {
-      const total = Number(data.receiptQty) * Number(data.unitPrice);
-      const totalStr = `${total.toLocaleString('en-US', {
-        minimumFractionDigits: 2
-      })}${data.currency ? '  ' + data.currency : ''}`;
-      ctx.fillStyle = navy;
-      ctx.fillRect(margin, y, contentW, 58);
-      ctx.fillStyle = lightBlue;
-      ctx.font = '10px Arial,Helvetica,sans-serif';
-      ctx.fillText('TOTAL AMOUNT', margin + 14, y + 18);
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 20px Arial,Helvetica,sans-serif';
-      ctx.fillText(totalStr, margin + 14, y + 42);
-      y += 68;
-    }
 
     // ── Footer ────────────────────────────────────────────────
     ctx.fillStyle = '#f4f6fb';
@@ -545,6 +533,207 @@ export class PdfService {
 
     ctx.fillStyle = orange;
     ctx.fillRect(0, H - 18, W, 18);
+  }
+
+  // ── Receipt Label (one per received item, with a Code 128 barcode) ──
+
+  /** Renders the label to a data URL so it can be shown on-screen before the user downloads or shares it. */
+  getLabelPreviewDataUrl(data: ReceiptLabelData): string {
+    return this.renderLabelToCanvas(data).toDataURL('image/png');
+  }
+
+  async downloadReceiptLabel(data: ReceiptLabelData): Promise<string | null> {
+    const blob = await this.generateLabelPdf(data);
+    return this.savePdf(blob, `label-${data.itemNumber}-${data.packingSlipId}.pdf`);
+  }
+
+  async shareReceiptLabel(data: ReceiptLabelData): Promise<void> {
+    const blob = await this.generateLabelPdf(data);
+    await this.sharePdfBlob(blob, `label-${data.itemNumber}-${data.packingSlipId}.pdf`);
+  }
+
+  private async generateLabelPdf(data: ReceiptLabelData): Promise<Blob> {
+    const canvas = this.renderLabelToCanvas(data);
+    const jpegBytes = await this.canvasToJpeg(canvas);
+    return this.buildPdf(jpegBytes, canvas.width, canvas.height);
+  }
+
+  private renderLabelToCanvas(data: ReceiptLabelData): HTMLCanvasElement {
+    const W = 400;
+    const H = 260;
+    const S = 3; // extra scale — keeps the barcode bars crisp at print resolution
+    const canvas = document.createElement('canvas');
+    canvas.width = W * S;
+    canvas.height = H * S;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('Canvas not supported');
+    ctx.scale(S, S);
+    this.drawLabel(ctx, data, W, H);
+    return canvas;
+  }
+
+  private drawLabel(ctx: CanvasRenderingContext2D, data: ReceiptLabelData, W: number, H: number): void {
+    const margin = 16;
+    const navy = '#002559';
+    const orange = '#F24C1A';
+    const dark = '#121c30';
+    const muted = '#5b6478';
+
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, W, H);
+    ctx.strokeStyle = '#d8dce6';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(0.5, 0.5, W - 1, H - 1);
+
+    // ── Header ─────────────────────────────────────────────
+    ctx.fillStyle = navy;
+    ctx.fillRect(0, 0, W, 34);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 14px Arial,Helvetica,sans-serif';
+    ctx.fillText('GROW PATH', margin, 22);
+    ctx.textAlign = 'right';
+    ctx.fillStyle = 'rgba(255,255,255,0.75)';
+    ctx.font = '10px Arial,Helvetica,sans-serif';
+    ctx.fillText('RECEIVING LABEL', W - margin, 22);
+    ctx.textAlign = 'left';
+
+    ctx.fillStyle = orange;
+    ctx.fillRect(0, 34, W, 3);
+
+    const contentW = W - margin * 2;
+    const clamp = (text: string, font: string, maxW: number): string => {
+      ctx.font = font;
+      if (ctx.measureText(text).width <= maxW) return text;
+      let t = text;
+      while (t.length > 1 && ctx.measureText(t + '…').width > maxW) t = t.slice(0, -1);
+      return t + '…';
+    };
+
+    let y = 56;
+
+    // ── Purchase order + line ───────────────────────────────
+    ctx.fillStyle = muted;
+    ctx.font = '9px Arial,Helvetica,sans-serif';
+    ctx.fillText('PURCHASE ORDER', margin, y);
+    ctx.fillStyle = dark;
+    ctx.font = 'bold 15px Arial,Helvetica,sans-serif';
+    ctx.fillText(clamp(`${data.poNumber}  ·  Line ${data.lineNumber}`, 'bold 15px Arial,Helvetica,sans-serif', contentW), margin, y + 17);
+    y += 36;
+
+    // ── Item ─────────────────────────────────────────────────
+    ctx.fillStyle = muted;
+    ctx.font = '9px Arial,Helvetica,sans-serif';
+    ctx.fillText('ITEM', margin, y);
+    ctx.fillStyle = dark;
+    ctx.font = 'bold 20px Arial,Helvetica,sans-serif';
+    ctx.fillText(clamp(data.itemNumber, 'bold 20px Arial,Helvetica,sans-serif', contentW), margin, y + 20);
+    y += 24;
+    if (data.productName) {
+      ctx.fillStyle = muted;
+      ctx.font = '11px Arial,Helvetica,sans-serif';
+      ctx.fillText(clamp(data.productName, '11px Arial,Helvetica,sans-serif', contentW), margin, y + 10);
+      y += 16;
+    }
+    y += 8;
+
+    // ── Quantity received ────────────────────────────────────
+    ctx.fillStyle = muted;
+    ctx.font = '9px Arial,Helvetica,sans-serif';
+    ctx.fillText('QTY RECEIVED', margin, y);
+    ctx.fillStyle = orange;
+    ctx.font = 'bold 22px Arial,Helvetica,sans-serif';
+    const qtyStr = `${Number(data.qty).toLocaleString('en-US', { maximumFractionDigits: 3 })}${data.unit ? ' ' + data.unit : ''}`;
+    ctx.fillText(qtyStr, margin, y + 22);
+
+    // ── Barcode (encodes the item number) ───────────────────
+    const barcodeHeight = 40;
+    const barcodeY = H - 68;
+    this.drawBarcode(ctx, data.itemNumber, margin, barcodeY, contentW, barcodeHeight);
+
+    ctx.textAlign = 'center';
+    ctx.fillStyle = dark;
+    ctx.font = '10px Arial,Helvetica,sans-serif';
+    ctx.fillText(data.itemNumber, W / 2, barcodeY + barcodeHeight + 13);
+    ctx.textAlign = 'left';
+
+    // ── Footer ────────────────────────────────────────────────
+    ctx.fillStyle = muted;
+    ctx.font = '8px Arial,Helvetica,sans-serif';
+    ctx.fillText(`Receipt ${data.packingSlipId}`, margin, H - 8);
+    ctx.textAlign = 'right';
+    ctx.fillText(
+      data.receiptDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+      W - margin,
+      H - 8
+    );
+    ctx.textAlign = 'left';
+  }
+
+  // ── Code 128 (Subset B) barcode renderer ────────────────────
+  // Standard ISO/IEC 15417 pattern table: widths (in modules) of the 6 bar/space
+  // elements for symbol values 0–102, then Start A/B/C (103–105) and Stop (106,
+  // a 7-element pattern). Subset B covers ASCII 32–126, which is every character
+  // item numbers use (digits, letters, hyphens).
+  private readonly CODE128_PATTERNS: string[] = [
+    '212222', '222122', '222221', '121223', '121322', '131222', '122213', '122312', '132212', '221213',
+    '221312', '231212', '112232', '122132', '122231', '113222', '123122', '123221', '223211', '221132',
+    '221231', '213212', '223112', '312131', '311222', '321122', '321221', '312212', '322112', '322211',
+    '212123', '212321', '232121', '111323', '131123', '131321', '112313', '132113', '132311', '211313',
+    '231113', '231311', '112133', '112331', '132131', '113123', '113321', '133121', '313121', '211331',
+    '231131', '213113', '213311', '213131', '311123', '311321', '331121', '312113', '312311', '332111',
+    '314111', '221411', '431111', '111224', '111422', '121124', '121421', '141122', '141221', '112214',
+    '112412', '122114', '122411', '142112', '142211', '241211', '221114', '413111', '241112', '134111',
+    '111242', '121142', '121241', '114212', '124112', '124211', '411212', '421112', '421211', '212141',
+    '214121', '412121', '111143', '111341', '131141', '114113', '114311', '411113', '411311', '113141',
+    '114131', '311141', '411131', '211412', '211214', '211232', '2331112',
+  ];
+
+  private encodeCode128B(text: string): number[] {
+    const START_B = 104;
+    const values = [START_B];
+    for (const ch of text) {
+      const code = ch.charCodeAt(0);
+      // Subset B only covers ASCII 32–126 — anything else falls back to '?' rather
+      // than producing an invalid symbol.
+      const safeCode = code >= 32 && code <= 126 ? code : 63;
+      values.push(safeCode - 32);
+    }
+    let checksum = values[0];
+    for (let i = 1; i < values.length; i++) {
+      checksum += values[i] * i;
+    }
+    values.push(checksum % 103);
+    values.push(106); // Stop
+    return values;
+  }
+
+  private drawBarcode(
+    ctx: CanvasRenderingContext2D,
+    text: string,
+    x: number,
+    y: number,
+    maxWidth: number,
+    height: number
+  ): void {
+    const values = this.encodeCode128B(text);
+    const widthsSeq: number[] = [];
+    for (const v of values) {
+      for (const ch of this.CODE128_PATTERNS[v]) widthsSeq.push(Number(ch));
+    }
+
+    const totalModules = widthsSeq.reduce((sum, w) => sum + w, 0);
+    const moduleWidth = maxWidth / totalModules;
+    const barcodeWidth = moduleWidth * totalModules;
+    let cursor = x + (maxWidth - barcodeWidth) / 2;
+
+    ctx.fillStyle = '#000000';
+    let isBar = true;
+    for (const w of widthsSeq) {
+      const barWidth = w * moduleWidth;
+      if (isBar) ctx.fillRect(cursor, y, barWidth, height);
+      cursor += barWidth;
+      isBar = !isBar;
+    }
   }
 
   // ── JPEG + minimal PDF builder ─────────────────────────────

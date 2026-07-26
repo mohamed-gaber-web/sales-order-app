@@ -325,9 +325,18 @@ export interface AssemblyOrder {
   components: BomComponent[];
 }
 
+// ── Barcode Count (create-by-scan flow) ─────────────────────────────────────
+
+export interface CountCartItem {
+  product: InventoryProduct;
+  countedQty: number;
+}
+
 export interface CycleCountJournalHeader {
   dataAreaId: string;
   JournalNumber: string;
+  /** References a Counting journal name configured in D365 (Inventory management > Setup > Journal names > Counting). Verify this field name against your environment's OData metadata before relying on it. */
+  JournalNameId?: string;
   Description?: string;
   WorkerResponsiblePersonnelNumber?: string;
   IsPosted?: string;

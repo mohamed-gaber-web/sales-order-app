@@ -27,4 +27,38 @@ module.exports = {
     changeOrigin: true,
     secure: true,
   },
+
+  // TEMPORARY: Elsewedy sandbox — testing purchase order list + confirm-receipt only.
+  // Remove alongside environment.useTestPurchaseOrderEnv once testing is done.
+  // NOTE: must NOT be a string-prefix of '/api/token' above — the dev-server proxy
+  // matches contexts with a naive startsWith(), so e.g. '/api/token-test-po' would be
+  // swallowed by the '/api/token' rule before ever reaching this one.
+  '/api/test-token': {
+    target: 'https://login.microsoftonline.com',
+    changeOrigin: true,
+    secure: true,
+    pathRewrite: {
+      '^/api/test-token': '/d3bf51d6-e2cb-4b8e-bf3c-bbd32fe8e86a/oauth2/v2.0/token',
+    },
+    onProxyReq: (proxyReq) => {
+      proxyReq.removeHeader('Origin');
+      proxyReq.removeHeader('Referer');
+    },
+  },
+  '/api/test-services': {
+    target: 'https://elsewedy.sandbox.operations.dynamics.com',
+    changeOrigin: true,
+    secure: true,
+    pathRewrite: {
+      '^/api/test-services': '/api/services',
+    },
+  },
+  '/api/test-data': {
+    target: 'https://elsewedy.sandbox.operations.dynamics.com',
+    changeOrigin: true,
+    secure: true,
+    pathRewrite: {
+      '^/api/test-data': '/data',
+    },
+  },
 };

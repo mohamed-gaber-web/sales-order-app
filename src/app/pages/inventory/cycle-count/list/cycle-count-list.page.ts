@@ -88,5 +88,9 @@ export class CycleCountListPage {
     this.router.navigate(['/inventory/cycle-count/detail', journalNumber]);
   }
 
+  startCount() {
+    this.router.navigate(['/inventory/cycle-count/count-by-barcode']);
+  }
+
   goBack() { this.router.navigate(['/inventory']); }
 }

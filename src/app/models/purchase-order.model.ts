@@ -38,12 +38,26 @@ export interface PurchaseOrderLine {
   LineAmount?: number;
 }
 
+// ── D365 Product Receipt Line ───────────────────────────────
+// One row per line per posted receipt. RemainingPurchaseQuantity here is the
+// running remaining-to-receive balance as of that receipt — PurchaseOrderLinesV2
+// itself carries no remaining/received quantity field.
+export interface ProductReceiptLine {
+  dataAreaId: string;
+  PurchaseOrderNumber: string;
+  PurchaseOrderLineNumber: number;
+  ItemNumber: string;
+  RecordId: number;
+  ReceivedPurchaseQuantity: number;
+  RemainingPurchaseQuantity: number;
+}
+
 // ── POST: Create Product Receipt ───────────────────────────
 export interface CreateProductReceiptRequest {
   _request: {
     DataAreaId: string;
     purchaseOrderID: string;
-    packingSlipId: string;
+    productReceiptId: string;
     purchaseLineNum: number[];
     productReceiptQty: number[];
   };

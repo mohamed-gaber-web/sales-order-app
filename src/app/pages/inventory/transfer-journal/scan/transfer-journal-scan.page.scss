@@ -12,7 +12,7 @@ ion-header ion-toolbar {
 }
 
 // ── Content ────────────────────────────────────────────────
-.scan-receive-content {
+.scan-transfer-content {
   --background: var(--gp-bg);
 }
 
@@ -27,25 +27,26 @@ ion-header ion-toolbar {
   position: relative;
 }
 
-// ── Selected PO hero banner ───────────────────────────────────
-.po-hero {
+// ── Selected route (From → To) hero banner ────────────────────
+.route-hero {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 8px;
   background: linear-gradient(135deg, var(--gp-navy, #002559) 0%, #1a3b6a 100%);
   border-radius: 16px;
   padding: 14px 16px;
   margin-bottom: 12px;
   box-shadow: 0 4px 16px rgba(0, 37, 89, 0.22);
 
-  .po-hero-info {
+  .route-hero-info {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 4px;
     min-width: 0;
   }
 
-  .po-hero-label {
+  .route-hero-label {
     font-size: 10px;
     font-weight: 700;
     text-transform: uppercase;
@@ -53,17 +54,24 @@ ion-header ion-toolbar {
     color: rgba(255, 255, 255, 0.6);
   }
 
-  .po-hero-number {
-    font-size: 18px;
+  .route-hero-value {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    font-size: 15px;
     font-weight: 800;
     color: #fff;
     letter-spacing: -0.02em;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+
+    ion-icon {
+      font-size: 14px;
+      color: var(--gp-accent);
+      flex-shrink: 0;
+    }
   }
 
-  .change-po-btn {
+  .change-route-btn {
     --color: #fff;
     background: rgba(255, 255, 255, 0.14);
     border-radius: 999px;
@@ -262,17 +270,6 @@ ion-header ion-toolbar {
       overflow: hidden;
       text-overflow: ellipsis;
     }
-
-    .dropdown-item-po {
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--ion-color-medium);
-      background: var(--gp-bg);
-      padding: 2px 8px;
-      border-radius: 999px;
-      flex-shrink: 0;
-      white-space: nowrap;
-    }
   }
 
   .dropdown-item-name {
@@ -300,7 +297,7 @@ ion-header ion-toolbar {
   color: var(--ion-color-medium);
 }
 
-// ── Items to Receive (cart) ──────────────────────────────────
+// ── Items to Transfer (cart) ──────────────────────────────────
 .cart-card {
   margin-top: 18px;
   background: var(--gp-card-bg, #fff);
@@ -375,17 +372,6 @@ ion-header ion-toolbar {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-  }
-
-  .cart-item-wh {
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--ion-color-medium);
-    background: var(--gp-bg);
-    padding: 2px 8px;
-    border-radius: 999px;
-    flex-shrink: 0;
-    white-space: nowrap;
   }
 }
 
@@ -462,19 +448,16 @@ ion-header ion-toolbar {
   }
 }
 
-// Read-only "unit" field — styled like a dropdown, since D365 receives a
-// single fixed unit per PO line and doesn't accept an alternate unit here.
 .unit-display {
   display: flex;
   align-items: center;
-  gap: 4px;
+  justify-content: center;
   background: var(--gp-bg);
   border: 1px solid var(--gp-border, #e5e7eb);
   border-radius: 10px;
   padding: 8px 10px;
   flex-shrink: 0;
-  min-width: 64px;
-  justify-content: space-between;
+  min-width: 56px;
   opacity: 0.85;
 
   .unit-display-value {
@@ -482,12 +465,6 @@ ion-header ion-toolbar {
     font-weight: 700;
     color: var(--gp-navy);
     white-space: nowrap;
-  }
-
-  .unit-display-chevron {
-    font-size: 12px;
-    color: var(--ion-color-medium);
-    flex-shrink: 0;
   }
 }
 
@@ -567,7 +544,7 @@ ion-header ion-toolbar {
   }
 }
 
-// ── Confirm receipt footer ───────────────────────────────────
+// ── Confirm transfer footer ───────────────────────────────────
 .cart-footer.footer-hidden {
   display: none;
 }
@@ -613,7 +590,7 @@ ion-header ion-toolbar {
   text-align: center;
 }
 
-.receipt-summary-card {
+.transfer-summary-card {
   --background: var(--gp-card-bg);
   width: 100%;
   border-radius: 20px !important;
@@ -701,7 +678,7 @@ ion-header ion-toolbar {
   }
 }
 
-.receipt-card {
+.transfer-card {
   width: 100%;
   border: 1.5px dashed var(--gp-border, #C9C4B9);
   border-radius: var(--gp-radius-md, 14px);
@@ -710,7 +687,7 @@ ion-header ion-toolbar {
   background: var(--gp-card-bg);
 }
 
-.receipt-row {
+.transfer-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -732,12 +709,12 @@ ion-header ion-toolbar {
   }
 }
 
-.receipt-item {
+.transfer-item {
   display: flex;
   flex-direction: column;
   min-width: 0;
 
-  .receipt-item-number {
+  .transfer-item-number {
     font-weight: 700;
     color: var(--gp-navy);
     white-space: nowrap;
@@ -745,7 +722,7 @@ ion-header ion-toolbar {
     text-overflow: ellipsis;
   }
 
-  .receipt-item-name {
+  .transfer-item-name {
     font-size: 11px;
     color: var(--ion-color-medium);
     white-space: nowrap;
@@ -754,7 +731,7 @@ ion-header ion-toolbar {
   }
 }
 
-.receipt-item-qty {
+.transfer-item-qty {
   font-weight: 700;
   color: var(--gp-accent);
   flex-shrink: 0;
@@ -772,19 +749,6 @@ ion-header ion-toolbar {
   letter-spacing: -0.01em;
   width: 100%;
   margin-bottom: 10px;
-}
-
-.label-print-btn {
-  --border-radius: 14px;
-  --border-color: var(--gp-border, #d6d1c7);
-  --color: var(--gp-navy);
-  font-weight: 700;
-  font-size: 14px;
-  text-transform: none;
-  height: 48px;
-  letter-spacing: -0.01em;
-  width: 100%;
-  margin: 0 0 10px;
 }
 
 .back-order-btn {

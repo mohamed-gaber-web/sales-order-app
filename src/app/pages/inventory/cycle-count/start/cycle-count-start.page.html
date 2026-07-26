@@ -1,0 +1,147 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/inventory/cycle-count" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Barcode Count</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="start-content">
+
+  <!-- Web Page Header (desktop only) -->
+  <div class="web-page-header">
+    <div class="web-page-header-inner">
+      <div class="web-title-group">
+        <h1 class="web-page-title">Barcode Count</h1>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-section-wrap">
+    <p class="step-hint">Set the location you're counting, then scan items one by one.</p>
+
+    <div class="form-card">
+      <div class="field-row" [class.field-invalid]="fieldInvalid(siteId)">
+        <ion-label class="field-label">Site <span class="required">*</span></ion-label>
+        <div class="select-trigger custom-input" (click)="toggleSitePicker()">
+          <span [class.placeholder]="!siteId">{{ siteId ? (siteName || siteId) : 'Select site' }}</span>
+          <ion-icon name="chevron-down-outline" [class.open]="showSitePicker"></ion-icon>
+        </div>
+        @if (showSitePicker) {
+          <div class="select-dropdown">
+            <ion-searchbar
+              placeholder="Search sites..."
+              [debounce]="100"
+              (ionInput)="onSiteSearch($any($event).detail.value || '')">
+            </ion-searchbar>
+            <div class="select-dropdown-list">
+              @for (site of filteredSites; track site.SiteId) {
+                <div
+                  class="select-dropdown-item"
+                  [class.active]="siteId === site.SiteId"
+                  (click)="selectSite(site)">
+                  <ion-icon name="checkmark-outline" class="check-icon"></ion-icon>
+                  <span>{{ site.SiteName || site.SiteId }}</span>
+                </div>
+              }
+              @if (filteredSites.length === 0) {
+                <div class="select-dropdown-empty">
+                  {{ isLoadingLookups ? 'Loading sites...' : 'No sites found' }}
+                </div>
+              }
+            </div>
+          </div>
+        }
+        @if (fieldInvalid(siteId)) {
+          <p class="field-error">
+            <ion-icon name="alert-circle-outline"></ion-icon>
+            Site is required.
+          </p>
+        }
+      </div>
+
+      <div class="field-row" [class.field-invalid]="fieldInvalid(warehouseId)">
+        <ion-label class="field-label">Warehouse <span class="required">*</span></ion-label>
+        <div class="select-trigger custom-input" (click)="toggleWarehousePicker()">
+          <span [class.placeholder]="!warehouseId">{{ warehouseId ? (warehouseName || warehouseId) : 'Select warehouse' }}</span>
+          <ion-icon name="chevron-down-outline" [class.open]="showWarehousePicker"></ion-icon>
+        </div>
+        @if (showWarehousePicker) {
+          <div class="select-dropdown">
+            <ion-searchbar
+              placeholder="Search warehouses..."
+              [debounce]="100"
+              (ionInput)="onWarehouseSearch($any($event).detail.value || '')">
+            </ion-searchbar>
+            <div class="select-dropdown-list">
+              @for (wh of filteredWarehouses; track wh.WarehouseId) {
+                <div
+                  class="select-dropdown-item"
+                  [class.active]="warehouseId === wh.WarehouseId"
+                  (click)="selectWarehouse(wh)">
+                  <ion-icon name="checkmark-outline" class="check-icon"></ion-icon>
+                  <span>{{ wh.WarehouseName || wh.WarehouseId }}</span>
+                </div>
+              }
+              @if (filteredWarehouses.length === 0) {
+                <div class="select-dropdown-empty">
+                  {{ isLoadingLookups ? 'Loading warehouses...' : 'No warehouses found' }}
+                </div>
+              }
+            </div>
+          </div>
+        }
+        @if (fieldInvalid(warehouseId)) {
+          <p class="field-error">
+            <ion-icon name="alert-circle-outline"></ion-icon>
+            Warehouse is required.
+          </p>
+        }
+      </div>
+
+      <div class="field-row" [class.field-invalid]="fieldInvalid(journalNameId)">
+        <ion-label class="field-label">Journal Name <span class="required">*</span></ion-label>
+        <ion-input
+          [(ngModel)]="journalNameId"
+          placeholder="e.g. Cycle"
+          class="custom-input">
+        </ion-input>
+        <p class="field-hint">Must match a counting journal name configured in D365.</p>
+        @if (fieldInvalid(journalNameId)) {
+          <p class="field-error">
+            <ion-icon name="alert-circle-outline"></ion-icon>
+            Journal name is required.
+          </p>
+        }
+      </div>
+
+      <div class="field-row">
+        <ion-label class="field-label">Description <span class="optional">Optional</span></ion-label>
+        <ion-input
+          [(ngModel)]="description"
+          placeholder="e.g. Aisle 3 spot count"
+          class="custom-input">
+        </ion-input>
+      </div>
+
+      <div class="field-row">
+        <ion-label class="field-label">Counted By <span class="optional">Optional</span></ion-label>
+        <ion-input
+          [(ngModel)]="countedBy"
+          placeholder="Personnel number"
+          class="custom-input">
+        </ion-input>
+      </div>
+    </div>
+  </div>
+
+</ion-content>
+
+<ion-footer class="ion-no-border start-footer">
+  <ds-cta-bar
+    label="Start Scanning"
+    icon="scan-outline"
+    (ctaClick)="startScanning()">
+  </ds-cta-bar>
+</ion-footer>

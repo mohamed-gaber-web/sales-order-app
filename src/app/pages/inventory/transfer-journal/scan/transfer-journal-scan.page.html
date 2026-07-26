@@ -1,117 +1,122 @@
 <ion-header class="ion-no-border">
   <ion-toolbar>
     <ion-buttons slot="start">
-      @if (!receiptConfirmed) {
-        <ion-back-button defaultHref="/purchase-order/receive-by-barcode"></ion-back-button>
+      @if (!transferConfirmed) {
+        <ion-back-button [defaultHref]="'/inventory/transfer-journal/from-to/' + soNumber"></ion-back-button>
       }
     </ion-buttons>
-    <ion-title>{{ receiptConfirmed ? 'Receipt Confirmed' : 'Barcode Receipt' }}</ion-title>
+    <ion-title>{{ transferConfirmed ? 'Transfer Confirmed' : 'Barcode Transfer' }}</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="scan-receive-content">
+<ion-content class="scan-transfer-content">
 
   <!-- ── Success State ─────────────────────────────────────── -->
-  @if (receiptConfirmed) {
+  @if (transferConfirmed) {
     <div class="success-wrap">
 
       <div class="success-icon-ring">
         <ion-icon name="checkmark-circle" class="success-icon"></ion-icon>
       </div>
 
-      <h2 class="success-title">Receipt Confirmed</h2>
+      <h2 class="success-title">Transfer Confirmed</h2>
       <p class="success-sub">
-        {{ confirmedCount }} item{{ confirmedCount === 1 ? '' : 's' }} received on {{ poNumber }}
+        {{ confirmedItems.length }} item{{ confirmedItems.length === 1 ? '' : 's' }} transferred on {{ soNumber }}
       </p>
 
-      <ion-card class="receipt-summary-card">
+      <ion-card class="transfer-summary-card">
         <ion-card-content>
           <div class="summary-hero">
             <div>
-              <p class="summary-label">Purchase Order</p>
-              <p class="summary-value primary">{{ poNumber }}</p>
+              <p class="summary-label">Sales Order</p>
+              <p class="summary-value primary">{{ soNumber }}</p>
             </div>
-            <div class="summary-badge">{{ confirmedCount }} items</div>
+            <div class="summary-badge">{{ confirmedItems.length }} items</div>
           </div>
           <div class="summary-divider"></div>
           <div class="summary-grid">
             <div class="summary-field">
-              <span class="summary-field-label">Receipt ID</span>
-              <span class="summary-field-value">{{ confirmedPackingSlipId }}</span>
+              <span class="summary-field-label">From</span>
+              <span class="summary-field-value">{{ header.fromWarehouseId }} · {{ header.fromLocationId }}</span>
+            </div>
+            <div class="summary-field">
+              <span class="summary-field-label">To</span>
+              <span class="summary-field-value">{{ header.toWarehouseId }} · {{ header.toLocationId }}</span>
             </div>
             <div class="summary-field">
               <span class="summary-field-label">Total Qty</span>
               <span class="summary-field-value accent">{{ confirmedTotalQty | number:'1.0-3' }}</span>
             </div>
+            @if (confirmedJournalNumber) {
+              <div class="summary-field">
+                <span class="summary-field-label">Journal</span>
+                <span class="summary-field-value">{{ confirmedJournalNumber }}</span>
+              </div>
+            }
           </div>
         </ion-card-content>
       </ion-card>
 
-      <div class="receipt-card">
-        <div class="receipt-row header">
+      <div class="transfer-card">
+        <div class="transfer-row header">
           <span>Item</span>
-          <span>Qty received</span>
+          <span>Qty transferred</span>
         </div>
-        @for (ci of confirmedItems; track ci.itemNumber) {
-          <div class="receipt-row">
-            <div class="receipt-item">
-              <span class="receipt-item-number">{{ ci.itemNumber }}</span>
+        @for (ci of confirmedItems; track ci.lineNumber) {
+          <div class="transfer-row">
+            <div class="transfer-item">
+              <span class="transfer-item-number">{{ ci.itemNumber }}</span>
               @if (ci.productName) {
-                <span class="receipt-item-name">{{ ci.productName }}</span>
+                <span class="transfer-item-name">{{ ci.productName }}</span>
               }
             </div>
-            <span class="receipt-item-qty">
+            <span class="transfer-item-qty">
               {{ ci.qty | number:'1.0-3' }}{{ ci.unit ? ' ' + ci.unit : '' }}
             </span>
           </div>
         }
       </div>
 
-      <ion-button expand="block" class="submit-btn" (click)="receiveMore()">
+      <ion-button expand="block" class="submit-btn" (click)="transferMore()">
         <ion-icon slot="start" name="scan-outline"></ion-icon>
-        Receive More Items
+        Transfer More Items
       </ion-button>
 
-      <ion-button expand="block" fill="outline" class="label-print-btn" (click)="printLabel()">
-        <ion-icon slot="start" name="print-outline"></ion-icon>
-        Print Label
-      </ion-button>
-
-      <ion-button expand="block" fill="clear" class="back-order-btn" (click)="goToOrder()">
-        Back to Purchase Order
+      <ion-button expand="block" fill="clear" class="back-order-btn" (click)="changeSo()">
+        Done
       </ion-button>
 
     </div>
   }
 
   <!-- ── Scan / Cart flow ─────────────────────────────────── -->
-  @if (!receiptConfirmed) {
+  @if (!transferConfirmed) {
 
   <!-- Web Page Header (desktop only) -->
   <div class="web-page-header">
     <div class="web-page-header-inner">
       <div class="web-title-group">
-        <h1 class="web-page-title">Barcode Receipt</h1>
+        <h1 class="web-page-title">Barcode Transfer</h1>
       </div>
     </div>
   </div>
 
   <div class="search-section">
 
-    <!-- Selected PO hero -->
-    <div class="po-hero">
-      <div class="po-hero-info">
-        <span class="po-hero-label">Purchase Order</span>
-        <span class="po-hero-number">{{ poNumber }}</span>
+    <!-- Selected route hero -->
+    <div class="route-hero">
+      <div class="route-hero-info">
+        <span class="route-hero-label">Sales Order {{ soNumber }}</span>
+        <span class="route-hero-value">{{ header.fromWarehouseId }} · {{ header.fromLocationId }} <ion-icon name="arrow-forward-outline"></ion-icon> {{ header.toWarehouseId }} · {{ header.toLocationId }}</span>
       </div>
-      <ion-button fill="clear" size="small" class="change-po-btn" (click)="changeOrder()">
+      <ion-button fill="clear" size="small" class="change-route-btn" (click)="changeLocations()">
         Change
       </ion-button>
     </div>
 
     <div class="tip-banner">
       <ion-icon name="information-circle" class="tip-icon"></ion-icon>
-      <span>Scan or search each item, set its quantity, then scan the next — confirm receipt below when you're done.</span>
+      <span>Only items on this sales order's open lines can be added — scan or search each item, set its quantity, then confirm below.</span>
     </div>
 
     <!-- Search + Scan -->
@@ -164,7 +169,7 @@
           [disabled]="!manualItemNumber.trim()"
           (click)="addManualItem()">
           <ion-icon slot="start" name="add-outline"></ion-icon>
-          Add to Receipt
+          Add to Transfer
         </ion-button>
       </div>
     }
@@ -179,10 +184,10 @@
         </div>
         <div class="select-dropdown-list">
           @if (isSearching) {
-            <div class="select-dropdown-empty">Searching PO {{ poNumber }}...</div>
+            <div class="select-dropdown-empty">Searching sales order {{ soNumber }}...</div>
           } @else if (matches.length === 0) {
             <div class="select-dropdown-empty">
-              No line for "{{ searchTerm }}" on PO {{ poNumber }}.
+              No open line for "{{ searchTerm }}" on sales order {{ soNumber }}.
             </div>
           } @else {
             @for (line of matches; track line.LineNumber) {
@@ -191,16 +196,13 @@
                 <div class="dropdown-item-info">
                   <div class="dropdown-item-top">
                     <span class="dropdown-item-number">{{ line.ItemNumber }}</span>
-                    @if (line.ReceivingWarehouseId) {
-                      <span class="dropdown-item-po">{{ line.ReceivingWarehouseId }}</span>
-                    }
                   </div>
                   @if (line.ProductName) {
                     <div class="dropdown-item-name">{{ line.ProductName }}</div>
                   }
                 </div>
                 <span class="dropdown-item-qty">
-                  {{ getRemainingQty(line) }}{{ line.PurchaseUnitSymbol ? ' ' + line.PurchaseUnitSymbol : '' }}
+                  {{ getRemainingQty(line) }}{{ line.SalesUnitSymbol ? ' ' + line.SalesUnitSymbol : '' }}
                 </span>
               </div>
             }
@@ -209,11 +211,11 @@
       </div>
     }
 
-    <!-- Items added to this receipt -->
+    <!-- Items added to this transfer -->
     @if (cart.length > 0) {
       <div class="cart-card">
         <div class="cart-header">
-          <h3 class="cart-title">Items to Receive <span class="cart-count">{{ cart.length }}</span></h3>
+          <h3 class="cart-title">Items to Transfer <span class="cart-count">{{ cart.length }}</span></h3>
           <ion-button fill="clear" size="small" color="medium" class="cart-clear-btn" (click)="clearCart()">
             Clear
           </ion-button>
@@ -224,9 +226,6 @@
               <div class="cart-item-info">
                 <div class="cart-item-name-row">
                   <span class="cart-item-number">{{ item.line.ItemNumber }}</span>
-                  @if (item.line.ReceivingWarehouseId) {
-                    <span class="cart-item-wh">{{ item.line.ReceivingWarehouseId }}</span>
-                  }
                 </div>
                 @if (item.line.ProductName) {
                   <div class="cart-item-name">{{ item.line.ProductName }}</div>
@@ -267,8 +266,7 @@
               </div>
 
               <div class="unit-display" aria-label="Unit">
-                <span class="unit-display-value">{{ item.line.PurchaseUnitSymbol || '—' }}</span>
-                <ion-icon name="chevron-down-outline" class="unit-display-chevron"></ion-icon>
+                <span class="unit-display-value">{{ item.line.SalesUnitSymbol || '—' }}</span>
               </div>
             </div>
 
@@ -307,7 +305,7 @@
       <ds-empty-state
         icon="barcode-outline"
         title="Scan or Search Items"
-        [message]="'Enter an item number or name, or tap the scan icon, to add lines from PO ' + poNumber + '. Scan as many items as you need — they\'ll appear here.'">
+        [message]="'Enter an item number or name, or tap the scan icon, to add lines from sales order ' + soNumber + '. Scan as many items as you need — they\'ll appear here.'">
       </ds-empty-state>
     }
 
@@ -316,13 +314,13 @@
 
 </ion-content>
 
-<!-- Confirm receipt bar -->
-<ion-footer class="ion-no-border cart-footer" [class.footer-hidden]="receiptConfirmed || cart.length === 0">
+<!-- Confirm transfer footer -->
+<ion-footer class="ion-no-border cart-footer" [class.footer-hidden]="transferConfirmed || cart.length === 0">
   <ds-cta-bar
-    [label]="'Confirm Receipt (' + cart.length + ')'"
-    icon="checkmark-circle-outline"
+    [label]="'Confirm Transfer (' + cart.length + ')'"
+    icon="swap-horizontal-outline"
     [loading]="isSubmitting"
     [disabled]="!canSubmit"
-    (ctaClick)="submitReceipt()">
+    (ctaClick)="confirmTransfer()">
   </ds-cta-bar>
 </ion-footer>

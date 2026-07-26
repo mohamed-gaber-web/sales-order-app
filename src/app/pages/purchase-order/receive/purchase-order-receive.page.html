@@ -59,22 +59,6 @@
                 <span class="summary-field-value">{{ receiptPdfData.productName }}</span>
               </div>
             }
-            @if (receiptPdfData.unitPrice !== undefined) {
-              <div class="summary-field">
-                <span class="summary-field-label">Unit Price</span>
-                <span class="summary-field-value">
-                  {{ receiptPdfData.unitPrice | number:'1.2-2' }}
-                  {{ receiptPdfData.currency ? ' ' + receiptPdfData.currency : '' }}
-                </span>
-              </div>
-              <div class="summary-field">
-                <span class="summary-field-label">Total</span>
-                <span class="summary-field-value primary">
-                  {{ receiptPdfData.receiptQty * receiptPdfData.unitPrice | number:'1.2-2' }}
-                  {{ receiptPdfData.currency ? ' ' + receiptPdfData.currency : '' }}
-                </span>
-              </div>
-            }
           </div>
 
         </ion-card-content>
@@ -136,16 +120,19 @@
 
           <div class="context-body">
             <!-- Item info -->
-            <div class="item-row">
-              <div class="item-icon-wrap">
-                <ion-icon name="cube-outline"></ion-icon>
+            <div class="item-id-section">
+              <ion-label class="field-label">Product Item ID</ion-label>
+              <div class="item-id-field">
+                <ion-icon name="cube-outline" class="item-id-icon"></ion-icon>
+                <ion-input
+                  [value]="line.ItemNumber"
+                  [readonly]="true"
+                  class="item-id-input">
+                </ion-input>
               </div>
-              <div class="item-info">
-                <div class="item-number">{{ line.ItemNumber }}</div>
-                @if (line.ProductName) {
-                  <div class="item-name">{{ line.ProductName }}</div>
-                }
-              </div>
+              @if (line.ProductName) {
+                <p class="line-item-name">{{ line.ProductName }}</p>
+              }
             </div>
 
             <!-- Quantity progress -->
@@ -155,7 +142,8 @@
                 <span class="qty-pct">{{ receivedPct | number:'1.0-0' }}% received</span>
               </div>
               <div class="qty-track">
-                <div class="qty-fill" [style.width.%]="receivedPct"></div>
+                <div class="qty-fill done" [style.width.%]="receivedPct"></div>
+                <div class="qty-fill pending" [style.width.%]="pendingPct" [style.left.%]="receivedPct"></div>
               </div>
               <div class="qty-values">
                 <div class="qty-stat">
@@ -179,12 +167,6 @@
                 <div class="field-item">
                   <span class="field-label">Warehouse</span>
                   <span class="field-value">{{ line.ReceivingWarehouseId }}</span>
-                </div>
-              }
-              @if (line.PurchasePrice !== null && line.PurchasePrice !== undefined) {
-                <div class="field-item">
-                  <span class="field-label">Unit Price</span>
-                  <span class="field-value">{{ line.PurchasePrice | number:'1.2-2' }}</span>
                 </div>
               }
             </div>

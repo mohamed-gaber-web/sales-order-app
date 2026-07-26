@@ -1,0 +1,304 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/inventory/transfer-journal" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Set Locations</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="from-to-content">
+
+  <!-- Web Page Header (desktop only) -->
+  <div class="web-page-header">
+    <div class="web-page-header-inner">
+      <div class="web-title-group">
+        <h1 class="web-page-title">Set Locations</h1>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-section-wrap">
+
+    <!-- Selected sales order banner -->
+    <div class="so-hero">
+      <div class="so-hero-info">
+        <span class="so-hero-label">Sales Order</span>
+        <span class="so-hero-value">{{ soNumber }}</span>
+        @if (salesOrderName || custAccount) {
+          <span class="so-hero-sub">{{ salesOrderName || custAccount }}</span>
+        }
+      </div>
+      <ion-button fill="clear" size="small" class="change-so-btn" (click)="changeSo()">
+        Change
+      </ion-button>
+    </div>
+
+    <p class="step-hint">Set where these items are moving from and to, then start scanning.</p>
+
+    <!-- ── From ────────────────────────────────────────────── -->
+    <h3 class="section-label">From</h3>
+    <div class="form-card">
+      <div class="field-row" [class.field-invalid]="fieldInvalid(from.siteId)">
+        <ion-label class="field-label">Site <span class="required">*</span></ion-label>
+        <div class="select-trigger custom-input" (click)="toggleSitePicker('from')">
+          <span [class.placeholder]="!from.siteId">{{ from.siteId ? (from.siteName || from.siteId) : 'Select site' }}</span>
+          <ion-icon name="chevron-down-outline" [class.open]="from.showSitePicker"></ion-icon>
+        </div>
+        @if (from.showSitePicker) {
+          <div class="select-dropdown">
+            <ion-searchbar
+              placeholder="Search sites..."
+              [debounce]="100"
+              (ionInput)="onSiteSearch('from', $any($event).detail.value || '')">
+            </ion-searchbar>
+            <div class="select-dropdown-list">
+              @for (site of from.filteredSites; track site.SiteId) {
+                <div
+                  class="select-dropdown-item"
+                  [class.active]="from.siteId === site.SiteId"
+                  (click)="selectSite('from', site)">
+                  <ion-icon name="checkmark-outline" class="check-icon"></ion-icon>
+                  <span>{{ site.SiteName || site.SiteId }}</span>
+                </div>
+              }
+              @if (from.filteredSites.length === 0) {
+                <div class="select-dropdown-empty">
+                  {{ isLoadingLookups ? 'Loading sites...' : 'No sites found' }}
+                </div>
+              }
+            </div>
+          </div>
+        }
+        @if (fieldInvalid(from.siteId)) {
+          <p class="field-error">
+            <ion-icon name="alert-circle-outline"></ion-icon>
+            Site is required.
+          </p>
+        }
+      </div>
+
+      <div class="field-row" [class.field-invalid]="fieldInvalid(from.warehouseId)">
+        <ion-label class="field-label">Warehouse <span class="required">*</span></ion-label>
+        <div class="select-trigger custom-input" (click)="toggleWarehousePicker('from')">
+          <span [class.placeholder]="!from.warehouseId">{{ from.warehouseId ? (from.warehouseName || from.warehouseId) : 'Select warehouse' }}</span>
+          <ion-icon name="chevron-down-outline" [class.open]="from.showWarehousePicker"></ion-icon>
+        </div>
+        @if (from.showWarehousePicker) {
+          <div class="select-dropdown">
+            <ion-searchbar
+              placeholder="Search warehouses..."
+              [debounce]="100"
+              (ionInput)="onWarehouseSearch('from', $any($event).detail.value || '')">
+            </ion-searchbar>
+            <div class="select-dropdown-list">
+              @for (wh of from.filteredWarehouses; track wh.WarehouseId) {
+                <div
+                  class="select-dropdown-item"
+                  [class.active]="from.warehouseId === wh.WarehouseId"
+                  (click)="selectWarehouse('from', wh)">
+                  <ion-icon name="checkmark-outline" class="check-icon"></ion-icon>
+                  <span>{{ wh.WarehouseName || wh.WarehouseId }}</span>
+                </div>
+              }
+              @if (from.filteredWarehouses.length === 0) {
+                <div class="select-dropdown-empty">
+                  {{ isLoadingLookups ? 'Loading warehouses...' : 'No warehouses found' }}
+                </div>
+              }
+            </div>
+          </div>
+        }
+        @if (fieldInvalid(from.warehouseId)) {
+          <p class="field-error">
+            <ion-icon name="alert-circle-outline"></ion-icon>
+            Warehouse is required.
+          </p>
+        }
+      </div>
+
+      <div class="field-row" [class.field-invalid]="fieldInvalid(from.locationId)">
+        <ion-label class="field-label">Location <span class="required">*</span></ion-label>
+        <div
+          class="select-trigger custom-input"
+          [class.disabled]="!from.warehouseId"
+          (click)="toggleLocationPicker('from')">
+          <span [class.placeholder]="!from.locationId">{{ from.locationId || (from.warehouseId ? 'Select location' : 'Choose a warehouse first') }}</span>
+          <ion-icon name="chevron-down-outline" [class.open]="from.showLocationPicker"></ion-icon>
+        </div>
+        @if (from.showLocationPicker) {
+          <div class="select-dropdown">
+            <ion-searchbar
+              placeholder="Search locations..."
+              [debounce]="100"
+              (ionInput)="onLocationSearch('from', $any($event).detail.value || '')">
+            </ion-searchbar>
+            <div class="select-dropdown-list">
+              @for (loc of from.filteredLocations; track loc.LocationId) {
+                <div
+                  class="select-dropdown-item"
+                  [class.active]="from.locationId === loc.LocationId"
+                  (click)="selectLocation('from', loc)">
+                  <ion-icon name="checkmark-outline" class="check-icon"></ion-icon>
+                  <span>{{ loc.LocationId }}</span>
+                </div>
+              }
+              @if (from.filteredLocations.length === 0) {
+                <div class="select-dropdown-empty">
+                  {{ from.isLoadingLocations ? 'Loading locations...' : 'No locations found' }}
+                </div>
+              }
+            </div>
+          </div>
+        }
+        @if (fieldInvalid(from.locationId)) {
+          <p class="field-error">
+            <ion-icon name="alert-circle-outline"></ion-icon>
+            Location is required.
+          </p>
+        }
+      </div>
+    </div>
+
+    <!-- ── To ──────────────────────────────────────────────── -->
+    <h3 class="section-label">To</h3>
+    <div class="form-card">
+      <div class="field-row" [class.field-invalid]="fieldInvalid(to.siteId)">
+        <ion-label class="field-label">Site <span class="required">*</span></ion-label>
+        <div class="select-trigger custom-input" (click)="toggleSitePicker('to')">
+          <span [class.placeholder]="!to.siteId">{{ to.siteId ? (to.siteName || to.siteId) : 'Select site' }}</span>
+          <ion-icon name="chevron-down-outline" [class.open]="to.showSitePicker"></ion-icon>
+        </div>
+        @if (to.showSitePicker) {
+          <div class="select-dropdown">
+            <ion-searchbar
+              placeholder="Search sites..."
+              [debounce]="100"
+              (ionInput)="onSiteSearch('to', $any($event).detail.value || '')">
+            </ion-searchbar>
+            <div class="select-dropdown-list">
+              @for (site of to.filteredSites; track site.SiteId) {
+                <div
+                  class="select-dropdown-item"
+                  [class.active]="to.siteId === site.SiteId"
+                  (click)="selectSite('to', site)">
+                  <ion-icon name="checkmark-outline" class="check-icon"></ion-icon>
+                  <span>{{ site.SiteName || site.SiteId }}</span>
+                </div>
+              }
+              @if (to.filteredSites.length === 0) {
+                <div class="select-dropdown-empty">
+                  {{ isLoadingLookups ? 'Loading sites...' : 'No sites found' }}
+                </div>
+              }
+            </div>
+          </div>
+        }
+        @if (fieldInvalid(to.siteId)) {
+          <p class="field-error">
+            <ion-icon name="alert-circle-outline"></ion-icon>
+            Site is required.
+          </p>
+        }
+      </div>
+
+      <div class="field-row" [class.field-invalid]="fieldInvalid(to.warehouseId)">
+        <ion-label class="field-label">Warehouse <span class="required">*</span></ion-label>
+        <div class="select-trigger custom-input" (click)="toggleWarehousePicker('to')">
+          <span [class.placeholder]="!to.warehouseId">{{ to.warehouseId ? (to.warehouseName || to.warehouseId) : 'Select warehouse' }}</span>
+          <ion-icon name="chevron-down-outline" [class.open]="to.showWarehousePicker"></ion-icon>
+        </div>
+        @if (to.showWarehousePicker) {
+          <div class="select-dropdown">
+            <ion-searchbar
+              placeholder="Search warehouses..."
+              [debounce]="100"
+              (ionInput)="onWarehouseSearch('to', $any($event).detail.value || '')">
+            </ion-searchbar>
+            <div class="select-dropdown-list">
+              @for (wh of to.filteredWarehouses; track wh.WarehouseId) {
+                <div
+                  class="select-dropdown-item"
+                  [class.active]="to.warehouseId === wh.WarehouseId"
+                  (click)="selectWarehouse('to', wh)">
+                  <ion-icon name="checkmark-outline" class="check-icon"></ion-icon>
+                  <span>{{ wh.WarehouseName || wh.WarehouseId }}</span>
+                </div>
+              }
+              @if (to.filteredWarehouses.length === 0) {
+                <div class="select-dropdown-empty">
+                  {{ isLoadingLookups ? 'Loading warehouses...' : 'No warehouses found' }}
+                </div>
+              }
+            </div>
+          </div>
+        }
+        @if (fieldInvalid(to.warehouseId)) {
+          <p class="field-error">
+            <ion-icon name="alert-circle-outline"></ion-icon>
+            Warehouse is required.
+          </p>
+        }
+      </div>
+
+      <div class="field-row" [class.field-invalid]="fieldInvalid(to.locationId)">
+        <ion-label class="field-label">Location <span class="required">*</span></ion-label>
+        <div
+          class="select-trigger custom-input"
+          [class.disabled]="!to.warehouseId"
+          (click)="toggleLocationPicker('to')">
+          <span [class.placeholder]="!to.locationId">{{ to.locationId || (to.warehouseId ? 'Select location' : 'Choose a warehouse first') }}</span>
+          <ion-icon name="chevron-down-outline" [class.open]="to.showLocationPicker"></ion-icon>
+        </div>
+        @if (to.showLocationPicker) {
+          <div class="select-dropdown">
+            <ion-searchbar
+              placeholder="Search locations..."
+              [debounce]="100"
+              (ionInput)="onLocationSearch('to', $any($event).detail.value || '')">
+            </ion-searchbar>
+            <div class="select-dropdown-list">
+              @for (loc of to.filteredLocations; track loc.LocationId) {
+                <div
+                  class="select-dropdown-item"
+                  [class.active]="to.locationId === loc.LocationId"
+                  (click)="selectLocation('to', loc)">
+                  <ion-icon name="checkmark-outline" class="check-icon"></ion-icon>
+                  <span>{{ loc.LocationId }}</span>
+                </div>
+              }
+              @if (to.filteredLocations.length === 0) {
+                <div class="select-dropdown-empty">
+                  {{ to.isLoadingLocations ? 'Loading locations...' : 'No locations found' }}
+                </div>
+              }
+            </div>
+          </div>
+        }
+        @if (fieldInvalid(to.locationId)) {
+          <p class="field-error">
+            <ion-icon name="alert-circle-outline"></ion-icon>
+            Location is required.
+          </p>
+        }
+      </div>
+    </div>
+
+    @if (submitted && sameFromTo) {
+      <p class="field-error same-error">
+        <ion-icon name="alert-circle-outline"></ion-icon>
+        From and To locations must be different.
+      </p>
+    }
+
+  </div>
+
+</ion-content>
+
+<ion-footer class="ion-no-border start-footer">
+  <ds-cta-bar
+    label="Start Scan"
+    icon="scan-outline"
+    (ctaClick)="startScanning()">
+  </ds-cta-bar>
+</ion-footer>

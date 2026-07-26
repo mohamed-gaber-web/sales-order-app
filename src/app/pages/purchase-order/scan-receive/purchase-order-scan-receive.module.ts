@@ -6,6 +6,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { PurchaseOrderScanReceivePage } from './purchase-order-scan-receive.page';
 import { DesignSystemModule } from '../../../shared/design-system/design-system.module';
 import { ScannerModalModule } from '../../inventory/scanner/scanner-modal.module';
+import { LabelPreviewModalModule } from '../label-preview/label-preview-modal.module';
 
 const routes: Routes = [
   {
@@ -21,7 +22,8 @@ const routes: Routes = [
     IonicModule,
     RouterModule.forChild(routes),
     DesignSystemModule,
-    ScannerModalModule
+    ScannerModalModule,
+    LabelPreviewModalModule
   ],
   declarations: [PurchaseOrderScanReceivePage]
 })

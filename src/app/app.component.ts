@@ -23,7 +23,8 @@ export class AppComponent implements OnInit, OnDestroy {
       items: [
         { title: 'Transfer Order', url: '/transfer-order/list', icon: 'swap-horizontal' },
         { title: 'Count Cycle',    url: '/inventory/cycle-count', icon: 'refresh-circle' },
-        { title: 'Movement',       url: null, icon: 'git-branch', comingSoon: true },
+        { title: 'Barcode Count',  url: '/inventory/cycle-count/count-by-barcode', icon: 'qr-code' },
+        { title: 'Transfer Journal', url: '/inventory/transfer-journal', icon: 'git-compare' },
       ]
     },
     {

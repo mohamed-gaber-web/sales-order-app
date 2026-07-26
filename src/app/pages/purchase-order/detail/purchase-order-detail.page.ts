@@ -1,6 +1,7 @@
 import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { finalize } from 'rxjs/operators';
+import { TimeoutError } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AlertController, LoadingController, ModalController, ToastController } from '@ionic/angular';
 import { PurchaseOrderService } from '../../../core/services/purchase-order.service';
@@ -43,6 +44,14 @@ export class PurchaseOrderDetailPage implements OnInit {
 
   ngOnInit() {
     this.poNumber = this.route.snapshot.paramMap.get('poNumber') ?? '';
+  }
+
+  /**
+   * Ionic keeps this page's component instance alive in the nav stack, so ngOnInit
+   * only fires once. Without this, coming back here after receiving (via /receive or
+   * the barcode flow) shows the stale pre-receipt quantities and progress bar.
+   */
+  ionViewWillEnter() {
     if (this.poNumber) {
       this.loadDetail();
     }
@@ -180,7 +189,7 @@ export class PurchaseOrderDetailPage implements OnInit {
       _request: {
         DataAreaId: ((this.po?.dataAreaId as string) ?? 'usmf').toUpperCase(),
         purchaseOrderID: this.poNumber,
-        packingSlipId,
+        productReceiptId: packingSlipId,
         purchaseLineNum: selected.map((l) => l.LineNumber),
         productReceiptQty: selected.map((l) => this.getRemainingQty(l)),
       },
@@ -215,6 +224,18 @@ export class PurchaseOrderDetailPage implements OnInit {
           }
         },
         error: async (err: unknown) => {
+          if (err instanceof TimeoutError) {
+            this.loadDetail();
+            const toast = await this.toastCtrl.create({
+              message: 'Taking longer than expected. Refreshed the order — check remaining quantities before submitting again.',
+              buttons: [{ text: 'Dismiss', role: 'cancel' }],
+              color: 'warning',
+              position: 'bottom',
+            });
+            await toast.present();
+            return;
+          }
+
           const e = err as { error?: { Message?: string; message?: string }; message?: string };
           const msg = e?.error?.Message ?? e?.error?.message ?? e?.message;
           const toast = await this.toastCtrl.create({

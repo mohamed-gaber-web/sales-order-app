@@ -143,6 +143,14 @@ export class InventoryHomePage {
       route: '/inventory/quality',
     },
     {
+      id: 'US-16',
+      title: 'Transfer Journal',
+      subtitle: 'Move items between locations for a sales order',
+      icon: 'git-compare-outline',
+      color: '#a21caf',
+      route: '/inventory/transfer-journal',
+    },
+    {
       id: 'US-PRJ',
       title: 'Project',
       subtitle: 'Issue items to projects',

@@ -333,6 +333,9 @@ ion-header ion-toolbar {
       font-size: 13px;
       font-weight: 600;
       color: var(--ion-text-color, #111827);
+
+      &.warning { color: var(--ion-color-warning); }
+      &.success { color: var(--ion-color-success); }
     }
   }
 }
