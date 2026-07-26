@@ -10,7 +10,7 @@ import {
   CreateProductReceiptRequest,
   CreateProductReceiptResponse,
 } from '../../models/purchase-order.model';
-import { environment } from '../../../environments/environment';
+import { testPurchaseOrderEnv } from '../../../environments/test-purchase-order-env';
 
 export const PO_PAGE_SIZE = 10;
 
@@ -35,7 +35,7 @@ export class PurchaseOrderService {
    * (no proxy available) it hits environment.testPurchaseOrderD365BaseUrl directly.
    */
   private getData<T>(path: string, params?: Record<string, string>): Observable<T> {
-    if (environment.useTestPurchaseOrderEnv) {
+    if (testPurchaseOrderEnv.useTestPurchaseOrderEnv) {
       return from(this.authService.getTestPurchaseOrderToken()).pipe(
         switchMap((token) =>
           this.api.isNative
@@ -43,7 +43,7 @@ export class PurchaseOrderService {
                 path,
                 params,
                 { Authorization: `Bearer ${token}` },
-                environment.testPurchaseOrderD365BaseUrl
+                testPurchaseOrderEnv.testPurchaseOrderD365BaseUrl
               )
             : this.api.getWithHeaders<T>(
                 path.replace('/data', '/api/test-data'),
@@ -62,7 +62,7 @@ export class PurchaseOrderService {
    * Same native/web split as getData above.
    */
   private postServices<T>(path: string, body: unknown): Observable<T> {
-    if (environment.useTestPurchaseOrderEnv) {
+    if (testPurchaseOrderEnv.useTestPurchaseOrderEnv) {
       return from(this.authService.getTestPurchaseOrderToken()).pipe(
         switchMap((token) =>
           this.api.isNative
@@ -70,7 +70,7 @@ export class PurchaseOrderService {
                 path,
                 body,
                 { Authorization: `Bearer ${token}` },
-                environment.testPurchaseOrderD365BaseUrl
+                testPurchaseOrderEnv.testPurchaseOrderD365BaseUrl
               )
             : this.api.postWithHeaders<T>(
                 path.replace('/api/services', '/api/test-services'),
@@ -122,7 +122,7 @@ export class PurchaseOrderService {
 
   getOrderWithLines(
     poNumber: string,
-    dataAreaId: string = environment.useTestPurchaseOrderEnv ? '007' : 'usmf'
+    dataAreaId: string = testPurchaseOrderEnv.useTestPurchaseOrderEnv ? '007' : 'usmf'
   ): Observable<PurchaseOrderHeader> {
     return this.getData<PurchaseOrderHeader>(
       `/data/PurchaseOrderHeadersV2(dataAreaId='${dataAreaId}',PurchaseOrderNumber='${poNumber}')`,

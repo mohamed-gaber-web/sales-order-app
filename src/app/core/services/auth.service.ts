@@ -3,6 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Platform } from '@ionic/angular';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { testPurchaseOrderEnv } from '../../../environments/test-purchase-order-env';
 
 interface TokenResponse {
   token_type: string;
@@ -107,7 +108,11 @@ export class AuthService {
       return cachedToken;
     }
 
-    const { clientId, clientSecret, scope, grantType, tokenUrl } = environment.testPurchaseOrderAuth;
+    const testAuth = testPurchaseOrderEnv.testPurchaseOrderAuth;
+    if (!testAuth) {
+      throw new Error('Test purchase-order auth is not configured in this environment.');
+    }
+    const { clientId, clientSecret, scope, grantType, tokenUrl } = testAuth;
     const body = new HttpParams()
       .set('grant_type', grantType)
       .set('client_id', clientId)
