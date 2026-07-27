@@ -192,13 +192,30 @@ export interface ProductionOrder {
   ItemNumber: string;
   ItemName?: string;
   OrderedQuantity: number;
-  // Optional — not returned by ProductionOrdersV2 itself; populate once the
-  // Report as Finished source confirms how remaining-to-report qty is derived.
   ReportedQuantity?: number;
   RemainingQuantity?: number;
   WarehouseId?: string;
+  // Passed to reportAsFinished as LocationId / BatchId.
+  LocationId?: string;
+  ItemBatchNumber?: string;
   ProductionOrderStatus?: string;
   dataAreaId?: string;
+}
+
+/** Raw row of the D365 `ProductionOrderHeaders` entity — the fields this app reads. */
+export interface ProductionOrderHeader {
+  dataAreaId: string;
+  ProductionOrderNumber: string;
+  ItemNumber: string;
+  ProductionOrderName?: string;
+  ProductionOrderStatus?: string;
+  ScheduledQuantity?: number;
+  EstimatedQuantity?: number;
+  StartedQuantity?: number;
+  RemainingReportAsFinishedQuantity?: number;
+  ItemBatchNumber?: string;
+  ProductionWarehouseId?: string;
+  ProductionWarehouseLocationId?: string;
 }
 
 export interface BomComponent {
@@ -224,21 +241,77 @@ export interface ProductionIssuePayload {
 
 // ── Report As Finished ───────────────────────────────────────────────────────
 
-export interface ReportAsFinishedPayload {
+/** Request/response of GP_ProductionService.reportAsFinished (GP_ProdRAFRequestContract). */
+export interface ProdRafRequest {
+  _request: {
+    DataAreaId: string;
+    ProductionOrderId: string;
+    GoodQuantity: number;
+    ErrorQuantity: number;
+    BatchId: string;
+    LocationId: string;
+    TransDate: string;
+    AcceptError: 'Yes' | 'No';
+    EndJob: 'Yes' | 'No';
+  };
+}
+
+export interface ProdRafResponse {
+  Success?: boolean;
+  Message?: string;
+  ProductionStatus?: string;
+  /** Not in the published contract — read defensively in case a build adds it. */
+  JournalId?: string;
+}
+
+export interface ReportAsFinishedLine {
   dataAreaId: string;
-  reportId: string;
-  lines: Array<{
-    productionOrderNumber: string;
-    itemNumber: string;
-    reportedQty: number;
-  }>;
+  productionOrderNumber: string;
+  itemNumber: string;
+  reportedQty: number;
+  locationId?: string;
+  batchId?: string;
+}
+
+export interface ReportAsFinishedPayload {
+  lines: ReportAsFinishedLine[];
+}
+
+/** Outcome of one production order: reported as finished, then its journal posted. */
+export interface ReportAsFinishedLineResult {
+  productionOrderNumber: string;
+  itemNumber: string;
+  reportedQty: number;
+  /** reportAsFinished accepted the quantity. */
+  reported: boolean;
+  /** postJournal ran and succeeded. False when no journal number could be resolved. */
+  posted: boolean;
+  journalNumber?: string;
+  /** D365's own message from reportAsFinished. */
+  message?: string;
+  errorMessage?: string;
 }
 
 export interface ReportAsFinishedResponse {
   Success: boolean;
+  Results: ReportAsFinishedLineResult[];
+}
+
+/** Request/response of GP_ProductionService.postJournal. */
+export interface PostJournalRequest {
+  _request: {
+    JournalId: string;
+    DataAreaId: string;
+  };
+}
+
+export interface PostJournalResponse {
+  Success?: boolean;
+  JournalId?: string;
+  Message?: string;
+  Posted?: string;
   ErrorMessage?: string;
   DebugMessage?: string;
-  ReportId?: string;
 }
 
 // ── Vendor Returns (US-08) ───────────────────────────────────────────────────
@@ -361,7 +434,7 @@ export interface CycleCountJournalHeader {
   /** References a Counting journal name configured in D365 (Inventory management > Setup > Journal names > Counting). Verify this field name against your environment's OData metadata before relying on it. */
   JournalNameId?: string;
   Description?: string;
-  WorkerResponsiblePersonnelNumber?: string;
+  WorkerPersonnelNumber?: string;
   IsPosted?: string;
   CountingReasonCodeId?: string;
   [key: string]: unknown;

@@ -24,6 +24,14 @@ const PO_FILTER =
   "DocumentApprovalStatus eq Microsoft.Dynamics.DataEntities.VersioningDocumentState'Confirmed'" +
   " and PurchaseOrderStatus eq Microsoft.Dynamics.DataEntities.PurchStatus'Backorder'";
 
+/**
+ * TEMPORARY (Elsewedy sandbox): the company under test. The detail/receipt flows can
+ * only load one company at a time, so list queries scope to this same one — otherwise
+ * tapping an order from another company 404s on the entity-key GET.
+ */
+const TEST_PO_COMPANY = '007';
+
+
 @Injectable({ providedIn: 'root' })
 export class PurchaseOrderService {
   constructor(private api: ApiService, private authService: AuthService) { }
@@ -36,24 +44,39 @@ export class PurchaseOrderService {
    */
   private getData<T>(path: string, params?: Record<string, string>): Observable<T> {
     if (testPurchaseOrderEnv.useTestPurchaseOrderEnv) {
+      // The Elsewedy service principal's default company holds no purchase-order data,
+      // so company-scoped reads look "successful" but come back empty: collection GETs
+      // return HTTP 200 with `@odata.count: 0`, and entity-key GETs return 404. Opting
+      // into cross-company makes D365 resolve rows outside that default company.
+      const crossCompanyParams = { ...params, 'cross-company': 'true' };
       return from(this.authService.getTestPurchaseOrderToken()).pipe(
         switchMap((token) =>
           this.api.isNative
             ? this.api.getWithHeaders<T>(
                 path,
-                params,
+              crossCompanyParams,
                 { Authorization: `Bearer ${token}` },
                 testPurchaseOrderEnv.testPurchaseOrderD365BaseUrl
               )
             : this.api.getWithHeaders<T>(
                 path.replace('/data', '/api/test-data'),
-                params,
+              crossCompanyParams,
                 { Authorization: `Bearer ${token}` }
               )
         )
       );
     }
     return this.api.get<T>(path, params);
+  }
+
+  /**
+   * Cross-company reads span every legal entity, so on the test env the status filter
+   * is narrowed to the company under test. The main env stays scoped by D365 itself.
+   */
+  private get poFilter(): string {
+    return testPurchaseOrderEnv.useTestPurchaseOrderEnv
+      ? `dataAreaId eq '${TEST_PO_COMPANY}' and ${PO_FILTER}`
+      : PO_FILTER;
   }
 
   /**
@@ -90,7 +113,7 @@ export class PurchaseOrderService {
         '$top': String(PO_PAGE_SIZE),
         '$skip': String(skip),
         '$count': 'true',
-        '$filter': PO_FILTER,
+        '$filter': this.poFilter,
         '$orderby': 'PurchaseOrderNumber desc',
       }
     );
@@ -101,7 +124,7 @@ export class PurchaseOrderService {
       '/data/PurchaseOrderHeadersV2',
       {
         '$count': 'true',
-        '$filter': PO_FILTER,
+        '$filter': this.poFilter,
         '$orderby': 'PurchaseOrderNumber desc',
       }
     );
@@ -113,7 +136,7 @@ export class PurchaseOrderService {
       '/data/PurchaseOrderHeadersV2',
       {
         '$count': 'true',
-        '$filter': PO_FILTER,
+        '$filter': this.poFilter,
         '$orderby': 'PurchaseOrderNumber desc',
         '$expand': 'PurchaseOrderLinesV2',
       }
@@ -122,7 +145,7 @@ export class PurchaseOrderService {
 
   getOrderWithLines(
     poNumber: string,
-    dataAreaId: string = testPurchaseOrderEnv.useTestPurchaseOrderEnv ? '007' : 'usmf'
+    dataAreaId: string = testPurchaseOrderEnv.useTestPurchaseOrderEnv ? TEST_PO_COMPANY : 'usmf'
   ): Observable<PurchaseOrderHeader> {
     return this.getData<PurchaseOrderHeader>(
       `/data/PurchaseOrderHeadersV2(dataAreaId='${dataAreaId}',PurchaseOrderNumber='${poNumber}')`,

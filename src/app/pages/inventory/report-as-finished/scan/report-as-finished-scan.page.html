@@ -28,8 +28,8 @@
         <ion-card-content>
           <div class="summary-hero">
             <div>
-              <p class="summary-label">Report ID</p>
-              <p class="summary-value primary">{{ confirmedReportId }}</p>
+              <p class="summary-label">Journal</p>
+              <p class="summary-value primary">{{ confirmedJournalLabel }}</p>
             </div>
             <div class="summary-badge">{{ confirmedCount }} orders</div>
           </div>
@@ -53,6 +53,9 @@
             <div class="report-item">
               <span class="report-item-number">{{ ci.productionOrderNumber }}</span>
               <span class="report-item-name">{{ ci.itemNumber }}{{ ci.itemName ? ' — ' + ci.itemName : '' }}</span>
+              @if (ci.journalNumber) {
+                <span class="report-item-journal">Journal {{ ci.journalNumber }}</span>
+              }
             </div>
             <span class="report-item-qty">
               {{ ci.qty | number:'1.0-3' }}
@@ -78,7 +81,7 @@
     </div>
   }
 
-  <!-- ── Scan / Cart flow ─────────────────────────────────── -->
+  <!-- ── Scan / Search flow ────────────────────────────────── -->
   @if (!reportConfirmed) {
 
   <div class="search-section">
@@ -104,44 +107,6 @@
         <ion-icon slot="icon-only" name="scan-outline"></ion-icon>
       </ion-button>
     </div>
-
-    <!-- Manual entry fallback -->
-    <div class="manual-toggle">
-      <ion-button fill="clear" size="small" class="manual-toggle-btn" (click)="toggleManualEntry()">
-        <ion-icon slot="start" name="create-outline"></ion-icon>
-        {{ showManualEntry ? 'Cancel manual entry' : "Can't find it? Add manually" }}
-      </ion-button>
-    </div>
-
-    @if (showManualEntry) {
-      <div class="manual-entry-card">
-        <div class="manual-entry-row">
-          <ion-input
-            [(ngModel)]="manualOrderNumber"
-            type="text"
-            placeholder="Production order number"
-            class="custom-input manual-item-input"
-            (keyup.enter)="addManualItem()">
-          </ion-input>
-          <ion-input
-            [(ngModel)]="manualQty"
-            type="number"
-            [min]="0.001"
-            placeholder="Qty"
-            class="custom-input manual-qty-input"
-            (keyup.enter)="addManualItem()">
-          </ion-input>
-        </div>
-        <ion-button
-          expand="block"
-          class="manual-add-btn"
-          [disabled]="!manualOrderNumber.trim()"
-          (click)="addManualItem()">
-          <ion-icon slot="start" name="add-outline"></ion-icon>
-          Add to Report
-        </ion-button>
-      </div>
-    }
 
     <!-- Autocomplete dropdown -->
     @if (showDropdown) {
@@ -181,7 +146,7 @@
       </div>
     }
 
-    <!-- Items added to this report -->
+    <!-- Orders added to this report -->
     @if (cart.length > 0) {
       <div class="cart-card">
         <div class="cart-header">
@@ -265,45 +230,6 @@
         <ion-icon name="scan-outline"></ion-icon>
         <span>Scan or search the next production order to add it above.</span>
       </div>
-    }
-
-    <!-- Browsable list of open production orders (the "production table") -->
-    @if (!showDropdown && !searchTerm) {
-      @if (isLoadingOrders) {
-        <div class="orders-loading">
-          <ion-spinner name="crescent"></ion-spinner>
-          <p>Loading production orders...</p>
-        </div>
-      } @else if (availableOrders.length > 0) {
-        <div class="orders-list-wrap">
-          <p class="orders-list-title">Open Production Orders</p>
-          <div class="orders-list">
-            @for (order of availableOrders; track order.ProductionOrderNumber) {
-              <div class="order-row" (click)="addItem(order)">
-                <div class="order-row-info">
-                  <div class="order-row-top">
-                    <span class="order-row-number">{{ order.ProductionOrderNumber }}</span>
-                    @if (order.ProductionOrderStatus) {
-                      <span class="order-row-status">{{ order.ProductionOrderStatus }}</span>
-                    }
-                  </div>
-                  <div class="order-row-item">{{ order.ItemNumber }}{{ order.ItemName ? ' — ' + order.ItemName : '' }}</div>
-                </div>
-                <div class="order-row-qty">
-                  <span>{{ getRemainingQty(order) }}</span>
-                  <ion-icon name="add-circle-outline"></ion-icon>
-                </div>
-              </div>
-            }
-          </div>
-        </div>
-      } @else if (cart.length === 0) {
-        <ds-empty-state
-          icon="construct-outline"
-          title="No Open Production Orders"
-          message="There are no production orders awaiting a finished-goods report right now.">
-        </ds-empty-state>
-      }
     }
 
   </div>

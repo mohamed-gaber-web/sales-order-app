@@ -6,6 +6,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { CycleCountScanPage } from './cycle-count-scan.page';
 import { DesignSystemModule } from '../../../../shared/design-system/design-system.module';
 import { ScannerModalModule } from '../../scanner/scanner-modal.module';
+import { CycleCountLabelModalModule } from '../label-preview/cycle-count-label-modal.module';
 
 const routes: Routes = [
   {
@@ -21,7 +22,8 @@ const routes: Routes = [
     IonicModule,
     RouterModule.forChild(routes),
     DesignSystemModule,
-    ScannerModalModule
+    ScannerModalModule,
+    CycleCountLabelModalModule
   ],
   declarations: [CycleCountScanPage]
 })

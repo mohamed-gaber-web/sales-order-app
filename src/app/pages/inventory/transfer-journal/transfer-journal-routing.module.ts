@@ -4,14 +4,10 @@ import { Routes, RouterModule } from '@angular/router';
 const routes: Routes = [
   {
     path: '',
-    loadChildren: () => import('./select-so/transfer-journal-select-so.module').then(m => m.TransferJournalSelectSoModule)
-  },
-  {
-    path: 'from-to/:soNumber',
     loadChildren: () => import('./from-to/transfer-journal-from-to.module').then(m => m.TransferJournalFromToModule)
   },
   {
-    path: 'scan/:soNumber',
+    path: 'scan',
     loadChildren: () => import('./scan/transfer-journal-scan.module').then(m => m.TransferJournalScanModule)
   },
 ];

@@ -1,9 +1,9 @@
 <ion-header class="ion-no-border">
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-back-button defaultHref="/inventory/transfer-journal" text=""></ion-back-button>
+      <ion-back-button defaultHref="/inventory" text=""></ion-back-button>
     </ion-buttons>
-    <ion-title>Set Locations</ion-title>
+    <ion-title>Transfer Journal</ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -13,28 +13,14 @@
   <div class="web-page-header">
     <div class="web-page-header-inner">
       <div class="web-title-group">
-        <h1 class="web-page-title">Set Locations</h1>
+        <h1 class="web-page-title">Transfer Journal</h1>
       </div>
     </div>
   </div>
 
   <div class="form-section-wrap">
 
-    <!-- Selected sales order banner -->
-    <div class="so-hero">
-      <div class="so-hero-info">
-        <span class="so-hero-label">Sales Order</span>
-        <span class="so-hero-value">{{ soNumber }}</span>
-        @if (salesOrderName || custAccount) {
-          <span class="so-hero-sub">{{ salesOrderName || custAccount }}</span>
-        }
-      </div>
-      <ion-button fill="clear" size="small" class="change-so-btn" (click)="changeSo()">
-        Change
-      </ion-button>
-    </div>
-
-    <p class="step-hint">Set where these items are moving from and to, then start scanning.</p>
+    <p class="step-hint">Set where the items are moving from and to, then start scanning.</p>
 
     <!-- ── From ────────────────────────────────────────────── -->
     <h3 class="section-label">From</h3>

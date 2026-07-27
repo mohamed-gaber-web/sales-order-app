@@ -85,59 +85,6 @@ ion-header ion-toolbar {
   }
 }
 
-// ── Manual entry fallback ─────────────────────────────────────
-.manual-toggle {
-  display: flex;
-  justify-content: center;
-  margin-top: 6px;
-
-  .manual-toggle-btn {
-    --color: var(--ds-accent);
-    font-size: 12.5px;
-    font-weight: var(--ds-weight-bold);
-    text-transform: none;
-    height: 30px;
-  }
-}
-
-.manual-entry-card {
-  background: var(--ds-bg-1);
-  border: 1.5px dashed var(--ds-line);
-  border-radius: var(--ds-radius-lg);
-  padding: var(--ds-space-4);
-  margin-top: 4px;
-  animation: fadeSlideUp 0.22s var(--ds-ease-out) backwards;
-}
-
-.manual-entry-row {
-  display: flex;
-  gap: var(--ds-space-2);
-  margin-bottom: 10px;
-
-  .manual-item-input {
-    flex: 2;
-    min-width: 0;
-  }
-
-  .manual-qty-input {
-    flex: 1;
-    min-width: 0;
-  }
-}
-
-.manual-add-btn {
-  --background: var(--ds-navy);
-  --border-radius: var(--ds-radius-md);
-  font-weight: var(--ds-weight-bold);
-  font-size: var(--ds-text-md);
-  height: 46px;
-  margin: 0;
-
-  &[disabled] {
-    opacity: 0.5;
-  }
-}
-
 // ── Autocomplete Dropdown ────────────────────────────────────
 .select-dropdown {
   background: var(--ds-bg-1);
@@ -484,109 +431,7 @@ ion-header ion-toolbar {
   }
 }
 
-// ── Browsable "production table" list ────────────────────────
-.orders-loading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 40px var(--ds-space-8);
-  gap: var(--ds-space-3);
-  ion-spinner { width: 28px; height: 28px; }
-  p { color: var(--ds-txt-2); font-size: var(--ds-text-sm); margin: 0; }
-}
-
-.orders-list-wrap {
-  margin-top: var(--ds-space-6);
-}
-
-.orders-list-title {
-  font-size: var(--ds-text-sm);
-  font-weight: var(--ds-weight-bold);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--ds-txt-2);
-  margin: 0 0 var(--ds-space-3) 2px;
-}
-
-.orders-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--ds-space-2);
-}
-
-.order-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--ds-space-3);
-  background: var(--ds-bg-1);
-  border-radius: var(--ds-radius-md);
-  box-shadow: var(--ds-shadow-sm);
-  padding: 12px 14px;
-  cursor: pointer;
-  transition: transform var(--ds-motion-fast) ease;
-
-  &:active {
-    transform: scale(0.98);
-  }
-}
-
-.order-row-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.order-row-top {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 2px;
-}
-
-.order-row-number {
-  font-size: var(--ds-text-md);
-  font-weight: var(--ds-weight-bold);
-  color: var(--ds-navy);
-  letter-spacing: -0.01em;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.order-row-status {
-  font-size: var(--ds-text-sm);
-  font-weight: var(--ds-weight-semibold);
-  color: var(--ds-txt-2);
-  background: var(--ds-bg-0);
-  padding: 2px 8px;
-  border-radius: var(--ds-radius-pill);
-  flex-shrink: 0;
-  white-space: nowrap;
-}
-
-.order-row-item {
-  font-size: var(--ds-text-base);
-  color: var(--ds-txt-2);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.order-row-qty {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-shrink: 0;
-  font-size: var(--ds-text-md);
-  font-weight: var(--ds-weight-bold);
-  color: var(--ds-accent);
-
-  ion-icon {
-    font-size: 20px;
-  }
-}
-
-// ── Confirm report footer ───────────────────────────────────
+// ── Confirm posting footer ──────────────────────────────────
 .cart-footer.footer-hidden {
   display: none;
 }
@@ -764,6 +609,15 @@ ion-header ion-toolbar {
   .report-item-name {
     font-size: var(--ds-text-sm);
     color: var(--ds-txt-2);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .report-item-journal {
+    margin-top: 2px;
+    font-size: var(--ds-text-xs);
+    color: var(--ds-txt-3);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;

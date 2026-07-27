@@ -80,7 +80,7 @@ export class CycleCountListPage {
       j =>
         j.JournalNumber.toLowerCase().includes(t) ||
         (j.Description ?? '').toLowerCase().includes(t) ||
-        (j.WorkerResponsiblePersonnelNumber ?? '').toLowerCase().includes(t)
+        (j.WorkerPersonnelNumber ?? '').toLowerCase().includes(t)
     );
   }
 

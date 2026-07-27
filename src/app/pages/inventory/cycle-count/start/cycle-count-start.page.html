@@ -100,22 +100,6 @@
         }
       </div>
 
-      <div class="field-row" [class.field-invalid]="fieldInvalid(journalNameId)">
-        <ion-label class="field-label">Journal Name <span class="required">*</span></ion-label>
-        <ion-input
-          [(ngModel)]="journalNameId"
-          placeholder="e.g. Cycle"
-          class="custom-input">
-        </ion-input>
-        <p class="field-hint">Must match a counting journal name configured in D365.</p>
-        @if (fieldInvalid(journalNameId)) {
-          <p class="field-error">
-            <ion-icon name="alert-circle-outline"></ion-icon>
-            Journal name is required.
-          </p>
-        }
-      </div>
-
       <div class="field-row">
         <ion-label class="field-label">Description <span class="optional">Optional</span></ion-label>
         <ion-input

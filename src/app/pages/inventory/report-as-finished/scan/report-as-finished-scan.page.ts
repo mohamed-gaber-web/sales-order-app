@@ -1,8 +1,8 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { ActionSheetController, LoadingController, ModalController, ToastController } from '@ionic/angular';
 import { ReportAsFinishedService } from '../../../../core/services/report-as-finished.service';
-import { ProductionOrder } from '../../../../models/inventory.model';
+import { ProductionOrder, ReportAsFinishedLineResult } from '../../../../models/inventory.model';
 import { FinishedGoodsLabelData } from '../../../../core/services/pdf.service';
 import { ScannerModalComponent } from '../../scanner/scanner-modal.component';
 import { FinishedGoodsLabelModalComponent } from '../label-preview/finished-goods-label-modal.component';
@@ -18,6 +18,7 @@ interface ConfirmedItem {
   itemNumber: string;
   itemName?: string;
   qty: number;
+  journalNumber?: string;
 }
 
 @Component({
@@ -26,26 +27,19 @@ interface ConfirmedItem {
   styleUrls: ['./report-as-finished-scan.page.scss'],
   standalone: false,
 })
-export class ReportAsFinishedScanPage implements OnInit {
-  orders: ProductionOrder[] = [];
-  isLoadingOrders = false;
-
+export class ReportAsFinishedScanPage {
   searchTerm = '';
   showDropdown = false;
   isSearching = false;
   matches: ProductionOrder[] = [];
 
-  showManualEntry = false;
-  manualOrderNumber = '';
-  manualQty: number | null = null;
-
   isSubmitting = false;
   reportConfirmed = false;
   confirmedCount = 0;
-  confirmedReportId = '';
   confirmedItems: ConfirmedItem[] = [];
   confirmedTotalQty = 0;
 
+  private orders: ProductionOrder[] = [];
   private cartMap = new Map<string, ReportCartItem>();
   private ordersLoaded = false;
   private searchSeq = 0;
@@ -62,9 +56,10 @@ export class ReportAsFinishedScanPage implements OnInit {
     return this.cart.reduce((sum, i) => sum + (Number(i.qty) || 0), 0);
   }
 
-  /** Orders not already added to the cart — shown as a browsable list under the search box. */
-  get availableOrders(): ProductionOrder[] {
-    return this.orders.filter(o => !this.cartMap.has(o.ProductionOrderNumber));
+  get confirmedJournalLabel(): string {
+    const journals = [...new Set(this.confirmedItems.map(i => i.journalNumber).filter(Boolean))];
+    if (journals.length === 0) return '—';
+    return journals.length === 1 ? journals[0]! : `${journals.length} journals`;
   }
 
   private router = inject(Router);
@@ -89,25 +84,20 @@ export class ReportAsFinishedScanPage implements OnInit {
     return item.qty > 0 && item.qty <= item.remainingQty;
   }
 
-  ngOnInit() {
-    this.loadOrders();
-  }
-
+  /**
+   * Orders are fetched on first search, not on load — the screen shows nothing until
+   * you scan or search for one.
+   */
   private loadOrders(): Promise<void> {
     if (this.ordersLoaded) return Promise.resolve();
-    this.isLoadingOrders = true;
     return new Promise((resolve, reject) => {
       this.rafService.getOpenProductionOrders().subscribe({
         next: (res) => {
           this.orders = res.value;
           this.ordersLoaded = true;
-          this.isLoadingOrders = false;
           resolve();
         },
-        error: (err) => {
-          this.isLoadingOrders = false;
-          reject(err instanceof Error ? err : new Error('Failed to load production orders'));
-        },
+        error: (err) => reject(err instanceof Error ? err : new Error('Failed to load production orders')),
       });
     });
   }
@@ -150,6 +140,10 @@ export class ReportAsFinishedScanPage implements OnInit {
     }
   }
 
+  /**
+   * D365 rejects contains()/startswith() on the production order entity, so matching
+   * runs in memory over the orders still open for reporting.
+   */
   private async runSearch(term: string, fromScan: boolean) {
     const seq = ++this.searchSeq;
     this.isSearching = true;
@@ -193,13 +187,7 @@ export class ReportAsFinishedScanPage implements OnInit {
     }
   }
 
-  private buildCartItem(order: ProductionOrder, initialQty?: number): ReportCartItem {
-    const remainingQty = this.getRemainingQty(order);
-    const qty = initialQty && initialQty > 0 ? Math.min(initialQty, remainingQty) : remainingQty;
-    return { order, qty, remainingQty };
-  }
-
-  async addItem(order: ProductionOrder, initialQty?: number) {
+  async addItem(order: ProductionOrder) {
     this.showDropdown = false;
     this.clearSearch();
 
@@ -214,7 +202,8 @@ export class ReportAsFinishedScanPage implements OnInit {
       return;
     }
 
-    this.cartMap.set(order.ProductionOrderNumber, this.buildCartItem(order, initialQty));
+    const remainingQty = this.getRemainingQty(order);
+    this.cartMap.set(order.ProductionOrderNumber, { order, qty: remainingQty, remainingQty });
   }
 
   removeFromCart(item: ReportCartItem) {
@@ -241,98 +230,33 @@ export class ReportAsFinishedScanPage implements OnInit {
     item.qty = Math.round(clamped * 1000) / 1000;
   }
 
-  toggleManualEntry() {
-    this.showManualEntry = !this.showManualEntry;
-    this.manualOrderNumber = '';
-    this.manualQty = null;
-  }
-
-  async addManualItem() {
-    const orderNum = this.manualOrderNumber.trim();
-    if (!orderNum) return;
-
-    try {
-      await this.loadOrders();
-    } catch {
-      const toast = await this.toastCtrl.create({
-        message: 'Could not load production orders. Check your connection.',
-        buttons: [{ text: 'Dismiss', role: 'cancel' }],
-        color: 'danger',
-        position: 'bottom',
-      });
-      await toast.present();
-      return;
-    }
-
-    const match = this.orders.find(o => o.ProductionOrderNumber.toLowerCase() === orderNum.toLowerCase());
-    if (!match) {
-      const toast = await this.toastCtrl.create({
-        message: `"${orderNum}" is not an open production order.`,
-        buttons: [{ text: 'Dismiss', role: 'cancel' }],
-        color: 'danger',
-        position: 'bottom',
-      });
-      await toast.present();
-      return;
-    }
-
-    await this.addItem(match, this.manualQty ?? undefined);
-    this.showManualEntry = false;
-    this.manualOrderNumber = '';
-    this.manualQty = null;
-  }
-
-  private generateReportId(): string {
-    return `RAF-${Date.now()}`;
-  }
-
   async submitReport() {
     if (!this.canSubmit || this.isSubmitting) return;
     this.isSubmitting = true;
 
     const items = this.cart;
-    const reportId = this.generateReportId();
+    const itemNames = new Map(items.map(i => [i.order.ProductionOrderNumber, i.order.ItemName]));
 
     const loading = await this.loadingCtrl.create({
-      message: 'Recording report...',
+      message: items.length > 1 ? `Reporting ${items.length} orders...` : 'Reporting as finished...',
       spinner: 'crescent'
     });
     await loading.present();
 
     this.rafService.reportAsFinished({
-      dataAreaId: items[0]?.order.dataAreaId ?? 'usmf',
-      reportId,
       lines: items.map(i => ({
+        dataAreaId: i.order.dataAreaId ?? 'usmf',
         productionOrderNumber: i.order.ProductionOrderNumber,
         itemNumber: i.order.ItemNumber,
         reportedQty: i.qty,
+        locationId: i.order.LocationId,
+        batchId: i.order.ItemBatchNumber,
       })),
     }).subscribe({
       next: async (res) => {
         await loading.dismiss();
         this.isSubmitting = false;
-        if (res.Success) {
-          this.confirmedCount = items.length;
-          this.confirmedReportId = reportId;
-          this.confirmedTotalQty = items.reduce((sum, i) => sum + i.qty, 0);
-          this.confirmedItems = items.map((item) => ({
-            productionOrderNumber: item.order.ProductionOrderNumber,
-            itemNumber: item.order.ItemNumber,
-            itemName: item.order.ItemName,
-            qty: item.qty,
-          }));
-          this.reportConfirmed = true;
-          this.cartMap.clear();
-        } else {
-          const serverMsg = (res.ErrorMessage || res.DebugMessage || '').trim();
-          const toast = await this.toastCtrl.create({
-            message: serverMsg ? `Report failed: ${serverMsg}` : 'Report failed. Try again.',
-            buttons: [{ text: 'Dismiss', role: 'cancel' }],
-            color: 'danger',
-            position: 'bottom'
-          });
-          await toast.present();
-        }
+        await this.applyResults(res.Results, itemNames);
       },
       error: async (err) => {
         await loading.dismiss();
@@ -351,11 +275,66 @@ export class ReportAsFinishedScanPage implements OnInit {
     });
   }
 
+  /** Reported orders move to the confirmation screen; the rest stay in the list to retry. */
+  private async applyResults(results: ReportAsFinishedLineResult[], itemNames: Map<string, string | undefined>) {
+    const reported = results.filter(r => r.reported);
+    const failed = results.filter(r => !r.reported);
+    // Reported but the journal didn't post — the quantity is in D365, the journal isn't.
+    const needsAttention = reported.filter(r => !r.posted);
+
+    for (const r of reported) {
+      this.cartMap.delete(r.productionOrderNumber);
+    }
+    if (reported.length > 0) {
+      // Remaining quantities have changed in D365 — refetch before the next search.
+      this.ordersLoaded = false;
+
+      this.confirmedItems = reported.map(r => ({
+        productionOrderNumber: r.productionOrderNumber,
+        itemNumber: r.itemNumber,
+        itemName: itemNames.get(r.productionOrderNumber),
+        qty: r.reportedQty,
+        journalNumber: r.journalNumber,
+      }));
+      this.confirmedCount = reported.length;
+      this.confirmedTotalQty = reported.reduce((sum, r) => sum + r.reportedQty, 0);
+      this.reportConfirmed = true;
+    }
+
+    if (failed.length > 0) {
+      const detail = failed
+        .map(f => `${f.productionOrderNumber}: ${f.errorMessage ?? 'not reported'}`)
+        .join(' • ');
+      const toast = await this.toastCtrl.create({
+        message: reported.length > 0
+          ? `${reported.length} of ${results.length} reported. ${detail}`
+          : `Report failed. ${detail}`,
+        buttons: [{ text: 'Dismiss', role: 'cancel' }],
+        color: 'danger',
+        position: 'bottom'
+      });
+      await toast.present();
+    }
+
+    if (needsAttention.length > 0) {
+      const detail = needsAttention
+        .map(r => `${r.productionOrderNumber}: ${r.errorMessage ?? r.message ?? 'no journal number returned — check the journal in D365'}`)
+        .join(' • ');
+      const toast = await this.toastCtrl.create({
+        message: `Reported, but posting is unconfirmed. ${detail}`,
+        buttons: [{ text: 'Dismiss', role: 'cancel' }],
+        color: 'warning',
+        position: 'bottom'
+      });
+      await toast.present();
+    }
+  }
+
   reportMore() {
     this.reportConfirmed = false;
     this.confirmedItems = [];
     this.ordersLoaded = false;
-    this.loadOrders();
+    this.clearSearch();
   }
 
   goToInventory() {
@@ -402,7 +381,7 @@ export class ReportAsFinishedScanPage implements OnInit {
   private buildLabelData(item: ConfirmedItem): FinishedGoodsLabelData {
     return {
       productionOrderNumber: item.productionOrderNumber,
-      reportId: this.confirmedReportId,
+      journalNumber: item.journalNumber ?? '',
       itemNumber: item.itemNumber,
       productName: item.itemName,
       qty: item.qty,

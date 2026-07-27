@@ -697,6 +697,19 @@ ion-header ion-toolbar {
   margin-bottom: 10px;
 }
 
+.label-print-btn {
+  --border-radius: 14px;
+  --border-color: var(--gp-border, #d6d1c7);
+  --color: var(--gp-navy);
+  font-weight: 700;
+  font-size: 14px;
+  text-transform: none;
+  height: 48px;
+  letter-spacing: -0.01em;
+  width: 100%;
+  margin: 0 0 10px;
+}
+
 .back-order-btn {
   --color: var(--ion-color-medium);
   font-size: 14px;

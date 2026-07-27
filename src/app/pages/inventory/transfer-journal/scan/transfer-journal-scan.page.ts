@@ -1,33 +1,24 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import { LoadingController, ModalController, ToastController } from '@ionic/angular';
-import { SalesOrderLineService, SalesOrderLineResponse } from '../../../../core/services/sales-order-line.service';
+import { firstValueFrom } from 'rxjs';
 import { TransferJournalService } from '../../../../core/services/transfer-journal.service';
-import { TransferJournalConfirmPayload, TransferJournalLine } from '../../../../models/transfer-journal.model';
+import { InventoryProduct } from '../../../../models/inventory.model';
+import { TransferJournalItem, TransferRoute } from '../../../../models/transfer-journal.model';
 import { ScannerModalComponent } from '../../scanner/scanner-modal.component';
 
-interface TransferHeaderState {
-  fromSiteId: string; fromSiteName: string;
-  fromWarehouseId: string; fromWarehouseName: string;
-  fromLocationId: string;
-  toSiteId: string; toSiteName: string;
-  toWarehouseId: string; toWarehouseName: string;
-  toLocationId: string;
-}
-
 interface TransferCartItem {
-  line: SalesOrderLineResponse;
+  product: InventoryProduct;
   qty: number;
-  remainingQty: number;
 }
 
 interface ConfirmedItem {
   itemNumber: string;
   productName?: string;
-  lineNumber: number;
   qty: number;
-  unit?: string;
 }
+
+const DEFAULT_QTY = 1;
 
 @Component({
   selector: 'app-transfer-journal-scan',
@@ -36,8 +27,7 @@ interface ConfirmedItem {
   standalone: false,
 })
 export class TransferJournalScanPage implements OnInit {
-  soNumber = '';
-  header: TransferHeaderState = {
+  route: TransferRoute = {
     fromSiteId: '', fromSiteName: '', fromWarehouseId: '', fromWarehouseName: '', fromLocationId: '',
     toSiteId: '', toSiteName: '', toWarehouseId: '', toWarehouseName: '', toLocationId: '',
   };
@@ -45,21 +35,19 @@ export class TransferJournalScanPage implements OnInit {
   searchTerm = '';
   showDropdown = false;
   isSearching = false;
-  matches: SalesOrderLineResponse[] = [];
+  matches: InventoryProduct[] = [];
 
   showManualEntry = false;
   manualItemNumber = '';
   manualQty: number | null = null;
 
   isSubmitting = false;
-  transferConfirmed = false;
+  journalCreated = false;
   confirmedJournalNumber = '';
   confirmedItems: ConfirmedItem[] = [];
   confirmedTotalQty = 0;
 
-  private cartMap = new Map<number, TransferCartItem>();
-  private openLines: SalesOrderLineResponse[] = [];
-  private linesLoaded = false;
+  private cartMap = new Map<string, TransferCartItem>();
   private searchSeq = 0;
 
   get cart(): TransferCartItem[] {
@@ -74,42 +62,23 @@ export class TransferJournalScanPage implements OnInit {
     return this.cart.reduce((sum, i) => sum + (Number(i.qty) || 0), 0);
   }
 
-  private route = inject(ActivatedRoute);
   private router = inject(Router);
   private modalCtrl = inject(ModalController);
   private loadingCtrl = inject(LoadingController);
   private toastCtrl = inject(ToastController);
-  private lineService = inject(SalesOrderLineService);
   private transferJournalService = inject(TransferJournalService);
 
-  private safeNum(val: unknown, fallback = 0): number {
-    const n = Number(val);
-    return isNaN(n) || n < 0 ? fallback : n;
-  }
-
-  getRemainingQty(line: SalesOrderLineResponse): number {
-    const rem = Number(line.RemainingSalesPhysicalQuantity);
-    if (!isNaN(rem) && rem >= 0) return rem;
-    return this.safeNum(line.OrderedSalesQuantity);
-  }
-
   isQtyValid(item: TransferCartItem): boolean {
-    return item.qty > 0 && item.qty <= item.remainingQty;
+    return Number(item.qty) > 0;
   }
 
   ngOnInit() {
-    this.soNumber = this.route.snapshot.paramMap.get('soNumber') ?? '';
-    if (!this.soNumber) {
+    const state = history.state as Partial<TransferRoute>;
+    if (!state?.fromWarehouseId || !state?.fromLocationId || !state?.toWarehouseId || !state?.toLocationId) {
       this.router.navigate(['/inventory/transfer-journal']);
       return;
     }
-
-    const state = history.state as Partial<TransferHeaderState>;
-    if (!state?.fromWarehouseId || !state?.fromLocationId || !state?.toWarehouseId || !state?.toLocationId) {
-      this.router.navigate(['/inventory/transfer-journal/from-to', this.soNumber]);
-      return;
-    }
-    this.header = {
+    this.route = {
       fromSiteId: state.fromSiteId ?? '',
       fromSiteName: state.fromSiteName ?? '',
       fromWarehouseId: state.fromWarehouseId,
@@ -123,16 +92,7 @@ export class TransferJournalScanPage implements OnInit {
     };
   }
 
-  /**
-   * Ionic keeps this page alive in the nav stack, so ngOnInit only fires once.
-   * "Transfer More Items" resets state in place on this same page — without invalidating
-   * the cache, the next search would keep using pre-transfer remaining quantities.
-   */
-  ionViewWillEnter() {
-    this.linesLoaded = false;
-  }
-
-  // ── Item search (live autocomplete on the search field) ────
+  // ── Product search (live autocomplete on the search field) ────
   onSearchInput(term: string) {
     this.searchTerm = term;
     const trimmed = term.trim();
@@ -175,24 +135,17 @@ export class TransferJournalScanPage implements OnInit {
     this.isSearching = true;
     this.showDropdown = true;
     try {
-      if (!this.linesLoaded) {
-        await this.loadOrderLines();
-      }
+      const found = await firstValueFrom(this.transferJournalService.searchProducts(term));
       if (seq !== this.searchSeq) return; // stale — a newer search superseded this one
 
-      const t = term.toLowerCase();
-      const found = this.openLines.filter(line =>
-        line.ItemNumber.toLowerCase().includes(t) ||
-        (line.ProductName ?? '').toLowerCase().includes(t)
-      );
-
       if (fromScan) {
-        const exact = found.filter(line => line.ItemNumber.toLowerCase() === t);
+        const t = term.toLowerCase();
+        const exact = found.filter((p) => p.ProductNumber.toLowerCase() === t);
         const candidates = exact.length > 0 ? exact : found;
         this.matches = candidates;
         if (candidates.length === 1) {
           this.showDropdown = false;
-          this.addItem(candidates[0]);
+          await this.addItem(candidates[0]);
           return;
         }
       } else {
@@ -201,47 +154,23 @@ export class TransferJournalScanPage implements OnInit {
     } catch {
       if (seq !== this.searchSeq) return;
       this.matches = [];
-      const toast = await this.toastCtrl.create({
-        message: `Could not load sales order ${this.soNumber}. Check your connection.`,
-        buttons: [{ text: 'Dismiss', role: 'cancel' }],
-        color: 'danger',
-        position: 'bottom',
-      });
-      await toast.present();
+      await this.showToast('Could not search products. Check your connection.');
     } finally {
       if (seq === this.searchSeq) this.isSearching = false;
     }
   }
 
-  private loadOrderLines(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      this.lineService.getOrderLines(this.soNumber).subscribe({
-        next: (res) => {
-          this.openLines = res.value.filter(
-            (l) => l.LineNumber != null && this.getRemainingQty(l) > 0
-          );
-          this.linesLoaded = true;
-          resolve();
-        },
-        error: (err) => reject(err instanceof Error ? err : new Error('Failed to load sales order')),
-      });
-    });
-  }
-
-  private buildCartItem(line: SalesOrderLineResponse, initialQty?: number): TransferCartItem {
-    const remainingQty = this.getRemainingQty(line);
-    const qty = initialQty && initialQty > 0 ? Math.min(initialQty, remainingQty) : remainingQty;
-    return { line, qty, remainingQty };
-  }
-
-  async addItem(line: SalesOrderLineResponse, initialQty?: number) {
+  /** A repeat scan of the same item adds to its quantity rather than rejecting it. */
+  async addItem(product: InventoryProduct, initialQty?: number) {
     this.showDropdown = false;
     this.clearSearch();
 
-    const lineNumber = line.LineNumber as number;
-    if (this.cartMap.has(lineNumber)) {
+    const qty = initialQty && initialQty > 0 ? initialQty : DEFAULT_QTY;
+    const existing = this.cartMap.get(product.ProductNumber);
+    if (existing) {
+      existing.qty = Math.round((existing.qty + qty) * 1000) / 1000;
       const toast = await this.toastCtrl.create({
-        message: `${line.ItemNumber} is already in your list below.`,
+        message: `${product.ProductNumber} is already listed — quantity is now ${existing.qty}.`,
         duration: 2000,
         color: 'warning',
         position: 'bottom',
@@ -250,11 +179,11 @@ export class TransferJournalScanPage implements OnInit {
       return;
     }
 
-    this.cartMap.set(lineNumber, this.buildCartItem(line, initialQty));
+    this.cartMap.set(product.ProductNumber, { product, qty });
   }
 
   removeFromCart(item: TransferCartItem) {
-    this.cartMap.delete(item.line.LineNumber as number);
+    this.cartMap.delete(item.product.ProductNumber);
   }
 
   clearCart() {
@@ -262,16 +191,12 @@ export class TransferJournalScanPage implements OnInit {
   }
 
   adjustQty(item: TransferCartItem, delta: number) {
-    const next = Math.min(item.remainingQty, Math.max(0, item.qty + delta));
+    const next = Math.max(0, (Number(item.qty) || 0) + delta);
     item.qty = Math.round(next * 1000) / 1000;
   }
 
-  setMaxQty(item: TransferCartItem) {
-    item.qty = item.remainingQty;
-  }
-
   clampQty(item: TransferCartItem) {
-    const clamped = Math.min(item.remainingQty, Math.max(0, Number(item.qty) || 0));
+    const clamped = Math.max(0, Number(item.qty) || 0);
     item.qty = Math.round(clamped * 1000) / 1000;
   }
 
@@ -285,124 +210,76 @@ export class TransferJournalScanPage implements OnInit {
     const itemNum = this.manualItemNumber.trim();
     if (!itemNum) return;
 
-    if (!this.linesLoaded) {
-      try {
-        await this.loadOrderLines();
-      } catch {
-        const toast = await this.toastCtrl.create({
-          message: `Could not load sales order ${this.soNumber}. Check your connection.`,
-          buttons: [{ text: 'Dismiss', role: 'cancel' }],
-          color: 'danger',
-          position: 'bottom',
-        });
-        await toast.present();
-        return;
-      }
-    }
-
-    const match = this.openLines.find(l => l.ItemNumber.toLowerCase() === itemNum.toLowerCase());
-    if (!match) {
-      const toast = await this.toastCtrl.create({
-        message: `"${itemNum}" is not an open line on sales order ${this.soNumber}.`,
-        buttons: [{ text: 'Dismiss', role: 'cancel' }],
-        color: 'danger',
-        position: 'bottom',
-      });
-      await toast.present();
+    let product: InventoryProduct | undefined;
+    try {
+      product = await firstValueFrom(this.transferJournalService.getProductByNumber(itemNum));
+    } catch {
+      await this.showToast('Could not look up that item. Check your connection.');
       return;
     }
 
-    await this.addItem(match, this.manualQty ?? undefined);
+    if (!product) {
+      await this.showToast(`"${itemNum}" is not a product in D365.`);
+      return;
+    }
+
+    await this.addItem(product, this.manualQty ?? undefined);
     this.showManualEntry = false;
     this.manualItemNumber = '';
     this.manualQty = null;
   }
 
-  async confirmTransfer() {
+  async createJournal() {
     if (!this.canSubmit || this.isSubmitting) return;
     this.isSubmitting = true;
 
-    const items = this.cart;
-    const lines: TransferJournalLine[] = items.map((item) => ({
-      soLineNumber: item.line.LineNumber as number,
-      itemNumber: item.line.ItemNumber,
-      itemName: item.line.ProductName,
-      qty: item.qty,
-      unitSymbol: item.line.SalesUnitSymbol,
+    const cartItems = this.cart;
+    const items: TransferJournalItem[] = cartItems.map((item) => ({
+      itemNumber: item.product.ProductNumber,
+      itemName: item.product.ProductName,
+      qty: Number(item.qty),
     }));
 
-    const payload: TransferJournalConfirmPayload = {
-      salesOrderNumber: this.soNumber,
-      dataAreaId: 'usmf',
-      fromSiteId: this.header.fromSiteId,
-      fromWarehouseId: this.header.fromWarehouseId,
-      fromLocationId: this.header.fromLocationId,
-      toSiteId: this.header.toSiteId,
-      toWarehouseId: this.header.toWarehouseId,
-      toLocationId: this.header.toLocationId,
-      lines,
-    };
-
     const loading = await this.loadingCtrl.create({
-      message: 'Confirming transfer...',
+      message: 'Creating journal...',
       spinner: 'crescent',
     });
     await loading.present();
 
-    this.transferJournalService.confirmTransfer(payload).subscribe({
+    this.transferJournalService.createTransferJournal({ route: this.route, items }).subscribe({
       next: async (res) => {
         await loading.dismiss();
         this.isSubmitting = false;
         if (res.success) {
-          this.confirmedJournalNumber = res.journalNumber ?? '';
+          this.confirmedJournalNumber = res.journalNumber;
           this.confirmedTotalQty = items.reduce((sum, i) => sum + i.qty, 0);
-          this.confirmedItems = items.map((item) => ({
-            itemNumber: item.line.ItemNumber,
-            productName: item.line.ProductName,
-            lineNumber: item.line.LineNumber as number,
-            qty: item.qty,
-            unit: item.line.SalesUnitSymbol,
+          this.confirmedItems = cartItems.map((item) => ({
+            itemNumber: item.product.ProductNumber,
+            productName: item.product.ProductName,
+            qty: Number(item.qty),
           }));
-          this.transferConfirmed = true;
+          this.journalCreated = true;
           this.cartMap.clear();
         } else {
-          const toast = await this.toastCtrl.create({
-            message: res.errorMessage ? `Transfer failed: ${res.errorMessage}` : 'Transfer failed. Try again.',
-            buttons: [{ text: 'Dismiss', role: 'cancel' }],
-            color: 'danger',
-            position: 'bottom',
-          });
-          await toast.present();
+          await this.showToast(res.errorMessage ?? 'Could not create the journal. Try again.');
         }
       },
-      error: async (err) => {
+      error: async () => {
         await loading.dismiss();
         this.isSubmitting = false;
-        const d365Message = err?.error?.Message ?? err?.error?.message ?? err?.message;
-        const toast = await this.toastCtrl.create({
-          message: d365Message
-            ? `Transfer failed: ${d365Message}`
-            : 'Transfer failed. Check your connection and try again.',
-          buttons: [{ text: 'Dismiss', role: 'cancel' }],
-          color: 'danger',
-          position: 'bottom',
-        });
-        await toast.present();
+        await this.showToast('Could not create the journal. Check your connection and try again.');
       },
     });
   }
 
-  transferMore() {
-    this.transferConfirmed = false;
+  /** Same route, empty cart — the common case of moving several batches between two bins. */
+  startAnother() {
+    this.journalCreated = false;
     this.confirmedItems = [];
-    this.linesLoaded = false;
+    this.confirmedJournalNumber = '';
   }
 
   changeLocations() {
-    this.router.navigate(['/inventory/transfer-journal/from-to', this.soNumber]);
-  }
-
-  changeSo() {
     this.router.navigate(['/inventory/transfer-journal']);
   }
 
@@ -410,5 +287,15 @@ export class TransferJournalScanPage implements OnInit {
     this.searchTerm = '';
     this.matches = [];
     this.showDropdown = false;
+  }
+
+  private async showToast(message: string) {
+    const toast = await this.toastCtrl.create({
+      message,
+      buttons: [{ text: 'Dismiss', role: 'cancel' }],
+      color: 'danger',
+      position: 'bottom',
+    });
+    await toast.present();
   }
 }

@@ -1,10 +1,11 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import { ToastController } from '@ionic/angular';
 import { forkJoin } from 'rxjs';
 import { SalesOrderLineService, Site, Warehouse } from '../../../../core/services/sales-order-line.service';
 import { TransferJournalService } from '../../../../core/services/transfer-journal.service';
 import { WarehouseLocation } from '../../../../models/inventory.model';
+import { TransferRoute } from '../../../../models/transfer-journal.model';
 
 type Side = 'from' | 'to';
 
@@ -39,10 +40,6 @@ function emptySideState(): SideState {
   standalone: false,
 })
 export class TransferJournalFromToPage implements OnInit {
-  soNumber = '';
-  salesOrderName = '';
-  custAccount = '';
-
   from: SideState = emptySideState();
   to: SideState = emptySideState();
 
@@ -53,21 +50,12 @@ export class TransferJournalFromToPage implements OnInit {
   private allWarehouses: Warehouse[] = [];
   private locationsCache = new Map<string, WarehouseLocation[]>();
 
-  private route = inject(ActivatedRoute);
   private router = inject(Router);
   private toastCtrl = inject(ToastController);
   private lineService = inject(SalesOrderLineService);
   private transferJournalService = inject(TransferJournalService);
 
   ngOnInit() {
-    this.soNumber = this.route.snapshot.paramMap.get('soNumber') ?? '';
-    if (!this.soNumber) {
-      this.router.navigate(['/inventory/transfer-journal']);
-      return;
-    }
-    const navState = history.state as { salesOrderName?: string; custAccount?: string };
-    this.salesOrderName = navState?.salesOrderName ?? '';
-    this.custAccount = navState?.custAccount ?? '';
     this.loadLookups();
   }
 
@@ -85,7 +73,7 @@ export class TransferJournalFromToPage implements OnInit {
       },
       error: async () => {
         this.isLoadingLookups = false;
-        await this.showToast('Could not load sites and warehouses. Go back and try again.');
+        await this.showToast('Could not load sites and warehouses. Pull to refresh or try again.');
       },
     });
   }
@@ -250,24 +238,19 @@ export class TransferJournalFromToPage implements OnInit {
       return;
     }
 
-    this.router.navigate(['/inventory/transfer-journal/scan', this.soNumber], {
-      state: {
-        fromSiteId: this.from.siteId,
-        fromSiteName: this.from.siteName,
-        fromWarehouseId: this.from.warehouseId,
-        fromWarehouseName: this.from.warehouseName,
-        fromLocationId: this.from.locationId,
-        toSiteId: this.to.siteId,
-        toSiteName: this.to.siteName,
-        toWarehouseId: this.to.warehouseId,
-        toWarehouseName: this.to.warehouseName,
-        toLocationId: this.to.locationId,
-      },
-    });
-  }
-
-  changeSo() {
-    this.router.navigate(['/inventory/transfer-journal']);
+    const route: TransferRoute = {
+      fromSiteId: this.from.siteId,
+      fromSiteName: this.from.siteName,
+      fromWarehouseId: this.from.warehouseId,
+      fromWarehouseName: this.from.warehouseName,
+      fromLocationId: this.from.locationId,
+      toSiteId: this.to.siteId,
+      toSiteName: this.to.siteName,
+      toWarehouseId: this.to.warehouseId,
+      toWarehouseName: this.to.warehouseName,
+      toLocationId: this.to.locationId,
+    };
+    this.router.navigate(['/inventory/transfer-journal/scan'], { state: route });
   }
 
   private async showToast(message: string) {

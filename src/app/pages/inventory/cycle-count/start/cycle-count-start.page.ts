@@ -16,7 +16,6 @@ export class CycleCountStartPage implements OnInit {
   siteName = '';
   warehouseId = '';
   warehouseName = '';
-  journalNameId = 'Cycle';
   description = '';
   countedBy = '';
 
@@ -141,7 +140,7 @@ export class CycleCountStartPage implements OnInit {
   }
 
   get isValid(): boolean {
-    return !!(this.siteId.trim() && this.warehouseId.trim() && this.journalNameId.trim());
+    return !!(this.siteId.trim() && this.warehouseId.trim());
   }
 
   startScanning() {
@@ -154,7 +153,6 @@ export class CycleCountStartPage implements OnInit {
       state: {
         siteId: this.siteId.trim(),
         warehouseId: this.warehouseId.trim(),
-        journalNameId: this.journalNameId.trim(),
         description: this.description.trim(),
         countedBy: this.countedBy.trim(),
       },

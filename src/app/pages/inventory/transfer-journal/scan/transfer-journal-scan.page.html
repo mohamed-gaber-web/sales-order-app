@@ -1,35 +1,35 @@
 <ion-header class="ion-no-border">
   <ion-toolbar>
     <ion-buttons slot="start">
-      @if (!transferConfirmed) {
-        <ion-back-button [defaultHref]="'/inventory/transfer-journal/from-to/' + soNumber"></ion-back-button>
+      @if (!journalCreated) {
+        <ion-back-button defaultHref="/inventory/transfer-journal"></ion-back-button>
       }
     </ion-buttons>
-    <ion-title>{{ transferConfirmed ? 'Transfer Confirmed' : 'Barcode Transfer' }}</ion-title>
+    <ion-title>{{ journalCreated ? 'Journal Created' : 'Scan Items' }}</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="scan-transfer-content">
 
   <!-- ── Success State ─────────────────────────────────────── -->
-  @if (transferConfirmed) {
+  @if (journalCreated) {
     <div class="success-wrap">
 
       <div class="success-icon-ring">
         <ion-icon name="checkmark-circle" class="success-icon"></ion-icon>
       </div>
 
-      <h2 class="success-title">Transfer Confirmed</h2>
+      <h2 class="success-title">Journal Created</h2>
       <p class="success-sub">
-        {{ confirmedItems.length }} item{{ confirmedItems.length === 1 ? '' : 's' }} transferred on {{ soNumber }}
+        {{ confirmedItems.length }} item{{ confirmedItems.length === 1 ? '' : 's' }} on journal {{ confirmedJournalNumber }} — post it in D365 to move the stock.
       </p>
 
       <ion-card class="transfer-summary-card">
         <ion-card-content>
           <div class="summary-hero">
             <div>
-              <p class="summary-label">Sales Order</p>
-              <p class="summary-value primary">{{ soNumber }}</p>
+              <p class="summary-label">Journal</p>
+              <p class="summary-value primary">{{ confirmedJournalNumber }}</p>
             </div>
             <div class="summary-badge">{{ confirmedItems.length }} items</div>
           </div>
@@ -37,22 +37,20 @@
           <div class="summary-grid">
             <div class="summary-field">
               <span class="summary-field-label">From</span>
-              <span class="summary-field-value">{{ header.fromWarehouseId }} · {{ header.fromLocationId }}</span>
+              <span class="summary-field-value">{{ route.fromWarehouseId }} · {{ route.fromLocationId }}</span>
             </div>
             <div class="summary-field">
               <span class="summary-field-label">To</span>
-              <span class="summary-field-value">{{ header.toWarehouseId }} · {{ header.toLocationId }}</span>
+              <span class="summary-field-value">{{ route.toWarehouseId }} · {{ route.toLocationId }}</span>
             </div>
             <div class="summary-field">
               <span class="summary-field-label">Total Qty</span>
               <span class="summary-field-value accent">{{ confirmedTotalQty | number:'1.0-3' }}</span>
             </div>
-            @if (confirmedJournalNumber) {
-              <div class="summary-field">
-                <span class="summary-field-label">Journal</span>
-                <span class="summary-field-value">{{ confirmedJournalNumber }}</span>
-              </div>
-            }
+            <div class="summary-field">
+              <span class="summary-field-label">Status</span>
+              <span class="summary-field-value">Not posted</span>
+            </div>
           </div>
         </ion-card-content>
       </ion-card>
@@ -62,7 +60,7 @@
           <span>Item</span>
           <span>Qty transferred</span>
         </div>
-        @for (ci of confirmedItems; track ci.lineNumber) {
+        @for (ci of confirmedItems; track ci.itemNumber) {
           <div class="transfer-row">
             <div class="transfer-item">
               <span class="transfer-item-number">{{ ci.itemNumber }}</span>
@@ -70,19 +68,17 @@
                 <span class="transfer-item-name">{{ ci.productName }}</span>
               }
             </div>
-            <span class="transfer-item-qty">
-              {{ ci.qty | number:'1.0-3' }}{{ ci.unit ? ' ' + ci.unit : '' }}
-            </span>
+            <span class="transfer-item-qty">{{ ci.qty | number:'1.0-3' }}</span>
           </div>
         }
       </div>
 
-      <ion-button expand="block" class="submit-btn" (click)="transferMore()">
+      <ion-button expand="block" class="submit-btn" (click)="startAnother()">
         <ion-icon slot="start" name="scan-outline"></ion-icon>
-        Transfer More Items
+        Start Another Transfer
       </ion-button>
 
-      <ion-button expand="block" fill="clear" class="back-order-btn" (click)="changeSo()">
+      <ion-button expand="block" fill="clear" class="back-order-btn" (click)="changeLocations()">
         Done
       </ion-button>
 
@@ -90,13 +86,13 @@
   }
 
   <!-- ── Scan / Cart flow ─────────────────────────────────── -->
-  @if (!transferConfirmed) {
+  @if (!journalCreated) {
 
   <!-- Web Page Header (desktop only) -->
   <div class="web-page-header">
     <div class="web-page-header-inner">
       <div class="web-title-group">
-        <h1 class="web-page-title">Barcode Transfer</h1>
+        <h1 class="web-page-title">Scan Items</h1>
       </div>
     </div>
   </div>
@@ -106,8 +102,8 @@
     <!-- Selected route hero -->
     <div class="route-hero">
       <div class="route-hero-info">
-        <span class="route-hero-label">Sales Order {{ soNumber }}</span>
-        <span class="route-hero-value">{{ header.fromWarehouseId }} · {{ header.fromLocationId }} <ion-icon name="arrow-forward-outline"></ion-icon> {{ header.toWarehouseId }} · {{ header.toLocationId }}</span>
+        <span class="route-hero-label">Transfer route</span>
+        <span class="route-hero-value">{{ route.fromWarehouseId }} · {{ route.fromLocationId }} <ion-icon name="arrow-forward-outline"></ion-icon> {{ route.toWarehouseId }} · {{ route.toLocationId }}</span>
       </div>
       <ion-button fill="clear" size="small" class="change-route-btn" (click)="changeLocations()">
         Change
@@ -116,7 +112,7 @@
 
     <div class="tip-banner">
       <ion-icon name="information-circle" class="tip-icon"></ion-icon>
-      <span>Only items on this sales order's open lines can be added — scan or search each item, set its quantity, then confirm below.</span>
+      <span>Scan or search any product, set its quantity, then create the journal below. It stays unposted for review in D365.</span>
     </div>
 
     <!-- Search + Scan -->
@@ -124,7 +120,7 @@
       <ion-input
         [(ngModel)]="searchTerm"
         type="text"
-        placeholder="Search item number or name..."
+        placeholder="Search product number or name..."
         [debounce]="300"
         [clearInput]="true"
         class="custom-input"
@@ -184,26 +180,23 @@
         </div>
         <div class="select-dropdown-list">
           @if (isSearching) {
-            <div class="select-dropdown-empty">Searching sales order {{ soNumber }}...</div>
+            <div class="select-dropdown-empty">Searching products...</div>
           } @else if (matches.length === 0) {
             <div class="select-dropdown-empty">
-              No open line for "{{ searchTerm }}" on sales order {{ soNumber }}.
+              No product matches "{{ searchTerm }}".
             </div>
           } @else {
-            @for (line of matches; track line.LineNumber) {
-              <div class="select-dropdown-item" (click)="addItem(line)">
+            @for (product of matches; track product.ProductNumber) {
+              <div class="select-dropdown-item" (click)="addItem(product)">
                 <ion-icon name="cube-outline" class="dropdown-item-icon"></ion-icon>
                 <div class="dropdown-item-info">
                   <div class="dropdown-item-top">
-                    <span class="dropdown-item-number">{{ line.ItemNumber }}</span>
+                    <span class="dropdown-item-number">{{ product.ProductNumber }}</span>
                   </div>
-                  @if (line.ProductName) {
-                    <div class="dropdown-item-name">{{ line.ProductName }}</div>
+                  @if (product.ProductName) {
+                    <div class="dropdown-item-name">{{ product.ProductName }}</div>
                   }
                 </div>
-                <span class="dropdown-item-qty">
-                  {{ getRemainingQty(line) }}{{ line.SalesUnitSymbol ? ' ' + line.SalesUnitSymbol : '' }}
-                </span>
               </div>
             }
           }
@@ -220,15 +213,15 @@
             Clear
           </ion-button>
         </div>
-        @for (item of cart; track item.line.LineNumber) {
+        @for (item of cart; track item.product.ProductNumber) {
           <div class="cart-item">
             <div class="cart-item-top">
               <div class="cart-item-info">
                 <div class="cart-item-name-row">
-                  <span class="cart-item-number">{{ item.line.ItemNumber }}</span>
+                  <span class="cart-item-number">{{ item.product.ProductNumber }}</span>
                 </div>
-                @if (item.line.ProductName) {
-                  <div class="cart-item-name">{{ item.line.ProductName }}</div>
+                @if (item.product.ProductName) {
+                  <div class="cart-item-name">{{ item.product.ProductName }}</div>
                 }
               </div>
               <ion-button
@@ -254,7 +247,6 @@
                     [ngModelOptions]="{standalone: true}"
                     (ionBlur)="clampQty(item)"
                     [min]="0.001"
-                    [max]="item.remainingQty"
                     step="0.001"
                     class="qbox-input"
                     [class.invalid]="!isQtyValid(item)">
@@ -264,27 +256,16 @@
                   <ion-icon slot="icon-only" name="add-outline"></ion-icon>
                 </ion-button>
               </div>
-
-              <div class="unit-display" aria-label="Unit">
-                <span class="unit-display-value">{{ item.line.SalesUnitSymbol || '—' }}</span>
-              </div>
             </div>
 
-            <div class="cart-item-meta">
-              <ion-button fill="clear" size="small" class="max-btn" (click)="setMaxQty(item)">
-                Use Max ({{ item.remainingQty }})
-              </ion-button>
-              @if (!isQtyValid(item)) {
+            @if (!isQtyValid(item)) {
+              <div class="cart-item-meta">
                 <p class="field-error">
                   <ion-icon name="alert-circle-outline"></ion-icon>
-                  @if (item.qty <= 0) {
-                    Quantity must be greater than 0.
-                  } @else {
-                    Cannot exceed remaining quantity ({{ item.remainingQty }}).
-                  }
+                  Quantity must be greater than 0.
                 </p>
-              }
-            </div>
+              </div>
+            }
           </div>
         }
 
@@ -305,7 +286,7 @@
       <ds-empty-state
         icon="barcode-outline"
         title="Scan or Search Items"
-        [message]="'Enter an item number or name, or tap the scan icon, to add lines from sales order ' + soNumber + '. Scan as many items as you need — they\'ll appear here.'">
+        message="Enter a product number or name, or tap the scan icon, to add items to this transfer. Scan as many as you need — they'll appear here.">
       </ds-empty-state>
     }
 
@@ -314,13 +295,13 @@
 
 </ion-content>
 
-<!-- Confirm transfer footer -->
-<ion-footer class="ion-no-border cart-footer" [class.footer-hidden]="transferConfirmed || cart.length === 0">
+<!-- Create journal footer -->
+<ion-footer class="ion-no-border cart-footer" [class.footer-hidden]="journalCreated || cart.length === 0">
   <ds-cta-bar
-    [label]="'Confirm Transfer (' + cart.length + ')'"
+    [label]="'Create Journal (' + cart.length + ')'"
     icon="swap-horizontal-outline"
     [loading]="isSubmitting"
     [disabled]="!canSubmit"
-    (ctaClick)="confirmTransfer()">
+    (ctaClick)="createJournal()">
   </ds-cta-bar>
 </ion-footer>

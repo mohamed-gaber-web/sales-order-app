@@ -96,10 +96,10 @@
             @if (journal.Description) {
               <p class="journal-desc">{{ journal.Description }}</p>
             }
-            @if (journal.WorkerResponsiblePersonnelNumber) {
+            @if (journal.WorkerPersonnelNumber) {
               <div class="journal-meta-row">
                 <ion-icon name="person-outline"></ion-icon>
-                <span>{{ journal.WorkerResponsiblePersonnelNumber }}</span>
+                <span>{{ journal.WorkerPersonnelNumber }}</span>
               </div>
             }
             @if (journal.CountingReasonCodeId) {

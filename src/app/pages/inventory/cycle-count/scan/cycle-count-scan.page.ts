@@ -1,16 +1,22 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { LoadingController, ModalController, ToastController } from '@ionic/angular';
+import { ActionSheetController, LoadingController, ModalController, ToastController } from '@ionic/angular';
 import { forkJoin } from 'rxjs';
-import { CycleCountService } from '../../../../core/services/cycle-count.service';
+import { CycleCountService, CYCLE_COUNT_JOURNAL_NAME } from '../../../../core/services/cycle-count.service';
 import { InventoryService } from '../../../../core/services/inventory.service';
-import { InventoryProduct, CountCartItem, CycleCountJournalHeader } from '../../../../models/inventory.model';
+import { CycleCountLabelData } from '../../../../core/services/pdf.service';
+import {
+  InventoryProduct,
+  CountCartItem,
+  CycleCountJournalHeader,
+  CycleCountJournalLine,
+} from '../../../../models/inventory.model';
 import { ScannerModalComponent } from '../../scanner/scanner-modal.component';
+import { CycleCountLabelModalComponent } from '../label-preview/cycle-count-label-modal.component';
 
 interface CountHeaderState {
   siteId: string;
   warehouseId: string;
-  journalNameId: string;
   description: string;
   countedBy: string;
 }
@@ -30,7 +36,7 @@ interface ConfirmedItem {
 export class CycleCountScanPage implements OnInit {
   private readonly dataAreaId = 'usmf';
 
-  header: CountHeaderState = { siteId: '', warehouseId: '', journalNameId: '', description: '', countedBy: '' };
+  header: CountHeaderState = { siteId: '', warehouseId: '', description: '', countedBy: '' };
 
   searchTerm = '';
   showDropdown = false;
@@ -66,6 +72,7 @@ export class CycleCountScanPage implements OnInit {
   private modalCtrl = inject(ModalController);
   private loadingCtrl = inject(LoadingController);
   private toastCtrl = inject(ToastController);
+  private actionSheetCtrl = inject(ActionSheetController);
   private inventoryService = inject(InventoryService);
   private cycleCountService = inject(CycleCountService);
 
@@ -82,7 +89,6 @@ export class CycleCountScanPage implements OnInit {
     this.header = {
       siteId: state.siteId,
       warehouseId: state.warehouseId,
-      journalNameId: state.journalNameId ?? 'Cycle',
       description: state.description ?? '',
       countedBy: state.countedBy ?? '',
     };
@@ -252,25 +258,35 @@ export class CycleCountScanPage implements OnInit {
     });
     await loading.present();
 
-    this.createJournal(this.cycleCountService.generateJournalNumber(), loading, false);
+    this.createJournal(loading);
   }
 
-  private createJournal(journalNumber: string, loading: HTMLIonLoadingElement, retried: boolean) {
+  private createJournal(loading: HTMLIonLoadingElement) {
     const headerBody: Partial<CycleCountJournalHeader> = {
       dataAreaId: this.dataAreaId,
-      JournalNumber: journalNumber,
-      JournalNameId: this.header.journalNameId,
+      JournalNameId: CYCLE_COUNT_JOURNAL_NAME,
       Description: this.header.description || 'Cycle count — created via mobile',
-      WorkerResponsiblePersonnelNumber: this.header.countedBy || undefined,
+      WorkerPersonnelNumber: this.header.countedBy || undefined,
     };
 
     this.cycleCountService.createJournal(headerBody).subscribe({
-      next: () => this.createLines(journalNumber, loading),
-      error: async (err) => {
-        if (err?.status === 409 && !retried) {
-          this.createJournal(this.cycleCountService.generateJournalNumber(), loading, true);
+      next: async (created) => {
+        const journalNumber = created?.JournalNumber;
+        if (!journalNumber) {
+          await loading.dismiss();
+          this.isSubmitting = false;
+          const toast = await this.toastCtrl.create({
+            message: 'D365 created the journal but returned no journal number, so the counted items were not saved.',
+            buttons: [{ text: 'Dismiss', role: 'cancel' }],
+            color: 'danger',
+            position: 'bottom',
+          });
+          await toast.present();
           return;
         }
+        this.createLines(journalNumber, loading);
+      },
+      error: async (err) => {
         await loading.dismiss();
         this.isSubmitting = false;
         const msg = this.extractErrorMessage(err);
@@ -285,9 +301,10 @@ export class CycleCountScanPage implements OnInit {
     });
   }
 
+  /** Lines go to their own entity — the header entity rejects them as nested data. */
   private createLines(journalNumber: string, loading: HTMLIonLoadingElement) {
     const items = this.cart;
-    const creates = items.map((item, i) => this.cycleCountService.createJournalLine({
+    const creates: Partial<CycleCountJournalLine>[] = items.map((item, i) => ({
       dataAreaId: this.dataAreaId,
       JournalNumber: journalNumber,
       LineNumber: i + 1,
@@ -297,7 +314,7 @@ export class CycleCountScanPage implements OnInit {
       CountedQuantity: item.countedQty,
     }));
 
-    forkJoin(creates).subscribe({
+    forkJoin(creates.map(line => this.cycleCountService.createJournalLine(line))).subscribe({
       next: async () => {
         await loading.dismiss();
         this.isSubmitting = false;
@@ -339,6 +356,54 @@ export class CycleCountScanPage implements OnInit {
 
   viewJournal() {
     this.router.navigate(['/inventory/cycle-count/detail', this.confirmedJournalNumber]);
+  }
+
+  async printLabel() {
+    if (this.confirmedItems.length === 0) return;
+
+    if (this.confirmedItems.length === 1) {
+      await this.openLabelPreview(this.confirmedItems[0]);
+      return;
+    }
+
+    const actionSheet = await this.actionSheetCtrl.create({
+      header: 'Print label for…',
+      buttons: [
+        ...this.confirmedItems.map((item) => ({
+          text: `${item.itemNumber} — ${item.qty}`,
+          icon: 'pricetag-outline',
+          handler: () => this.openLabelPreview(item)
+        })),
+        {
+          text: 'Cancel',
+          icon: 'close-outline',
+          role: 'cancel'
+        }
+      ]
+    });
+    await actionSheet.present();
+  }
+
+  private async openLabelPreview(item: ConfirmedItem) {
+    const modal = await this.modalCtrl.create({
+      component: CycleCountLabelModalComponent,
+      componentProps: { labelData: this.buildLabelData(item) },
+      cssClass: 'label-preview-modal',
+      breakpoints: [0, 0.9],
+      initialBreakpoint: 0.9,
+    });
+    await modal.present();
+  }
+
+  private buildLabelData(item: ConfirmedItem): CycleCountLabelData {
+    return {
+      itemNumber: item.itemNumber,
+      productName: item.productName,
+      qty: item.qty,
+      journalNumber: this.confirmedJournalNumber,
+      warehouseId: this.header.warehouseId,
+      countDate: new Date(),
+    };
   }
 
   clearSearch() {
