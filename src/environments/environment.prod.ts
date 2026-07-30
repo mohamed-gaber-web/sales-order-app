@@ -16,4 +16,8 @@ export const environment = {
   },
   apiBaseUrl: '',
   d365BaseUrl: 'https://gp-customers.sandbox.operations.eu.dynamics.com',
+  // Origin serving /api/ocr (the paper-PO document reader). Web leaves this
+  // empty so Vercel routes the relative path; a native build needs the
+  // deployed origin here, e.g. 'https://your-app.vercel.app'.
+  ocrApiBaseUrl: '',
 };

@@ -7,12 +7,14 @@
   padding: var(--ds-space-4) var(--ds-space-5);
   // Account for the 60px custom bottom tab bar (hidden above 1280px)
   padding-bottom: calc(var(--ds-space-4) + 60px + env(safe-area-inset-bottom));
+  background: var(--ds-bg-1);
+  border-top: 1px solid var(--ds-line-soft);
 
+  // Declarations must stay above nested rules — Sass warns (mixed-decls) because
+  // CSS is changing this ordering behaviour.
   @media (min-width: 1280px) {
     padding-bottom: calc(var(--ds-space-4) + env(safe-area-inset-bottom));
   }
-  background: var(--ds-bg-1);
-  border-top: 1px solid var(--ds-line-soft);
 
   .ds-cta-primary {
     --border-radius: var(--ds-radius-md);
