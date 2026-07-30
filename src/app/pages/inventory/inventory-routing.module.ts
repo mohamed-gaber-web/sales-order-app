@@ -79,6 +79,10 @@ const routes: Routes = [
     loadChildren: () => import('./quality/quality.module').then(m => m.QualityModule)
   },
   {
+    path: 'van-sales',
+    loadChildren: () => import('./van-sales/van-sales.module').then(m => m.VanSalesModule)
+  },
+  {
     path: 'inquiry',
     loadChildren: () => import('./inquiry/inquiry.module').then(m => m.InquiryModule)
   },

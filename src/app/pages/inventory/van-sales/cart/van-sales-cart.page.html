@@ -1,0 +1,138 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/inventory/van-sales"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Cart</ion-title>
+    <ion-buttons slot="end">
+      @if (!cart.isEmpty()) {
+        <ion-button (click)="confirmClear()" aria-label="Empty cart">
+          <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+        </ion-button>
+      }
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="cart-content">
+
+  @if (cart.isEmpty()) {
+    <ds-empty-state
+      icon="cart-outline"
+      title="Your cart is empty"
+      message="Browse or scan products to add them, then come back here to set quantities."
+      buttonLabel="Browse products"
+      (buttonClick)="addMore()">
+    </ds-empty-state>
+  } @else {
+
+    <!-- ── Summary hero ────────────────────────────────────── -->
+    <div class="cart-hero">
+      <div class="hero-stat">
+        <span class="hero-label">Products</span>
+        <span class="hero-value">{{ cart.count() }}</span>
+      </div>
+      <div class="hero-divider"></div>
+      <div class="hero-stat">
+        <span class="hero-label">Units</span>
+        <span class="hero-value">{{ cart.totalQty() }}</span>
+      </div>
+      <div class="hero-divider"></div>
+      <div class="hero-stat total">
+        <span class="hero-label">Total</span>
+        <span class="hero-value accent">{{ cart.totalAmount() | number:'1.2-2' }}</span>
+      </div>
+    </div>
+
+    <!-- ── Lines ───────────────────────────────────────────── -->
+    <div class="line-list">
+      @for (line of cart.lines(); track line.itemNumber) {
+        <article class="line-card">
+          <div class="line-top">
+            <div class="line-thumb">
+              @let image = imageUrl(line);
+              @if (image) {
+                <img
+                  [src]="image"
+                  [alt]="line.name"
+                  loading="lazy"
+                  decoding="async"
+                  (error)="onImageError(line)" />
+              } @else {
+                <div class="thumb-fallback" [style.--tile-hue]="tileHue(line)" aria-hidden="true">
+                  {{ initials(line) }}
+                </div>
+              }
+            </div>
+
+            <div class="line-info">
+              <p class="line-number">{{ line.itemNumber }}</p>
+              <h3 class="line-name">{{ line.name }}</h3>
+              <p class="line-price">
+                {{ line.price | number:'1.2-2' }}
+                @if (line.unit) { <span class="line-unit">/ {{ line.unit }}</span> }
+              </p>
+            </div>
+
+            <button
+              type="button"
+              class="line-remove"
+              (click)="remove(line)"
+              [attr.aria-label]="'Remove ' + line.itemNumber">
+              <ion-icon name="close-outline"></ion-icon>
+            </button>
+          </div>
+
+          <div class="line-bottom">
+            <div class="stepper" role="group" [attr.aria-label]="'Quantity for ' + line.itemNumber">
+              <button
+                type="button"
+                class="step"
+                (click)="adjust(line, -1)"
+                [attr.aria-label]="'Decrease ' + line.itemNumber">
+                <ion-icon [name]="line.qty === 1 ? 'trash-outline' : 'remove-outline'"></ion-icon>
+              </button>
+              <input
+                class="step-input"
+                type="number"
+                inputmode="numeric"
+                min="1"
+                [value]="line.qty"
+                (change)="onQtyInput(line, $any($event.target).value)"
+                [attr.aria-label]="'Quantity for ' + line.itemNumber" />
+              <button
+                type="button"
+                class="step"
+                (click)="adjust(line, 1)"
+                [attr.aria-label]="'Increase ' + line.itemNumber">
+                <ion-icon name="add-outline"></ion-icon>
+              </button>
+            </div>
+
+            <div class="line-total">
+              <span class="line-total-label">Line total</span>
+              <span class="line-total-value">{{ lineTotal(line) | number:'1.2-2' }}</span>
+            </div>
+          </div>
+        </article>
+      }
+    </div>
+
+    <button type="button" class="add-more" (click)="addMore()">
+      <ion-icon name="add-circle-outline"></ion-icon>
+      Add more products
+    </button>
+
+    <div class="content-footer-space"></div>
+  }
+
+</ion-content>
+
+<ion-footer class="ion-no-border" [class.footer-hidden]="cart.isEmpty()">
+  <ds-cta-bar
+    [label]="'Checkout · ' + (cart.totalAmount() | number:'1.2-2')"
+    icon="arrow-forward-outline"
+    [disabled]="cart.isEmpty()"
+    (ctaClick)="goToCheckout()">
+  </ds-cta-bar>
+</ion-footer>

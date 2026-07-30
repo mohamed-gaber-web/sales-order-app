@@ -1,0 +1,227 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/inventory"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Van Sales</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="scan()" aria-label="Scan barcode">
+        <ion-icon slot="icon-only" name="scan-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="catalog-content">
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($any($event))">
+    <ion-refresher-content pullingIcon="chevron-down-circle-outline"></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- ── Sticky search + filters ─────────────────────────────── -->
+  <div class="search-bar">
+    <div class="input-with-scan">
+      <ion-input
+        [value]="searchTerm()"
+        type="search"
+        inputmode="search"
+        enterkeyhint="search"
+        placeholder="Search item or name..."
+        [debounce]="200"
+        [clearInput]="true"
+        class="catalog-input"
+        (ionInput)="onSearch($any($event).detail.value || '')">
+        <ion-icon slot="start" name="search-outline" aria-hidden="true"></ion-icon>
+      </ion-input>
+      <button type="button" class="scan-btn" (click)="scan()" aria-label="Scan barcode or QR code">
+        <ion-icon name="scan-outline"></ion-icon>
+      </button>
+    </div>
+
+    <div class="filter-row">
+      <button
+        type="button"
+        class="filter-chip"
+        [class.active]="tab() === 'sellable'"
+        (click)="setTab('sellable')">
+        In van
+        @if (sellableCount()) {
+          <span class="chip-count">{{ sellableCount() }}</span>
+        }
+      </button>
+      <button
+        type="button"
+        class="filter-chip"
+        [class.active]="tab() === 'all'"
+        (click)="setTab('all')">
+        All products
+      </button>
+      @if (!isLoading()) {
+        <span class="result-count">
+          @if (isSearching()) {
+            Searching...
+          } @else {
+            {{ totalForView() | number }} {{ searchTerm() ? 'found' : 'items' }}
+          }
+        </span>
+      }
+    </div>
+  </div>
+
+  <!-- ── Loading ─────────────────────────────────────────────── -->
+  @if (isLoading()) {
+    <div class="product-grid" aria-busy="true" aria-label="Loading products">
+      @for (s of [1,2,3,4,5,6]; track s) {
+        <div class="product-card skeleton">
+          <div class="sk-thumb"></div>
+          <div class="sk-line wide"></div>
+          <div class="sk-line"></div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ── Load failure ────────────────────────────────────────── -->
+  @else if (loadFailed()) {
+    <ds-empty-state
+      icon="cloud-offline-outline"
+      title="Can't load the catalogue"
+      message="Check your connection and try again. Anything already in your cart is safe."
+      buttonLabel="Try again"
+      (buttonClick)="retry()">
+    </ds-empty-state>
+  }
+
+  <!-- ── Searching the full catalogue (first search pulls the index) ── -->
+  @else if (isSearching() && visible().length === 0) {
+    <div class="inline-loading">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>
+        @if (isBuildingIndex()) {
+          Preparing catalogue search — this happens once.
+        } @else {
+          Searching...
+        }
+      </p>
+    </div>
+  }
+
+  <!-- ── No matches ──────────────────────────────────────────── -->
+  @else if (visible().length === 0) {
+    <ds-empty-state
+      icon="cube-outline"
+      [title]="searchTerm() ? 'No product matches' : 'No products here'"
+      [message]="searchTerm()
+        ? 'Nothing matches &quot;' + searchTerm() + '&quot;. Try a shorter term, or switch to All products.'
+        : 'Switch to All products to see items that aren\'t released for sale.'"
+      [buttonLabel]="searchTerm() ? 'Clear search' : ''"
+      (buttonClick)="clearSearch()">
+    </ds-empty-state>
+  }
+
+  <!-- ── Product grid ────────────────────────────────────────── -->
+  @else {
+    <div class="product-grid">
+      @for (product of visible(); track product.itemNumber) {
+        @let qty = cart.qtyByItem().get(product.itemNumber) ?? 0;
+        <article
+          class="product-card"
+          [class.in-cart]="qty > 0"
+          [class.flash]="justScanned() === product.itemNumber">
+
+          <div class="thumb">
+            @let image = imageUrl(product);
+            @if (image) {
+              <img
+                [src]="image"
+                [alt]="product.name"
+                loading="lazy"
+                decoding="async"
+                (error)="onImageError(product)" />
+            } @else {
+              <div
+                class="thumb-fallback"
+                [style.--tile-hue]="tileHue(product)"
+                aria-hidden="true">
+                {{ initials(product) }}
+              </div>
+            }
+            @if (qty > 0) {
+              <span class="qty-badge" [attr.aria-label]="qty + ' in cart'">{{ qty }}</span>
+            }
+          </div>
+
+          <div class="card-body">
+            <p class="item-number">{{ product.itemNumber }}</p>
+            <h3 class="item-name">{{ product.name }}</h3>
+            <div class="price-row">
+              @if (product.price) {
+                <span class="price">{{ product.price | number:'1.2-2' }}</span>
+                @if (product.unit) {
+                  <span class="unit">/ {{ product.unit }}</span>
+                }
+              } @else if (product.isSellable) {
+                <span class="price-none">No price set</span>
+              } @else {
+                <span class="price-none">Not released</span>
+              }
+            </div>
+          </div>
+
+          @if (qty === 0) {
+            <button type="button" class="add-btn" (click)="add(product)">
+              <ion-icon name="add-outline"></ion-icon>
+              Add
+            </button>
+          } @else {
+            <div class="stepper" role="group" [attr.aria-label]="'Quantity for ' + product.itemNumber">
+              <button
+                type="button"
+                class="step"
+                (click)="adjust(product, -1, $event)"
+                [attr.aria-label]="'Decrease ' + product.itemNumber">
+                <ion-icon [name]="qty === 1 ? 'trash-outline' : 'remove-outline'"></ion-icon>
+              </button>
+              <span class="step-qty">{{ qty }}</span>
+              <button
+                type="button"
+                class="step"
+                (click)="adjust(product, 1, $event)"
+                [attr.aria-label]="'Increase ' + product.itemNumber">
+                <ion-icon name="add-outline"></ion-icon>
+              </button>
+            </div>
+          }
+        </article>
+      }
+    </div>
+
+    <ion-infinite-scroll [disabled]="!hasMore()" (ionInfinite)="loadMore($any($event))">
+      <ion-infinite-scroll-content
+        loadingSpinner="crescent"
+        [loadingText]="tab() === 'all' ? 'Loading more products...' : ''">
+      </ion-infinite-scroll-content>
+    </ion-infinite-scroll>
+
+    <div class="grid-footer-space"></div>
+  }
+</ion-content>
+
+<!-- ── Cart bar ──────────────────────────────────────────────── -->
+<ion-footer class="ion-no-border cart-footer" [class.hidden]="cart.isEmpty()">
+  <button type="button" class="cart-bar" (click)="goToCart()">
+    <span class="cart-bar-left">
+      <span class="cart-bar-icon">
+        <ion-icon name="cart-outline"></ion-icon>
+        <span class="cart-bar-count">{{ cart.count() }}</span>
+      </span>
+      <span class="cart-bar-text">
+        <span class="cart-bar-label">{{ cart.totalQty() }} unit{{ cart.totalQty() === 1 ? '' : 's' }}</span>
+        <span class="cart-bar-total">{{ cart.totalAmount() | number:'1.2-2' }}</span>
+      </span>
+    </span>
+    <span class="cart-bar-cta">
+      Review cart
+      <ion-icon name="arrow-forward-outline"></ion-icon>
+    </span>
+  </button>
+</ion-footer>

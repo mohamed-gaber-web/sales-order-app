@@ -71,3 +71,5 @@ Thumbs.db
 
 # Local environment overrides (contain real secrets — never commit)
 src/environments/environment.local.ts
+.env
+.env.local

@@ -48,6 +48,7 @@ export class AppComponent implements OnInit, OnDestroy {
       items: [
         { title: 'Product Receipt', url: '/purchase-order/list', icon: 'download' },
         { title: 'Barcode Receipt', url: '/purchase-order/receive-by-barcode', icon: 'qr-code' },
+        { title: 'Scan Paper PO',   url: '/purchase-order/scan-document', icon: 'document-text' },
         { title: 'Vendor Return',   url: '/inventory/vendor-returns', icon: 'return-up-back' },
         { title: 'Barcode Return',  url: '/inventory/vendor-returns/select-po', icon: 'qr-code' },
       ]
@@ -113,7 +114,7 @@ export class AppComponent implements OnInit, OnDestroy {
       expanded: false,
       items: [
         { title: 'Pre-Sales',        url: null, icon: 'clipboard',     comingSoon: true },
-        { title: 'Van Sales',        url: null, icon: 'car',           comingSoon: true },
+        { title: 'Van Sales',        url: '/inventory/van-sales', icon: 'car' },
         { title: 'Order Management', url: null, icon: 'receipt',       comingSoon: true },
         { title: 'Mobile Invoicing', url: null, icon: 'document-text', comingSoon: true },
         { title: 'Van Stock',        url: null, icon: 'cube',          comingSoon: true },

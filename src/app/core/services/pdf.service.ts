@@ -3,6 +3,9 @@ import { Capacitor } from '@capacitor/core';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
 
+/** Lines printed on a van-sale label before it summarises the rest as "+ N more". */
+const VAN_LABEL_MAX_LINES = 12;
+
 export interface ReceiptPdfData {
   poNumber: string;
   lineNumber: number;
@@ -50,6 +53,28 @@ export interface CycleCountLabelData {
   journalNumber: string;
   warehouseId?: string;
   countDate: Date;
+}
+
+export interface VanSaleLabelLine {
+  itemNumber: string;
+  name: string;
+  qty: number;
+  unit?: string;
+  price: number;
+}
+
+/** One label per completed van sale — the driver hands it over with the goods. */
+export interface VanSaleLabelData {
+  orderNumber: string;
+  customerAccount: string;
+  customerName: string;
+  currencyCode: string;
+  warehouseId?: string;
+  siteId?: string;
+  lines: VanSaleLabelLine[];
+  totalQty: number;
+  totalAmount: number;
+  soldAt: Date;
 }
 
 export interface PackingSlipLine {
@@ -956,6 +981,221 @@ export class PdfService {
     ctx.textAlign = 'right';
     ctx.fillText(
       data.reportDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+      W - margin,
+      H - 8
+    );
+    ctx.textAlign = 'left';
+  }
+
+  // ── Van Sale Label (one per completed sale, with a Code 128 barcode) ──
+
+  /** Renders the label to a data URL so it can be shown on-screen before the driver prints it. */
+  getVanSaleLabelPreviewDataUrl(data: VanSaleLabelData): string {
+    return this.renderVanSaleLabelToCanvas(data).toDataURL('image/png');
+  }
+
+  async downloadVanSaleLabel(data: VanSaleLabelData): Promise<string | null> {
+    const blob = await this.generateVanSaleLabelPdf(data);
+    return this.savePdf(blob, `van-sale-${data.orderNumber}.pdf`);
+  }
+
+  async shareVanSaleLabel(data: VanSaleLabelData): Promise<void> {
+    const blob = await this.generateVanSaleLabelPdf(data);
+    await this.sharePdfBlob(blob, `van-sale-${data.orderNumber}.pdf`);
+  }
+
+  private async generateVanSaleLabelPdf(data: VanSaleLabelData): Promise<Blob> {
+    const canvas = this.renderVanSaleLabelToCanvas(data);
+    const jpegBytes = await this.canvasToJpeg(canvas);
+    return this.buildPdf(jpegBytes, canvas.width, canvas.height);
+  }
+
+  /** Height grows with the line count, so a ten-item sale isn't clipped. */
+  private renderVanSaleLabelToCanvas(data: VanSaleLabelData): HTMLCanvasElement {
+    const W = 400;
+    const rowH = 20;
+    const listed = Math.min(data.lines.length, VAN_LABEL_MAX_LINES);
+    const overflow = data.lines.length - listed;
+    const H = 232 + listed * rowH + (overflow > 0 ? 16 : 0);
+    const S = 3; // extra scale — keeps the barcode bars crisp at print resolution
+
+    const canvas = document.createElement('canvas');
+    canvas.width = W * S;
+    canvas.height = H * S;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('Canvas not supported');
+    ctx.scale(S, S);
+    this.drawVanSaleLabel(ctx, data, W, H, rowH, listed, overflow);
+    return canvas;
+  }
+
+  private drawVanSaleLabel(
+    ctx: CanvasRenderingContext2D,
+    data: VanSaleLabelData,
+    W: number,
+    H: number,
+    rowH: number,
+    listed: number,
+    overflow: number
+  ): void {
+    const margin = 16;
+    const navy = '#002559';
+    const orange = '#F24C1A';
+    const dark = '#121c30';
+    const muted = '#5b6478';
+    const contentW = W - margin * 2;
+
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, W, H);
+    ctx.strokeStyle = '#d8dce6';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(0.5, 0.5, W - 1, H - 1);
+
+    const clamp = (text: string, font: string, maxW: number): string => {
+      ctx.font = font;
+      if (ctx.measureText(text).width <= maxW) return text;
+      let t = text;
+      while (t.length > 1 && ctx.measureText(t + '…').width > maxW) t = t.slice(0, -1);
+      return t + '…';
+    };
+    const money = (n: number) =>
+      n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    // ── Header ─────────────────────────────────────────────
+    ctx.fillStyle = navy;
+    ctx.fillRect(0, 0, W, 34);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 14px Arial,Helvetica,sans-serif';
+    ctx.fillText('GROW PATH', margin, 22);
+    ctx.textAlign = 'right';
+    ctx.fillStyle = 'rgba(255,255,255,0.75)';
+    ctx.font = '10px Arial,Helvetica,sans-serif';
+    ctx.fillText('VAN SALE', W - margin, 22);
+    ctx.textAlign = 'left';
+
+    ctx.fillStyle = orange;
+    ctx.fillRect(0, 34, W, 3);
+
+    let y = 56;
+
+    // ── Order ───────────────────────────────────────────────
+    ctx.fillStyle = muted;
+    ctx.font = '9px Arial,Helvetica,sans-serif';
+    ctx.fillText('SALES ORDER', margin, y);
+    ctx.fillStyle = dark;
+    ctx.font = 'bold 19px Arial,Helvetica,sans-serif';
+    ctx.fillText(clamp(data.orderNumber, 'bold 19px Arial,Helvetica,sans-serif', contentW), margin, y + 19);
+    y += 38;
+
+    // ── Customer + van ──────────────────────────────────────
+    const colW = contentW / 2 - 6;
+    ctx.fillStyle = muted;
+    ctx.font = '9px Arial,Helvetica,sans-serif';
+    ctx.fillText('CUSTOMER', margin, y);
+    ctx.fillText('ISSUED FROM', margin + colW + 12, y);
+
+    ctx.fillStyle = dark;
+    ctx.font = 'bold 12px Arial,Helvetica,sans-serif';
+    ctx.fillText(
+      clamp(data.customerName || data.customerAccount, 'bold 12px Arial,Helvetica,sans-serif', colW),
+      margin,
+      y + 14
+    );
+    const location = [data.siteId, data.warehouseId].filter(Boolean).join(' · ') || '—';
+    ctx.fillText(clamp(location, 'bold 12px Arial,Helvetica,sans-serif', colW), margin + colW + 12, y + 14);
+
+    ctx.fillStyle = muted;
+    ctx.font = '9px Arial,Helvetica,sans-serif';
+    ctx.fillText(clamp(data.customerAccount, '9px Arial,Helvetica,sans-serif', colW), margin, y + 25);
+    y += 40;
+
+    // ── Line items ──────────────────────────────────────────
+    ctx.strokeStyle = '#e2e6ee';
+    ctx.beginPath();
+    ctx.moveTo(margin, y - 6);
+    ctx.lineTo(W - margin, y - 6);
+    ctx.stroke();
+
+    ctx.fillStyle = muted;
+    ctx.font = 'bold 8px Arial,Helvetica,sans-serif';
+    ctx.fillText('ITEM', margin, y + 5);
+    ctx.textAlign = 'center';
+    ctx.fillText('QTY', W - margin - 74, y + 5);
+    ctx.textAlign = 'right';
+    ctx.fillText('AMOUNT', W - margin, y + 5);
+    ctx.textAlign = 'left';
+    y += 14;
+
+    for (let i = 0; i < listed; i++) {
+      const line = data.lines[i];
+      const nameW = contentW - 150;
+
+      ctx.fillStyle = dark;
+      ctx.font = 'bold 10px Arial,Helvetica,sans-serif';
+      ctx.fillText(clamp(line.itemNumber, 'bold 10px Arial,Helvetica,sans-serif', nameW), margin, y + 8);
+      ctx.fillStyle = muted;
+      ctx.font = '8.5px Arial,Helvetica,sans-serif';
+      ctx.fillText(clamp(line.name, '8.5px Arial,Helvetica,sans-serif', nameW), margin, y + 17);
+
+      ctx.fillStyle = dark;
+      ctx.font = 'bold 11px Arial,Helvetica,sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(`${line.qty}${line.unit ? ' ' + line.unit : ''}`, W - margin - 74, y + 12);
+      ctx.textAlign = 'right';
+      ctx.fillText(money(line.qty * line.price), W - margin, y + 12);
+      ctx.textAlign = 'left';
+
+      y += rowH;
+    }
+
+    if (overflow > 0) {
+      ctx.fillStyle = muted;
+      ctx.font = 'italic 9px Arial,Helvetica,sans-serif';
+      ctx.fillText(`+ ${overflow} more item${overflow === 1 ? '' : 's'} on the order`, margin, y + 8);
+      y += 16;
+    }
+
+    // ── Total ───────────────────────────────────────────────
+    ctx.strokeStyle = '#c9cfdb';
+    ctx.beginPath();
+    ctx.moveTo(margin, y);
+    ctx.lineTo(W - margin, y);
+    ctx.stroke();
+    y += 6;
+
+    ctx.fillStyle = muted;
+    ctx.font = '9px Arial,Helvetica,sans-serif';
+    ctx.fillText(`TOTAL · ${data.totalQty} unit${data.totalQty === 1 ? '' : 's'}`, margin, y + 12);
+    ctx.textAlign = 'right';
+    ctx.fillStyle = orange;
+    ctx.font = 'bold 17px Arial,Helvetica,sans-serif';
+    ctx.fillText(`${money(data.totalAmount)} ${data.currencyCode}`, W - margin, y + 14);
+    ctx.textAlign = 'left';
+
+    // ── Barcode (encodes the order number) ──────────────────
+    const barcodeHeight = 38;
+    const barcodeY = H - 64;
+    this.drawBarcode(ctx, data.orderNumber, margin, barcodeY, contentW, barcodeHeight);
+
+    ctx.textAlign = 'center';
+    ctx.fillStyle = dark;
+    ctx.font = '10px Arial,Helvetica,sans-serif';
+    ctx.fillText(data.orderNumber, W / 2, barcodeY + barcodeHeight + 12);
+    ctx.textAlign = 'left';
+
+    // ── Footer ──────────────────────────────────────────────
+    ctx.fillStyle = muted;
+    ctx.font = '8px Arial,Helvetica,sans-serif';
+    ctx.fillText('Van sale', margin, H - 8);
+    ctx.textAlign = 'right';
+    ctx.fillText(
+      data.soldAt.toLocaleString('en-GB', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      }),
       W - margin,
       H - 8
     );

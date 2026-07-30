@@ -25,6 +25,9 @@
   --ds-navy-deep:   #001a3d;
   --ds-accent:      #F24C1A;
   --ds-accent-soft: rgba(242, 76, 26, 0.10);
+  // Text/icon colour on saturated brand fills (accent gradient, navy hero).
+  // Stays white in both palettes — those fills never lighten.
+  --ds-on-accent:   #ffffff;
   --ds-accent-end:  #F28E26;
   --ds-gradient:    linear-gradient(90deg, #F24C1A 0%, #F28E26 100%);
   --ds-gradient-135: linear-gradient(135deg, #F24C1A 0%, #F28E26 100%);

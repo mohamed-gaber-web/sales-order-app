@@ -6,6 +6,7 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
+    "dev:api": "node scripts/dev-api.js",
     "build": "ng build",
     "build:native": "ng build --configuration native",
     "watch": "ng build --watch --configuration development",
@@ -14,6 +15,7 @@
   },
   "private": true,
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.115.0",
     "@angular/animations": "^20.0.0",
     "@angular/common": "^20.0.0",
     "@angular/compiler": "^20.0.0",

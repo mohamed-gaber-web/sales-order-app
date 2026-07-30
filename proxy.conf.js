@@ -14,6 +14,15 @@ module.exports = {
     },
   },
 
+  // Document reader (Claude vision) — the ANTHROPIC_API_KEY lives server-side.
+  // `ng serve` cannot execute Vercel functions, so this forwards to the local
+  // handler host started by `npm run dev:api`. On Vercel, api/ocr.js serves it.
+  '/api/ocr': {
+    target: 'http://localhost:3001',
+    changeOrigin: false,
+    secure: false,
+  },
+
   // D365 OData API
   '/data': {
     target: 'https://gp-customers.sandbox.operations.eu.dynamics.com',

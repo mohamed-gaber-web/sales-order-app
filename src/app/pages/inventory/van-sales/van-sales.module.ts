@@ -1,0 +1,10 @@
+import { NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { IonicModule } from '@ionic/angular';
+import { VanSalesRoutingModule } from './van-sales-routing.module';
+
+@NgModule({
+  imports: [CommonModule, FormsModule, IonicModule, VanSalesRoutingModule]
+})
+export class VanSalesModule {}

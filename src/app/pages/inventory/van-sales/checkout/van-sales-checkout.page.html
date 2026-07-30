@@ -1,0 +1,258 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      @if (!result()) {
+        <ion-back-button defaultHref="/inventory/van-sales/cart"></ion-back-button>
+      }
+    </ion-buttons>
+    <ion-title>{{ result() ? 'Sale Complete' : 'Checkout' }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="checkout-content">
+
+  <!-- ══ Success / receipt ═══════════════════════════════════ -->
+  @if (result(); as sale) {
+    <div class="success-wrap">
+
+      <div class="success-ring">
+        <ion-icon name="checkmark-circle" class="success-icon"></ion-icon>
+      </div>
+
+      <h2 class="success-title">Order Confirmed</h2>
+      <p class="success-sub">
+        {{ sale.lines.length }} product{{ sale.lines.length === 1 ? '' : 's' }} sold to {{ sale.customerName }}
+      </p>
+
+      @if (sale.failedItems.length > 0) {
+        <div class="warn-banner">
+          <ion-icon name="warning-outline"></ion-icon>
+          <span>
+            {{ sale.failedItems.length }} line{{ sale.failedItems.length === 1 ? '' : 's' }} didn't save
+            ({{ sale.failedItems.join(', ') }}). The order exists — add them in D365.
+          </span>
+        </div>
+      }
+
+      <!-- Order summary -->
+      <div class="summary-card">
+        <div class="summary-hero">
+          <div>
+            <p class="summary-label">Sales Order</p>
+            <p class="summary-value">{{ sale.orderNumber }}</p>
+          </div>
+          <span class="summary-badge">{{ sale.totalQty }} units</span>
+        </div>
+        <div class="summary-divider"></div>
+        <div class="summary-grid">
+          <div class="summary-field">
+            <span class="field-label">Customer</span>
+            <span class="field-value">{{ sale.customerAccount }}</span>
+          </div>
+          <div class="summary-field">
+            <span class="field-label">Van location</span>
+            <span class="field-value">{{ sale.siteId ? sale.siteId + ' · ' : '' }}{{ sale.warehouseId }}</span>
+          </div>
+          <div class="summary-field">
+            <span class="field-label">Total</span>
+            <span class="field-value accent">{{ sale.totalAmount | number:'1.2-2' }} {{ sale.currencyCode }}</span>
+          </div>
+          <div class="summary-field">
+            <span class="field-label">Sold</span>
+            <span class="field-value">{{ sale.soldAt | date:'dd MMM yyyy, HH:mm' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Inventory movement -->
+      <div class="section-head">
+        <h3>Inventory issued</h3>
+        <span>from {{ sale.warehouseId }}</span>
+      </div>
+
+      <div class="issue-card">
+        <div class="issue-row head">
+          <span>Item</span>
+          <span>Qty out</span>
+        </div>
+        @for (line of sale.lines; track line.itemNumber) {
+          <div class="issue-row" [class.failed]="sale.failedItems.includes(line.itemNumber)">
+            <div class="issue-item">
+              <span class="issue-number">{{ line.itemNumber }}</span>
+              <span class="issue-name">{{ line.name }}</span>
+            </div>
+            <span class="issue-qty">
+              −{{ line.qty }}
+              @if (line.unit) { <small>{{ line.unit }}</small> }
+            </span>
+          </div>
+        }
+        <div class="issue-total">
+          <span>Total units issued</span>
+          <span>{{ sale.totalQty }}</span>
+        </div>
+      </div>
+
+      <button type="button" class="primary-btn" (click)="printLabel()">
+        <ion-icon name="print-outline"></ion-icon>
+        Print Label
+      </button>
+
+      <button type="button" class="secondary-btn" (click)="viewOrder()">
+        <ion-icon name="receipt-outline"></ion-icon>
+        View Order Lines
+      </button>
+
+      <button type="button" class="tertiary-btn" (click)="startNewSale()">
+        Start a new sale
+      </button>
+
+    </div>
+  }
+
+  <!-- ══ Checkout form ═══════════════════════════════════════ -->
+  @else {
+    <div class="checkout-body">
+
+      <!-- Customer -->
+      <div class="section-head">
+        <h3>Sell to</h3>
+      </div>
+
+      <button type="button" class="select-row" (click)="open('customer')">
+        <span class="select-icon" [class.filled]="!!customer()">
+          <ion-icon name="person-outline"></ion-icon>
+        </span>
+        <span class="select-text">
+          <span class="select-label">Customer</span>
+          @if (customer(); as c) {
+            <span class="select-value">{{ c.CustomerName || c.CustomerAccount }}</span>
+            <span class="select-hint">{{ c.CustomerAccount }} · {{ currencyCode() }}</span>
+          } @else {
+            <span class="select-placeholder">Choose a customer</span>
+          }
+        </span>
+        <ion-icon name="chevron-forward-outline" class="select-chevron"></ion-icon>
+      </button>
+
+      <!-- Van location -->
+      <div class="section-head">
+        <h3>Issue from</h3>
+      </div>
+
+      <button type="button" class="select-row" (click)="open('warehouse')">
+        <span class="select-icon" [class.filled]="!!warehouse()">
+          <ion-icon name="car-outline"></ion-icon>
+        </span>
+        <span class="select-text">
+          <span class="select-label">Van warehouse</span>
+          @if (warehouse(); as w) {
+            <span class="select-value">{{ w.WarehouseName || w.WarehouseId }}</span>
+            <span class="select-hint">
+              {{ w.WarehouseId }}@if (w.OperationalSiteId) { · Site {{ w.OperationalSiteId }} }
+            </span>
+          } @else {
+            <span class="select-placeholder">Choose the van's warehouse</span>
+          }
+        </span>
+        <ion-icon name="chevron-forward-outline" class="select-chevron"></ion-icon>
+      </button>
+
+      <!-- Order review -->
+      <div class="section-head">
+        <h3>Order</h3>
+        <button type="button" class="section-action" (click)="backToCart()">Edit</button>
+      </div>
+
+      <div class="review-card">
+        @for (line of cart.lines(); track line.itemNumber) {
+          <div class="review-row">
+            <span class="review-qty">{{ line.qty }}×</span>
+            <span class="review-info">
+              <span class="review-name">{{ line.name }}</span>
+              <span class="review-number">{{ line.itemNumber }}</span>
+            </span>
+            <span class="review-amount">{{ line.qty * line.price | number:'1.2-2' }}</span>
+          </div>
+        }
+
+        <div class="review-total">
+          <span>
+            Total
+            <small>{{ cart.totalQty() }} units · {{ currencyCode() }}</small>
+          </span>
+          <span class="review-total-value">{{ cart.totalAmount() | number:'1.2-2' }}</span>
+        </div>
+      </div>
+
+      @if (!canSubmit() && !isSubmitting()) {
+        <p class="requirement-hint">
+          <ion-icon name="information-circle-outline"></ion-icon>
+          Choose a customer and a van warehouse to receive this sale.
+        </p>
+      }
+
+      <div class="content-footer-space"></div>
+    </div>
+  }
+
+  <!-- ══ Picker sheet ════════════════════════════════════════ -->
+  @if (openPicker(); as picker) {
+    <div class="sheet-backdrop" (click)="closePicker()"></div>
+    <div class="sheet" role="dialog" aria-modal="true">
+      <div class="sheet-grabber"></div>
+      <div class="sheet-head">
+        <h3>{{ picker === 'customer' ? 'Select customer' : 'Select van warehouse' }}</h3>
+        <button type="button" class="sheet-close" (click)="closePicker()" aria-label="Close">
+          <ion-icon name="close-outline"></ion-icon>
+        </button>
+      </div>
+
+      <ion-input
+        [value]="pickerSearch()"
+        type="search"
+        [placeholder]="picker === 'customer' ? 'Search name or account...' : 'Search warehouse...'"
+        [debounce]="150"
+        [clearInput]="true"
+        class="sheet-input"
+        (ionInput)="onPickerSearch($any($event).detail.value || '')">
+        <ion-icon slot="start" name="search-outline" aria-hidden="true"></ion-icon>
+      </ion-input>
+
+      <div class="sheet-list">
+        @if (picker === 'customer') {
+          @for (c of filteredCustomers(); track c.CustomerAccount) {
+            <button type="button" class="sheet-item" (click)="selectCustomer(c)">
+              <span class="sheet-item-main">{{ c.CustomerName || c.CustomerAccount }}</span>
+              <span class="sheet-item-sub">{{ c.CustomerAccount }}@if (c.CurrencyCode) { · {{ c.CurrencyCode }} }</span>
+            </button>
+          } @empty {
+            <p class="sheet-empty">No customer matches that search.</p>
+          }
+        } @else {
+          @for (w of filteredWarehouses(); track w.WarehouseId) {
+            <button type="button" class="sheet-item" (click)="selectWarehouse(w)">
+              <span class="sheet-item-main">{{ w.WarehouseName || w.WarehouseId }}</span>
+              <span class="sheet-item-sub">
+                {{ w.WarehouseId }}@if (w.OperationalSiteId) { · Site {{ w.OperationalSiteId }} }
+              </span>
+            </button>
+          } @empty {
+            <p class="sheet-empty">No warehouse matches that search.</p>
+          }
+        }
+      </div>
+    </div>
+  }
+
+</ion-content>
+
+<ion-footer class="ion-no-border" [class.footer-hidden]="!!result()">
+  <ds-cta-bar
+    label="Receive"
+    icon="checkmark-circle-outline"
+    [loading]="isSubmitting()"
+    [disabled]="!canSubmit()"
+    (ctaClick)="receive()">
+  </ds-cta-bar>
+</ion-footer>

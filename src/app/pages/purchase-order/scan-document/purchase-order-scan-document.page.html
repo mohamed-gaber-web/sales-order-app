@@ -1,0 +1,401 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/purchase-order/list"></ion-back-button>
+    </ion-buttons>
+    <ion-title>
+      @switch (vm.stage()) {
+        @case ('done') { Receipt Confirmed }
+        @case ('receipt') { Match to Order }
+        @case ('submitting') { Match to Order }
+        @default { Scan Paper PO }
+      }
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="scan-doc-content">
+
+  <!-- ── 1 · Capture ───────────────────────────────────────── -->
+  @if (vm.stage() === 'capture') {
+    <div class="stage-wrap">
+      <div class="intro-hero">
+        <div class="intro-icon-ring">
+          <ion-icon name="document-text-outline"></ion-icon>
+        </div>
+        <h2 class="intro-title">Photograph the paperwork</h2>
+        <p class="intro-sub">
+          Take a picture of the printed purchase order. The item lines and quantities are read
+          for you, then matched against the live order before anything is posted.
+        </p>
+      </div>
+
+      <div class="capture-actions">
+        <ion-button expand="block" class="primary-btn" (click)="scan('camera')">
+          <ion-icon slot="start" name="camera-outline"></ion-icon>
+          Take Photo
+        </ion-button>
+        <ion-button expand="block" fill="outline" class="secondary-btn" (click)="scan('library')">
+          <ion-icon slot="start" name="images-outline"></ion-icon>
+          Choose Existing Image
+        </ion-button>
+      </div>
+
+      <div class="tip-card">
+        <h3 class="tip-title">For the cleanest read</h3>
+        <ul class="tip-list">
+          <li>Fill the frame with the page — one page per photo.</li>
+          <li>Lay the sheet flat and keep your shadow off it.</li>
+          <li>Make sure the PO number and the item table are both in shot.</li>
+        </ul>
+      </div>
+    </div>
+  }
+
+  <!-- ── 2 · Reading ───────────────────────────────────────── -->
+  @if (vm.stage() === 'extracting') {
+    <div class="stage-wrap">
+      <div class="busy-card">
+        @if (vm.image(); as image) {
+          <img class="busy-preview" [src]="image.previewDataUrl" alt="Document being read" />
+        }
+        <ion-spinner name="crescent" class="busy-spinner"></ion-spinner>
+        <h2 class="busy-title">Reading the document</h2>
+        <p class="busy-sub">Pulling out the PO number, items and quantities. This takes a few seconds.</p>
+      </div>
+    </div>
+  }
+
+  <!-- ── 3 · Review the extraction ─────────────────────────── -->
+  @if (vm.stage() === 'review' || vm.stage() === 'matching') {
+    @if (vm.extraction(); as extraction) {
+      <div class="stage-wrap">
+
+        <div class="doc-summary">
+          @if (vm.image(); as image) {
+            <img class="doc-thumb" [src]="image.previewDataUrl" alt="Scanned document" />
+          }
+          <div class="doc-summary-body">
+            <div class="doc-pills">
+              <ds-pill
+                [label]="documentTypeLabel(extraction.documentType)"
+                variant="tag"
+                [color]="typePill(extraction.documentType).color"
+                [bg]="typePill(extraction.documentType).bg">
+              </ds-pill>
+              <ds-pill
+                [label]="confidencePill(extraction.confidence).label"
+                variant="status"
+                [color]="confidencePill(extraction.confidence).color"
+                [bg]="confidencePill(extraction.confidence).bg">
+              </ds-pill>
+            </div>
+            @if (extraction.vendorName) {
+              <p class="doc-vendor">{{ extraction.vendorName }}</p>
+            }
+            @if (extraction.orderDate) {
+              <p class="doc-meta">Dated {{ extraction.orderDate }}</p>
+            }
+          </div>
+        </div>
+
+        @if (extraction.documentType !== 'purchase_order') {
+          <div class="notice notice-warn">
+            <ion-icon name="alert-circle-outline"></ion-icon>
+            <span>
+              This looks like a {{ documentTypeLabel(extraction.documentType) | lowercase }}, not a purchase
+              order. Check the number below before matching.
+            </span>
+          </div>
+        }
+
+        @if (extraction.notes) {
+          <div class="notice notice-info">
+            <ion-icon name="information-circle-outline"></ion-icon>
+            <span>{{ extraction.notes }}</span>
+          </div>
+        }
+
+        <div class="field-card">
+          <label class="field-label" for="scan-po-number">Purchase order number</label>
+          <ion-input
+            id="scan-po-number"
+            type="text"
+            inputmode="text"
+            maxlength="40"
+            placeholder="e.g. PO-000123"
+            class="custom-input"
+            [ngModel]="vm.poNumber()"
+            [ngModelOptions]="{ standalone: true }"
+            (ngModelChange)="onPoNumberChange($event)">
+          </ion-input>
+          @if (!vm.poNumber().trim()) {
+            <p class="field-hint">
+              The number could not be read from the photo. Type it in to continue.
+            </p>
+          }
+        </div>
+
+        <div class="lines-card">
+          <div class="lines-header">
+            <h3 class="lines-title">Lines read</h3>
+            <span class="lines-count">{{ extraction.lines.length }}</span>
+          </div>
+
+          @if (extraction.lines.length === 0) {
+            <p class="lines-empty">No item lines could be read from this photo. Try a closer shot of the table.</p>
+          } @else {
+            @for (line of extraction.lines; track $index) {
+              <div class="read-line">
+                <div class="read-line-info">
+                  <span class="read-line-item">{{ line.itemNumber || '—' }}</span>
+                  @if (line.description) {
+                    <span class="read-line-desc">{{ line.description }}</span>
+                  }
+                </div>
+                <span class="read-line-qty">
+                  {{ line.quantity | number:'1.0-3' }}{{ line.unit ? ' ' + line.unit : '' }}
+                </span>
+              </div>
+            }
+          }
+        </div>
+
+        <ion-button
+          expand="block"
+          fill="clear"
+          class="retake-btn"
+          [disabled]="vm.isBusy()"
+          (click)="scanAnother()">
+          <ion-icon slot="start" name="camera-reverse-outline"></ion-icon>
+          Retake Photo
+        </ion-button>
+
+      </div>
+    }
+  }
+
+  <!-- ── 4 · Reconciled against the live order ─────────────── -->
+  @if (vm.stage() === 'receipt' || vm.stage() === 'submitting') {
+    <div class="stage-wrap">
+
+      <div class="po-hero">
+        <div class="po-hero-info">
+          <span class="po-hero-label">Matched to order</span>
+          <span class="po-hero-number">{{ vm.poNumber() }}</span>
+        </div>
+        <ion-button fill="clear" size="small" class="change-po-btn" (click)="backToReview()">
+          Change
+        </ion-button>
+      </div>
+
+      @for (row of vm.rows(); track $index; let i = $index) {
+        <div class="match-row" [class.match-row--off]="!row.include">
+          <div class="match-row-top">
+            <div class="match-row-info">
+              <div class="match-row-title">
+                <span class="match-row-item">{{ row.scanned.itemNumber || row.poLine?.ItemNumber || '—' }}</span>
+                <ds-pill
+                  [label]="statusPill(row.status).label"
+                  variant="status"
+                  [color]="statusPill(row.status).color"
+                  [bg]="statusPill(row.status).bg">
+                </ds-pill>
+              </div>
+              @if (row.poLine?.ProductName || row.scanned.description) {
+                <div class="match-row-desc">{{ row.poLine?.ProductName || row.scanned.description }}</div>
+              }
+              <div class="match-row-scanned">
+                Paper says {{ row.scanned.quantity | number:'1.0-3' }}{{ row.scanned.unit ? ' ' + row.scanned.unit : '' }}
+                @if (row.status === 'matched') {
+                  · {{ row.remainingQty | number:'1.0-3' }} outstanding
+                }
+              </div>
+            </div>
+
+            @if (row.status === 'matched') {
+              <ion-checkbox
+                class="match-row-check"
+                [checked]="row.include"
+                (ionChange)="vm.toggleRow(i)"
+                [attr.aria-label]="'Include ' + row.scanned.itemNumber">
+              </ion-checkbox>
+            }
+          </div>
+
+          @if (row.status === 'matched' && row.include) {
+            <div class="match-row-controls">
+              <div class="qbox">
+                <ion-button fill="clear" class="step-btn" (click)="vm.adjustRowQty(i, -1)" aria-label="Decrease quantity">
+                  <ion-icon slot="icon-only" name="remove-outline"></ion-icon>
+                </ion-button>
+                <div class="qbox-value">
+                  <ion-input
+                    type="number"
+                    inputmode="decimal"
+                    [min]="0.001"
+                    [max]="row.remainingQty"
+                    step="0.001"
+                    class="qbox-input"
+                    [class.invalid]="!vm.isRowQtyValid(row)"
+                    [ngModel]="row.qty"
+                    [ngModelOptions]="{ standalone: true }"
+                    (ngModelChange)="onQtyChange(i, $event)"
+                    (ionBlur)="vm.clampRowQty(i)">
+                  </ion-input>
+                </div>
+                <ion-button fill="clear" class="step-btn" (click)="vm.adjustRowQty(i, 1)" aria-label="Increase quantity">
+                  <ion-icon slot="icon-only" name="add-outline"></ion-icon>
+                </ion-button>
+              </div>
+
+              <div class="unit-display">
+                {{ row.poLine?.PurchaseUnitSymbol || row.scanned.unit || '—' }}
+              </div>
+
+              <ion-button fill="clear" size="small" class="max-btn" (click)="vm.useMaxQty(i)">
+                Max
+              </ion-button>
+            </div>
+
+            @if (!vm.isRowQtyValid(row)) {
+              <p class="field-error">
+                <ion-icon name="alert-circle-outline"></ion-icon>
+                @if (row.qty <= 0) {
+                  Quantity must be greater than 0.
+                } @else {
+                  Cannot exceed the outstanding quantity ({{ row.remainingQty | number:'1.0-3' }}).
+                }
+              </p>
+            }
+          }
+
+          @if (row.status === 'not-on-order') {
+            <p class="field-hint">
+              No open line on {{ vm.poNumber() }} carries this item. Receive it from the order itself if the
+              code was misread.
+            </p>
+          }
+        </div>
+      }
+
+      @if (vm.rows().length === 0) {
+        <ds-empty-state
+          icon="alert-circle-outline"
+          title="Nothing to receive"
+          message="None of the scanned lines could be matched to this order. Check the purchase order number and try again.">
+        </ds-empty-state>
+      }
+
+      @if (vm.unscannedOrderLines().length > 0) {
+        <div class="lines-card">
+          <div class="lines-header">
+            <h3 class="lines-title">Open on the order, not on this page</h3>
+            <span class="lines-count">{{ vm.unscannedOrderLines().length }}</span>
+          </div>
+          @for (line of vm.unscannedOrderLines(); track line.LineNumber) {
+            <div class="read-line">
+              <div class="read-line-info">
+                <span class="read-line-item">{{ line.ItemNumber }}</span>
+                @if (line.ProductName) {
+                  <span class="read-line-desc">{{ line.ProductName }}</span>
+                }
+              </div>
+              <ion-button fill="clear" size="small" class="add-line-btn" (click)="addOrderLine(line)">
+                <ion-icon slot="start" name="add-outline"></ion-icon>
+                Add
+              </ion-button>
+            </div>
+          }
+        </div>
+      }
+
+      @if (vm.selectedRows().length > 0) {
+        <div class="total-row">
+          <span>Total quantity</span>
+          <span>{{ vm.totalQty() | number:'1.0-3' }}</span>
+        </div>
+      }
+
+    </div>
+  }
+
+  <!-- ── 5 · Confirmed ─────────────────────────────────────── -->
+  @if (vm.stage() === 'done') {
+    @if (vm.confirmed(); as receipt) {
+      <div class="stage-wrap success-wrap">
+
+        <div class="success-icon-ring">
+          <ion-icon name="checkmark-circle" class="success-icon"></ion-icon>
+        </div>
+
+        <h2 class="success-title">Receipt Confirmed</h2>
+        <p class="success-sub">
+          {{ receipt.lines.length }} line{{ receipt.lines.length === 1 ? '' : 's' }} received on {{ receipt.poNumber }}
+        </p>
+
+        <div class="receipt-card">
+          <div class="receipt-row header">
+            <span>Item</span>
+            <span>Qty received</span>
+          </div>
+          @for (line of receipt.lines; track line.itemNumber) {
+            <div class="receipt-row">
+              <div class="receipt-item">
+                <span class="receipt-item-number">{{ line.itemNumber }}</span>
+                @if (line.productName) {
+                  <span class="receipt-item-name">{{ line.productName }}</span>
+                }
+              </div>
+              <span class="receipt-item-qty">
+                {{ line.qty | number:'1.0-3' }}{{ line.unit ? ' ' + line.unit : '' }}
+              </span>
+            </div>
+          }
+          <div class="total-row">
+            <span>Receipt {{ receipt.packingSlipId }}</span>
+            <span>{{ receipt.totalQty | number:'1.0-3' }}</span>
+          </div>
+        </div>
+
+        <ion-button expand="block" class="primary-btn" (click)="scanAnother()">
+          <ion-icon slot="start" name="camera-outline"></ion-icon>
+          Scan Another Document
+        </ion-button>
+
+        <ion-button expand="block" fill="outline" class="secondary-btn" (click)="printLabel()">
+          <ion-icon slot="start" name="print-outline"></ion-icon>
+          Print Label
+        </ion-button>
+
+        <ion-button expand="block" fill="clear" (click)="goToOrder()">
+          Back to Purchase Order
+        </ion-button>
+
+      </div>
+    }
+  }
+
+</ion-content>
+
+<!-- Stage CTA -->
+<ion-footer class="ion-no-border scan-doc-footer" [class.footer-hidden]="!vm.showCta()">
+  @if (vm.stage() === 'review' || vm.stage() === 'matching') {
+    <ds-cta-bar
+      label="Match to Purchase Order"
+      icon="git-compare-outline"
+      [loading]="vm.stage() === 'matching'"
+      [disabled]="!vm.poNumber().trim() || vm.isBusy()"
+      (ctaClick)="matchToOrder()">
+    </ds-cta-bar>
+  }
+  @if (vm.stage() === 'receipt' || vm.stage() === 'submitting') {
+    <ds-cta-bar
+      [label]="'Confirm Receipt (' + vm.selectedRows().length + ')'"
+      icon="checkmark-circle-outline"
+      [loading]="vm.stage() === 'submitting'"
+      [disabled]="!vm.canSubmit() || vm.isBusy()"
+      (ctaClick)="submitReceipt()">
+    </ds-cta-bar>
+  }
+</ion-footer>

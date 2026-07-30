@@ -24,6 +24,10 @@ const routes: Routes = [
     loadChildren: () => import('./scan-receive/purchase-order-scan-receive.module').then(m => m.PurchaseOrderScanReceiveModule)
   },
   {
+    path: 'scan-document',
+    loadChildren: () => import('./scan-document/purchase-order-scan-document.module').then(m => m.PurchaseOrderScanDocumentModule)
+  },
+  {
     path: 'receive/:poNumber/:lineNumber',
     loadChildren: () => import('./receive/purchase-order-receive.module').then(m => m.PurchaseOrderReceiveModule)
   }
