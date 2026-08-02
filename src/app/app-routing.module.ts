@@ -30,6 +30,10 @@ const routes: Routes = [
     loadChildren: () => import('./pages/purchase-order/purchase-order.module').then(m => m.PurchaseOrderModule)
   },
   {
+    path: 'purchase-order-register',
+    loadChildren: () => import('./pages/purchase-order-register/purchase-order-register.module').then(m => m.PurchaseOrderRegisterModule)
+  },
+  {
     path: 'transfer-order',
     loadChildren: () => import('./pages/transfer-order/transfer-order.module').then(m => m.TransferOrderModule)
   },

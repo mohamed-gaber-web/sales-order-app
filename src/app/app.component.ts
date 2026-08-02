@@ -47,6 +47,7 @@ export class AppComponent implements OnInit, OnDestroy {
       expanded: false,
       items: [
         { title: 'Product Receipt', url: '/purchase-order/list', icon: 'download' },
+        { title: 'Register',        url: '/purchase-order-register', icon: 'clipboard' },
         { title: 'Barcode Receipt', url: '/purchase-order/receive-by-barcode', icon: 'qr-code' },
         { title: 'Scan Paper PO',   url: '/purchase-order/scan-document', icon: 'document-text' },
         { title: 'Vendor Return',   url: '/inventory/vendor-returns', icon: 'return-up-back' },
