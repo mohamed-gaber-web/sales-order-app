@@ -113,7 +113,9 @@ export class PurchaseOrderRegisterSelectPoPage {
 
   private loadAllOrders(): Promise<void> {
     return new Promise((resolve, reject) => {
-      this.poService.getAllOrderHeaders().subscribe({
+      // useMainEnv: registration only exists on the main D365 env, so the orders offered
+      // here must come from there too — see PurchaseOrderService.registerPurchaseOrder.
+      this.poService.getAllOrderHeaders(true).subscribe({
         next: (res) => {
           this.allOrders = res.value;
           this.ordersLoaded = true;

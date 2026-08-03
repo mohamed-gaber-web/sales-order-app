@@ -9,6 +9,8 @@ import {
   ProductReceiptLine,
   CreateProductReceiptRequest,
   CreateProductReceiptResponse,
+  RegisterPurchaseOrderRequest,
+  RegisterPurchaseOrderResponse,
 } from '../../models/purchase-order.model';
 import { testPurchaseOrderEnv } from '../../../environments/test-purchase-order-env';
 
@@ -42,8 +44,8 @@ export class PurchaseOrderService {
    * On web this rewrites the path for proxy.conf.js / Vercel to catch; on native
    * (no proxy available) it hits environment.testPurchaseOrderD365BaseUrl directly.
    */
-  private getData<T>(path: string, params?: Record<string, string>): Observable<T> {
-    if (testPurchaseOrderEnv.useTestPurchaseOrderEnv) {
+  private getData<T>(path: string, params?: Record<string, string>, useMainEnv = false): Observable<T> {
+    if (!useMainEnv && testPurchaseOrderEnv.useTestPurchaseOrderEnv) {
       // The Elsewedy service principal's default company holds no purchase-order data,
       // so company-scoped reads look "successful" but come back empty: collection GETs
       // return HTTP 200 with `@odata.count: 0`, and entity-key GETs return 404. Opting
@@ -73,10 +75,19 @@ export class PurchaseOrderService {
    * Cross-company reads span every legal entity, so on the test env the status filter
    * is narrowed to the company under test. The main env stays scoped by D365 itself.
    */
-  private get poFilter(): string {
-    return testPurchaseOrderEnv.useTestPurchaseOrderEnv
+  private poFilterFor(useMainEnv = false): string {
+    return !useMainEnv && testPurchaseOrderEnv.useTestPurchaseOrderEnv
       ? `dataAreaId eq '${TEST_PO_COMPANY}' and ${PO_FILTER}`
       : PO_FILTER;
+  }
+
+  private get poFilter(): string {
+    return this.poFilterFor();
+  }
+
+  /** The company reads should be scoped to for the given env. */
+  private companyFor(useMainEnv: boolean): string {
+    return !useMainEnv && testPurchaseOrderEnv.useTestPurchaseOrderEnv ? TEST_PO_COMPANY : 'usmf';
   }
 
   /**
@@ -119,14 +130,15 @@ export class PurchaseOrderService {
     );
   }
 
-  getAllOrderHeaders(): Observable<ODataResponse<PurchaseOrderHeader>> {
+  getAllOrderHeaders(useMainEnv = false): Observable<ODataResponse<PurchaseOrderHeader>> {
     return this.getData<ODataResponse<PurchaseOrderHeader>>(
       '/data/PurchaseOrderHeadersV2',
       {
         '$count': 'true',
-        '$filter': this.poFilter,
+        '$filter': this.poFilterFor(useMainEnv),
         '$orderby': 'PurchaseOrderNumber desc',
-      }
+      },
+      useMainEnv
     );
   }
 
@@ -145,14 +157,17 @@ export class PurchaseOrderService {
 
   getOrderWithLines(
     poNumber: string,
-    dataAreaId: string = testPurchaseOrderEnv.useTestPurchaseOrderEnv ? TEST_PO_COMPANY : 'usmf'
+    dataAreaId?: string,
+    useMainEnv = false
   ): Observable<PurchaseOrderHeader> {
+    const company = dataAreaId ?? this.companyFor(useMainEnv);
     return this.getData<PurchaseOrderHeader>(
-      `/data/PurchaseOrderHeadersV2(dataAreaId='${dataAreaId}',PurchaseOrderNumber='${poNumber}')`,
-      { '$expand': 'PurchaseOrderLinesV2' }
+      `/data/PurchaseOrderHeadersV2(dataAreaId='${company}',PurchaseOrderNumber='${poNumber}')`,
+      { '$expand': 'PurchaseOrderLinesV2' },
+      useMainEnv
     ).pipe(
       switchMap((po) =>
-        this.getRemainingByLine(poNumber, dataAreaId).pipe(
+        this.getRemainingByLine(poNumber, company, useMainEnv).pipe(
           map((remainingByLine) => ({
             ...po,
             PurchaseOrderLinesV2: (po.PurchaseOrderLinesV2 ?? []).map((line) =>
@@ -170,11 +185,11 @@ export class PurchaseOrderService {
    * RemainingPurchaseQuantity is the running balance as of that receipt. Lines with no
    * receipt yet simply have no row here, so they keep their full ordered quantity.
    */
-  private getRemainingByLine(poNumber: string, dataAreaId: string): Observable<Map<number, number>> {
+  private getRemainingByLine(poNumber: string, dataAreaId: string, useMainEnv = false): Observable<Map<number, number>> {
     return this.getData<ODataResponse<ProductReceiptLine>>('/data/ProductReceiptLinesV2', {
       '$filter': `dataAreaId eq '${dataAreaId}' and PurchaseOrderNumber eq '${poNumber}'`,
       '$orderby': 'RecordId desc',
-    }).pipe(
+    }, useMainEnv).pipe(
       map((res) => {
         const remainingByLine = new Map<number, number>();
         for (const receiptLine of res.value) {
@@ -199,6 +214,22 @@ export class PurchaseOrderService {
   createProductReceipt(payload: CreateProductReceiptRequest): Observable<CreateProductReceiptResponse> {
     return this.postServices<CreateProductReceiptResponse>(
       '/api/services/GP_createProductReceiptServiceGroup/GP_CreateProductReceiptService/createProductReceipt',
+      payload
+    ).pipe(timeout(PRODUCT_RECEIPT_TIMEOUT_MS));
+  }
+
+  /**
+   * PO arrival registration — used by the Register module.
+   *
+   * Deliberately NOT routed through postServices(): GP_PORegistrationAPIService is
+   * deployed on the main D365 env only (gp-customers), and the Elsewedy test sandbox
+   * returns 404 for it. So this always targets the main env, whatever
+   * useTestPurchaseOrderEnv is set to — which is why the Register module's reads pass
+   * useMainEnv too, so it lists and registers against the same company.
+   */
+  registerPurchaseOrder(payload: RegisterPurchaseOrderRequest): Observable<RegisterPurchaseOrderResponse> {
+    return this.api.post<RegisterPurchaseOrderResponse>(
+      '/api/services/GP_PORegistrationAPIServiceGroup/GP_PORegistrationAPIService/registerPurchaseOrder',
       payload
     ).pipe(timeout(PRODUCT_RECEIPT_TIMEOUT_MS));
   }

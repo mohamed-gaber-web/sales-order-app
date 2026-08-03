@@ -69,3 +69,33 @@ export interface CreateProductReceiptResponse {
   DebugMessage?: string;
   PackingSlipId?: string;
 }
+
+// ── POST: Register Purchase Order (arrival registration) ────
+// GP_PORegistrationAPIService/registerPurchaseOrder. Unlike createProductReceipt this
+// takes one object per line instead of parallel arrays, and carries no receipt ID.
+export interface RegisterPurchaseOrderLine {
+  LineNumber: number;
+  RegisterQty: number;
+  /** Optional in the service contract; the app doesn't collect either field today. */
+  WMSLocationId?: string;
+  InventBatchId?: string;
+}
+
+export interface RegisterPurchaseOrderRequest {
+  _request: {
+    DataAreaId: string;
+    PurchaseOrderId: string;
+    Lines: RegisterPurchaseOrderLine[];
+  };
+}
+
+// Shape confirmed against the live service. RegisteredLines comes back null on failure;
+// its element shape isn't in the contract metadata, so it stays loose until seen.
+export interface RegisterPurchaseOrderResponse {
+  Success: boolean;
+  ErrorMessage?: string;
+  DebugMessage?: string;
+  PurchaseOrderId?: string;
+  RegisteredLineCount?: number;
+  RegisteredLines?: Record<string, unknown>[] | null;
+}

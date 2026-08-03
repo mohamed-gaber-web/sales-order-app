@@ -189,7 +189,8 @@ export class PurchaseOrderScanRegisterPage implements OnInit {
 
   private loadOrderLines(): Promise<void> {
     return new Promise((resolve, reject) => {
-      this.poService.getOrderWithLines(this.poNumber).subscribe({
+      // useMainEnv — same reason as the PO picker: register posts to the main env.
+      this.poService.getOrderWithLines(this.poNumber, undefined, true).subscribe({
         next: (po) => {
           this.po = po;
           this.openLines = (po.PurchaseOrderLinesV2 ?? []).filter(l => this.getRemainingQty(l) > 0);
@@ -303,8 +304,9 @@ export class PurchaseOrderScanRegisterPage implements OnInit {
     this.isSubmitting = true;
 
     const items = this.cart;
+    // Local print reference only — registerPurchaseOrder takes no receipt ID. Still
+    // needed by the label, and by the commented-out createProductReceipt call below.
     const registrationId = this.generateRegistrationId();
-    const purchaseLineNum = items.map(i => i.line.LineNumber);
     const registerQty = items.map(i => i.qty);
 
     const loading = await this.loadingCtrl.create({
@@ -313,20 +315,39 @@ export class PurchaseOrderScanRegisterPage implements OnInit {
     });
     await loading.present();
 
-    this.poService.createProductReceipt({
+    // ── PREVIOUS API (product receipt) — kept so it can be restored if the
+    // registration service below doesn't work out. To revert: comment out the
+    // registerPurchaseOrder call and uncomment this one.
+    //
+    // const purchaseLineNum = items.map(i => i.line.LineNumber);
+    // this.poService.createProductReceipt({
+    //   _request: {
+    //     DataAreaId: ((this.po?.dataAreaId as string) ?? 'usmf').toUpperCase(),
+    //     purchaseOrderID: this.poNumber,
+    //     productReceiptId: registrationId,
+    //     purchaseLineNum,
+    //     productReceiptQty: registerQty,
+    //   }
+    // }).subscribe({ ... })
+    // ────────────────────────────────────────────────────────────────────────
+
+    this.poService.registerPurchaseOrder({
       _request: {
-        DataAreaId: ((this.po?.dataAreaId as string) ?? 'usmf').toUpperCase(),
-        purchaseOrderID: this.poNumber,
-        productReceiptId: registrationId,
-        purchaseLineNum,
-        productReceiptQty: registerQty,
+        DataAreaId: (this.po?.dataAreaId as string) ?? 'usmf',
+        PurchaseOrderId: this.poNumber,
+        Lines: items.map(i => ({
+          LineNumber: i.line.LineNumber,
+          RegisterQty: i.qty,
+          // WMSLocationId / InventBatchId are optional in the contract — not collected yet.
+        })),
       }
     }).subscribe({
       next: async (res) => {
         await loading.dismiss();
         this.isSubmitting = false;
         if (res.Success) {
-          this.confirmedCount = items.length;
+          // Prefer the server's count over the cart's — it's what actually posted.
+          this.confirmedCount = res.RegisteredLineCount ?? items.length;
           this.confirmedRegistrationId = registrationId;
           this.confirmedTotalQty = registerQty.reduce((sum, q) => sum + q, 0);
           this.confirmedItems = items.map((item, i) => ({
