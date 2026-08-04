@@ -1,0 +1,89 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/inventory/van-sales"></ion-back-button>
+    </ion-buttons>
+    <ion-title>New customer</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="van-content">
+  <div class="van-card">
+    <ds-form-field label="Business name" [required]="true">
+      <input class="van-field-input" [value]="name()" (input)="name.set($any($event.target).value)"
+             placeholder="e.g. Al Baraka Market — Haram" />
+    </ds-form-field>
+
+    <div class="field-pair">
+      <ds-form-field label="Mobile" [required]="true">
+        <input class="van-field-input van-mono" inputmode="tel" [value]="phone()"
+               (input)="phone.set($any($event.target).value)" placeholder="0100 000 0000" />
+      </ds-form-field>
+      <ds-form-field label="Tax number" [required]="true">
+        <input class="van-field-input van-mono" inputmode="numeric" [value]="taxNumber()"
+               (input)="taxNumber.set($any($event.target).value)" placeholder="000-000-000" />
+      </ds-form-field>
+    </div>
+
+    <ds-form-field label="Address + location">
+      <div class="addr-row">
+        <input class="van-field-input" [value]="address()" (input)="address.set($any($event.target).value)"
+               placeholder="Street, area" />
+        <button type="button" class="gps-chip" [class.on]="gpsCaptured()" (click)="captureGps()">
+          <ion-icon [name]="gpsCaptured() ? 'checkmark-outline' : 'location-outline'"></ion-icon>
+          {{ gpsCaptured() ? 'Set' : 'GPS' }}
+        </button>
+      </div>
+    </ds-form-field>
+  </div>
+
+  <!-- Payment mode -->
+  <div class="van-card">
+    <p class="van-section-title">Payment mode</p>
+    <div class="van-seg">
+      <button type="button" [class.on]="paymentMode() === 'COD'" (click)="setMode('COD')">Cash · COD</button>
+      <button type="button" [class.on]="paymentMode() === 'Credit'" (click)="setMode('Credit')">Credit</button>
+    </div>
+    @if (paymentMode() === 'Credit') {
+      <p class="mode-note">
+        <ion-icon name="warning-outline"></ion-icon>
+        Credit customers need Finance approval and a credit limit before the account activates.
+      </p>
+    }
+  </div>
+
+  <!-- Attachments -->
+  <div class="van-card">
+    <p class="van-section-title">Required documents</p>
+    @for (doc of docs; track doc) {
+      <button type="button" class="doc" [class.on]="isAttached(doc)" (click)="toggleDoc(doc)">
+        <ion-icon [name]="isAttached(doc) ? 'checkmark-circle' : 'camera-outline'"></ion-icon>
+        {{ doc }}
+      </button>
+    }
+    <p class="van-hint" style="text-align:start">Tap to attach each document (camera or file).</p>
+  </div>
+
+  <!-- Workflow -->
+  <div class="van-card workflow-card">
+    <p class="van-section-title">Request workflow</p>
+    <div class="workflow">
+      <span class="step done">Create</span>
+      <span class="step">Submitted</span>
+      <span class="step">Finance review</span>
+      <span class="step">Active</span>
+    </div>
+  </div>
+
+  <div class="content-footer-space"></div>
+</ion-content>
+
+<ion-footer class="ion-no-border">
+  <ds-cta-bar
+    label="Submit for review"
+    icon="send-outline"
+    [loading]="isPosting()"
+    [disabled]="!canSubmit()"
+    (ctaClick)="submit()">
+  </ds-cta-bar>
+</ion-footer>

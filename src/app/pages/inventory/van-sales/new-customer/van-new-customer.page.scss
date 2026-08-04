@@ -1,0 +1,101 @@
+@import '../van-shared.scss';
+
+.van-field-input {
+  width: 100%;
+  border: 1px solid var(--gp-border);
+  border-radius: var(--gp-radius-sm);
+  background: var(--gp-card-bg);
+  padding: 10px 12px;
+  font-size: 14px;
+  color: var(--ion-text-color, #16233c);
+
+  &:focus { outline: none; border-color: var(--gp-navy); }
+  &::placeholder { color: #9aa4b2; }
+}
+
+.field-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.addr-row {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.gps-chip {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 12px;
+  border-radius: var(--gp-radius-sm);
+  border: 1px solid var(--gp-border);
+  background: var(--gp-card-bg);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--gp-navy);
+  cursor: pointer;
+
+  &.on { background: #e3f5ec; border-color: #b7e4cf; color: #0e6f4e; }
+  ion-icon { font-size: 15px; }
+}
+
+.mode-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 10px 0 0;
+  font-size: 12px;
+  color: #9a6a00;
+
+  ion-icon { font-size: 15px; flex: 0 0 auto; margin-top: 1px; }
+}
+
+.doc {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 11px 12px;
+  margin-top: 6px;
+  border: 1px solid var(--gp-border);
+  border-radius: var(--gp-radius-sm);
+  background: var(--gp-card-bg);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ion-text-color, #16233c);
+  cursor: pointer;
+
+  &.on { background: #e3f5ec; border-color: #b7e4cf; color: #0e6f4e; }
+  ion-icon { font-size: 19px; }
+}
+
+.workflow-card .workflow {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+
+  .step {
+    flex: 1;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--gp-text-muted, #6b7280);
+    position: relative;
+
+    &::before {
+      content: '';
+      display: block;
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #cbd3e0;
+      margin: 0 auto 5px;
+    }
+    &.done { color: var(--ion-color-success, #0e9f6e); }
+    &.done::before { background: var(--ion-color-success, #0e9f6e); }
+  }
+}

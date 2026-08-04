@@ -10,6 +10,7 @@ import { Router } from '@angular/router';
 import { LoadingController, ModalController, ToastController } from '@ionic/angular';
 import { LookupService } from '../../../../core/services/lookup.service';
 import { VanCartService } from '../../../../core/services/van-cart.service';
+import { VanDayService } from '../../../../core/services/van-day.service';
 import { VanSalesService } from '../../../../core/services/van-sales.service';
 import { Customer } from '../../../../core/models/lookup.models';
 import { Warehouse } from '../../../../models/inventory.model';
@@ -34,6 +35,7 @@ export class VanSalesCheckoutPage implements OnInit {
   private toastCtrl = inject(ToastController);
   private vanSales = inject(VanSalesService);
   private lookup = inject(LookupService);
+  private day = inject(VanDayService);
   readonly cart = inject(VanCartService);
 
   readonly customers = this.lookup.customers;
@@ -85,13 +87,27 @@ export class VanSalesCheckoutPage implements OnInit {
 
   ngOnInit() {
     if (this.cart.isEmpty()) {
-      this.router.navigate(['/inventory/van-sales']);
+      this.router.navigate(['/inventory/van-sales/catalog']);
       return;
     }
+    this.preselectVisitCustomer();
     this.vanSales.getWarehouses().subscribe({
       next: (list) => this.warehouses.set(list),
       error: () => this.warehouses.set([]),
     });
+  }
+
+  /**
+   * When the driver reached checkout from a visit, pre-pick that customer so they
+   * don't re-select who they're standing in front of. Only fires on an exact
+   * account match against the live lookup — the seeded route accounts may not
+   * exist in this tenant, in which case the driver picks as before.
+   */
+  private preselectVisitCustomer() {
+    const account = this.day.currentVisit()?.account;
+    if (!account) return;
+    const match = this.customers().find((c) => c.CustomerAccount === account);
+    if (match) this.customer.set(match);
   }
 
   // ── Pickers ────────────────────────────────────────────────────────────────
@@ -152,6 +168,10 @@ export class VanSalesCheckoutPage implements OnInit {
           this.isSubmitting.set(false);
           await loading.dismiss();
           this.result.set(result);
+          // Fold the sale into the day: the current visit is marked done and the
+          // invoice booked as an open receivable so a later collection can settle
+          // it. A no-op when checkout wasn't reached from a visit.
+          this.day.recordSale(result);
           // The sale is posted — holding the cart would let it be sold twice.
           this.cart.clear();
           if (result.failedItems.length > 0) {
@@ -207,10 +227,16 @@ export class VanSalesCheckoutPage implements OnInit {
     this.router.navigate(['/sales-order-line/detail', result.orderNumber]);
   }
 
+  /** Returns to the visit the sale was made at, or the journey if there isn't one. */
   startNewSale() {
     this.result.set(null);
     this.customer.set(null);
-    this.router.navigate(['/inventory/van-sales']);
+    const visitId = this.day.currentVisit()?.id;
+    this.router.navigate(
+      visitId != null
+        ? ['/inventory/van-sales/visit', visitId]
+        : ['/inventory/van-sales']
+    );
   }
 
   backToCart() {

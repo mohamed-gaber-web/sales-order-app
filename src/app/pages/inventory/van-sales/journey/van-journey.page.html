@@ -1,0 +1,95 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Van Sales</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="dayClose()" aria-label="Sync and close day">
+        <ion-icon slot="icon-only" name="sync-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="van-content">
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  @if (day.day(); as d) {
+    <!-- ── Day header ─────────────────────────────────────────── -->
+    <div class="journey-hero">
+      <div class="hero-route">
+        <span class="hero-route-label">Route</span>
+        <span class="hero-route-id van-mono">{{ d.routeId }}</span>
+      </div>
+      <div class="hero-stats">
+        <ds-stat label="Visited" [value]="day.doneCount() + ' / ' + d.kpi.planned"></ds-stat>
+        <ds-stat label="Sales" [value]="(d.kpi.sales | number:'1.0-0') ?? '0'" accentColor="var(--gp-accent)"></ds-stat>
+        <ds-stat label="Collected" [value]="(d.kpi.collected | number:'1.0-0') ?? '0'"></ds-stat>
+      </div>
+    </div>
+
+    <!-- ── Schematic route map ────────────────────────────────── -->
+    <div class="journey-map">
+      <svg viewBox="0 0 300 130" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+        <path
+          d="M15 110 C 60 80,90 100,120 65 S 200 40,255 48 S 288 25,290 22"
+          fill="none" stroke="var(--gp-accent)" stroke-width="3"
+          stroke-dasharray="7 5" stroke-linecap="round" />
+        <circle cx="15" cy="110" r="7" fill="var(--ion-color-success, #0e9f6e)" />
+        <text x="15" y="113" text-anchor="middle" font-size="8" fill="#fff" font-weight="bold">D</text>
+        @for (v of d.visits; track v.id) {
+          <circle [attr.cx]="v.lat * 1.1 + 10" [attr.cy]="v.lng + 10" r="7" [attr.fill]="pinColor(v)" />
+          <text [attr.x]="v.lat * 1.1 + 10" [attr.y]="v.lng + 13" text-anchor="middle"
+                font-size="8" fill="#fff" font-weight="bold">{{ v.id }}</text>
+        }
+      </svg>
+      <div class="map-legend van-mono">{{ d.kpi.kmPlanned }} km planned · {{ d.visits.length }} stops</div>
+    </div>
+
+    <!-- ── Stops ──────────────────────────────────────────────── -->
+    <p class="van-section-title stops-title">Today's stops</p>
+    <div class="stop-list">
+      @for (v of d.visits; track v.id) {
+        <button type="button" class="stop-card" [class.done]="v.status === 'done'"
+                [class.current]="v.status === 'current'" (click)="openVisit(v)">
+          <span class="stop-index" [class.done]="v.status === 'done'"
+                [class.current]="v.status === 'current'">
+            @if (v.status === 'done') { <ion-icon name="checkmark"></ion-icon> } @else { {{ v.id }} }
+          </span>
+          <span class="stop-body">
+            <span class="stop-head">
+              <span class="stop-name">{{ v.name }}</span>
+              @let pill = statusPill(v);
+              @if (pill) {
+                <ds-pill [label]="pill.label" [color]="pill.color" [bg]="pill.bg"></ds-pill>
+              }
+            </span>
+            <span class="stop-sub">{{ subtitle(v) }}</span>
+          </span>
+          <ion-icon class="stop-chev" name="chevron-forward"></ion-icon>
+        </button>
+      }
+    </div>
+
+    <div class="content-footer-space"></div>
+  } @else {
+    <div class="journey-loading">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Loading today's route…</p>
+    </div>
+  }
+</ion-content>
+
+<ion-footer class="ion-no-border">
+  <ds-cta-bar
+    label="New customer request"
+    icon="person-add-outline"
+    secondaryLabel="Day close"
+    secondaryIcon="flag-outline"
+    (ctaClick)="newCustomer()"
+    (secondaryClick)="dayClose()">
+  </ds-cta-bar>
+</ion-footer>

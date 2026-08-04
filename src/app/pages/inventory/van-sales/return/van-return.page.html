@@ -1,0 +1,89 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button [defaultHref]="'/inventory/van-sales/visit/' + (visit()?.id ?? '')"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Return</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="van-content">
+  @if (visit(); as v) {
+    <!-- Original invoice (mandatory) -->
+    <div class="van-card">
+      <p class="van-section-title">Original invoice — required</p>
+      @for (inv of originalInvoices(); track inv.invoiceId) {
+        <button type="button" class="inv-option" [class.on]="selectedInvoice() === inv.invoiceId"
+                (click)="selectInvoice(inv.invoiceId)">
+          <ion-icon [name]="selectedInvoice() === inv.invoiceId ? 'radio-button-on' : 'radio-button-off'"></ion-icon>
+          <span class="van-mono">{{ inv.invoiceId }}</span>
+          <span class="inv-date">{{ inv.date }}</span>
+          <span class="inv-amt">{{ money(inv.amount) }}</span>
+        </button>
+      } @empty {
+        <p class="van-hint" style="text-align:start">No open invoices to return against.</p>
+      }
+    </div>
+
+    <!-- Type -->
+    <div class="van-card">
+      <p class="van-section-title">Return type</p>
+      <div class="van-seg">
+        <button type="button" [class.on]="type() === 'Full'" (click)="setType('Full')">Full</button>
+        <button type="button" [class.on]="type() === 'Partial'" (click)="setType('Partial')">Partial</button>
+      </div>
+
+      <div class="ret-item" [class.dim]="type() === 'Full'">
+        <div class="ret-item-info">
+          <span class="van-value">Tomato paste IKK 320g</span>
+          <span class="van-label">On invoice: 10 · returning {{ returnedQty() }} · {{ money(netValue()) }}</span>
+        </div>
+        @if (type() === 'Partial') {
+          <div class="ret-stepper">
+            <button type="button" (click)="adjustQty(-1)"><ion-icon name="remove-outline"></ion-icon></button>
+            <span>{{ qty() }}</span>
+            <button type="button" (click)="adjustQty(1)"><ion-icon name="add-outline"></ion-icon></button>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Reason + controls -->
+    <div class="van-card">
+      <div class="van-row">
+        <span class="van-label">Reason code</span>
+        <span class="van-value">Damaged packaging · RTN-DMG</span>
+      </div>
+      <div class="van-row">
+        <span class="van-label">Disposition</span>
+        <span class="van-value">Damaged → quarantine</span>
+      </div>
+    </div>
+
+    <div class="van-card controls-card">
+      <p class="controls-title">Controls enforced</p>
+      <p class="controls-line">✓ Within return policy (7 days) · ✓ Linked to a valid invoice</p>
+      <p class="controls-line">✓ Only the returned portion is reversed — the rest of the invoice stands</p>
+      <p class="controls-line">✓ Stock and the customer account update automatically once posted</p>
+    </div>
+
+    <div class="van-card">
+      <div class="van-row">
+        <span class="van-value">Return value (incl. VAT)</span>
+        <span class="van-value neg">-{{ money(valueWithVat()) }}</span>
+      </div>
+    </div>
+
+    <div class="content-footer-space"></div>
+  }
+</ion-content>
+
+<ion-footer class="ion-no-border">
+  <ds-cta-bar
+    label="Post return"
+    icon="arrow-undo-outline"
+    [loading]="isPosting()"
+    [disabled]="!canPost()"
+    (ctaClick)="post()">
+  </ds-cta-bar>
+</ion-footer>

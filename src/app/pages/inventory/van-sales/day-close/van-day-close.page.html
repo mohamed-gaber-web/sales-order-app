@@ -1,0 +1,83 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/inventory/van-sales"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Sync &amp; day close</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="van-content">
+  @if (day.outbox(); as o) {
+    <!-- Outbox -->
+    <div class="van-card">
+      <div class="outbox-head">
+        <p class="van-section-title" style="margin:0">Outbox</p>
+        @if (pending() > 0) {
+          <ds-pill [label]="pending() + ' pending'" color="#9a6a00" bg="#fdf3d7"></ds-pill>
+        } @else {
+          <ds-pill label="All posted" color="#0e6f4e" bg="#e3f5ec"></ds-pill>
+        }
+      </div>
+      <div class="van-row"><span class="van-label">Invoices</span><span class="van-value">{{ o.invoices }} posted</span></div>
+      <div class="van-row"><span class="van-label">Collections</span><span class="van-value">{{ o.collections }} posted</span></div>
+      <div class="van-row"><span class="van-label">Returns</span><span class="van-value">{{ o.returns }} posted</span></div>
+      <div class="van-row">
+        <span class="van-label">New-customer requests</span>
+        <span class="van-value">{{ o.customerRequests > 0 ? o.customerRequests + ' in review' : '—' }}</span>
+      </div>
+      @if (pending() > 0) {
+        <ion-button expand="block" class="sync-btn" [disabled]="isSyncing()" (click)="sync()">
+          @if (isSyncing()) { <ion-spinner name="crescent" slot="start"></ion-spinner> Syncing… }
+          @else { <ion-icon slot="start" name="cloud-upload-outline"></ion-icon> Sync now ({{ pending() }}) }
+        </ion-button>
+      }
+    </div>
+
+    <!-- Reconciliation -->
+    @if (day.kpi(); as k) {
+      <div class="van-card">
+        <p class="van-section-title">End-of-day reconciliation</p>
+        <div class="van-row"><span class="van-label">Cash in the box</span><span class="van-value pos">{{ round(k.collected) }} = recorded</span></div>
+        <div class="van-row"><span class="van-label">Cheques</span><span class="van-value">—</span></div>
+        <div class="van-row"><span class="van-label">Van stock remaining</span><span class="van-value">Matched — transfer to WH</span></div>
+      </div>
+
+      <!-- KPIs -->
+      <div class="van-card kpi-card">
+        <p class="van-section-title">Day KPIs — {{ day.day()?.routeId }}</p>
+        <div class="van-row"><span class="van-label">Planned / visited</span><span class="van-value">{{ k.planned }} / {{ day.doneCount() }}</span></div>
+        <div class="van-row"><span class="van-label">Strike rate (visit with a sale)</span><span class="van-value">{{ strikeRate() }}%</span></div>
+        <div class="van-row"><span class="van-label">Route adherence</span><span class="van-value">{{ k.adherence }}%</span></div>
+        <div class="van-row"><span class="van-label">Km planned / actual</span><span class="van-value">{{ k.kmPlanned }} / {{ k.kmActual }}</span></div>
+        @if (k.returns > 0) {
+          <div class="van-row"><span class="van-label">Returns today</span><span class="van-value neg">-{{ round(k.returns) }}</span></div>
+        }
+        <div class="van-hr"></div>
+        <div class="van-row"><span class="van-value">Total sales</span><span class="van-value accent">{{ round(k.sales) }}</span></div>
+      </div>
+    }
+
+    @if (!day.isDayOpen()) {
+      <div class="van-card closed-card">
+        <ion-icon name="checkmark-circle"></ion-icon>
+        <p class="closed-title">Day closed</p>
+        <p class="closed-sub">All documents posted and reconciled.</p>
+      </div>
+    }
+
+    <div class="content-footer-space"></div>
+  }
+</ion-content>
+
+@if (day.isDayOpen()) {
+  <ion-footer class="ion-no-border">
+    <ds-cta-bar
+      [label]="pending() > 0 ? 'Close day — waiting on sync (' + pending() + ')' : 'Close the day'"
+      icon="flag-outline"
+      [loading]="isClosing()"
+      [disabled]="pending() > 0"
+      (ctaClick)="close()">
+    </ds-cta-bar>
+  </ion-footer>
+}

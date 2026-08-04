@@ -1,0 +1,77 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button [defaultHref]="'/inventory/van-sales/visit/' + (visit()?.id ?? '')"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Collect payment</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="van-content">
+  @if (visit(); as v) {
+    <!-- Open balance -->
+    <div class="van-card balance-card">
+      <span class="van-label">Open balance</span>
+      <span class="van-value neg balance-amount">{{ round(balance()) }}</span>
+    </div>
+
+    <!-- Method -->
+    <div class="van-card">
+      <p class="van-section-title">Method</p>
+      <div class="van-seg">
+        <button type="button" [class.on]="method() === 'Cash'" (click)="setMethod('Cash')">
+          <ion-icon name="cash-outline"></ion-icon> Cash
+        </button>
+        <button type="button" [class.on]="method() === 'Cheque'" (click)="setMethod('Cheque')">
+          <ion-icon name="document-text-outline"></ion-icon> Cheque
+        </button>
+      </div>
+
+      <ds-form-field label="Amount collected" class="amount-field">
+        <input
+          class="van-amount-input van-mono"
+          type="text"
+          inputmode="numeric"
+          [value]="round(amount())"
+          (input)="onAmountInput($any($event.target).value)" />
+      </ds-form-field>
+
+      <div class="van-quick-row">
+        <button type="button" class="van-quick" (click)="payHalf()">Half</button>
+        <button type="button" class="van-quick" (click)="payFull()">Full · {{ round(balance()) }}</button>
+      </div>
+    </div>
+
+    <!-- Settlement preview -->
+    <div class="van-card">
+      <p class="van-section-title">Settlement — oldest first</p>
+      @for (s of settlement(); track s.invoiceId) {
+        <div class="van-row">
+          <span class="van-label">
+            <ion-icon [name]="s.applied > 0 ? 'checkbox-outline' : 'square-outline'"></ion-icon>
+            <span class="van-mono">{{ s.invoiceId }}</span> · {{ s.date }}
+            @if (s.applied > 0 && s.applied < s.open) { <em>(partial)</em> }
+          </span>
+          <span class="van-value">{{ round(s.applied) }}</span>
+        </div>
+      }
+      <div class="van-hr"></div>
+      <div class="van-row">
+        <span class="van-label">Balance after</span>
+        <span class="van-value pos">{{ round(balanceAfter()) }}</span>
+      </div>
+    </div>
+
+    <div class="content-footer-space"></div>
+  }
+</ion-content>
+
+<ion-footer class="ion-no-border">
+  <ds-cta-bar
+    label="Confirm collection"
+    icon="cash-outline"
+    [loading]="isPosting()"
+    [disabled]="!canPost()"
+    (ctaClick)="post()">
+  </ds-cta-bar>
+</ion-footer>

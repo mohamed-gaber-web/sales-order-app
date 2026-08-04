@@ -1,0 +1,384 @@
+IKK FOODS — VAN SALES MOBILE APP
+D365 F&O Direct API Specification
+Mobile App ⇄ Dynamics 365 Finance & Operations (no middleware — always online)
+Every function mapped to its real system API name: OData entities & X++ services, with endpoints, request & response, and ZATCA e-invoicing
+Version 2.0 | August 2026 | Developer Reference
+Table of Contents
+TOC \h \o "1-2"
+1. Direct Connection Model (No Middleware)
+The mobile app connects directly to Dynamics 365 Finance & Operations over the internet. There is no middleware layer: the app authenticates to Entra ID, receives a token for F&O, and calls F&O REST endpoints (OData data entities and custom X++ services) directly. The app is assumed to be always online at the point of transaction.
+1.1 Two Kinds of System API in F&O
+OData data entities: the entity's public name is the API name, called under /data. Used for reads (master data) and simple creates (e.g., SalesOrderHeadersV2).
+Custom services (X++): a Service Group / Service / Operation is exposed under /api/services. Used for atomic posting that OData cannot do in one call (invoice post + ZATCA, payment + settlement, return vs. original invoice).
+1.2 Base URLs (the system endpoints)
+Purpose
+Endpoint (system API root)
+OData data entities
+https://ikk-prod.operations.dynamics.com/data
+Entity metadata
+https://ikk-prod.operations.dynamics.com/data/$metadata
+OData batch
+https://ikk-prod.operations.dynamics.com/data/$batch
+Custom X++ services
+https://ikk-prod.operations.dynamics.com/api/services
+Entra ID token
+https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/token
+Replace ikk-prod.operations.dynamics.com with your actual F&O environment host. All calls require the Bearer token from section 2.
+2. Authentication — Direct to F&O (Entra ID)
+The app is registered in Entra ID as a public/mobile client and requests a token whose resource is the F&O environment. The signed-in rep maps to a D365 user, so every document is stamped with the real user and honors D365 security roles.
+2.1 Token request
+POST https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/token
+grant_type=authorization_code // Auth-code + PKCE for per-user token
+client_id={mobileAppRegistrationId}
+code={authCode}
+code_verifier={pkceVerifier}
+redirect_uri=msauth://com.ikk.vansales
+scope=https://ikk-prod.operations.dynamics.com/.default
+Result: access_token (Bearer) + refresh_token. The token is sent on every F&O call. For service/background jobs a client-credentials token can be used instead.
+2.2 Standard headers on every F&O call
+Authorization: Bearer {access_token}
+Content-Type: application/json
+OData-MaxVersion: 4.0 // OData calls
+OData-Version: 4.0
+If-Match: * // required for PATCH/DELETE
+D365 security: the token's user must hold the Van Sales duty/privileges (customer create request, sales order & invoice, payment journal, return order, inventory transfer). No pricing or discount logic is placed on the device — F&O evaluates trade agreements and promotions.
+3. Master API Index (Function → D365 F&O System Name)
+For each function: the exact system API name in F&O and the endpoint the app calls directly.
+3.1 Reads — Master Data (OData data entities)
+Function
+D365 F&O System API Name
+Method
+Endpoint (/data)
+تحميل العملاء
+CustCustomersV3
+GET
+/data/CustCustomersV3
+ربط العميل بخط السير
+GPRouteCustomerEntity
+GET
+/data/GPRouteCustomerEntity
+الأصناف
+ReleasedProductsV2
+GET
+/data/ReleasedProductsV2
+الباركود
+BarcodeEntity
+GET
+/data/BarcodeEntity
+الأسعار والخصومات
+GPCustomerPriceEntity
+GET
+/data/GPCustomerPriceEntity
+العروض
+GPPromotionPolicyEntity
+GET
+/data/GPPromotionPolicyEntity
+مخزون العربية
+GPVanOnHandEntity
+GET
+/data/GPVanOnHandEntity
+خطة السير
+GPJourneyPlanEntity
+GET
+/data/GPJourneyPlanEntity
+3.2 Writes — Transactions
+Function
+D365 F&O System API Name
+Kind
+Endpoint
+انشاء أمر بيع
+SalesOrderHeadersV2 / SalesOrderLinesV2
+OData
+/data/SalesOrderHeadersV2
+ترحيل الفاتورة + ZATCA
+GPVanSalesService/postInvoice
+Service
+/api/services/GPVanSalesGroup/GPVanSalesService/postInvoice
+استرجاع QR الفاتورة
+GPVanSalesService/getEInvoiceQr
+Service
+/api/services/GPVanSalesGroup/GPVanSalesService/getEInvoiceQr
+التحصيل + التسوية
+GPCollectionService/postPayment
+Service
+/api/services/GPVanSalesGroup/GPCollectionService/postPayment
+المرتجع
+GPReturnService/postReturn
+Service
+/api/services/GPVanSalesGroup/GPReturnService/postReturn
+طلب عميل جديد
+GPCustomerRequestService/submit
+Service
+/api/services/GPVanSalesGroup/GPCustomerRequestService/submit
+المرفقات
+DocuAttachmentEntity
+OData
+/data/DocuAttachmentEntity
+نتيجة الزيارة + GPS
+GPVisitLogEntity
+OData
+/data/GPVisitLogEntity
+إقفال اليوم
+GPDayCloseService/close
+Service
+/api/services/GPVanSalesGroup/GPDayCloseService/close
+Note: entity names ending V2/V3 are standard Microsoft entities; names starting with GP are custom entities/services to be built in the ISV model. Route optimization runs client-side or as an F&O batch — it is not an online API call.
+4. Master Data Reads (OData)
+Reads use OData query options directly. Delta sync uses F&O change tracking with delta links, or a ModifiedDateTime filter.
+4.1 CustCustomersV3 — العملاء (per route)
+GET /data/CustCustomersV3?$filter=... &cross-company=true
+Route filtering joins the custom GPRouteCustomerEntity. Typical call for the rep's route:
+GET /data/GPRouteCustomerEntity
+?$filter=RouteId eq 'RT-CAI-04'
+&$expand=Customer($select=CustomerAccount,OrganizationName,
+CreditLimit,CustomerPaymentMethodName,SalesTaxGroup)
+&cross-company=true
+Response (per record)
+{
+"RouteId": "RT-CAI-04",
+"CustomerAccount": "CU-004512",
+"VisitFrequency": "Sat;Tue", "Priority": 2, "ServiceMinutes": 15,
+"Latitude": 30.0131, "Longitude": 31.2089,
+"Customer": {
+"OrganizationName": "ماركت الفتح — فيصل",
+"CreditLimit": 30000.0, "PaymentMode": "Credit",
+"SalesTaxGroup": "VAT15", "CustomerHold": "No"
+}
+}
+System delta: add header Prefer: odata.track-changes on first call, then GET the returned @odata.deltaLink to receive only changes.
+4.2 ReleasedProductsV2 + BarcodeEntity — الأصناف
+GET /data/ReleasedProductsV2?$select=ItemNumber,ProductName,SalesUnitSymbol,SalesSalesTaxItemGroupCode
+GET /data/BarcodeEntity?$filter=Barcode ne ''
+4.3 GPCustomerPriceEntity — الأسعار والخصومات
+GET /data/GPCustomerPriceEntity?$filter=CustomerAccount eq 'CU-004512'
+Custom entity backed by an X++ view that evaluates trade agreements (PriceDiscTable) per customer/date, so the app receives resolved price + line discount %.
+{
+"ItemNumber":"P-1001","CustomerAccount":"CU-004512",
+"SalesUnit":"CTN","Price":142.00,"LineDiscountPct":5.0,
+"FromDate":"2026-08-01","ToDate":"2026-08-31"
+}
+4.4 GPPromotionPolicyEntity — العروض
+GET /data/GPPromotionPolicyEntity?$filter=IsActive eq true
+{
+"PromotionId":"PROMO-OIL-6","Type":"BuyXGetY",
+"ConditionItem":"P-1001","MinQty":6,"ConditionUnit":"CTN",
+"RewardItem":"P-1003","RewardQty":2,"RewardFree":true
+}
+4.5 GPVanOnHandEntity — مخزون العربية
+GET /data/GPVanOnHandEntity?$filter=InventLocationId eq 'VAN-07'
+Van = dedicated warehouse. Morning load = InventTransferJournal into VAN-07 (posted from Back Office).
+4.6 GPJourneyPlanEntity — خطة السير
+GET /data/GPJourneyPlanEntity?$filter=SalespersonId eq 'SP-014' and PlanDate eq 2026-08-02T00:00:00Z&$expand=Stops
+5. Sales Order, Invoice & ZATCA E-Invoicing
+5.1 SalesOrderHeadersV2 — انشاء أمر بيع (OData)
+POST /data/SalesOrderHeadersV2
+Direct OData create for pre-sales/delivery routes. Lines carry resolved price/discount and any promotion reference. Header holds an idempotency key in a custom field.
+POST /data/SalesOrderHeadersV2
+{
+"dataAreaId": "ikk",
+"OrderingCustomerAccountNumber": "CU-004512",
+"DefaultShippingWarehouseId": "VAN-07",
+"DeviceTransactionId": "b1f2-...-9ac"
+}
+// then POST lines:
+POST /data/SalesOrderLinesV2
+{
+"dataAreaId":"ikk","SalesOrderNumber":"{returned}",
+"ItemNumber":"P-1001","SalesUnitSymbol":"CTN",
+"OrderedSalesQuantity":6,"SalesPrice":142.00,"LineDiscountPercentage":5.0
+}
+5.2 GPVanSalesService/postInvoice — ترحيل الفاتورة (Service)
+POST /api/services/GPVanSalesGroup/GPVanSalesService/postInvoice
+The core call. Since the app is online, this single X++ operation runs the whole cycle inside F&O in one transaction: create order → confirm → post packing slip against VAN-07 → post invoice → compute VAT → invoke the Electronic Invoicing (ZATCA) service → return the fiscal number and QR. Idempotent by DeviceTransactionId.
+Request
+{
+"_request": {
+"DataAreaId": "ikk",
+"DeviceTransactionId": "b1f2-...-9ac",
+"CustomerAccount": "CU-004512",
+"Warehouse": "VAN-07",
+"DeviceInvoiceNo": "VAN07-000319",
+"PaymentMode": "Credit",
+"Latitude": 30.0131, "Longitude": 31.2089,
+"Lines": [
+{"ItemNumber":"P-1001","Unit":"CTN","Qty":6,"Price":142.00,"LineDiscountPct":5.0},
+{"ItemNumber":"P-1002","Unit":"CTN","Qty":4,"Price":96.00},
+{"ItemNumber":"P-1003","Unit":"PCS","Qty":2,"Price":0,"PromotionId":"PROMO-OIL-6"}
+]
+}
+}
+Response
+{
+"Status": "Posted",
+"SalesId": "SO-091233",
+"InvoiceId": "INV-091233",
+"ZatcaInvoiceHash": "NWZlY2ViNjZmZ...", // SHA-256, base64
+"ZatcaQrBase64": "ARvYtNix2YPYqSBJS0s...", // TLV, base64 (goes on the print)
+"FiscalInvoiceNo": "SA-2026-556677",
+"ClearanceStatus": "Reported", // Reported (simplified) | Cleared (standard)
+"Totals": {"Gross":1236.00,"Discount":42.60,"Vat":183.80,"Net":1409.14}
+}
+System mapping: GPVanSalesService wraps SalesTableType + SalesFormLetter (Confirm → PackingSlip → Invoice) and calls the standard Electronic invoicing feature (RCS-configured, ZATCA format). The app prints directly from ZatcaQrBase64 + FiscalInvoiceNo.
+5.3 GPVanSalesService/getEInvoiceQr — استرجاع الـ QR
+POST /api/services/GPVanSalesGroup/GPVanSalesService/getEInvoiceQr
+Optional re-fetch of the QR/fiscal number for reprint, keyed by DeviceTransactionId or InvoiceId.
+{
+"InvoiceId":"INV-091233",
+"ZatcaQrBase64":"ARvYtNix2YPYqSBJS0s...",
+"FiscalInvoiceNo":"SA-2026-556677"
+}
+5.4 ZATCA QR content (what F&O returns)
+The QR is a Base64-encoded TLV (Tag-Length-Value) string built by the Electronic Invoicing feature. Tags, in order:
+Tag
+Field
+Example
+1
+اسم البائع / Seller name
+شركة IKK للأغذية
+2
+الرقم الضريبي / VAT number
+300012345600003
+3
+التاريخ والوقت / Timestamp (ISO 8601)
+2026-08-02T10:07:00Z
+4
+الإجمالي شامل الضريبة / Invoice total
+1409.14
+5
+قيمة الضريبة / VAT total
+183.80
+Phase-2 simplified invoices additionally embed the invoice hash, ECDSA signature, and public key (tags 6–8) — all produced by F&O's Electronic Invoicing (the app never signs). The app only renders ZatcaQrBase64 into a QR image and prints it.
+6. Collection & Return Services
+6.1 GPCollectionService/postPayment — التحصيل
+POST /api/services/GPVanSalesGroup/GPCollectionService/postPayment
+Posts a customer payment journal and settles against selected open invoices in one transaction.
+{
+"_request": {
+"DataAreaId":"ikk","DeviceTransactionId":"c7a3-...-11e",
+"CustomerAccount":"CU-004512","Method":"Cash", // Cash | Cheque
+"Amount":5000.00,
+"Cheque": null,
+"Settle":[
+{"InvoiceId":"INV-87651","Amount":3760.00},
+{"InvoiceId":"INV-88103","Amount":1240.00}
+]
+}
+}
+// response
+{
+"Status":"Posted","Voucher":"PAYV-004521","NewBalance":8660.48
+}
+System mapping: CustVendPaymJournal (journal name per rep) + SpecTransSettlement. Cheque posts to a bridging account until clearance.
+6.2 GPReturnService/postReturn — المرتجع
+POST /api/services/GPVanSalesGroup/GPReturnService/postReturn
+{
+"_request": {
+"DataAreaId":"ikk","DeviceTransactionId":"d2b9-...-5fa",
+"CustomerAccount":"CU-004512",
+"OriginalInvoiceId":"INV-88103", // mandatory — validated
+"ReturnType":"Partial", // Full | Partial
+"ReasonCode":"RTN-DMG",
+"Disposition":"Damaged",
+"Lines":[{"ItemNumber":"P-1002","Unit":"CTN","Qty":3}]
+}
+}
+// response
+{
+"Status":"Posted","CreditNoteId":"RCN-004120","ReversedAmount":328.32,
+"ZatcaQrBase64":"...", "FiscalInvoiceNo":"SA-2026-CN-0041"
+}
+System mapping: Return Order (SalesType=ReturnItem) / credit note vs the original invoice; sellable → VAN-07, damaged → quarantine location. Credit note also carries its own ZATCA QR.
+7. Customer, Visit & Day Close
+7.1 GPCustomerRequestService/submit — طلب عميل جديد
+POST /api/services/GPVanSalesGroup/GPCustomerRequestService/submit
+{
+"_request": {
+"NameAr":"ماركت البركة — الهرم","Phone":"01002345678",
+"TaxRegistrationNumber":"412583970",
+"PaymentMode":"Credit","CustomerGroup":"RETAIL",
+"Latitude":29.9870,"Longitude":31.1580,
+"AttachmentRefs":["att_ci_01","att_tax_01","att_addr_01"]
+}
+}
+// response
+{
+"RequestId":"CR-20260802-031","WorkflowStatus":"Submitted","CustomerAccount":null
+}
+System mapping: Creates CustCustomerV3 with CustomerHold=Invoice + submits the F&O workflow to Finance. Attachments via DocuAttachmentEntity (DocuRef). On approval: CreditLimit set, hold released.
+7.2 DocuAttachmentEntity — المرفقات
+POST /data/DocuAttachmentEntity
+Standard entity for file attachments against any record (RefTableId=CustTable). Upload the file part, then link the DocuRef.
+7.3 GPVisitLogEntity — نتيجة الزيارة + GPS
+POST /data/GPVisitLogEntity
+{
+"dataAreaId":"ikk","JourneyId":"JP-20260802-014",
+"CustomerAccount":"CU-004512","Sequence":3,
+"CheckInTime":"2026-08-02T09:51:00Z","CheckInLat":30.01,"CheckInLng":31.21,
+"CheckOutTime":"2026-08-02T10:18:00Z","Outcome":"Sale","GeofenceOk":true
+}
+System mapping: Feeds route-adherence & strike-rate KPIs and the Power BI supervisor dashboard.
+7.4 GPDayCloseService/close — إقفال اليوم
+POST /api/services/GPVanSalesGroup/GPDayCloseService/close
+// request
+{
+"_request":{"SalespersonId":"SP-014","JourneyId":"JP-20260802-014","CashCounted":21450.00}
+}
+// response
+{
+"Status":"Closed","CashVariance":0.00,"StockTransfer":"TRF-VAN07-0802",
+"Kpis":{"Planned":12,"Visited":11,"StrikeRate":82,"Adherence":91,"Sales":46720.00}
+}
+System mapping: Cash reconciliation journal + InventTransferJournal (VAN-07 → main WH) + KPI write to GPRouteKpiEntity.
+8. Errors, Idempotency & Print Flow
+8.1 Idempotency (always-online safety)
+Every write carries DeviceTransactionId (a client GUID).
+F&O stores it (GPIntegrationLog); a repeated call returns the original result rather than re-posting — protects against double-tap and network timeouts even without a middleware queue.
+8.2 Standard F&O error shape
+{
+"error": {
+"code": "CREDIT_LIMIT_EXCEEDED",
+"message": "تجاوز حد الائتمان — المتاح 16,339"
+}
+}
+8.3 Key error codes
+Code
+Meaning
+App behavior
+CREDIT_LIMIT_EXCEEDED
+Invoice > available credit
+Block; show available amount
+CUSTOMER_ON_HOLD
+Customer not activated
+Cash only; block credit invoice
+INVALID_ORIGINAL_INVOICE
+Bad return reference
+Require a valid invoice
+ZATCA_SUBMISSION_FAILED
+E-invoice rejected by ZATCA
+Retry post; keep invoice unissued
+PERIOD_CLOSED
+Fiscal period closed
+Alert supervisor
+TXN_DUPLICATE
+DeviceTransactionId seen
+Treat as success; reprint
+8.4 In-app print flow (ZATCA)
+1. App calls GPVanSalesService/postInvoice.
+2. F&O posts the invoice and runs Electronic Invoicing (ZATCA), returning FiscalInvoiceNo + ZatcaQrBase64 + hash.
+3. The app renders ZatcaQrBase64 into a QR image and lays out the bilingual simplified tax invoice (80mm).
+4. The app prints to the Bluetooth thermal printer (or the OS print dialog / PDF).
+5. For reprints, the app re-fetches via getEInvoiceQr or prints from its local copy — the QR/fiscal number never change for a posted invoice.
+Appendix — GP Custom Service Group
+Service (GPVanSalesGroup)
+Operations
+GPVanSalesService
+postInvoice, getEInvoiceQr
+GPCollectionService
+postPayment
+GPReturnService
+postReturn
+GPCustomerRequestService
+submit, getStatus
+GPDayCloseService
+close
+Custom OData entities: GPRouteCustomerEntity, GPCustomerPriceEntity, GPPromotionPolicyEntity, GPVanOnHandEntity, GPJourneyPlanEntity, GPVisitLogEntity, GPRouteKpiEntity.

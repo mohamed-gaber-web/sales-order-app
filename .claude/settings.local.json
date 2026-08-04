@@ -78,7 +78,9 @@
       "Bash(npx cap sync *)",
       "PowerShell(cd *; .\\gradlew.bat assembleDebug)",
       "PowerShell(.\\gradlew.bat assembleDebug)",
-      "PowerShell(Get-Item *app-debug.apk*)"
+      "PowerShell(Get-Item *app-debug.apk*)",
+      "Read(//c/Users/n00105/nvm//**)",
+      "Read(//c/Users/n00105/nvm/v22.12.0//**)"
     ]
   }
 }

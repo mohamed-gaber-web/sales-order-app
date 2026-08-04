@@ -1,0 +1,89 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/inventory/van-sales"></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ visit()?.name || 'Visit' }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="van-content">
+  @if (visit(); as v) {
+    <!-- ── Check-in ───────────────────────────────────────────── -->
+    <div class="van-card">
+      <div class="van-row">
+        <ds-pill
+          [label]="v.checkedIn ? 'Checked in · in geofence' : 'Not checked in'"
+          [color]="v.checkedIn ? '#0e6f4e' : '#9a6a00'"
+          [bg]="v.checkedIn ? '#e3f5ec' : '#fdf3d7'">
+        </ds-pill>
+        <span class="van-value van-mono">{{ v.account }}</span>
+      </div>
+      @if (!v.checkedIn) {
+        <ion-button expand="block" class="checkin-btn" (click)="checkIn()">
+          <ion-icon slot="start" name="location-outline"></ion-icon>
+          Check in with GPS
+        </ion-button>
+      }
+
+      <div class="van-hr"></div>
+
+      <div class="van-row">
+        <span class="van-label">Customer type</span>
+        <ds-pill
+          [label]="isCredit() ? 'Credit — on account' : 'Cash — COD'"
+          [color]="isCredit() ? '#1a3b6a' : '#4b5563'"
+          [bg]="isCredit() ? '#e6eefb' : '#eef0f3'">
+        </ds-pill>
+      </div>
+
+      @if (isCredit()) {
+        <div class="van-row">
+          <span class="van-label">Open balance</span>
+          <span class="van-value" [class.neg]="v.balance > 0" [class.pos]="v.balance === 0">
+            {{ round(v.balance) }}
+          </span>
+        </div>
+        <div class="van-row">
+          <span class="van-label">Credit limit</span>
+          <span class="van-value">{{ round(v.limit) }}</span>
+        </div>
+        <ds-progress
+          class="credit-bar"
+          [value]="usage()"
+          [color]="usage() > 0.8 ? 'var(--ion-color-danger)' : 'var(--gp-accent)'"
+          labelLeft="Used"
+          [labelRight]="'Available ' + round(available())">
+        </ds-progress>
+      } @else {
+        <p class="van-hint" style="text-align:start">Cash customer — invoices are settled on the spot.</p>
+      }
+    </div>
+
+    <!-- ── Actions ────────────────────────────────────────────── -->
+    <div class="action-grid">
+      <button type="button" class="action sell" [disabled]="!v.checkedIn" (click)="sell()">
+        <ion-icon name="receipt-outline"></ion-icon>
+        <span>Sell / Invoice</span>
+      </button>
+      <button type="button" class="action collect" [disabled]="!v.checkedIn || v.balance <= 0" (click)="collect()">
+        <ion-icon name="cash-outline"></ion-icon>
+        <span>Collect</span>
+      </button>
+      <button type="button" class="action return" [disabled]="!v.checkedIn" (click)="return()">
+        <ion-icon name="arrow-undo-outline"></ion-icon>
+        <span>Return</span>
+      </button>
+      <button type="button" class="action nosale" [disabled]="!v.checkedIn" (click)="endWithoutSale()">
+        <ion-icon name="close-circle-outline"></ion-icon>
+        <span>No sale</span>
+      </button>
+    </div>
+
+    @if (!v.checkedIn) {
+      <p class="van-hint">Check in to unlock the visit actions.</p>
+    }
+
+    <div class="content-footer-space"></div>
+  }
+</ion-content>

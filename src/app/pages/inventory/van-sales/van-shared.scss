@@ -1,0 +1,147 @@
+// Shared visual language for the van sales cycle screens.
+// Used via `@use './../van-shared.scss' as van;` — but because Angular scopes
+// component styles, the simplest reuse is a plain `@import`. These class names
+// are intentionally generic and only ever used inside van-sales pages.
+
+.van-content {
+  --background: var(--gp-bg);
+}
+
+.van-card {
+  background: var(--gp-card-bg);
+  border: 1px solid var(--gp-border);
+  border-radius: var(--gp-radius-md);
+  box-shadow: var(--gp-shadow-sm);
+  padding: 14px;
+  margin: 12px 14px;
+}
+
+.van-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.van-row + .van-row {
+  margin-top: 10px;
+}
+
+.van-label {
+  font-size: 13px;
+  color: var(--gp-text-muted, #6b7280);
+}
+
+.van-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ion-text-color, #16233c);
+}
+
+.van-value.accent {
+  color: var(--gp-accent);
+}
+
+.van-value.pos {
+  color: var(--ion-color-success, #0e9f6e);
+}
+
+.van-value.neg {
+  color: var(--ion-color-danger, #d92d20);
+}
+
+.van-hr {
+  height: 1px;
+  background: var(--gp-border);
+  margin: 12px 0;
+}
+
+.van-section-title {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--gp-text-muted, #6b7280);
+  margin: 0 0 10px;
+}
+
+.van-mono {
+  font-family: 'Roboto Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.van-hint {
+  font-size: 12px;
+  color: var(--gp-text-muted, #6b7280);
+  text-align: center;
+  margin: 6px 14px 0;
+}
+
+.content-footer-space {
+  height: 96px;
+}
+
+// Segmented control (method / type pickers)
+.van-seg {
+  display: flex;
+  gap: 6px;
+  background: var(--gp-bg);
+  border-radius: var(--gp-radius-sm);
+  padding: 4px;
+
+  button {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 9px 8px;
+    border: none;
+    border-radius: var(--gp-radius-sm);
+    background: transparent;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--gp-text-muted, #6b7280);
+    cursor: pointer;
+    transition: background var(--gp-transition), color var(--gp-transition);
+
+    &.on {
+      background: var(--gp-card-bg);
+      color: var(--gp-navy);
+      box-shadow: var(--gp-shadow-sm);
+    }
+    ion-icon { font-size: 16px; }
+  }
+}
+
+// Large numeric entry (amount / quantity)
+.van-amount-input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--ion-color-success, #0e9f6e);
+  padding: 4px 0;
+
+  &:focus { outline: none; }
+}
+
+// Small quick-fill chips under an amount field
+.van-quick-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+
+  .van-quick {
+    flex: 1;
+    padding: 8px;
+    border-radius: var(--gp-radius-sm);
+    border: 1px solid var(--gp-border);
+    background: var(--gp-card-bg);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--gp-navy);
+    cursor: pointer;
+  }
+}

@@ -1,0 +1,47 @@
+@import '../van-shared.scss';
+
+.checkin-btn {
+  margin-top: 12px;
+  --background: var(--gp-navy);
+  --border-radius: var(--gp-radius-sm);
+}
+
+.credit-bar {
+  display: block;
+  margin-top: 12px;
+}
+
+.action-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 0 14px;
+  margin-top: 4px;
+}
+
+.action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 18px 12px;
+  border-radius: var(--gp-radius-md);
+  border: 1px solid var(--gp-border);
+  background: var(--gp-card-bg);
+  box-shadow: var(--gp-shadow-sm);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ion-text-color, #16233c);
+  cursor: pointer;
+  transition: transform var(--gp-transition);
+
+  ion-icon { font-size: 26px; }
+  &:active:not(:disabled) { transform: scale(0.98); }
+  &:disabled { opacity: 0.45; cursor: not-allowed; }
+
+  &.sell ion-icon { color: var(--gp-accent); }
+  &.collect ion-icon { color: var(--ion-color-success, #0e9f6e); }
+  &.return ion-icon { color: var(--ion-color-danger, #d92d20); }
+  &.nosale ion-icon { color: #6b7280; }
+}

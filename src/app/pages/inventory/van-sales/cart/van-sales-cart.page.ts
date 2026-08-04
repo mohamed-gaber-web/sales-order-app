@@ -66,7 +66,7 @@ export class VanSalesCartPage {
   }
 
   addMore() {
-    this.router.navigate(['/inventory/van-sales']);
+    this.router.navigate(['/inventory/van-sales/catalog']);
   }
 
   goToCheckout() {

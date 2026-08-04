@@ -1,0 +1,61 @@
+@import '../van-shared.scss';
+
+.inv-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px;
+  margin-top: 6px;
+  border: 1px solid var(--gp-border);
+  border-radius: var(--gp-radius-sm);
+  background: var(--gp-card-bg);
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--ion-text-color, #16233c);
+
+  &.on { border-color: var(--gp-navy); background: #f6f8fc; }
+  ion-icon { font-size: 18px; color: var(--gp-navy); }
+  .inv-date { color: var(--gp-text-muted, #6b7280); }
+  .inv-amt { margin-inline-start: auto; font-weight: 600; }
+}
+
+.ret-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+  padding: 10px;
+  border: 1px solid var(--gp-border);
+  border-radius: var(--gp-radius-sm);
+
+  &.dim { opacity: 0.55; }
+  .ret-item-info { display: flex; flex-direction: column; gap: 3px; }
+}
+
+.ret-stepper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  button {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    border: 1px solid var(--gp-border);
+    background: var(--gp-card-bg);
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+  }
+  span { min-width: 22px; text-align: center; font-weight: 700; }
+}
+
+.controls-card {
+  background: #fdf7e8;
+  border-color: #edd3a0;
+
+  .controls-title { font-size: 12px; font-weight: 700; color: #9a6a00; margin: 0 0 6px; }
+  .controls-line { font-size: 12px; color: #6b5a2a; margin: 3px 0; }
+}

@@ -1,0 +1,29 @@
+@import '../van-shared.scss';
+
+.outbox-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.sync-btn {
+  margin-top: 12px;
+  --background: var(--gp-navy);
+  --border-radius: var(--gp-radius-sm);
+}
+
+.kpi-card {
+  background: #f6f8fc;
+  border-color: #c9dbfb;
+}
+
+.closed-card {
+  text-align: center;
+  background: #e9f7f0;
+  border-color: #b7e4cf;
+
+  ion-icon { font-size: 40px; color: var(--ion-color-success, #0e9f6e); }
+  .closed-title { font-size: 17px; font-weight: 700; color: #0e6f4e; margin: 6px 0 2px; }
+  .closed-sub { font-size: 13px; color: #4b6b5c; margin: 0; }
+}
