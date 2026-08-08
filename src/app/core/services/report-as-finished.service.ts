@@ -152,17 +152,19 @@ export class ReportAsFinishedService {
   }
 
   private callReportAsFinished(line: ReportAsFinishedLine): Observable<ProdRafResponse> {
+    // EndJob (NoYes as integer) closes the production order. Only end it when the whole
+    // remaining quantity is being reported; a partial report leaves the order open to
+    // finish later. Without a known remaining quantity, default to not ending the job.
+    const endJob = line.remainingQty != null && line.reportedQty >= line.remainingQty ? 1 : 0;
     const request: ProdRafRequest = {
       _request: {
-        DataAreaId: line.dataAreaId,
         ProductionOrderId: line.productionOrderNumber,
         GoodQuantity: line.reportedQty,
         ErrorQuantity: 0,
-        BatchId: line.batchId ?? '',
-        LocationId: line.locationId ?? '',
         TransDate: this.toJournalDate(new Date()),
-        AcceptError: 'No',
-        EndJob: 'No',
+        EndJob: endJob,
+        AcceptError: 1,
+        DataAreaId: line.dataAreaId,
       },
     };
     return this.api.post<ProdRafResponse>(RAF_ACTION, request).pipe(timeout(SERVICE_TIMEOUT_MS));

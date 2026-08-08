@@ -249,6 +249,7 @@ export class ReportAsFinishedScanPage {
         productionOrderNumber: i.order.ProductionOrderNumber,
         itemNumber: i.order.ItemNumber,
         reportedQty: i.qty,
+        remainingQty: i.remainingQty,
         locationId: i.order.LocationId,
         batchId: i.order.ItemBatchNumber,
       })),

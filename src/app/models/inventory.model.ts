@@ -241,18 +241,20 @@ export interface ProductionIssuePayload {
 
 // ── Report As Finished ───────────────────────────────────────────────────────
 
-/** Request/response of GP_ProductionService.reportAsFinished (GP_ProdRAFRequestContract). */
+/**
+ * Request/response of GP_ProductionService.reportAsFinished (GP_ProdRAFRequestContract).
+ * AcceptError/EndJob are the D365 NoYes enum sent as integers (1 = Yes, 0 = No) — the
+ * string form is rejected. Batch/location are omitted; D365 resolves them from the order.
+ */
 export interface ProdRafRequest {
   _request: {
-    DataAreaId: string;
     ProductionOrderId: string;
     GoodQuantity: number;
     ErrorQuantity: number;
-    BatchId: string;
-    LocationId: string;
     TransDate: string;
-    AcceptError: 'Yes' | 'No';
-    EndJob: 'Yes' | 'No';
+    EndJob: number;
+    AcceptError: number;
+    DataAreaId: string;
   };
 }
 
@@ -269,6 +271,8 @@ export interface ReportAsFinishedLine {
   productionOrderNumber: string;
   itemNumber: string;
   reportedQty: number;
+  /** Remaining quantity on the order; drives EndJob — a full report ends the order, a partial one doesn't. */
+  remainingQty?: number;
   locationId?: string;
   batchId?: string;
 }
