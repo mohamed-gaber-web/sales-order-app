@@ -35,7 +35,7 @@ npx cap build      # Build native apps
 - **`interceptors/api-auth.interceptor.ts`**: Attaches the user's access token, and on 401 refreshes once and replays.
 - **`api/api-contracts.ts`**: A transcription of the admin API's DTOs. Source of truth is `packages/contracts/src/schemas/` in the admin-portal repo.
 - **`services/api.service.ts`**: Thin OData HTTP wrapper. Points at the API's `/d365` proxy — there is no native/web branch any more.
-- **`lookup.service.ts`**: Currencies and customers as Angular **signals**, loaded after sign-in (not at startup — they need a session).
+- **`lookup.service.ts`**: Companies, currencies and customers as Angular **signals**, loaded after sign-in rather than at startup — they are ERP reads and now need a session. Its `loadCompanies()` is still a cross-company OData sweep (used by the sales-order form) and goes through the proxy like everything else; `CompanyContextService` is the tenant-scoped list, and is the one to prefer for new code.
 - **`theme.service.ts`**: Light/dark/system theme toggle; persists to localStorage; toggles `ion-palette-dark` on `<body>`.
 
 ### Routing & Pages
