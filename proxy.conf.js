@@ -1,19 +1,24 @@
+/**
+ * Dev-server proxying.
+ *
+ * Most of what used to be here is gone, and its absence is the point. There were
+ * rules forwarding `/api/token` to Microsoft Entra (stripping `Origin` and
+ * `Referer` so the directory would accept a browser-originated
+ * `client_credentials` request), and `/data` and `/api/services` straight to one
+ * customer's D365 instance. Between them they existed so the app could hold an
+ * ERP credential and use it.
+ *
+ * It no longer holds one. ERP traffic goes to the admin API's `/d365` route,
+ * which forwards it with a secret sealed on the server.
+ *
+ * There is deliberately **no rule for the API itself**. The app calls it by
+ * absolute URL (`environment.platformApiBaseUrl`), so CORS applies in
+ * development exactly as it will in production — a proxy here would hide a
+ * misconfigured `PORTAL_ORIGIN` until deploy day, which is the worst possible
+ * time to find it. The API must list this dev server's origin; see
+ * `PORTAL_ORIGIN` in the admin-portal `.env`.
+ */
 module.exports = {
-  // Azure AD token endpoint
-  '/api/token': {
-    target: 'https://login.microsoftonline.com',
-    changeOrigin: true,
-    secure: true,
-    pathRewrite: {
-      '^/api/token': '/26c58d65-b577-4f92-aed2-cec1395d146d/oauth2/v2.0/token',
-    },
-    onProxyReq: (proxyReq) => {
-      // Remove Origin/Referer so Azure AD doesn't reject with AADSTS9002326
-      proxyReq.removeHeader('Origin');
-      proxyReq.removeHeader('Referer');
-    },
-  },
-
   // Document reader (Claude vision) — the ANTHROPIC_API_KEY lives server-side.
   // `ng serve` cannot execute Vercel functions, so this forwards to the local
   // handler host started by `npm run dev:api`. On Vercel, api/ocr.js serves it.
@@ -21,53 +26,5 @@ module.exports = {
     target: 'http://localhost:3001',
     changeOrigin: false,
     secure: false,
-  },
-
-  // D365 OData API
-  '/data': {
-    target: 'https://gp-customers.sandbox.operations.eu.dynamics.com',
-    changeOrigin: true,
-    secure: true,
-  },
-
-  // D365 custom services (e.g. product receipt)
-  '/api/services': {
-    target: 'https://gp-customers.sandbox.operations.eu.dynamics.com',
-    changeOrigin: true,
-    secure: true,
-  },
-
-  // TEMPORARY: Elsewedy sandbox — testing purchase order list + confirm-receipt only.
-  // Remove alongside environment.useTestPurchaseOrderEnv once testing is done.
-  // NOTE: must NOT be a string-prefix of '/api/token' above — the dev-server proxy
-  // matches contexts with a naive startsWith(), so e.g. '/api/token-test-po' would be
-  // swallowed by the '/api/token' rule before ever reaching this one.
-  '/api/test-token': {
-    target: 'https://login.microsoftonline.com',
-    changeOrigin: true,
-    secure: true,
-    pathRewrite: {
-      '^/api/test-token': '/d3bf51d6-e2cb-4b8e-bf3c-bbd32fe8e86a/oauth2/v2.0/token',
-    },
-    onProxyReq: (proxyReq) => {
-      proxyReq.removeHeader('Origin');
-      proxyReq.removeHeader('Referer');
-    },
-  },
-  '/api/test-services': {
-    target: 'https://elsewedy.sandbox.operations.dynamics.com',
-    changeOrigin: true,
-    secure: true,
-    pathRewrite: {
-      '^/api/test-services': '/api/services',
-    },
-  },
-  '/api/test-data': {
-    target: 'https://elsewedy.sandbox.operations.dynamics.com',
-    changeOrigin: true,
-    secure: true,
-    pathRewrite: {
-      '^/api/test-data': '/data',
-    },
   },
 };

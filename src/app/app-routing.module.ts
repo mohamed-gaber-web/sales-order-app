@@ -19,27 +19,33 @@ const routes: Routes = [
   },
   {
     path: 'sales-order',
-    loadChildren: () => import('./pages/sales-order/sales-order.module').then(m => m.SalesOrderModule)
+    loadChildren: () => import('./pages/sales-order/sales-order.module').then(m => m.SalesOrderModule),
+    canActivate: [AuthGuard]
   },
   {
     path: 'sales-order-line',
-    loadChildren: () => import('./pages/sales-order-line/sales-order-line.module').then(m => m.SalesOrderLineModule)
+    loadChildren: () => import('./pages/sales-order-line/sales-order-line.module').then(m => m.SalesOrderLineModule),
+    canActivate: [AuthGuard]
   },
   {
     path: 'purchase-order',
-    loadChildren: () => import('./pages/purchase-order/purchase-order.module').then(m => m.PurchaseOrderModule)
+    loadChildren: () => import('./pages/purchase-order/purchase-order.module').then(m => m.PurchaseOrderModule),
+    canActivate: [AuthGuard]
   },
   {
     path: 'purchase-order-register',
-    loadChildren: () => import('./pages/purchase-order-register/purchase-order-register.module').then(m => m.PurchaseOrderRegisterModule)
+    loadChildren: () => import('./pages/purchase-order-register/purchase-order-register.module').then(m => m.PurchaseOrderRegisterModule),
+    canActivate: [AuthGuard]
   },
   {
     path: 'transfer-order',
-    loadChildren: () => import('./pages/transfer-order/transfer-order.module').then(m => m.TransferOrderModule)
+    loadChildren: () => import('./pages/transfer-order/transfer-order.module').then(m => m.TransferOrderModule),
+    canActivate: [AuthGuard]
   },
   {
     path: 'inventory',
-    loadChildren: () => import('./pages/inventory/inventory.module').then(m => m.InventoryModule)
+    loadChildren: () => import('./pages/inventory/inventory.module').then(m => m.InventoryModule),
+    canActivate: [AuthGuard]
   }
 ];
 

@@ -1,10 +1,11 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { ToastController } from '@ionic/angular';
 import { filter, takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 import { ThemeService } from './core';
 import { UserAuthService } from './core/services/user-auth.service';
+import { SessionStore } from './core/auth/session.store';
 
 interface MenuItem {
   title: string;
@@ -178,6 +179,8 @@ export class AppComponent implements OnInit, OnDestroy {
   readonly themeMode = this.themeService.mode;
   readonly isDark = this.themeService.isDark;
 
+  private readonly session = inject(SessionStore);
+
   constructor(
     private themeService: ThemeService,
     private router: Router,
@@ -187,9 +190,22 @@ export class AppComponent implements OnInit, OnDestroy {
 
   isAuthPage(): boolean { return this.currentUrl.startsWith('/auth'); }
 
-  logout(): void { this.userAuth.signOut(); }
+  /** Ends the session here and on the server, then routes to sign-in. */
+  logout(): void { void this.userAuth.signOut(); }
 
   get loggedInUser() { return this.userAuth.getUser(); }
+
+  /**
+   * The signed-in user, as a name.
+   *
+   * Derived from the address rather than read off the user: the API's user DTO
+   * carries `id` and `email` and no name field, so the old `user.name` — which
+   * the mock invented locally — has nothing behind it any more.
+   */
+  get loggedInName(): string { return this.session.displayName(); }
+
+  /** The workspace this session is in. Blank until a sign-in has resolved one. */
+  get workspaceName(): string { return this.session.workspaceName(); }
 
   isTab(path: string): boolean {
     return this.currentUrl.startsWith(path);

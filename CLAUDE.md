@@ -27,10 +27,15 @@ npx cap build      # Build native apps
 
 ### Core Layer (`src/app/core/`)
 
-- **`auth.service.ts`**: Azure AD OAuth2 client credentials flow. Caches token in localStorage with expiry; refreshes automatically 5 min before expiry. On native (Capacitor), calls Azure directly with clientSecret; on web, calls `/api/token` proxy to keep the secret server-side.
-- **`auth.interceptor.ts`**: Injects `Authorization: Bearer <token>` into D365-bound requests; retries on 401.
-- **`api.service.ts`**: Thin OData HTTP wrapper. Routes to D365 directly on native, through proxy on web.
-- **`lookup.service.ts`**: Holds companies, currencies, customers as Angular **signals** loaded at startup via `APP_INITIALIZER`.
+- **`services/user-auth.service.ts`**: Sign-in, MFA, refresh and sign-out against the admin API (`POST /auth/login`, `/auth/mfa/verify`, `/auth/refresh`, `/auth/logout`). Email and password only — no tenant slug, because `user.email` is unique across the installation and the API resolves the workspace from it. `refresh()` is **single-flight**: the refresh token is single-use and a replay revokes the whole family, so two concurrent refreshes would sign the user out.
+- **`auth/session.store.ts`**: The session, split three ways — identity persisted, refresh token persisted, **access token in memory only**.
+- **`config/runtime-config.service.ts`**: What used to be `environment.ts`. Fetched from `GET /mobile/config?slug=` after sign-in and cached; launch never blocks on it.
+- **`config/company-context.service.ts`**: Which legal entity, and therefore which D365 environment, requests are scoped to. Sends `x-d365-company`.
+- **`storage/device-storage.service.ts`**: Capacitor Preferences. Purges the previous version's `localStorage` credentials on first run.
+- **`interceptors/api-auth.interceptor.ts`**: Attaches the user's access token, and on 401 refreshes once and replays.
+- **`api/api-contracts.ts`**: A transcription of the admin API's DTOs. Source of truth is `packages/contracts/src/schemas/` in the admin-portal repo.
+- **`services/api.service.ts`**: Thin OData HTTP wrapper. Points at the API's `/d365` proxy — there is no native/web branch any more.
+- **`lookup.service.ts`**: Currencies and customers as Angular **signals**, loaded after sign-in (not at startup — they need a session).
 - **`theme.service.ts`**: Light/dark/system theme toggle; persists to localStorage; toggles `ion-palette-dark` on `<body>`.
 
 ### Routing & Pages
@@ -44,14 +49,28 @@ Feature modules are lazy-loaded:
 
 ### API / D365 Integration Pattern
 
+**The app never talks to D365 directly.** Every ERP call goes to the admin API's
+`/d365/data/*` and `/d365/api/services/*` routes, which forward to the tenant's
+environment using a client secret sealed on the server. The device holds no ERP
+credential — that is the whole point of the current architecture, and putting one
+back into `environment.ts` would undo it.
+
+- OData paths are unchanged from D365's own, so the ~95 call sites across the 20 domain services were untouched by the migration — only `ApiService.baseUrl` moved.
 - OData queries use `$filter`, `$select`, `$top`, `$skip` for pagination (10 items/page).
 - `SalesOrderService` queries `GP_SalesHeaderAndLineData` and `SalesOrderHeadersV3`.
 - `SalesOrderLineService` queries `SalesOrderLines` with product variant lookups (sites, warehouses, configurations).
-- All queries currently hardcode `dataAreaId='usmf'`. Extend this for multi-company support.
+- All queries still hardcode `dataAreaId='usmf'`. `CompanyContextService.dataAreaId()` is where that should come from; replacing the 53 files that hardcode it is the remaining multi-company work.
 
 ### Platform Detection
 
-Use `Platform.is('capacitor')` to branch between native and web paths. Native goes direct to D365; web goes through the `/api/token` and `/data` proxies defined in `proxy.conf.js`.
+`Platform.is('capacitor')` no longer decides where requests go — there is one path
+now, on device and in a browser alike. It survives only in `DocumentOcrService`,
+because OCR is a Vercel function rather than part of the API and so still has a
+relative-versus-absolute URL problem.
+
+Note that `CapacitorHttp` is enabled, so on device requests leave through the OS
+and **bypass CORS entirely**. A device working proves nothing about whether the
+API's `PORTAL_ORIGIN` allowlist is right for the browser build; test both.
 
 ## Code Conventions
 
@@ -61,11 +80,17 @@ Use `Platform.is('capacitor')` to branch between native and web paths. Native go
 
 ## Environment & Secrets
 
-- `src/environments/environment.ts` (dev) and `environment.prod.ts` — contain Azure AD `clientSecret` directly. On web deployments, the Vercel `/api/token` serverless function should inject the secret from environment variables instead.
+`src/environments/environment.ts` and `environment.prod.ts` hold **no credentials
+and no customer-specific values**. What is left is `platformApiBaseUrl` (where to
+sign in), `ocrApiBaseUrl`, and `appVersion`. Everything else is fetched at runtime.
+
+Do not add a secret here. If a device seems to need one, it needs an API endpoint
+instead — a secret in a bundle and a secret fetched over TLS by anyone who knows a
+tenant slug are the same secret, equally extractable.
 
 ## Key Dependencies
 
-- Angular 20, Ionic 8, Capacitor 8
+- Angular 20, Ionic 8, Capacitor 8 (`@capacitor/preferences` for persisted session state)
 - RxJS 7.8, TypeScript 5.9 (strict mode)
 - Jasmine 5.1 + Karma 6.4 (Chrome launcher)
 - ESLint 9 with `@angular-eslint` and `@typescript-eslint`

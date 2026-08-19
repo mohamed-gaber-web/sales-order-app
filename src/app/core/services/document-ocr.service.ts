@@ -3,7 +3,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Observable, TimeoutError, catchError, throwError, timeout } from 'rxjs';
 import { ApiService } from './api.service';
 import { CapturedImage, ScannedPurchaseOrder } from '../../models/po-document-scan.model';
-import { environment } from '../../../environments/environment';
+import { RuntimeConfigService } from '../config/runtime-config.service';
 
 const OCR_PATH = '/api/ocr';
 
@@ -27,14 +27,15 @@ export class DocumentOcrError extends Error {
  *
  * Web (dev and Vercel) hits the relative path and lets the proxy route it.
  * Native has no proxy, so it needs the deployed origin in
- * `environment.ocrApiBaseUrl`.
+ * `RuntimeConfigService.ocrApiBaseUrl`.
  */
 @Injectable({ providedIn: 'root' })
 export class DocumentOcrService {
   private readonly api = inject(ApiService);
+  private readonly config = inject(RuntimeConfigService);
 
   extractPurchaseOrder(image: CapturedImage): Observable<ScannedPurchaseOrder> {
-    const baseUrl = this.api.isNative ? environment.ocrApiBaseUrl : '';
+    const baseUrl = this.api.isNative ? this.config.ocrApiBaseUrl : '';
 
     if (this.api.isNative && !baseUrl) {
       return throwError(

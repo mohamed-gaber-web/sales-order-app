@@ -1,0 +1,87 @@
+<ion-content fullscreen="true" class="mfa-content">
+
+  <!-- Background layer -->
+  <div class="bg-layer">
+    <div class="blob blob-orange"></div>
+    <div class="blob blob-blue"></div>
+  </div>
+
+  <!-- Brand section -->
+  <div class="brand-section">
+    <div class="brand-logo-wrap">
+      <ion-icon name="shield-checkmark-outline" class="brand-icon"></ion-icon>
+    </div>
+    <h1 class="brand-name">Grow Path</h1>
+    <p class="brand-tagline">Two-step verification</p>
+  </div>
+
+  <!-- Card -->
+  <div class="mfa-card">
+    <div class="sheet-handle"></div>
+
+    <div class="card-inner" [formGroup]="form">
+
+      <div class="card-head">
+        <h2 class="card-title">
+          {{ useRecoveryCode ? 'Enter a recovery code' : 'Enter your code' }}
+        </h2>
+      </div>
+
+      <p class="card-hint">
+        {{ useRecoveryCode
+            ? 'Use one of the recovery codes you saved when you set up two-step verification.'
+            : 'Open your authenticator app and enter the 6-digit code for Grow Path.' }}
+      </p>
+
+      <ds-form-field
+        [label]="useRecoveryCode ? 'Recovery code' : 'Authentication code'"
+        [required]="true"
+        [showError]="(form.get('code')?.invalid && form.get('code')?.touched) ?? false"
+        errorMessage="Enter your code.">
+        <ion-item lines="none" class="input-item">
+          <ion-icon [name]="useRecoveryCode ? 'key-outline' : 'keypad-outline'" slot="start"></ion-icon>
+          <ion-input
+            formControlName="code"
+            [type]="useRecoveryCode ? 'text' : 'tel'"
+            [inputmode]="useRecoveryCode ? 'text' : 'numeric'"
+            [maxlength]="useRecoveryCode ? 32 : 6"
+            [placeholder]="useRecoveryCode ? 'XXXX-XXXX-XXXX' : '000000'"
+            autocomplete="one-time-code"
+            (keyup.enter)="verify()">
+          </ion-input>
+        </ion-item>
+      </ds-form-field>
+
+      @if (errorMessage) {
+        <div class="error-box">
+          <ion-icon name="alert-circle-outline"></ion-icon>
+          <span>{{ errorMessage }}</span>
+        </div>
+      }
+
+      <button
+        class="verify-btn"
+        type="button"
+        [disabled]="form.invalid || isLoading"
+        (click)="verify()">
+        @if (isLoading) {
+          <ion-spinner name="crescent"></ion-spinner>
+        } @else {
+          <ion-icon name="checkmark-circle-outline"></ion-icon>
+          <span>Verify</span>
+        }
+      </button>
+
+      <div class="alt-row">
+        <button class="link-btn" type="button" (click)="toggleRecoveryCode()">
+          {{ useRecoveryCode ? 'Use an authenticator code' : 'Use a recovery code' }}
+        </button>
+        <button class="link-btn" type="button" (click)="startOver()">Back to sign in</button>
+      </div>
+
+    </div>
+
+    <p class="mfa-footer">Grow Path · Inventory Management Platform</p>
+  </div>
+
+</ion-content>

@@ -2,31 +2,49 @@
 // `ng build` replaces `environment.ts` with `environment.prod.ts`.
 // The list of file replacements can be found in `angular.json`.
 
+/**
+ * What is left of the build-time environment.
+ *
+ * This file used to carry a Microsoft Entra **confidential client** — client id,
+ * client secret, and `client_credentials` against `<instance>/.default`, which is
+ * unrestricted application access to the customer's ERP with no user context —
+ * inside every installed build. It also carried one customer's D365 instance
+ * URL, which is why one build could serve exactly one customer.
+ *
+ * All of it now lives on the server. The secret is sealed on `d365_environment`
+ * and never leaves; the API calls D365 on the device's behalf. The public half
+ * — the API base URL for a tenant, and the minimum app version it will serve —
+ * comes from `GET /mobile/config?slug=` at runtime, through `RuntimeConfigService`.
+ *
+ * What remains is the smallest thing a freshly installed app has to be told
+ * before it can ask anything: where to send its first request. Everything else
+ * it learns after somebody signs in.
+ */
 export const environment = {
   production: false,
-  auth: {
-    tokenUrl: 'https://login.microsoftonline.com/26c58d65-b577-4f92-aed2-cec1395d146d/oauth2/v2.0/token',
-    clientId: 'db61ee09-84a1-4912-b319-709480fa243a',
-    clientSecret: '',  // Set via environment variable or local override — do not commit real secrets
-    scope: 'https://gp-customers.sandbox.operations.eu.dynamics.com/.default',
-    grantType: 'client_credentials',
-  },
-  // Interactive user sign-in (MSAL / Authorization Code Flow with PKCE).
-  // Uses a PUBLIC-CLIENT / SPA app registration — NO client secret on the device.
-  // TODO(Azure): replace `clientId` with a dedicated SPA app registration that has
-  //   a "Single-page application" platform with redirect URI `<origin>/auth/login`
-  //   registered. The confidential client above (client_credentials) must NOT be reused
-  //   for this — it has no SPA redirect URIs configured.
-  userAuth: {
-    clientId: 'db61ee09-84a1-4912-b319-709480fa243a',
-    authority: 'https://login.microsoftonline.com/26c58d65-b577-4f92-aed2-cec1395d146d',
-    // Relative URI — MSAL resolves it against window.location.origin, so it works in
-    // dev (http://localhost:4200) and prod without per-environment edits.
-    redirectUri: '/auth/login',
-    scopes: ['openid', 'profile', 'email', 'User.Read'],
-  },
-  apiBaseUrl: '',
-  d365BaseUrl: 'https://gp-customers.sandbox.operations.eu.dynamics.com',
+
+  /**
+   * Where sign-in happens, and where config is fetched from before a tenant is
+   * known.
+   *
+   * The one value that cannot come from the server, because it is the address of
+   * the server. A tenant may name a different `apiBaseUrl` in its mobile
+   * configuration, and the app adopts it after sign-in; this is the bootstrap.
+   */
+  platformApiBaseUrl: 'http://localhost:3000',
+
+  /**
+   * Origin serving `/api/ocr`, the paper-PO document reader.
+   *
+   * Still build-time because OCR is a Vercel function rather than part of the
+   * API. Web leaves it empty so the relative path routes; a native build needs
+   * the deployed origin. Declared here as well as in the production file — its
+   * absence from this one was a compile error in every development build.
+   */
+  ocrApiBaseUrl: '',
+
+  /** Compared against a tenant's `minimumAppVersion`. Keep in step with android/app/build.gradle. */
+  appVersion: '1.0.0',
 };
 
 /*

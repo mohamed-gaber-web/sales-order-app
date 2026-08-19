@@ -1,23 +1,32 @@
+/**
+ * The production build-time environment.
+ *
+ * Deliberately the same shape as `environment.ts`, and deliberately almost
+ * empty. See that file for why the Entra client and the D365 instance URL are
+ * no longer here.
+ */
 export const environment = {
   production: true,
-  auth: {
-    tokenUrl: 'https://login.microsoftonline.com/26c58d65-b577-4f92-aed2-cec1395d146d/oauth2/v2.0/token',
-    clientId: 'db61ee09-84a1-4912-b319-709480fa243a',
-    clientSecret: '', // Used on native only; web goes through Vercel /api/token which injects it server-side
-    scope: 'https://gp-customers.sandbox.operations.eu.dynamics.com/.default',
-    grantType: 'client_credentials',
-  },
-  // Interactive user sign-in (MSAL) — same SPA registration notes as environment.ts
-  userAuth: {
-    clientId: 'db61ee09-84a1-4912-b319-709480fa243a',
-    authority: 'https://login.microsoftonline.com/26c58d65-b577-4f92-aed2-cec1395d146d',
-    redirectUri: '/auth/login',
-    scopes: ['openid', 'profile', 'email', 'User.Read'],
-  },
-  apiBaseUrl: '',
-  d365BaseUrl: 'https://gp-customers.sandbox.operations.eu.dynamics.com',
-  // Origin serving /api/ocr (the paper-PO document reader). Web leaves this
-  // empty so Vercel routes the relative path; a native build needs the
-  // deployed origin here, e.g. 'https://your-app.vercel.app'.
+
+  /**
+   * Where sign-in happens, and where config is fetched from before a tenant is
+   * known.
+   *
+   * Empty means same-origin, which is what a web deployment served alongside the
+   * API behind a reverse proxy wants. **A native build must set this to the
+   * deployed API origin** — a relative URL on a device resolves against the
+   * WebView, where nothing is listening.
+   */
+  platformApiBaseUrl: '',
+
+  /**
+   * Origin serving `/api/ocr`, the paper-PO document reader.
+   *
+   * Web leaves this empty so Vercel routes the relative path; a native build
+   * needs the deployed origin here, e.g. 'https://your-app.vercel.app'.
+   */
   ocrApiBaseUrl: '',
+
+  /** Compared against a tenant's `minimumAppVersion`. Keep in step with android/app/build.gradle. */
+  appVersion: '1.0.0',
 };

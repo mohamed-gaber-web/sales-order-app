@@ -24,31 +24,14 @@
       <!-- Card header -->
       <div class="card-head">
         <h2 class="card-title">Welcome back</h2>
-        <div class="workspace-chip">
-          <ion-icon name="business-outline"></ion-icon>
-          <span>USMF</span>
-        </div>
+        @if (workspaceName) {
+          <div class="workspace-chip">
+            <ion-icon name="business-outline"></ion-icon>
+            <span>{{ workspaceName }}</span>
+          </div>
+        }
       </div>
 
-      <!-- Microsoft SSO -->
-      <button class="sso-btn" type="button" (click)="signInWithMicrosoft()">
-        <span class="ms-logo">
-          <svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <rect x="1" y="1" width="8.5" height="8.5" fill="#f25022"/>
-            <rect x="10.5" y="1" width="8.5" height="8.5" fill="#7fba00"/>
-            <rect x="1" y="10.5" width="8.5" height="8.5" fill="#00a4ef"/>
-            <rect x="10.5" y="10.5" width="8.5" height="8.5" fill="#ffb900"/>
-          </svg>
-        </span>
-        <span>Continue with Microsoft</span>
-      </button>
-
-      <!-- OR divider -->
-      <div class="or-divider">
-        <span class="or-line"></span>
-        <span class="or-text">or</span>
-        <span class="or-line"></span>
-      </div>
 
       <!-- Email field -->
       <ds-form-field
@@ -88,7 +71,7 @@
 
       <!-- Forgot password -->
       <div class="forgot-row">
-        <button class="forgot-btn" type="button">Forgot password?</button>
+        <button class="forgot-btn" type="button" (click)="forgotPassword()">Forgot password?</button>
       </div>
 
       <!-- Error box -->

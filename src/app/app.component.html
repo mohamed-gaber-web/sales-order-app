@@ -112,7 +112,7 @@
             <ion-icon name="log-out-outline" slot="start"></ion-icon>
             <ion-label>Sign Out</ion-label>
             @if (loggedInUser) {
-              <ion-note slot="end" class="user-email-note">{{ loggedInUser.name }}</ion-note>
+              <ion-note slot="end" class="user-email-note">{{ loggedInName }}</ion-note>
             }
           </ion-item>
           <ion-item button lines="none" class="menu-item" detail="false">

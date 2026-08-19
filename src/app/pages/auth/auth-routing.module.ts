@@ -6,6 +6,10 @@ const routes: Routes = [
     path: 'login',
     loadChildren: () => import('./login/login.module').then(m => m.LoginModule)
   },
+  {
+    path: 'mfa',
+    loadChildren: () => import('./mfa/mfa.module').then(m => m.MfaModule)
+  },
   { path: '', redirectTo: 'login', pathMatch: 'full' }
 ];
 

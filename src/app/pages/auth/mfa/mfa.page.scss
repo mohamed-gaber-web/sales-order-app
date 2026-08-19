@@ -1,0 +1,52 @@
+/**
+ * The verification screen shares the sign-in screen's shell.
+ *
+ * Imported rather than copied: the two pages are consecutive steps of one flow,
+ * and a card that shifted or changed colour between them would read as having
+ * navigated somewhere else. Component styles are scoped, so this brings the
+ * rules into *this* component's scope rather than sharing them globally.
+ */
+@import '../login/login.page.scss';
+
+// The elements this page names differently from the sign-in page. Same rules,
+// so the two cards are the same card.
+.mfa-content {
+  @extend .login-content;
+}
+
+.mfa-card {
+  @extend .login-card;
+}
+
+.mfa-footer {
+  @extend .login-footer;
+}
+
+.verify-btn {
+  @extend .signin-btn;
+}
+
+.card-hint {
+  margin: 0 0 20px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ds-text-muted, #6b7280);
+}
+
+// A code is read back digit by digit, so it is set wide and monospaced.
+.input-item ion-input {
+  letter-spacing: 0.18em;
+  font-variant-numeric: tabular-nums;
+}
+
+.alt-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.link-btn {
+  @extend .forgot-btn;
+}

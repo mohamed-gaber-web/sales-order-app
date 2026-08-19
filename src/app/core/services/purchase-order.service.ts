@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { catchError, from, map, Observable, of, switchMap, timeout } from 'rxjs';
 import { ApiService } from './api.service';
-import { AuthService } from './auth.service';
 import { ODataResponse } from '../models/lookup.models';
 import {
   PurchaseOrderHeader,
@@ -12,7 +11,6 @@ import {
   RegisterPurchaseOrderRequest,
   RegisterPurchaseOrderResponse,
 } from '../../models/purchase-order.model';
-import { testPurchaseOrderEnv } from '../../../environments/test-purchase-order-env';
 
 export const PO_PAGE_SIZE = 10;
 
@@ -26,94 +24,57 @@ const PO_FILTER =
   "DocumentApprovalStatus eq Microsoft.Dynamics.DataEntities.VersioningDocumentState'Confirmed'" +
   " and PurchaseOrderStatus eq Microsoft.Dynamics.DataEntities.PurchStatus'Backorder'";
 
-/**
- * TEMPORARY (Elsewedy sandbox): the company under test. The detail/receipt flows can
- * only load one company at a time, so list queries scope to this same one — otherwise
- * tapping an order from another company 404s on the entity-key GET.
- */
-const TEST_PO_COMPANY = '007';
 
 
 @Injectable({ providedIn: 'root' })
 export class PurchaseOrderService {
-  constructor(private api: ApiService, private authService: AuthService) { }
+  constructor(private api: ApiService) { }
 
   /**
-   * TEMPORARY: when environment.useTestPurchaseOrderEnv is on, routes GET /data
-   * calls to the Elsewedy sandbox instead. See environment.testPurchaseOrderAuth.
-   * On web this rewrites the path for proxy.conf.js / Vercel to catch; on native
-   * (no proxy available) it hits environment.testPurchaseOrderD365BaseUrl directly.
+   * A read against the ERP.
+   *
+   * Was a fork: normally the tenant's own D365, but with a flag set, the
+   * Elsewedy sandbox — reached by minting a second `client_credentials` token
+   * from a second client secret held in a local environment file, and by
+   * rewriting `/data` to `/api/test-data` so a dev-server proxy would catch it.
+   * That was a second copy of exactly the arrangement US-040 removed, and it is
+   * gone. A second ERP is now a second `d365_environment` row, chosen by
+   * company, with its secret sealed on the server like the first one.
+   *
+   * `useMainEnv` survives as a no-op parameter so the dozen call sites that pass
+   * it did not all have to change in the same commit as the credential removal.
    */
   private getData<T>(path: string, params?: Record<string, string>, useMainEnv = false): Observable<T> {
-    if (!useMainEnv && testPurchaseOrderEnv.useTestPurchaseOrderEnv) {
-      // The Elsewedy service principal's default company holds no purchase-order data,
-      // so company-scoped reads look "successful" but come back empty: collection GETs
-      // return HTTP 200 with `@odata.count: 0`, and entity-key GETs return 404. Opting
-      // into cross-company makes D365 resolve rows outside that default company.
-      const crossCompanyParams = { ...params, 'cross-company': 'true' };
-      return from(this.authService.getTestPurchaseOrderToken()).pipe(
-        switchMap((token) =>
-          this.api.isNative
-            ? this.api.getWithHeaders<T>(
-                path,
-              crossCompanyParams,
-                { Authorization: `Bearer ${token}` },
-                testPurchaseOrderEnv.testPurchaseOrderD365BaseUrl
-              )
-            : this.api.getWithHeaders<T>(
-                path.replace('/data', '/api/test-data'),
-              crossCompanyParams,
-                { Authorization: `Bearer ${token}` }
-              )
-        )
-      );
-    }
+    void useMainEnv;
     return this.api.get<T>(path, params);
   }
 
-  /**
-   * Cross-company reads span every legal entity, so on the test env the status filter
-   * is narrowed to the company under test. The main env stays scoped by D365 itself.
-   */
+  /** The purchase-order filter. One environment now, so one filter. */
   private poFilterFor(useMainEnv = false): string {
-    return !useMainEnv && testPurchaseOrderEnv.useTestPurchaseOrderEnv
-      ? `dataAreaId eq '${TEST_PO_COMPANY}' and ${PO_FILTER}`
-      : PO_FILTER;
+    void useMainEnv;
+    return PO_FILTER;
   }
 
   private get poFilter(): string {
     return this.poFilterFor();
   }
 
-  /** The company reads should be scoped to for the given env. */
+  /**
+   * The company reads are scoped to.
+   *
+   * Still the hardcoded `usmf` that fifty-three files in this app assume.
+   * Deliberately unchanged here: making it come from the selected company is the
+   * multi-company migration, and doing it inside the credential removal would
+   * mean one commit that both moved a secret and changed which data every screen
+   * shows.
+   */
   private companyFor(useMainEnv: boolean): string {
-    return !useMainEnv && testPurchaseOrderEnv.useTestPurchaseOrderEnv ? TEST_PO_COMPANY : 'usmf';
+    void useMainEnv;
+    return 'usmf';
   }
 
-  /**
-   * TEMPORARY: when environment.useTestPurchaseOrderEnv is on, routes POST /api/services
-   * calls to the Elsewedy sandbox instead. See environment.testPurchaseOrderAuth.
-   * Same native/web split as getData above.
-   */
+  /** A custom-service call against the ERP. See `getData` for what was removed. */
   private postServices<T>(path: string, body: unknown): Observable<T> {
-    if (testPurchaseOrderEnv.useTestPurchaseOrderEnv) {
-      return from(this.authService.getTestPurchaseOrderToken()).pipe(
-        switchMap((token) =>
-          this.api.isNative
-            ? this.api.postWithHeaders<T>(
-                path,
-                body,
-                { Authorization: `Bearer ${token}` },
-                testPurchaseOrderEnv.testPurchaseOrderD365BaseUrl
-              )
-            : this.api.postWithHeaders<T>(
-                path.replace('/api/services', '/api/test-services'),
-                body,
-                { Authorization: `Bearer ${token}` }
-              )
-        )
-      );
-    }
     return this.api.post<T>(path, body);
   }
 
