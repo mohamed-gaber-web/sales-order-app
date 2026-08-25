@@ -27,6 +27,17 @@ export const environment = {
   },
   apiBaseUrl: '',
   d365BaseUrl: 'https://gp-customers.sandbox.operations.eu.dynamics.com',
+
+  /**
+   * Origin serving `/api/ocr`, the paper-PO document reader.
+   *
+   * Declared here as well as in the production file. Its absence from this one
+   * was a compile error in every development build — `DocumentOcrService` reads
+   * it unconditionally — while production, which had it, built cleanly. Web
+   * leaves it empty so the relative path routes; a native build needs the
+   * deployed origin.
+   */
+  ocrApiBaseUrl: '',
 };
 
 /*
