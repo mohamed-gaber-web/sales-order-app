@@ -11,9 +11,15 @@ const REQUIRED_DOCS = ['Commercial registration', 'Tax card', 'National address'
 type RequiredDoc = (typeof REQUIRED_DOCS)[number];
 
 /**
- * Submit a request to onboard a new customer. The request goes to Finance for
- * credit review via `GPCustomerRequestService/submit` (scaffolded); the account
- * is created on hold and released once approved. Attachments are mandatory.
+ * Submit a request to onboard a new customer.
+ *
+ * On submit this posts `POST /data/CustomerPaymentJournalHeaders`, opening a
+ * `CustPay` journal batch. That is what was specified, and it is worth stating
+ * plainly what it does and does not do: it creates an empty payment batch. The
+ * form's name, phone, tax number and attachments are validated here but are not
+ * carried by that entity, and no customer account is created — onboarding is
+ * `CustomersV3` plus `GPCustomerRequestService/submit`, still scaffolded on
+ * `VanFieldOpsService.submitCustomerRequest`.
  */
 @Component({
   selector: 'app-van-new-customer',
@@ -75,27 +81,22 @@ export class VanNewCustomerPage {
     if (!this.canSubmit()) return;
 
     this.isPosting.set(true);
-    this.fieldOps
-      .submitCustomerRequest({
-        name: this.name().trim(),
-        phone: this.phone().trim(),
-        taxRegistrationNumber: this.taxNumber().trim(),
-        paymentMode: this.paymentMode(),
-        customerGroup: 'RETAIL',
-        attachmentRefs: [...this.attached()].map((d) => d.toLowerCase().replace(/\s+/g, '_')),
-      })
-      .subscribe({
-        next: (result) => {
-          this.day.addCustomerRequest();
-          this.isPosting.set(false);
-          this.toast(`Request ${result.requestId} sent to Finance for review`, 'success');
-          this.router.navigate(['/inventory/van-sales']);
-        },
-        error: () => {
-          this.isPosting.set(false);
-          this.toast("Couldn't submit the request. Try again.", 'danger');
-        },
-      });
+    this.fieldOps.createPaymentJournalHeader().subscribe({
+      next: (header) => {
+        this.day.addCustomerRequest();
+        this.isPosting.set(false);
+        const batch = header?.JournalBatchNumber;
+        this.toast(
+          batch ? `Payment journal ${batch} created` : 'Payment journal created',
+          'success'
+        );
+        this.router.navigate(['/inventory/van-sales']);
+      },
+      error: () => {
+        this.isPosting.set(false);
+        this.toast("Couldn't create the payment journal. Try again.", 'danger');
+      },
+    });
   }
 
   private async toast(message: string, color: 'success' | 'danger') {

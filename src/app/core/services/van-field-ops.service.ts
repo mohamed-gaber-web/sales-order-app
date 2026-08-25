@@ -66,6 +66,26 @@ export interface DayCloseResult {
   kpis: { planned: number; visited: number; strikeRate: number; adherence: number; sales: number };
 }
 
+// ── Customer payment journal (standard OData, not the ISV service) ──────────
+
+/** The company every van sales call still hardcodes. See CLAUDE.md. */
+const DATA_AREA_ID = 'usmf';
+
+/** The journal name a customer payment batch is opened under. */
+const PAYMENT_JOURNAL_NAME = 'CustPay';
+
+/** What `POST /data/CustomerPaymentJournalHeaders` accepts. */
+export interface PaymentJournalHeaderRequest {
+  dataAreaId: string;
+  JournalName: string;
+  Description: string;
+}
+
+/** What it returns — the entity echoed back with the batch number D365 assigned. */
+export interface PaymentJournalHeader extends PaymentJournalHeaderRequest {
+  JournalBatchNumber: string;
+}
+
 /** Simulated network latency so the UI's loading states are exercised. */
 const SCAFFOLD_LATENCY_MS = 700;
 
@@ -147,6 +167,32 @@ export class VanFieldOpsService {
       workflowStatus: 'Submitted',
       customerAccount: null,
     }).pipe(delay(SCAFFOLD_LATENCY_MS));
+  }
+
+  /**
+   * Opens a customer payment journal batch.
+   *
+   * Unlike every other method on this service this is a **real call, not a
+   * scaffold**: `CustomerPaymentJournalHeaders` is a standard D365 OData entity,
+   * so it is deployed in this environment where the `GPVanSalesGroup` ISV
+   * services are not. It goes through the API's `/d365` proxy like every other
+   * ERP read and write.
+   *
+   * It creates the batch and stops there, which is what was asked for. Worth
+   * being clear about the consequence: a header carries no customer, no amount
+   * and no settlement — those are `CustomerPaymentJournalLines`. Until lines
+   * exist and are posted, no money has moved and no customer balance has
+   * changed. What this produces is an empty batch with a number.
+   */
+  createPaymentJournalHeader(
+    description = 'Payment from external system'
+  ): Observable<PaymentJournalHeader> {
+    const header: PaymentJournalHeaderRequest = {
+      dataAreaId: DATA_AREA_ID,
+      JournalName: PAYMENT_JOURNAL_NAME,
+      Description: description,
+    };
+    return this.api.post<PaymentJournalHeader>('/data/CustomerPaymentJournalHeaders', header);
   }
 
   /**
