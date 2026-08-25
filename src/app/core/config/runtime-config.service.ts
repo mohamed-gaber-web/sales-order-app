@@ -80,7 +80,7 @@ export class RuntimeConfigService {
   /** Adopts whatever was stored last run. Does not touch the network. */
   async restore(): Promise<void> {
     const stored = await this.storage.getJson<MobileConfig>(STORAGE_KEYS.mobileConfig);
-    if (stored) this.configState.set(stored);
+    if (stored) this.configState.set(sanitise(stored));
   }
 
   /**
@@ -109,8 +109,9 @@ export class RuntimeConfigService {
       if (config.apiBaseUrl && !/^https:\/\//i.test(config.apiBaseUrl) && environment.production) {
         return;
       }
-      this.configState.set(config);
-      await this.storage.setJson(STORAGE_KEYS.mobileConfig, config);
+      const usable = sanitise(config);
+      this.configState.set(usable);
+      await this.storage.setJson(STORAGE_KEYS.mobileConfig, usable);
     } catch {
       // Offline, throttled, or a tenant with no configuration yet. The stored
       // copy stands, and the platform base URL works regardless.
@@ -134,6 +135,54 @@ export class RuntimeConfigService {
     if (!floor) return false;
     return compareVersions(environment.appVersion, floor) < 0;
   }
+}
+
+/**
+ * Whether a base URL is the ERP rather than this app's API.
+ *
+ * `apiBaseUrl` names the API that *holds* the ERP credential and proxies to it
+ * on `/d365`. A `dynamics.com` host in that field means the tenant record has
+ * the ERP's own address where the proxy's belongs — the single most likely
+ * misconfiguration, because the two URLs sit next to each other on the same
+ * screen and only one of them is the customer's familiar D365 address.
+ *
+ * The symptom is unhelpfully indirect. Requests go straight to Dynamics, which
+ * has no `/d365` route and answers the CORS preflight with a redirect to the
+ * Entra sign-in page, so the browser reports "Redirect is not allowed for a
+ * preflight request" — a CORS message for what is not a CORS problem.
+ */
+function isErpHost(url: string): boolean {
+  try {
+    return /(^|\.)dynamics\.com$/i.test(new URL(url).hostname);
+  } catch {
+    // Not absolute, so not an ERP host. The https check covers the rest.
+    return false;
+  }
+}
+
+/**
+ * Drops an `apiBaseUrl` this app must not use, keeping the rest of the config.
+ *
+ * Falling back to `platformApiBaseUrl` is right rather than merely convenient:
+ * it is where sign-in already succeeded, so it is demonstrably a working API for
+ * this device. The tenant name and version floor are still worth having, so the
+ * field is replaced rather than the whole record discarded.
+ *
+ * This duplicates a validation the API also performs, deliberately — the same
+ * reasoning as the https check in `hydrate`. A device that cannot be broken by a
+ * bad row is worth more than the deduplication.
+ */
+function sanitise(config: MobileConfig): MobileConfig {
+  if (!config.apiBaseUrl || !isErpHost(config.apiBaseUrl)) return config;
+
+  console.error(
+    `[runtime-config] Ignoring apiBaseUrl "${config.apiBaseUrl}" for tenant ` +
+      `"${config.tenantSlug}": that is a Dynamics host, not this app's API. ` +
+      `Falling back to "${environment.platformApiBaseUrl}". Fix ` +
+      `tenant_mobile_config.api_base_url — the D365 instance URL belongs on the ` +
+      `d365_environment record, where its secret is sealed.`
+  );
+  return { ...config, apiBaseUrl: environment.platformApiBaseUrl };
 }
 
 /** Compares dotted numeric versions. Missing parts count as zero. */
