@@ -74,6 +74,42 @@
       }
     </div>
 
+    <!-- ── Today's orders ─────────────────────────────────── -->
+    <p class="van-section-title stops-title">Today's orders</p>
+
+    @if (ordersLoading()) {
+      <div class="orders-note">
+        <ion-spinner name="crescent"></ion-spinner>
+        <span>Loading today's orders…</span>
+      </div>
+    } @else if (ordersFailed()) {
+      <div class="orders-note orders-note--failed">
+        <span>Couldn't load today's orders.</span>
+        <button type="button" class="orders-retry" (click)="retryOrders()">Retry</button>
+      </div>
+    } @else if (orders().length === 0) {
+      <div class="orders-note">
+        <span>No orders scheduled for today.</span>
+      </div>
+    } @else {
+      <div class="stop-list">
+        @for (o of orders(); track o.SalesId) {
+          <div class="stop-card order-card">
+            <span class="stop-body">
+              <span class="stop-head">
+                <span class="stop-name">{{ orderName(o) }}</span>
+                @let when = orderDate(o);
+                @if (when) {
+                  <ds-pill [label]="when" color="#1a3b6a" bg="#e6eefb"></ds-pill>
+                }
+              </span>
+              <span class="stop-sub">{{ o.SalesId }}</span>
+            </span>
+          </div>
+        }
+      </div>
+    }
+
     <div class="content-footer-space"></div>
   } @else {
     <div class="journey-loading">

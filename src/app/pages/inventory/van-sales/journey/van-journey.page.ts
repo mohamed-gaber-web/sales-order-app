@@ -1,8 +1,10 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { ToastController } from '@ionic/angular';
 import { VanDayService } from '../../../../core/services/van-day.service';
 import { VanJourneyService } from '../../../../core/services/van-journey.service';
+import { SalesOrderService } from '../../../../core/services/sales-order.service';
+import { SalesOrderHeaderResponse } from '../../../../models/sales-order.model';
 import { VanVisit } from '../../../../models/van-journey.model';
 
 /**
@@ -21,10 +23,57 @@ export class VanJourneyPage implements OnInit {
   private router = inject(Router);
   private toastCtrl = inject(ToastController);
   private journey = inject(VanJourneyService);
+  private salesOrders = inject(SalesOrderService);
   readonly day = inject(VanDayService);
+
+  /** Sales orders scheduled for today, from the ERP. */
+  readonly orders = signal<SalesOrderHeaderResponse[]>([]);
+  readonly ordersLoading = signal(false);
+
+  /**
+   * True when the read failed.
+   *
+   * Kept separate from an empty list because the two mean opposite things to a
+   * driver: "no orders today" is information they can act on, and "we could not
+   * ask" is not. Rendering both as an empty section would quietly tell them the
+   * first when the second is true.
+   */
+  readonly ordersFailed = signal(false);
 
   ngOnInit() {
     if (!this.day.isLoaded()) this.seedDay();
+    this.loadOrders();
+  }
+
+  /**
+   * Today's orders.
+   *
+   * Deliberately not folded into the day's seed: the stops come from
+   * {@link VanJourneyService}, which is still a scaffold, and this is a live
+   * ERP read. Keeping them separate means a failure here leaves the route — the
+   * part the driver cannot work without — on screen and usable.
+   */
+  private loadOrders(done?: () => void) {
+    this.ordersLoading.set(true);
+    this.ordersFailed.set(false);
+
+    this.salesOrders.getOrdersForDate().subscribe({
+      next: (res) => {
+        this.orders.set(res?.value ?? []);
+        this.ordersLoading.set(false);
+        done?.();
+      },
+      error: () => {
+        this.orders.set([]);
+        this.ordersFailed.set(true);
+        this.ordersLoading.set(false);
+        done?.();
+      },
+    });
+  }
+
+  retryOrders() {
+    this.loadOrders();
   }
 
   private seedDay() {
@@ -40,6 +89,7 @@ export class VanJourneyPage implements OnInit {
       },
       error: complete,
     });
+    this.loadOrders();
   }
 
   openVisit(visit: VanVisit) {
@@ -60,6 +110,26 @@ export class VanJourneyPage implements OnInit {
   }
 
   // ── Presentation helpers ───────────────────────────────────────────────────
+
+  /** The customer name on an order, falling back to the account when absent. */
+  orderName(order: SalesOrderHeaderResponse): string {
+    return order.SalesTable_SalesName?.trim() || order.CustAccount || order.SalesId;
+  }
+
+  /**
+   * The order's requested shipping date, short form.
+   *
+   * Returns '' rather than 'Invalid Date' for a missing or unparsable value —
+   * a blank reads as "not set", which is true, where the browser's own string
+   * for it reads as a bug.
+   */
+  orderDate(order: SalesOrderHeaderResponse): string {
+    const raw = order.ShippingDateRequested;
+    if (!raw) return '';
+    const parsed = new Date(raw);
+    if (Number.isNaN(parsed.getTime())) return '';
+    return parsed.toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+  }
 
   /** Pin colour on the schematic map: done, current, or upcoming. */
   pinColor(visit: VanVisit): string {

@@ -140,3 +140,40 @@
   padding-top: 80px;
   color: var(--gp-text-muted, #6b7280);
 }
+
+/* ── Today's orders ──────────────────────────────────────────── */
+
+/* Reuses .stop-card for one visual language across the screen. An order is not
+   tappable yet — there is nowhere for it to go — so the affordances a stop has
+   are removed rather than left to suggest something that does not happen. */
+.order-card {
+  cursor: default;
+
+  &:active { transform: none; }
+}
+
+.orders-note {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 20px;
+  padding: 12px 0;
+  color: var(--gp-text-muted, #64748b);
+  font-size: 0.86rem;
+
+  ion-spinner {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.orders-retry {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--gp-navy);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+}
