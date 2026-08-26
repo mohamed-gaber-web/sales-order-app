@@ -49,33 +49,8 @@
       <div class="map-legend van-mono">{{ d.kpi.kmPlanned }} km planned · {{ d.visits.length }} stops</div>
     </div>
 
-    <!-- ── Stops ──────────────────────────────────────────────── -->
+    <!-- ── Stops ───────────────────────────────────── -->
     <p class="van-section-title stops-title">Today's stops</p>
-    <div class="stop-list">
-      @for (v of d.visits; track v.id) {
-        <button type="button" class="stop-card" [class.done]="v.status === 'done'"
-                [class.current]="v.status === 'current'" (click)="openVisit(v)">
-          <span class="stop-index" [class.done]="v.status === 'done'"
-                [class.current]="v.status === 'current'">
-            @if (v.status === 'done') { <ion-icon name="checkmark"></ion-icon> } @else { {{ v.id }} }
-          </span>
-          <span class="stop-body">
-            <span class="stop-head">
-              <span class="stop-name">{{ v.name }}</span>
-              @let pill = statusPill(v);
-              @if (pill) {
-                <ds-pill [label]="pill.label" [color]="pill.color" [bg]="pill.bg"></ds-pill>
-              }
-            </span>
-            <span class="stop-sub">{{ subtitle(v) }}</span>
-          </span>
-          <ion-icon class="stop-chev" name="chevron-forward"></ion-icon>
-        </button>
-      }
-    </div>
-
-    <!-- ── Today's orders ─────────────────────────────────── -->
-    <p class="van-section-title stops-title">Today's orders</p>
 
     @if (ordersLoading()) {
       <div class="orders-note">
@@ -93,8 +68,9 @@
       </div>
     } @else {
       <div class="stop-list">
-        @for (o of orders(); track o.SalesId) {
+        @for (o of orders(); track o.SalesId; let i = $index) {
           <div class="stop-card order-card">
+            <span class="stop-index">{{ i + 1 }}</span>
             <span class="stop-body">
               <span class="stop-head">
                 <span class="stop-name">{{ orderName(o) }}</span>
