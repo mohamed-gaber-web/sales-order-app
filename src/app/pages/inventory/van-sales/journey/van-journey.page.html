@@ -64,22 +64,23 @@
       </div>
     } @else if (orders().length === 0) {
       <div class="orders-note">
-        <span>No orders scheduled for today.</span>
+        <span>No orders created today.</span>
       </div>
     } @else {
       <div class="stop-list">
-        @for (o of orders(); track o.SalesId; let i = $index) {
+        @for (o of orders(); track o.SalesOrderNumber; let i = $index) {
           <div class="stop-card order-card">
             <span class="stop-index">{{ i + 1 }}</span>
             <span class="stop-body">
               <span class="stop-head">
                 <span class="stop-name">{{ orderName(o) }}</span>
-                @let when = orderDate(o);
-                @if (when) {
-                  <ds-pill [label]="when" color="#1a3b6a" bg="#e6eefb"></ds-pill>
+                @let created = orderTime(o);
+                @if (created) {
+                  <ds-pill [label]="created" color="#1a3b6a" bg="#e6eefb"></ds-pill>
                 }
               </span>
-              <span class="stop-sub">{{ o.SalesId }}</span>
+              @let ships = orderDate(o);
+              <span class="stop-sub">{{ o.SalesOrderNumber }}@if (ships) { · ships {{ ships }} }</span>
             </span>
           </div>
         }

@@ -4,7 +4,7 @@ import { ToastController } from '@ionic/angular';
 import { VanDayService } from '../../../../core/services/van-day.service';
 import { VanJourneyService } from '../../../../core/services/van-journey.service';
 import { SalesOrderService } from '../../../../core/services/sales-order.service';
-import { SalesOrderHeaderResponse } from '../../../../models/sales-order.model';
+import { SalesOrderHeaderV3Response } from '../../../../models/sales-order.model';
 import { VanVisit } from '../../../../models/van-journey.model';
 
 /**
@@ -26,8 +26,8 @@ export class VanJourneyPage implements OnInit {
   private salesOrders = inject(SalesOrderService);
   readonly day = inject(VanDayService);
 
-  /** Sales orders scheduled for today, from the ERP. */
-  readonly orders = signal<SalesOrderHeaderResponse[]>([]);
+  /** Sales orders created today, from the ERP. */
+  readonly orders = signal<SalesOrderHeaderV3Response[]>([]);
   readonly ordersLoading = signal(false);
 
   /**
@@ -112,8 +112,25 @@ export class VanJourneyPage implements OnInit {
   // ── Presentation helpers ───────────────────────────────────────────────────
 
   /** The customer name on an order, falling back to the account when absent. */
-  orderName(order: SalesOrderHeaderResponse): string {
-    return order.SalesTable_SalesName?.trim() || order.CustAccount || order.SalesId;
+  orderName(order: SalesOrderHeaderV3Response): string {
+    return (
+      order.SalesOrderName?.trim() ||
+      order.OrderingCustomerAccountNumber ||
+      order.SalesOrderNumber
+    );
+  }
+
+  /**
+   * The time of day the order was created, e.g. `09:14`.
+   *
+   * The time and not the date: every order in this list was created today, so a
+   * date on each card would repeat the section heading. The time is what tells
+   * one apart from the next.
+   */
+  orderTime(order: SalesOrderHeaderV3Response): string {
+    const parsed = this.parse(order.OrderCreationDateTime);
+    if (!parsed) return '';
+    return parsed.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
   }
 
   /**
@@ -123,12 +140,16 @@ export class VanJourneyPage implements OnInit {
    * a blank reads as "not set", which is true, where the browser's own string
    * for it reads as a bug.
    */
-  orderDate(order: SalesOrderHeaderResponse): string {
-    const raw = order.ShippingDateRequested;
-    if (!raw) return '';
-    const parsed = new Date(raw);
-    if (Number.isNaN(parsed.getTime())) return '';
+  orderDate(order: SalesOrderHeaderV3Response): string {
+    const parsed = this.parse(order.RequestedShippingDate);
+    if (!parsed) return '';
     return parsed.toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+  }
+
+  private parse(raw: string | undefined): Date | null {
+    if (!raw) return null;
+    const parsed = new Date(raw);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
   }
 
   /** Pin colour on the schematic map: done, current, or upcoming. */

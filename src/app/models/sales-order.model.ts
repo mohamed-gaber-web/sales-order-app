@@ -26,6 +26,25 @@ export interface SalesOrderHeaderResponse {
   SalesOrderLines?: unknown[];
 }
 
+/**
+ * A sales order header as `SalesOrderHeadersV3` returns it — the fields the
+ * van journey list reads, and only those.
+ *
+ * Separate from {@link SalesOrderHeaderResponse}, which describes the joined
+ * header-and-line entity: the two entities name the same facts differently
+ * (`SalesOrderNumber` vs `SalesId`), and only this one carries a creation
+ * timestamp, which is what "today's orders" is asked about.
+ */
+export interface SalesOrderHeaderV3Response {
+  dataAreaId: string;
+  SalesOrderNumber: string;
+  OrderingCustomerAccountNumber?: string;
+  SalesOrderName?: string;            // Customer name
+  OrderCreationDateTime?: string;     // When the order was created (UTC)
+  RequestedShippingDate?: string;
+  SalesOrderStatus?: string;
+}
+
 // ── Packing Slip ───────────────────────────────────────────
 export interface CreatePackingSlipRequest {
   _request: {

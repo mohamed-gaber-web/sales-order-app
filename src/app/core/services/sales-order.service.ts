@@ -6,6 +6,7 @@ import { ODataResponse } from '../models/lookup.models';
 import {
   CreateSalesOrderHeaderDto,
   SalesOrderHeaderResponse,
+  SalesOrderHeaderV3Response,
   CreatePackingSlipRequest,
   PackingSlipResponse,
 } from '../../models/sales-order.model';
@@ -44,24 +45,33 @@ const SALES_SELECT =
  * and a date, and an OData `$select` is the cheapest place to keep a van on a
  * mobile connection from paying for columns nothing renders.
  */
+/**
+ * How many of a day's orders the journey screen asks for at once.
+ *
+ * Larger than `SALES_PAGE_SIZE` because that list does not page: a driver's day
+ * is read in one call, and cutting it at ten would hide stops with nothing on
+ * screen to say so. A hundred is far past any single van's day.
+ */
+const JOURNEY_PAGE_SIZE = 100;
+
 const SALES_TODAY_SELECT =
-  'SalesId,CustAccount,SalesTable_SalesName,ShippingDateRequested,' +
-  'SalesTable_SalesStatus,dataAreaId';
+  'SalesOrderNumber,OrderingCustomerAccountNumber,SalesOrderName,' +
+  'OrderCreationDateTime,RequestedShippingDate,SalesOrderStatus,dataAreaId';
 
 /**
- * A local calendar day as `YYYY-MM-DD`.
+ * Midnight starting `date`'s local calendar day, as the instant it happened.
  *
- * Built from the local parts rather than `toISOString()`, which converts to UTC
- * first: east of Greenwich that returns yesterday for most of the morning, and
- * a driver asking for today's orders at 08:00 in Cairo would be shown
- * yesterday's. A van's day is the day where the van is.
+ * `OrderCreationDateTime` is a true UTC timestamp, not D365's date-only noon
+ * convention, so the day's bounds have to be sent as the UTC instants of local
+ * midnight. Sending a bare `YYYY-MM-DDT00:00:00Z` instead would shift the
+ * window by the offset: in Cairo it would cut the day at 03:00 local, hiding
+ * orders created after midnight — exactly the ones a driver just made.
  */
-function localDay(date: Date): string {
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+function startOfLocalDay(date: Date): Date {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 }
 
-/** The same day, one calendar day later. Handles month and year ends. */
+/** The same instant, one calendar day later. Handles month and year ends. */
 function nextDay(date: Date): Date {
   const next = new Date(date);
   next.setDate(next.getDate() + 1);
@@ -88,38 +98,41 @@ export class SalesOrderService {
   }
 
   /**
-   * Sales orders whose requested shipping date falls on one calendar day.
+   * Sales orders created on one calendar day, newest last.
+   *
+   * Keyed on `OrderCreationDateTime` rather than the requested shipping date:
+   * an order written up at a stop is the driver's own work and belongs on the
+   * screen the moment it exists, and D365 defaults the shipping date to the
+   * session date, which is the previous day for anything entered after
+   * midnight. Filtering on it dropped orders the driver had just created.
+   *
+   * Read from `SalesOrderHeadersV3`, not `GP_SalesHeaderAndLineData`: only the
+   * header entity exposes a creation timestamp, and it is one row per order
+   * where the joined entity repeats the header once per line.
    *
    * Expressed as a half-open range — `ge` midnight, `lt` the next midnight —
-   * rather than `eq` on the date. Two reasons. `ShippingDateRequested` comes
-   * back as a timestamp, so an `eq` against a bare date matches only rows whose
-   * time component is exactly midnight, which is most of them until it is not.
-   * And a range is the one form that behaves the same whether D365 types the
-   * column as `Edm.Date` or `Edm.DateTimeOffset`, which differs by entity.
-   *
-   * Only `dataAreaId` is applied besides the date. The Backorder-and-remaining-
-   * quantity clauses in `SALES_FILTER` describe orders still to be picked, which
-   * is a different question from what is scheduled today.
+   * so an order created in the day's last second still counts and the next
+   * day's first is not double-counted.
    */
   getOrdersForDate(
     date: Date = new Date(),
     skip = 0
-  ): Observable<ODataResponse<SalesOrderHeaderResponse>> {
-    const from = localDay(date);
-    const to = localDay(nextDay(date));
+  ): Observable<ODataResponse<SalesOrderHeaderV3Response>> {
+    const from = startOfLocalDay(date);
+    const to = nextDay(from);
 
-    return this.api.get<ODataResponse<SalesOrderHeaderResponse>>(
-      '/data/GP_SalesHeaderAndLineData',
+    return this.api.get<ODataResponse<SalesOrderHeaderV3Response>>(
+      '/data/SalesOrderHeadersV3',
       {
-        '$top': String(SALES_PAGE_SIZE),
+        '$top': String(JOURNEY_PAGE_SIZE),
         '$skip': String(skip),
         '$count': 'true',
         '$filter':
           `dataAreaId eq 'usmf'` +
-          ` and ShippingDateRequested ge ${from}T00:00:00Z` +
-          ` and ShippingDateRequested lt ${to}T00:00:00Z`,
+          ` and OrderCreationDateTime ge ${from.toISOString()}` +
+          ` and OrderCreationDateTime lt ${to.toISOString()}`,
         '$select': SALES_TODAY_SELECT,
-        '$orderby': 'ShippingDateRequested asc,SalesId asc',
+        '$orderby': 'OrderCreationDateTime asc,SalesOrderNumber asc',
       }
     );
   }
