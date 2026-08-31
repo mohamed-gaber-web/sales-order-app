@@ -43,6 +43,27 @@ export class VanDayService {
     return this._day()?.visits.find((v) => v.id === id) ?? null;
   });
 
+  /**
+   * The stop the driver most recently finished — where the van actually is,
+   * on a round already under way.
+   *
+   * Falls back to the last done stop in planned order for a day stored before
+   * the id was tracked: wrong if that day was resequenced, but it is the only
+   * answer such a day can give, and it beats no answer.
+   */
+  readonly lastCompletedVisit = computed<VanVisit | null>(() => {
+    const day = this._day();
+    if (!day) return null;
+
+    const stamped = day.visits.find((v) => v.id === day.lastCompletedVisitId);
+    if (stamped) return stamped;
+
+    for (let i = day.visits.length - 1; i >= 0; i--) {
+      if (day.visits[i].status === 'done') return day.visits[i];
+    }
+    return null;
+  });
+
   /** Visits finished, out of the day's plan — drives the header progress. */
   readonly doneCount = computed(
     () => this.visits().filter((v) => v.status === 'done').length
@@ -65,6 +86,50 @@ export class VanDayService {
 
   setCurrentVisit(id: number): void {
     this._currentVisitId.set(id);
+  }
+
+  /**
+   * True for a day restored from storage before stops carried coordinates.
+   *
+   * Such a day is kept, not thrown away. Discarding it would cost the driver
+   * every finished stop, the day's sales and collections, the open invoices and
+   * the outbox — including posts D365 has not yet acknowledged — which is
+   * exactly the loss this store exists to prevent. What it is missing is
+   * geography, and geography can be refilled.
+   */
+  readonly needsGeography = computed(() => {
+    const day = this._day();
+    if (!day) return false;
+    return !day.depot || day.visits.some((v) => !v.geo);
+  });
+
+  /**
+   * Fills a restored day's missing coordinates from a fresh plan.
+   *
+   * Matched on customer account, which is the stop's identity — the plan's
+   * ordering and its ids may both have moved on since the day was stored. A
+   * stop with no match keeps its progress and stays unpositioned; the route
+   * screen leaves those out of the sequence rather than inventing a position
+   * for them.
+   *
+   * Only geography is copied. Everything the driver has done — status,
+   * outcomes, balances, KPIs, the outbox — is left exactly as stored.
+   */
+  applyGeography(seed: VanDay): void {
+    if (!this.needsGeography()) return;
+
+    const byAccount = new Map(seed.visits.map((v) => [v.account, v]));
+
+    this.mutate((day) => ({
+      ...day,
+      depot: day.depot ?? seed.depot,
+      visits: day.visits.map((visit) => {
+        if (visit.geo) return visit;
+        const match = byAccount.get(visit.account);
+        if (!match) return visit;
+        return { ...visit, geo: match.geo, address: visit.address || match.address };
+      }),
+    }));
   }
 
   // ── Visit lifecycle ──────────────────────────────────────────────────────
@@ -102,6 +167,7 @@ export class VanDayService {
             }
           : v
       ),
+      lastCompletedVisitId: visit.id,
       openInvoices: invoice.open > 0 ? [...day.openInvoices, invoice] : day.openInvoices,
       kpi: {
         ...day.kpi,
@@ -176,6 +242,7 @@ export class VanDayService {
           ? { ...v, status: 'done', outcome: `No sale — ${reason}` }
           : v
       ),
+      lastCompletedVisitId: visit.id,
       kpi: {
         ...day.kpi,
         visited: day.kpi.visited + (visit.status === 'done' ? 0 : 1),

@@ -8,6 +8,19 @@
 // (journey plan, route customers) come from GP* OData entities; the posting
 // actions map to the GPVanSalesGroup custom services. See van-field-ops.service.
 
+/**
+ * A real-world position, WGS84 decimal degrees — the same pair a phone's GPS
+ * and a map link speak.
+ *
+ * Distinct from the schematic pin units this model used to carry: those were
+ * drawing coordinates and could not be measured against each other, which is
+ * exactly what route ordering has to do.
+ */
+export interface GeoPoint {
+  lat: number;
+  lng: number;
+}
+
 /** Where a stop sits in the day: not yet reached, being served, or finished. */
 export type VanVisitStatus = 'pending' | 'current' | 'done';
 
@@ -44,9 +57,16 @@ export interface VanVisit {
   checkedIn: boolean;
   /** Flagged priority stop (overdue balance, key account). */
   priority?: boolean;
-  /** Pin position for the schematic route map (arbitrary units, not real GPS). */
-  lat: number;
-  lng: number;
+  /**
+   * Where the customer is. Drives distance, ordering and the map pin.
+   *
+   * From `GPRouteCustomerEntity`'s `Latitude`/`Longitude` (spec §4.6) — the same
+   * pair the new-customer request captures, so a customer created in the field
+   * arrives on a later route already positioned.
+   */
+  geo: GeoPoint;
+  /** Street address, for the driver's eyes and for a map hand-off. */
+  address: string;
 }
 
 /** The day's key numbers, shown on the journey header and day-close. */
@@ -88,7 +108,29 @@ export interface VanOpenInvoice {
 /** The day the driver is working: route + running totals + queue. */
 export interface VanDay {
   routeId: string;
+  /**
+   * Where the route starts and ends — the branch the van loads at.
+   *
+   * Kept on the day because route ordering needs an origin, and on a fresh
+   * round, before the van has moved and with location permission not yet
+   * granted, the depot is the only honest answer to "where are we measuring
+   * from".
+   */
+  depot: GeoPoint;
   visits: VanVisit[];
+  /**
+   * The stop the driver finished most recently.
+   *
+   * Recorded rather than derived, because it cannot be derived: `visits` stays
+   * in the ERP's planned order whatever order the stops are actually served in,
+   * and reordering the route is the whole point of the sequencing modes. Taking
+   * the last done stop by array position would put the van at whichever
+   * completed stop happens to sit latest in the plan, which on a resequenced
+   * round is not where it is.
+   *
+   * Optional: a day persisted before this was tracked simply has no answer.
+   */
+  lastCompletedVisitId?: number;
   kpi: VanJourneyKpi;
   outbox: VanOutbox;
   openInvoices: VanOpenInvoice[];

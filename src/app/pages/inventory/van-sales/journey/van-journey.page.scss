@@ -53,8 +53,160 @@
   }
 }
 
-.stops-title {
+.stops-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
   margin: 4px 20px 8px;
+}
+
+.stops-title {
+  margin: 0;
+}
+
+.orders-header {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--gp-border);
+}
+
+.route-saving {
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--ion-color-success, #0e9f6e);
+}
+
+.route-modes {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  padding: 0 14px 8px;
+}
+
+.route-mode {
+  padding: 7px 4px;
+  background: var(--gp-card-bg);
+  border: 1px solid var(--gp-border);
+  border-radius: var(--gp-radius-sm);
+  color: var(--gp-text-muted, #64748b);
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+
+  &.active {
+    background: var(--gp-navy);
+    border-color: var(--gp-navy);
+    color: #fff;
+  }
+}
+
+body.ion-palette-dark .route-mode.active {
+  color: #0a0a0a;
+}
+
+.route-origin {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0 20px 10px;
+  color: var(--gp-text-muted, #64748b);
+  font-size: 0.78rem;
+
+  ion-spinner {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+.route-locate {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--gp-navy);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.route-note {
+  margin: 0 20px 10px;
+  color: var(--gp-text-muted, #64748b);
+  font-size: 0.76rem;
+}
+
+.stop-address {
+  display: block;
+  color: var(--gp-text-muted, #6b7280);
+  font-size: 0.78rem;
+  line-height: 1.3;
+  margin-top: 1px;
+}
+
+.stop-distance {
+  color: var(--gp-navy);
+  font-weight: 600;
+
+  &::before {
+    content: '·';
+    margin: 0 5px;
+    color: var(--gp-text-muted, #9ca3af);
+    font-weight: 400;
+  }
+}
+
+.stops-reset {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--gp-navy);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.date-filter {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 0 14px 10px;
+}
+
+.date-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.date-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--gp-text-muted, #6b7280);
+}
+
+.date-input {
+  width: 100%;
+  min-height: 38px;
+  padding: 7px 10px;
+  background: var(--gp-card-bg);
+  border: 1px solid var(--gp-border);
+  border-radius: var(--gp-radius-sm);
+  color: inherit;
+  font: inherit;
+  font-size: 0.86rem;
+
+  &:focus {
+    outline: none;
+    border-color: var(--gp-navy);
+  }
 }
 
 .stop-list {
@@ -176,4 +328,11 @@
   font-weight: 600;
   cursor: pointer;
   text-decoration: underline;
+}
+
+/* The native picker's calendar glyph is drawn dark; invert it so it stays
+   visible on the dark card background. */
+body.ion-palette-dark .date-input::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  opacity: 0.7;
 }

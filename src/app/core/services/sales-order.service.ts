@@ -46,11 +46,16 @@ const SALES_SELECT =
  * mobile connection from paying for columns nothing renders.
  */
 /**
- * How many of a day's orders the journey screen asks for at once.
+ * How many orders the journey screen asks for at once.
  *
  * Larger than `SALES_PAGE_SIZE` because that list does not page: a driver's day
- * is read in one call, and cutting it at ten would hide stops with nothing on
+ * is read in one call, and cutting it at ten would hide orders with nothing on
  * screen to say so. A hundred is far past any single van's day.
+ *
+ * It is not past an arbitrary date range, though, and the same query now serves
+ * one. The cap therefore has to be visible rather than silent: the query asks
+ * for `$count`, so the caller can compare it against the rows it got and tell
+ * the driver when a range holds more than the screen is showing.
  */
 const JOURNEY_PAGE_SIZE = 100;
 
@@ -98,7 +103,8 @@ export class SalesOrderService {
   }
 
   /**
-   * Sales orders created on one calendar day, newest last.
+   * Sales orders created between two calendar days, inclusive of both. Pass the
+   * same day twice for a single day.
    *
    * Keyed on `OrderCreationDateTime` rather than the requested shipping date:
    * an order written up at a stop is the driver's own work and belongs on the
@@ -110,16 +116,24 @@ export class SalesOrderService {
    * header entity exposes a creation timestamp, and it is one row per order
    * where the joined entity repeats the header once per line.
    *
-   * Expressed as a half-open range — `ge` midnight, `lt` the next midnight —
-   * so an order created in the day's last second still counts and the next
-   * day's first is not double-counted.
+   * The window is half-open — `ge` local midnight starting `fromDate`, `lt`
+   * local midnight after `toDate` — so an order created in the range's last
+   * second still counts and the next day's first is not double-counted. The
+   * bounds are normalised, so a range handed over backwards still returns the
+   * days between them rather than nothing.
+   *
+   * Capped at {@link JOURNEY_PAGE_SIZE} rows with no paging, so a wide range
+   * returns its oldest slice. `$count` comes back with it for callers to say so.
    */
-  getOrdersForDate(
-    date: Date = new Date(),
+  getOrdersForRange(
+    fromDate: Date,
+    toDate: Date,
     skip = 0
   ): Observable<ODataResponse<SalesOrderHeaderV3Response>> {
-    const from = startOfLocalDay(date);
-    const to = nextDay(from);
+    const a = startOfLocalDay(fromDate);
+    const b = startOfLocalDay(toDate);
+    const from = a <= b ? a : b;
+    const to = nextDay(a <= b ? b : a);
 
     return this.api.get<ODataResponse<SalesOrderHeaderV3Response>>(
       '/data/SalesOrderHeadersV3',

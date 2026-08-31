@@ -35,38 +35,149 @@
     <div class="journey-map">
       <svg viewBox="0 0 300 130" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
         <path
-          d="M15 110 C 60 80,90 100,120 65 S 200 40,255 48 S 288 25,290 22"
+          [attr.d]="mapPath()"
           fill="none" stroke="var(--gp-accent)" stroke-width="3"
-          stroke-dasharray="7 5" stroke-linecap="round" />
-        <circle cx="15" cy="110" r="7" fill="var(--ion-color-success, #0e9f6e)" />
-        <text x="15" y="113" text-anchor="middle" font-size="8" fill="#fff" font-weight="bold">D</text>
-        @for (v of d.visits; track v.id) {
-          <circle [attr.cx]="v.lat * 1.1 + 10" [attr.cy]="v.lng + 10" r="7" [attr.fill]="pinColor(v)" />
-          <text [attr.x]="v.lat * 1.1 + 10" [attr.y]="v.lng + 13" text-anchor="middle"
-                font-size="8" fill="#fff" font-weight="bold">{{ v.id }}</text>
+          stroke-dasharray="7 5" stroke-linecap="round" stroke-linejoin="round" />
+        @let pins = mapPins();
+        <!-- A stroke on every pin: two stops a few hundred metres apart land
+             almost on top of each other at this scale, and an outline keeps
+             them reading as two discs rather than one blob. -->
+        <circle [attr.cx]="pins.origin.x" [attr.cy]="pins.origin.y" r="7"
+                fill="var(--ion-color-success, #0e9f6e)"
+                stroke="var(--gp-card-bg)" stroke-width="1.5" />
+        <text [attr.x]="pins.origin.x" [attr.y]="pins.origin.y + 3" text-anchor="middle"
+              font-size="8" fill="#fff" font-weight="bold">D</text>
+        @for (pin of pins.stops; track pin.visit.id) {
+          <circle [attr.cx]="pin.x" [attr.cy]="pin.y" r="7" [attr.fill]="pinColor(pin.visit)"
+                  stroke="var(--gp-card-bg)" stroke-width="1.5" />
+          <text [attr.x]="pin.x" [attr.y]="pin.y + 3" text-anchor="middle"
+                font-size="8" fill="#fff" font-weight="bold">{{ pin.index }}</text>
         }
       </svg>
-      <div class="map-legend van-mono">{{ d.kpi.kmPlanned }} km planned · {{ d.visits.length }} stops</div>
+      <div class="map-legend van-mono">
+        {{ formatKm(routeKm()) }} ahead {{ originLabel() }} · {{ d.visits.length }} stops
+      </div>
     </div>
 
     <!-- ── Stops ───────────────────────────────────── -->
-    <p class="van-section-title stops-title">Today's stops</p>
+    <div class="stops-header">
+      <p class="van-section-title stops-title">Today's stops</p>
+      @if (savedKm() > 0) {
+        <span class="route-saving">saves {{ formatKm(savedKm()) }}</span>
+      }
+    </div>
+
+    <div class="route-modes" role="group" aria-label="Stop order">
+      <button type="button" class="route-mode" [class.active]="routeMode() === 'planned'"
+              (click)="setRouteMode('planned')">Planned</button>
+      <button type="button" class="route-mode" [class.active]="routeMode() === 'nearest'"
+              (click)="setRouteMode('nearest')">Nearest first</button>
+      <button type="button" class="route-mode" [class.active]="routeMode() === 'optimized'"
+              (click)="setRouteMode('optimized')">Shortest route</button>
+    </div>
+
+    <div class="route-origin">
+      @if (locating()) {
+        <ion-spinner name="crescent"></ion-spinner>
+        <span>Finding your location…</span>
+      } @else {
+        <span>{{ formatKm(routeKm()) }} ahead, measured {{ originLabel() }}.</span>
+        <button type="button" class="route-locate" (click)="locate()">
+          @if (originSource() === 'device') { Update location } @else { Use my location }
+        </button>
+      }
+    </div>
+
+    @if (locationDenied() && !locating()) {
+      <p class="route-note">
+        No location available, so the order is measured {{ originLabel() }}.
+      </p>
+    }
+
+    <div class="stop-list">
+      @for (row of stops(); track row.visit.id) {
+        <button type="button" class="stop-card" [class.done]="row.visit.status === 'done'"
+                [class.current]="row.visit.status === 'current'" (click)="openVisit(row.visit)">
+          <span class="stop-index" [class.done]="row.visit.status === 'done'"
+                [class.current]="row.visit.status === 'current'">
+            @if (row.visit.status === 'done') {
+              <ion-icon name="checkmark"></ion-icon>
+            } @else {
+              {{ row.index }}
+            }
+          </span>
+          <span class="stop-body">
+            <span class="stop-head">
+              <span class="stop-name">{{ row.visit.name }}</span>
+              @let pill = statusPill(row.visit);
+              @if (pill) {
+                <ds-pill [label]="pill.label" [color]="pill.color" [bg]="pill.bg"></ds-pill>
+              }
+            </span>
+            <span class="stop-address">{{ row.visit.address }}</span>
+            <span class="stop-sub">
+              {{ subtitle(row.visit) }}
+              @let distance = distanceLabel(row);
+              @if (distance) { <span class="stop-distance van-mono">{{ distance }}</span> }
+            </span>
+          </span>
+          <ion-icon class="stop-chev" name="chevron-forward"></ion-icon>
+        </button>
+      }
+    </div>
+
+    <!-- ── Orders ─────────────────────────────────────────────── -->
+    <div class="stops-header orders-header">
+      <p class="van-section-title stops-title">{{ rangeLabel() }}</p>
+      @if (!isToday()) {
+        <button type="button" class="stops-reset" (click)="resetRange()">Today</button>
+      }
+    </div>
+
+    <div class="date-filter">
+      <label class="date-field">
+        <span class="date-label">From</span>
+        <input
+          #fromInput
+          type="date"
+          class="date-input"
+          [max]="today()"
+          [value]="fromDate()"
+          (change)="setFromDate(fromInput)" />
+      </label>
+      <label class="date-field">
+        <span class="date-label">To</span>
+        <input
+          #toInput
+          type="date"
+          class="date-input"
+          [max]="today()"
+          [value]="toDate()"
+          (change)="setToDate(toInput)" />
+      </label>
+    </div>
 
     @if (ordersLoading()) {
       <div class="orders-note">
         <ion-spinner name="crescent"></ion-spinner>
-        <span>Loading today's orders…</span>
+        <span>Loading orders…</span>
       </div>
     } @else if (ordersFailed()) {
       <div class="orders-note orders-note--failed">
-        <span>Couldn't load today's orders.</span>
+        <span>Couldn't load orders.</span>
         <button type="button" class="orders-retry" (click)="retryOrders()">Retry</button>
       </div>
     } @else if (orders().length === 0) {
       <div class="orders-note">
-        <span>No orders created today.</span>
+        <span>@if (isToday()) { No orders created today. } @else { No orders in this range. }</span>
       </div>
     } @else {
+      @if (ordersTruncated()) {
+        <p class="route-note">
+          Showing the {{ orders().length }} oldest of {{ ordersTotal() }} orders in this
+          range. Narrow the dates to see the rest.
+        </p>
+      }
       <div class="stop-list">
         @for (o of orders(); track o.SalesOrderNumber; let i = $index) {
           <div class="stop-card order-card">
