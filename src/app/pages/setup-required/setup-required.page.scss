@@ -1,0 +1,87 @@
+@use '../auth/auth-shell';
+
+// ── What the portal reports about each environment ────────────────────────────
+.env-list {
+  margin: 4px 0 18px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: var(--ds-radius-md);
+  overflow: hidden;
+}
+
+.env-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--ds-bg-2);
+
+  + .env-row {
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+  }
+}
+
+.env-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.env-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ds-txt-0);
+}
+
+.env-url {
+  font-size: 11px;
+  color: var(--ds-txt-3);
+  // A D365 host is long and must not push the state badge off screen.
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.env-state {
+  flex-shrink: 0;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+
+  &.state-connected {
+    background: rgba(16, 133, 79, 0.12);
+    color: #10854f;
+  }
+
+  &.state-failing {
+    background: rgba(220, 38, 38, 0.1);
+    color: #dc2626;
+  }
+
+  &.state-not_configured {
+    background: rgba(217, 119, 6, 0.12);
+    color: #b45309;
+  }
+}
+
+.env-error {
+  margin: 0;
+  padding: 0 14px 10px;
+  background: var(--ds-bg-2);
+  font-size: 11px;
+  color: #dc2626;
+}
+
+body.ion-palette-dark {
+  .env-list {
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .env-row + .env-row {
+    border-top-color: rgba(255, 255, 255, 0.08);
+  }
+}

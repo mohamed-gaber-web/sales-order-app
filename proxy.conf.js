@@ -1,16 +1,20 @@
+// Dev-server proxy. `vercel.json` performs the equivalent rewrites in production.
+//
+// NOTE: the Angular dev server matches contexts with a naive startsWith(), so no
+// context here may be a string-prefix of another.
 module.exports = {
-  // Azure AD token endpoint
-  '/api/token': {
-    target: 'https://login.microsoftonline.com',
+  // Grow Path Admin Portal API — user sign-in, sessions, and the /d365 ERP
+  // pass-through that replaced every direct Dynamics call.
+  //
+  // Proxied rather than called directly so the browser makes no cross-origin
+  // request: the portal's CORS allowlist (PORTAL_ORIGIN) then needs no entry for
+  // this app's dev server.
+  '/api/portal': {
+    target: 'https://admin-portal-production-db9b.up.railway.app',
     changeOrigin: true,
     secure: true,
     pathRewrite: {
-      '^/api/token': '/26c58d65-b577-4f92-aed2-cec1395d146d/oauth2/v2.0/token',
-    },
-    onProxyReq: (proxyReq) => {
-      // Remove Origin/Referer so Azure AD doesn't reject with AADSTS9002326
-      proxyReq.removeHeader('Origin');
-      proxyReq.removeHeader('Referer');
+      '^/api/portal': '',
     },
   },
 
@@ -23,25 +27,10 @@ module.exports = {
     secure: false,
   },
 
-  // D365 OData API
-  '/data': {
-    target: 'https://gp-customers.sandbox.operations.eu.dynamics.com',
-    changeOrigin: true,
-    secure: true,
-  },
-
-  // D365 custom services (e.g. product receipt)
-  '/api/services': {
-    target: 'https://gp-customers.sandbox.operations.eu.dynamics.com',
-    changeOrigin: true,
-    secure: true,
-  },
-
-  // TEMPORARY: Elsewedy sandbox — testing purchase order list + confirm-receipt only.
-  // Remove alongside environment.useTestPurchaseOrderEnv once testing is done.
-  // NOTE: must NOT be a string-prefix of '/api/token' above — the dev-server proxy
-  // matches contexts with a naive startsWith(), so e.g. '/api/token-test-po' would be
-  // swallowed by the '/api/token' rule before ever reaching this one.
+  // TEMPORARY: Elsewedy sandbox — testing purchase order list + confirm-receipt
+  // only. This is the one path left that still sends a client secret from the
+  // device; remove it, and these three contexts, alongside
+  // testPurchaseOrderEnv.useTestPurchaseOrderEnv once the testing is done.
   '/api/test-token': {
     target: 'https://login.microsoftonline.com',
     changeOrigin: true,
@@ -50,6 +39,7 @@ module.exports = {
       '^/api/test-token': '/d3bf51d6-e2cb-4b8e-bf3c-bbd32fe8e86a/oauth2/v2.0/token',
     },
     onProxyReq: (proxyReq) => {
+      // Azure AD rejects a token request carrying a browser Origin (AADSTS9002326).
       proxyReq.removeHeader('Origin');
       proxyReq.removeHeader('Referer');
     },

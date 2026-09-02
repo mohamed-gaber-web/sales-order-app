@@ -3,10 +3,12 @@
     <ion-buttons slot="start">
       <ion-menu-button></ion-menu-button>
     </ion-buttons>
-    <div class="toolbar-workspace">
-      <ion-icon name="business-outline"></ion-icon>
-      {{ workspace }}
-    </div>
+    @if (workspace()) {
+      <div class="toolbar-workspace">
+        <ion-icon name="business-outline"></ion-icon>
+        {{ workspace() }}
+      </div>
+    }
     <ion-buttons slot="end">
       <ion-button (click)="openScanner()" class="scan-btn" title="Scan QR / Barcode">
         <ion-icon slot="icon-only" name="scan-outline"></ion-icon>
@@ -26,17 +28,19 @@
     <div class="hero-body">
       <div class="hero-left">
         <p class="hero-greeting">{{ greeting }}</p>
-        <h1 class="hero-brand">Grow Path</h1>
+        <h1 class="hero-brand">{{ companyName() }}</h1>
         <div class="hero-date-pill">
           <ion-icon name="calendar-outline"></ion-icon>
           {{ currentDate }}
         </div>
       </div>
       <div class="hero-badge-col">
-        <div class="hero-ws-badge">
-          <ion-icon name="layers-outline"></ion-icon>
-          <span>{{ workspace }}</span>
-        </div>
+        @if (workspace()) {
+          <div class="hero-ws-badge">
+            <ion-icon name="layers-outline"></ion-icon>
+            <span>{{ workspace() }}</span>
+          </div>
+        }
         <div class="hero-status-dot"></div>
       </div>
     </div>

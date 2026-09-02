@@ -3,15 +3,11 @@
   "outputDirectory": "www",
   "rewrites": [
     {
-      "source": "/data/:path*",
-      "destination": "/api/d365?dpath=/data/:path*"
+      "source": "/api/portal/:path*",
+      "destination": "https://admin-portal-production-db9b.up.railway.app/:path*"
     },
     {
-      "source": "/api/services/:path*",
-      "destination": "/api/d365?dpath=/api/services/:path*"
-    },
-    {
-      "source": "/((?!api/|data/).*)",
+      "source": "/((?!api/).*)",
       "destination": "/index.html"
     }
   ]

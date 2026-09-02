@@ -1,8 +1,7 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Platform } from '@ionic/angular';
 import { firstValueFrom } from 'rxjs';
-import { environment } from '../../../environments/environment';
 import { testPurchaseOrderEnv } from '../../../environments/test-purchase-order-env';
 
 interface TokenResponse {
@@ -13,98 +12,39 @@ interface TokenResponse {
 }
 
 const STORAGE_KEYS = {
-  ACCESS_TOKEN: 'access_token',
-  TOKEN_EXPIRY: 'token_expiry',
   TEST_PO_ACCESS_TOKEN: 'test_po_access_token',
   TEST_PO_TOKEN_EXPIRY: 'test_po_token_expiry',
 } as const;
 
+/** Refresh 5 min before expiry, so a call never starts on a token about to die. */
+const REFRESH_BUFFER_MS = 5 * 60 * 1000;
+
+/**
+ * The Azure AD `client_credentials` token for the **temporary Elsewedy sandbox**,
+ * and nothing else.
+ *
+ * This class used to hold the machine identity for the main Dynamics
+ * environment, with the client secret read out of `environment.auth`. That is
+ * gone: ERP calls now travel through the admin portal's `/d365` proxy, which
+ * holds the credential server-side, so no confidential secret ships in the
+ * build. See `ApiService`.
+ *
+ * What remains is the separate sandbox tenant `PurchaseOrderService` uses behind
+ * `testPurchaseOrderEnv.useTestPurchaseOrderEnv` — a different directory, a
+ * different app registration, and a flag that is absent in production. It should
+ * be deleted along with that flag once the sandbox testing is finished; until
+ * then it is the one place a client secret still reaches the device, and it is
+ * why `test-purchase-order-env.ts` must never be pointed at a real environment.
+ */
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly REFRESH_BUFFER_MS = 5 * 60 * 1000; // Refresh 5 min before expiry
+  private readonly http = inject(HttpClient);
+  private readonly platform = inject(Platform);
 
-  constructor(private http: HttpClient, private platform: Platform) {}
-
-  /** Called once at app startup via APP_INITIALIZER */
-  async initialize(): Promise<void> {
-    if (this.isTokenValid()) {
-      return;
-    }
-    await this.fetchToken();
-  }
-
-  /** Get the current access token (refreshes if expired) */
-  async getToken(): Promise<string> {
-    if (this.isTokenValid()) {
-      return localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN)!;
-    }
-    await this.fetchToken();
-    return localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN)!;
-  }
-
-  /** Check if the stored token is still valid */
-  isTokenValid(): boolean {
-    const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
-    const expiry = localStorage.getItem(STORAGE_KEYS.TOKEN_EXPIRY);
-    if (!token || !expiry) return false;
-    return Date.now() < Number(expiry) - this.REFRESH_BUFFER_MS;
-  }
-
-  /** Fetch a new token from Azure AD */
-  private async fetchToken(): Promise<void> {
-    const { clientId, clientSecret, scope, grantType } = environment.auth;
-
-    // Build the token request body
-    let body = new HttpParams()
-      .set('grant_type', grantType)
-      .set('client_id', clientId)
-      .set('scope', scope);
-
-    // In dev mode: include client_secret directly (it's already in environment.ts)
-    // In prod native: include client_secret (sent directly to Azure AD)
-    // In prod web: Vercel /api/token injects the secret server-side
-    if (this.isNativePlatform() || !environment.production) {
-      body = body.set('client_secret', clientSecret);
-    }
-
-    // On native (Capacitor) → call Azure directly (no CORS issue)
-    // On web (browser) → use dev proxy or Vercel proxy function
-    const tokenUrl = this.isNativePlatform()
-      ? environment.auth.tokenUrl
-      : '/api/token';
-
-    const response = await firstValueFrom(
-      this.http.post<TokenResponse>(tokenUrl, body.toString(), {
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      })
-    );
-
-    this.storeToken(response);
-  }
-
-  /** Persist token and its expiry time */
-  private storeToken(response: TokenResponse): void {
-    const expiryTime = Date.now() + response.expires_in * 1000;
-    localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, response.access_token);
-    localStorage.setItem(STORAGE_KEYS.TOKEN_EXPIRY, String(expiryTime));
-  }
-
-  /** Clear stored token (useful for logout) */
-  clearToken(): void {
-    localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
-    localStorage.removeItem(STORAGE_KEYS.TOKEN_EXPIRY);
-  }
-
-  /**
-   * TEMPORARY: separate cached token for testing PurchaseOrderService (list + confirm-receipt)
-   * against the Elsewedy sandbox (environment.testPurchaseOrderAuth). On native, calls Azure
-   * directly; on web, goes through the `/api/test-token` proxy route (no proxy on native).
-   * Remove alongside environment.useTestPurchaseOrderEnv.
-   */
   async getTestPurchaseOrderToken(): Promise<string> {
     const cachedToken = localStorage.getItem(STORAGE_KEYS.TEST_PO_ACCESS_TOKEN);
     const cachedExpiry = localStorage.getItem(STORAGE_KEYS.TEST_PO_TOKEN_EXPIRY);
-    if (cachedToken && cachedExpiry && Date.now() < Number(cachedExpiry) - this.REFRESH_BUFFER_MS) {
+    if (cachedToken && cachedExpiry && Date.now() < Number(cachedExpiry) - REFRESH_BUFFER_MS) {
       return cachedToken;
     }
 
@@ -112,6 +52,7 @@ export class AuthService {
     if (!testAuth) {
       throw new Error('Test purchase-order auth is not configured in this environment.');
     }
+
     const { clientId, clientSecret, scope, grantType, tokenUrl } = testAuth;
     const body = new HttpParams()
       .set('grant_type', grantType)
@@ -119,15 +60,21 @@ export class AuthService {
       .set('scope', scope)
       .set('client_secret', clientSecret);
 
+    // On native there is no proxy, so Azure is called directly; on web the
+    // `/api/test-token` dev-proxy route strips the Origin header Azure rejects.
     const response = await firstValueFrom(
-      this.http.post<TokenResponse>(this.isNativePlatform() ? tokenUrl : '/api/test-token', body.toString(), {
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      })
+      this.http.post<TokenResponse>(
+        this.isNativePlatform() ? tokenUrl : '/api/test-token',
+        body.toString(),
+        { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
+      )
     );
 
-    const expiryTime = Date.now() + response.expires_in * 1000;
     localStorage.setItem(STORAGE_KEYS.TEST_PO_ACCESS_TOKEN, response.access_token);
-    localStorage.setItem(STORAGE_KEYS.TEST_PO_TOKEN_EXPIRY, String(expiryTime));
+    localStorage.setItem(
+      STORAGE_KEYS.TEST_PO_TOKEN_EXPIRY,
+      String(Date.now() + response.expires_in * 1000)
+    );
     return response.access_token;
   }
 

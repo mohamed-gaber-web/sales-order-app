@@ -4,29 +4,16 @@
 
 export const environment = {
   production: false,
-  auth: {
-    tokenUrl: 'https://login.microsoftonline.com/26c58d65-b577-4f92-aed2-cec1395d146d/oauth2/v2.0/token',
-    clientId: 'db61ee09-84a1-4912-b319-709480fa243a',
-    clientSecret: '',  // Set via environment variable or local override — do not commit real secrets
-    scope: 'https://gp-customers.sandbox.operations.eu.dynamics.com/.default',
-    grantType: 'client_credentials',
-  },
-  // Interactive user sign-in (MSAL / Authorization Code Flow with PKCE).
-  // Uses a PUBLIC-CLIENT / SPA app registration — NO client secret on the device.
-  // TODO(Azure): replace `clientId` with a dedicated SPA app registration that has
-  //   a "Single-page application" platform with redirect URI `<origin>/auth/login`
-  //   registered. The confidential client above (client_credentials) must NOT be reused
-  //   for this — it has no SPA redirect URIs configured.
-  userAuth: {
-    clientId: 'db61ee09-84a1-4912-b319-709480fa243a',
-    authority: 'https://login.microsoftonline.com/26c58d65-b577-4f92-aed2-cec1395d146d',
-    // Relative URI — MSAL resolves it against window.location.origin, so it works in
-    // dev (http://localhost:4200) and prod without per-environment edits.
-    redirectUri: '/auth/login',
-    scopes: ['openid', 'profile', 'email', 'User.Read'],
-  },
-  apiBaseUrl: '',
-  d365BaseUrl: 'https://gp-customers.sandbox.operations.eu.dynamics.com',
+
+  /** This build's version, compared against the tenant's `minimumAppVersion`. */
+  appVersion: '1.0.0',
+
+  /**
+   * The tenant this build bootstraps as. Not a credential — it names which
+   * configuration to fetch from `/mobile/config`; the API host, workspace name
+   * and version floor all come back in that response.
+   */
+  tenantSlug: 'test2',
 
   /**
    * Origin serving `/api/ocr`, the paper-PO document reader.
@@ -38,6 +25,20 @@ export const environment = {
    * deployed origin.
    */
   ocrApiBaseUrl: '',
+
+  /**
+   * The Grow Path Admin Portal API — where users sign in.
+   *
+   * Web and mobile both use this API. Only the way the URL is written differs:
+   * native addresses it absolutely (CapacitorHttp goes through the OS, so no
+   * CORS preflight), while web calls the `/api/portal` prefix, which
+   * `proxy.conf.js` strips in development and `vercel.json` rewrites in
+   * production — keeping the browser same-origin.
+   *
+   * Carries no credential of any kind. Sign-in is email and password, and the
+   * Dynamics credential lives in the portal, per tenant.
+   */
+  portalApiBaseUrl: 'https://admin-portal-production-db9b.up.railway.app',
 };
 
 /*

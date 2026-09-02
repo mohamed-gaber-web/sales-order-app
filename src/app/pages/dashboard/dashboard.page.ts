@@ -1,6 +1,7 @@
-import { Component, NgZone, OnInit } from '@angular/core';
+import { Component, NgZone, OnInit, computed, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { ModalController, ToastController } from '@ionic/angular';
+import { PortalSessionStore, TenantConfigStore } from '../../core';
 import { PurchaseOrderService } from '../../core/services/purchase-order.service';
 import { SalesOrderService } from '../../core/services/sales-order.service';
 import { TransferOrderService } from '../../core/services/transfer-order.service';
@@ -31,6 +32,9 @@ interface Module {
   standalone: false
 })
 export class DashboardPage implements OnInit {
+  private readonly session = inject(PortalSessionStore);
+  private readonly tenantConfig = inject(TenantConfigStore);
+
   poCount: number | null = null;
   soCount: number | null = null;
   toCount: number | null = null;
@@ -53,7 +57,24 @@ export class DashboardPage implements OnInit {
     });
   }
 
-  readonly workspace = 'USMF';
+  /**
+   * The organisation, as the sign-in response named it.
+   *
+   * Shown where the product name used to be. "Grow Path" told a rep nothing they
+   * did not already know; their own company name tells them which workspace
+   * these figures belong to — which matters once one person can hold accounts in
+   * more than one. Falls back to the product name only before a session exists.
+   */
+  readonly companyName = computed(() => this.session.workspaceName() || 'Grow Path');
+
+  /**
+   * The D365 legal entity these figures are scoped to.
+   *
+   * Read from the tenant's own configuration rather than the hard-coded 'USMF'
+   * this used to be. Empty until the configuration loads, and the template hides
+   * the badges rather than showing an empty pill.
+   */
+  readonly workspace = computed(() => (this.tenantConfig.dataAreaId() ?? '').toUpperCase());
 
   readonly alerts: AlertItem[] = [
     {

@@ -99,7 +99,15 @@
   color: #fff;
   margin: 0 0 var(--ds-space-4);
   letter-spacing: -0.04em;
-  line-height: 1;
+  // Was `1`, and was safe while this said "Grow Path". A tenant name can be
+  // three words, so it now wraps — to two lines at most, because a hero that
+  // grows with the customer's name pushes the KPI bar off a small screen.
+  line-height: 1.05;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
   animation: heroTitleIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) backwards;
 }
 

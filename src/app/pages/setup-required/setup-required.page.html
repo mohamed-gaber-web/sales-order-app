@@ -1,0 +1,80 @@
+<ion-content fullscreen="true" class="auth-content">
+
+  <div class="bg-layer">
+    <div class="blob blob-orange"></div>
+    <div class="blob blob-blue"></div>
+  </div>
+
+  <div class="brand-section">
+    <div class="brand-logo-wrap">
+      <ion-icon name="construct-outline" class="brand-icon"></ion-icon>
+    </div>
+    <h1 class="brand-name">Grow Path</h1>
+    <p class="brand-tagline">Setup needed</p>
+  </div>
+
+  <div class="auth-card">
+    <div class="sheet-handle"></div>
+
+    <div class="card-inner">
+
+      <div class="card-head">
+        <h2 class="card-title">{{ message()?.title ?? 'Setup needed' }}</h2>
+        @if (workspace.dataAreaId(); as area) {
+          <div class="workspace-chip">
+            <ion-icon name="business-outline"></ion-icon>
+            <span>{{ area }}</span>
+          </div>
+        }
+      </div>
+
+      <p class="card-sub">{{ message()?.detail }}</p>
+
+      <div class="notice-box">
+        <ion-icon name="information-circle-outline"></ion-icon>
+        <p>
+          You are signed in correctly — this is not a problem with your account.
+          Your workspace is not connected to Dynamics 365 yet.
+        </p>
+      </div>
+
+      <!-- What the portal reports, so an administrator on the phone can act -->
+      @if (connections().length) {
+        <div class="env-list">
+          @for (connection of connections(); track connection.environmentId) {
+            <div class="env-row">
+              <div class="env-main">
+                <span class="env-name">{{ connection.environmentName }}</span>
+                <span class="env-url">{{ connection.url }}</span>
+              </div>
+              <span class="env-state" [class]="'state-' + connection.state">
+                {{ connection.state === 'not_configured' ? 'no credentials'
+                 : connection.state === 'failing' ? 'rejected' : 'connected' }}
+              </span>
+            </div>
+            @if (connection.error) {
+              <p class="env-error">Last check: {{ connection.error }}</p>
+            }
+          }
+        </div>
+      }
+
+      <button class="primary-btn" type="button" [disabled]="isChecking" (click)="recheck()">
+        @if (isChecking) {
+          <ion-spinner name="crescent"></ion-spinner>
+        } @else {
+          <ion-icon name="refresh-outline"></ion-icon>
+          <span>Check again</span>
+        }
+      </button>
+
+      <div class="link-row link-row-center">
+        <button class="link-btn" type="button" (click)="signOut()">Sign out</button>
+      </div>
+
+    </div>
+
+    <p class="auth-footer">Ask your administrator to finish setup in the admin portal.</p>
+  </div>
+
+</ion-content>

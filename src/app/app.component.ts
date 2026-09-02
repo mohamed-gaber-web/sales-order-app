@@ -1,10 +1,9 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { ToastController } from '@ionic/angular';
 import { filter, takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
-import { ThemeService } from './core';
-import { UserAuthService } from './core/services/user-auth.service';
+import { PortalSessionStore, ThemeService, UserAuthService } from './core';
 
 interface MenuItem {
   title: string;
@@ -27,6 +26,12 @@ interface MenuGroup {
   standalone: false,
 })
 export class AppComponent implements OnInit, OnDestroy {
+  private readonly themeService = inject(ThemeService);
+  private readonly router = inject(Router);
+  private readonly toastCtrl = inject(ToastController);
+  private readonly userAuth = inject(UserAuthService);
+  private readonly session = inject(PortalSessionStore);
+
   private destroy$ = new Subject<void>();
   currentUrl = '';
   public menuGroups: MenuGroup[] = [
@@ -178,18 +183,15 @@ export class AppComponent implements OnInit, OnDestroy {
   readonly themeMode = this.themeService.mode;
   readonly isDark = this.themeService.isDark;
 
-  constructor(
-    private themeService: ThemeService,
-    private router: Router,
-    private toastCtrl: ToastController,
-    private userAuth: UserAuthService,
-  ) {}
+  /** Who is signed in, straight from the session store. */
+  readonly isSignedIn = this.session.isAuthenticated;
+  readonly displayName = this.session.displayName;
+  readonly workspaceName = this.session.workspaceName;
 
   isAuthPage(): boolean { return this.currentUrl.startsWith('/auth'); }
 
-  logout(): void { this.userAuth.signOut(); }
-
-  get loggedInUser() { return this.userAuth.getUser(); }
+  /** Fire and forget: `signOut` clears locally and routes, whatever the server says. */
+  logout(): void { void this.userAuth.signOut(); }
 
   isTab(path: string): boolean {
     return this.currentUrl.startsWith(path);

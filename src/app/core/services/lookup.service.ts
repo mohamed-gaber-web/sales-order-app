@@ -1,6 +1,6 @@
 import { DestroyRef, inject, Injectable, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { map, Observable, tap } from 'rxjs';
+import { firstValueFrom, forkJoin, map, Observable, tap } from 'rxjs';
 import { ApiService } from './api.service';
 import { Company, Currency, Customer, ODataResponse } from '../models/lookup.models';
 
@@ -14,6 +14,19 @@ export class LookupService {
   readonly customers = signal<Customer[]>([]);
 
   constructor(private api: ApiService) {}
+
+  /**
+   * Loads every lookup at once.
+   *
+   * Called at launch for an already-signed-in user, and again straight after a
+   * sign-in — which is the point these become fetchable, since they are D365
+   * reads that a signed-out user has no screen for.
+   */
+  async loadAll(): Promise<void> {
+    await firstValueFrom(
+      forkJoin([this.loadCompanies(), this.loadCurrencies(), this.loadCustomers()]),
+    );
+  }
 
   // ── Companies ───────────────────────────────────────────
   loadCompanies(): Observable<void> {

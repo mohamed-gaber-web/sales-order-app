@@ -1,47 +1,42 @@
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { RouterModule } from '@angular/router';
 
 import { AppComponent } from './app.component';
 
 describe('AppComponent', () => {
-
-
   beforeEach(async () => {
-
     await TestBed.configureTestingModule({
       declarations: [AppComponent],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
       imports: [RouterModule.forRoot([])],
+      // The shell reads the signed-in user from PortalSessionStore, which
+      // reaches the portal API through HttpClient.
+      providers: [provideHttpClient(), provideHttpClientTesting()],
     }).compileComponents();
   });
 
   it('should create the app', () => {
     const fixture = TestBed.createComponent(AppComponent);
+    expect(fixture.componentInstance).toBeTruthy();
+  });
+
+  it('hides the app chrome on the auth screens', () => {
+    const fixture = TestBed.createComponent(AppComponent);
     const app = fixture.componentInstance;
-    expect(app).toBeTruthy();
+
+    app.currentUrl = '/auth/login';
+    expect(app.isAuthPage()).toBeTrue();
+
+    app.currentUrl = '/dashboard';
+    expect(app.isAuthPage()).toBeFalse();
   });
 
-  // TODO(ROU-10799): Fix the flaky test.
-  xit('should have menu labels', () => {
+  it('shows no user until someone is signed in', () => {
     const fixture = TestBed.createComponent(AppComponent);
-    fixture.detectChanges();
-    const app = fixture.nativeElement;
-    const menuItems = app.querySelectorAll('ion-label');
-    expect(menuItems.length).toEqual(12);
-    expect(menuItems[0].textContent).toContain('Inbox');
-    expect(menuItems[1].textContent).toContain('Outbox');
+    expect(fixture.componentInstance.isSignedIn()).toBeFalse();
+    expect(fixture.componentInstance.displayName()).toBe('');
   });
-
-  it('should have urls', () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    fixture.detectChanges();
-    const app = fixture.nativeElement;
-    const menuItems = app.querySelectorAll('ion-item');
-    expect(menuItems.length).toEqual(12);
-    expect(menuItems[0].getAttribute('href')).toEqual('/folder/inbox');
-    expect(menuItems[1].getAttribute('href')).toEqual('/folder/outbox');
-  });
-
 });

@@ -1,4 +1,4 @@
-<ion-content fullscreen="true" class="login-content">
+<ion-content fullscreen="true" class="auth-content">
 
   <!-- Background layer -->
   <div class="bg-layer">
@@ -16,41 +16,30 @@
   </div>
 
   <!-- Login card -->
-  <div class="login-card">
+  <div class="auth-card">
     <div class="sheet-handle"></div>
 
-    <div class="card-inner" [formGroup]="form">
+    <form class="card-inner" [formGroup]="form" (ngSubmit)="signIn()">
 
-      <!-- Card header -->
       <div class="card-head">
         <h2 class="card-title">Welcome back</h2>
-        <div class="workspace-chip">
-          <ion-icon name="business-outline"></ion-icon>
-          <span>USMF</span>
+        @if (workspaceName()) {
+          <div class="workspace-chip">
+            <ion-icon name="business-outline"></ion-icon>
+            <span>{{ workspaceName() }}</span>
+          </div>
+        }
+      </div>
+      <p class="card-sub">Sign in with your Grow Path account.</p>
+
+      @if (updateRequired()) {
+        <div class="notice-box">
+          <ion-icon name="arrow-up-circle-outline"></ion-icon>
+          <p>A newer version of the app is available. Update when you can.</p>
         </div>
-      </div>
+      }
 
-      <!-- Microsoft SSO -->
-      <button class="sso-btn" type="button" (click)="signInWithMicrosoft()">
-        <span class="ms-logo">
-          <svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <rect x="1" y="1" width="8.5" height="8.5" fill="#f25022"/>
-            <rect x="10.5" y="1" width="8.5" height="8.5" fill="#7fba00"/>
-            <rect x="1" y="10.5" width="8.5" height="8.5" fill="#00a4ef"/>
-            <rect x="10.5" y="10.5" width="8.5" height="8.5" fill="#ffb900"/>
-          </svg>
-        </span>
-        <span>Continue with Microsoft</span>
-      </button>
-
-      <!-- OR divider -->
-      <div class="or-divider">
-        <span class="or-line"></span>
-        <span class="or-text">or</span>
-        <span class="or-line"></span>
-      </div>
-
-      <!-- Email field -->
+      <!-- Email -->
       <ds-form-field
         [label]="'Email'"
         [required]="true"
@@ -62,12 +51,14 @@
             formControlName="email"
             type="email"
             placeholder="you@company.com"
-            inputmode="email">
+            inputmode="email"
+            autocomplete="username"
+            enterkeyhint="next">
           </ion-input>
         </ion-item>
       </ds-form-field>
 
-      <!-- Password field -->
+      <!-- Password -->
       <ds-form-field
         [label]="'Password'"
         [required]="true"
@@ -78,33 +69,29 @@
           <ion-input
             formControlName="password"
             [type]="showPassword ? 'text' : 'password'"
-            placeholder="••••••••">
+            placeholder="••••••••"
+            autocomplete="current-password"
+            enterkeyhint="go">
           </ion-input>
-          <ion-button slot="end" fill="clear" (click)="showPassword = !showPassword" type="button">
+          <ion-button slot="end" fill="clear" type="button" (click)="showPassword = !showPassword"
+            [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'">
             <ion-icon [name]="showPassword ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
           </ion-button>
         </ion-item>
       </ds-form-field>
 
-      <!-- Forgot password -->
-      <div class="forgot-row">
-        <button class="forgot-btn" type="button">Forgot password?</button>
+      <div class="link-row">
+        <button class="link-btn" type="button" routerLink="/auth/forgot-password">Forgot password?</button>
       </div>
 
-      <!-- Error box -->
       @if (errorMessage) {
-        <div class="error-box">
+        <div class="error-box" role="alert">
           <ion-icon name="alert-circle-outline"></ion-icon>
           <p>{{ errorMessage }}</p>
         </div>
       }
 
-      <!-- Sign In button -->
-      <button
-        class="signin-btn"
-        type="button"
-        [disabled]="form.invalid || isLoading"
-        (click)="signIn()">
+      <button class="primary-btn" type="submit" [disabled]="form.invalid || isLoading">
         @if (isLoading) {
           <ion-spinner name="crescent"></ion-spinner>
         } @else {
@@ -113,9 +100,15 @@
         }
       </button>
 
-    </div>
+      <div class="link-row link-row-center">
+        <button class="link-btn" type="button" routerLink="/auth/accept-invitation">
+          Have an invitation?
+        </button>
+      </div>
 
-    <p class="login-footer">Grow Path · Inventory Management Platform</p>
+    </form>
+
+    <p class="auth-footer">Grow Path · Inventory Management Platform</p>
   </div>
 
 </ion-content>

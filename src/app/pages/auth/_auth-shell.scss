@@ -1,0 +1,388 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared chrome for every screen under /auth.
+//
+// The navy gradient, the brand block and the bottom sheet card are one design;
+// keeping them in five component stylesheets would let them drift. Each auth
+// page `@use`s this and adds only what is specific to it.
+//
+// Angular scopes component styles, so the emitted duplication is per-component
+// and does not leak between pages.
+// ─────────────────────────────────────────────────────────────────────────────
+
+// ── Host ──────────────────────────────────────────────────────────────────────
+:host {
+  display: block;
+  height: 100%;
+}
+
+// ── Content ───────────────────────────────────────────────────────────────────
+.auth-content {
+  --background: var(--ds-navy);
+}
+
+// ── Background layer ──────────────────────────────────────────────────────────
+.bg-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: linear-gradient(160deg, #001a40 0%, var(--ds-navy) 45%, #00327a 100%);
+  overflow: hidden;
+}
+
+.blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+}
+
+.blob-orange {
+  width: 320px;
+  height: 320px;
+  top: -80px;
+  right: -80px;
+  background: radial-gradient(circle, rgba(242, 76, 26, 0.45) 0%, rgba(242, 76, 26, 0) 70%);
+  animation: breatheBlob 6s ease-in-out infinite;
+}
+
+.blob-blue {
+  width: 260px;
+  height: 260px;
+  bottom: 30%;
+  left: -80px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.08) 0%, rgba(0, 50, 122, 0) 70%);
+  animation: breatheBlob 8s ease-in-out 1s infinite reverse;
+}
+
+// ── Brand section ─────────────────────────────────────────────────────────────
+.brand-section {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: max(60px, 12vh);
+  text-align: center;
+  animation: fadeSlideDown 0.7s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+.brand-logo-wrap {
+  margin-bottom: 4px;
+}
+
+.brand-icon {
+  font-size: 52px;
+  color: var(--ds-accent);
+  margin-bottom: 12px;
+  filter: drop-shadow(0 0 20px rgba(242, 76, 26, 0.5));
+  animation: iconPulse 3s ease-in-out infinite;
+}
+
+.brand-name {
+  font-size: 36px;
+  font-weight: 800;
+  color: #fff;
+  margin: 0 0 6px;
+  letter-spacing: -0.04em;
+}
+
+.brand-tagline {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0;
+  font-weight: 500;
+}
+
+// ── Card ──────────────────────────────────────────────────────────────────────
+.auth-card {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--ds-bg-1);
+  border-radius: 28px 28px 0 0;
+  z-index: 2;
+  animation: slideUpCard 0.65s cubic-bezier(0.16, 1, 0.3, 1) 0.2s backwards;
+  padding-bottom: max(24px, env(safe-area-inset-bottom));
+  max-height: 88%;
+  overflow-y: auto;
+}
+
+.sheet-handle {
+  width: 40px;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(0, 0, 0, 0.12);
+  margin: 12px auto 0;
+}
+
+.card-inner {
+  padding: 20px 24px;
+}
+
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.card-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--ds-txt-0);
+  margin: 0;
+  letter-spacing: -0.03em;
+}
+
+/** The one or two lines explaining what this screen wants. */
+.card-sub {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ds-txt-2);
+  margin: 0 0 20px;
+}
+
+/** The workspace this build bootstrapped into, from /mobile/config. */
+.workspace-chip {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: var(--ds-navy-soft);
+  color: var(--ds-navy);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+
+  ion-icon {
+    font-size: 13px;
+  }
+}
+
+// ── Inputs ────────────────────────────────────────────────────────────────────
+.input-item {
+  --background: var(--ds-bg-2);
+  --border-radius: var(--ds-radius-md);
+  --padding-start: var(--ds-space-3);
+  box-shadow: var(--ds-shadow-sm);
+
+  &::part(native) {
+    border-radius: var(--ds-radius-md);
+  }
+}
+
+/** One-time codes and pasted tokens: monospaced, so a character cannot be misread. */
+.code-input {
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  letter-spacing: 0.18em;
+}
+
+// ── Inline links ──────────────────────────────────────────────────────────────
+.link-row {
+  display: flex;
+  justify-content: flex-end;
+  margin: 8px 0 16px;
+
+  &.link-row-center {
+    justify-content: center;
+    margin: 18px 0 0;
+  }
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ds-navy);
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+// ── Feedback boxes ────────────────────────────────────────────────────────────
+.error-box,
+.success-box,
+.notice-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+
+  ion-icon {
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  p {
+    font-size: 13px;
+    line-height: 1.45;
+    margin: 0;
+  }
+}
+
+.error-box {
+  background: rgba(220, 38, 38, 0.07);
+  border: 1px solid rgba(220, 38, 38, 0.2);
+
+  ion-icon,
+  p {
+    color: #dc2626;
+  }
+}
+
+.notice-box {
+  background: rgba(0, 37, 89, 0.06);
+  border: 1px solid rgba(0, 37, 89, 0.16);
+
+  ion-icon,
+  p {
+    color: var(--ds-navy);
+  }
+}
+
+.success-box {
+  background: rgba(16, 133, 79, 0.08);
+  border: 1px solid rgba(16, 133, 79, 0.22);
+
+  ion-icon,
+  p {
+    color: #10854f;
+  }
+}
+
+// ── Primary action ────────────────────────────────────────────────────────────
+.primary-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: linear-gradient(130deg, var(--ds-accent) 0%, var(--ds-accent-end, #F28E26) 100%);
+  color: #fff;
+  border: none;
+  border-radius: var(--ds-radius-md);
+  padding: 16px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 4px;
+  box-shadow: 0 4px 18px rgba(242, 76, 26, 0.35);
+  transition: box-shadow 0.18s, transform 0.12s, opacity 0.18s;
+
+  ion-icon {
+    font-size: 20px;
+  }
+
+  ion-spinner {
+    width: 20px;
+    height: 20px;
+    color: #fff;
+  }
+
+  &:active {
+    transform: scale(0.97);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+// ── Footer ────────────────────────────────────────────────────────────────────
+.auth-footer {
+  text-align: center;
+  font-size: 11px;
+  color: var(--ds-txt-3);
+  margin: 20px 0 0;
+  padding: 0 24px;
+}
+
+// ── Animations ────────────────────────────────────────────────────────────────
+@keyframes fadeSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUpCard {
+  from {
+    opacity: 0;
+    transform: translateY(60px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes breatheBlob {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+}
+
+@keyframes iconPulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 16px rgba(242, 76, 26, 0.45));
+  }
+  50% {
+    filter: drop-shadow(0 0 28px rgba(242, 76, 26, 0.75));
+  }
+}
+
+// ── Dark mode ─────────────────────────────────────────────────────────────────
+body.ion-palette-dark {
+  .auth-card {
+    background: var(--ds-bg-1);
+  }
+
+  .sheet-handle {
+    background: rgba(255, 255, 255, 0.12);
+  }
+
+  .link-btn {
+    color: var(--ds-accent);
+  }
+
+  .workspace-chip {
+    background: rgba(0, 37, 89, 0.25);
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  .notice-box {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.14);
+
+    ion-icon,
+    p {
+      color: rgba(255, 255, 255, 0.8);
+    }
+  }
+
+  .success-box {
+    background: rgba(16, 133, 79, 0.14);
+    border-color: rgba(16, 133, 79, 0.3);
+
+    ion-icon,
+    p {
+      color: #4ade80;
+    }
+  }
+}
