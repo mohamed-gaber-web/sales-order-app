@@ -20,7 +20,7 @@
         <ion-icon name="checkmark-circle" class="success-icon"></ion-icon>
       </div>
 
-      <h2 class="success-title">Receipt Confirmed</h2>
+      <h2 class="success-title">{{ 'status.receiptConfirmed' | translate }}</h2>
       <p class="success-sub">Line {{ receiptPdfData.lineNumber }} received successfully</p>
 
       <!-- Receipt summary card -->
@@ -29,7 +29,7 @@
 
           <div class="summary-hero">
             <div>
-              <p class="summary-label">Purchase Order</p>
+              <p class="summary-label">{{ 'doc.purchaseOrder' | translate }}</p>
               <p class="summary-value primary">{{ receiptPdfData.poNumber }}</p>
             </div>
             <div class="summary-badge">Line {{ receiptPdfData.lineNumber }}</div>
@@ -50,7 +50,7 @@
               </span>
             </div>
             <div class="summary-field">
-              <span class="summary-field-label">Item</span>
+              <span class="summary-field-label">{{ 'field.item' | translate }}</span>
               <span class="summary-field-value">{{ receiptPdfData.itemNumber }}</span>
             </div>
             @if (receiptPdfData.productName) {
@@ -112,7 +112,7 @@
           <!-- Hero: PO + Line -->
           <div class="context-hero">
             <div class="po-info">
-              <p class="po-label">Purchase Order</p>
+              <p class="po-label">{{ 'doc.purchaseOrder' | translate }}</p>
               <p class="po-number">{{ poNumber }}</p>
             </div>
             <div class="line-pill">Line {{ lineNumber }}</div>
@@ -152,7 +152,7 @@
                 </div>
                 <div class="qty-stat remaining">
                   <span class="qty-num">{{ remainingQty }}</span>
-                  <span class="qty-desc">Remaining</span>
+                  <span class="qty-desc">{{ 'field.remaining' | translate }}</span>
                 </div>
               </div>
             </div>
@@ -160,12 +160,12 @@
             <!-- Extra fields -->
             <div class="context-fields">
               <div class="field-item">
-                <span class="field-label">Unit</span>
+                <span class="field-label">{{ 'field.unit' | translate }}</span>
                 <span class="field-value">{{ line.PurchaseUnitSymbol || '—' }}</span>
               </div>
               @if (line.ReceivingWarehouseId) {
                 <div class="field-item">
-                  <span class="field-label">Warehouse</span>
+                  <span class="field-label">{{ 'field.warehouse' | translate }}</span>
                   <span class="field-value">{{ line.ReceivingWarehouseId }}</span>
                 </div>
               }
@@ -196,7 +196,7 @@
             [min]="0.001"
             [max]="remainingQty"
             step="0.001"
-            placeholder="Enter quantity"
+            [placeholder]="'placeholder.enterQuantity' | translate"
             class="custom-input"
             [class.invalid]="form.get('receiptQty')?.invalid && form.get('receiptQty')?.touched">
           </ion-input>

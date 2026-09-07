@@ -325,7 +325,7 @@ ion-header {
   background: var(--gp-notes-bg);
   border-radius: var(--gp-radius-md);
   padding: 14px 16px;
-  border-left: 3px solid var(--ion-color-warning);
+  border-inline-start: 3px solid var(--ion-color-warning);
 
   p {
     margin: 0;

@@ -23,7 +23,7 @@
       <p class="form-label">Item Number *</p>
       <ion-item lines="none" class="input-item">
         <ion-icon name="cube-outline" slot="start" color="medium"></ion-icon>
-        <ion-input formControlName="itemNumber" placeholder="Scan or enter item number" inputmode="text" clearInput="true"></ion-input>
+        <ion-input formControlName="itemNumber" [placeholder]="'placeholder.scanOrEnterItem' | translate" inputmode="text" clearInput="true"></ion-input>
       </ion-item>
     </div>
 

@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { TranslateService } from '@ngx-translate/core';
 import { LookupService, UserAuthService, describePortalError } from '../../../core';
 
 @Component({
@@ -11,6 +12,7 @@ import { LookupService, UserAuthService, describePortalError } from '../../../co
 })
 export class MfaPage {
   private readonly fb = inject(FormBuilder);
+  private readonly translate = inject(TranslateService);
   private readonly router = inject(Router);
   private readonly auth = inject(UserAuthService);
   private readonly lookup = inject(LookupService);
@@ -43,7 +45,7 @@ export class MfaPage {
     } catch (error) {
       // A wrong code, a code replayed inside its own window and a spent recovery
       // code all answer identically. One message, matching.
-      this.errorMessage = describePortalError(error, 'That code was not accepted. Try again.');
+      this.errorMessage = describePortalError(error, this.translate, 'auth.mfa.rejected');
     } finally {
       this.isLoading = false;
     }

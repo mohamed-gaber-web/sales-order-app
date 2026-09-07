@@ -41,7 +41,7 @@
     <ion-card class="header-card">
       <div class="header-hero">
         <div>
-          <p class="transfer-label">Transfer Order</p>
+          <p class="transfer-label">{{ 'doc.transferOrder' | translate }}</p>
           <h2 class="transfer-id">{{ order.TransferOrderNumber }}</h2>
         </div>
         <div class="badge-group">
@@ -63,13 +63,13 @@
           <span class="field-value">{{ order.ReceivingWarehouseId || '—' }}</span>
         </div>
         <div class="field-item">
-          <span class="field-label">Ship Date</span>
+          <span class="field-label">{{ 'field.shipDate' | translate }}</span>
           <span class="field-value">
             {{ order.RequestedShippingDate ? (order.RequestedShippingDate | date:'MMM d, y') : '—' }}
           </span>
         </div>
         <div class="field-item">
-          <span class="field-label">Receive Date</span>
+          <span class="field-label">{{ 'field.receiveDate' | translate }}</span>
           <span class="field-value">
             {{ order.RequestedReceiptDate ? (order.RequestedReceiptDate | date:'MMM d, y') : '—' }}
           </span>
@@ -81,7 +81,7 @@
     <div class="lines-section">
       <div class="lines-header">
         <h3 class="lines-title">
-          Lines
+          {{ 'field.lines' | translate }}
           <span class="lines-count">{{ lines.length }}</span>
         </h3>
         @if (lines.length > 3) {
@@ -126,7 +126,7 @@
               <!-- Ship progress -->
               <div class="qty-progress">
                 <div class="progress-track-label">
-                  <span class="progress-section-label">Ship</span>
+                  <span class="progress-section-label">{{ 'common.ship' | translate }}</span>
                   <span class="progress-section-label">{{ getShippedQty(line) }} / {{ line.TransferQuantity }} {{ line.InventoryUnitSymbol || '' }}</span>
                 </div>
                 <div class="progress-track">
@@ -147,7 +147,7 @@
               @if (line.LineStatus === 'Shipping' || line.LineStatus === 'Received') {
                 <div class="qty-progress receive-progress">
                   <div class="progress-track-label">
-                    <span class="progress-section-label">Receive</span>
+                    <span class="progress-section-label">{{ 'common.receive' | translate }}</span>
                     <span class="progress-section-label">{{ getReceivedQty(line) }} / {{ getShippedQty(line) }} {{ line.InventoryUnitSymbol || '' }}</span>
                   </div>
                   <div class="progress-track">
@@ -171,7 +171,7 @@
                   <span class="field-value">{{ line.TransferQuantity }}</span>
                 </div>
                 <div class="field-item">
-                  <span class="field-label">Unit</span>
+                  <span class="field-label">{{ 'field.unit' | translate }}</span>
                   <span class="field-value">{{ line.InventoryUnitSymbol || '—' }}</span>
                 </div>
                 <div class="field-item">
@@ -193,7 +193,7 @@
                       class="action-btn ship-btn"
                       (click)="shipLine(line); $event.stopPropagation()">
                       <ion-icon slot="start" name="arrow-up-circle-outline"></ion-icon>
-                      Ship
+                      {{ 'common.ship' | translate }}
                     </ion-button>
                   }
                   @if (canReceiveLine(line)) {
@@ -202,7 +202,7 @@
                       class="action-btn receive-btn"
                       (click)="receiveLine(line); $event.stopPropagation()">
                       <ion-icon slot="start" name="arrow-down-circle-outline"></ion-icon>
-                      Receive
+                      {{ 'common.receive' | translate }}
                     </ion-button>
                   }
                 </div>

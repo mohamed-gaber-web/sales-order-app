@@ -185,7 +185,7 @@
           <span class="po-hero-number">{{ vm.poNumber() }}</span>
         </div>
         <ion-button fill="clear" size="small" class="change-po-btn" (click)="backToReview()">
-          Change
+          {{ 'common.change' | translate }}
         </ion-button>
       </div>
 
@@ -226,7 +226,7 @@
           @if (row.status === 'matched' && row.include) {
             <div class="match-row-controls">
               <div class="qbox">
-                <ion-button fill="clear" class="step-btn" (click)="vm.adjustRowQty(i, -1)" aria-label="Decrease quantity">
+                <ion-button fill="clear" class="step-btn" (click)="vm.adjustRowQty(i, -1)" [aria-label]="'common.decreaseQuantity' | translate">
                   <ion-icon slot="icon-only" name="remove-outline"></ion-icon>
                 </ion-button>
                 <div class="qbox-value">
@@ -244,7 +244,7 @@
                     (ionBlur)="vm.clampRowQty(i)">
                   </ion-input>
                 </div>
-                <ion-button fill="clear" class="step-btn" (click)="vm.adjustRowQty(i, 1)" aria-label="Increase quantity">
+                <ion-button fill="clear" class="step-btn" (click)="vm.adjustRowQty(i, 1)" [aria-label]="'common.increaseQuantity' | translate">
                   <ion-icon slot="icon-only" name="add-outline"></ion-icon>
                 </ion-button>
               </div>
@@ -312,7 +312,7 @@
 
       @if (vm.selectedRows().length > 0) {
         <div class="total-row">
-          <span>Total quantity</span>
+          <span>{{ 'field.totalQuantity' | translate }}</span>
           <span>{{ vm.totalQty() | number:'1.0-3' }}</span>
         </div>
       }
@@ -329,14 +329,14 @@
           <ion-icon name="checkmark-circle" class="success-icon"></ion-icon>
         </div>
 
-        <h2 class="success-title">Receipt Confirmed</h2>
+        <h2 class="success-title">{{ 'status.receiptConfirmed' | translate }}</h2>
         <p class="success-sub">
           {{ receipt.lines.length }} line{{ receipt.lines.length === 1 ? '' : 's' }} received on {{ receipt.poNumber }}
         </p>
 
         <div class="receipt-card">
           <div class="receipt-row header">
-            <span>Item</span>
+            <span>{{ 'field.item' | translate }}</span>
             <span>Qty received</span>
           </div>
           @for (line of receipt.lines; track line.itemNumber) {
@@ -365,7 +365,7 @@
 
         <ion-button expand="block" fill="outline" class="secondary-btn" (click)="printLabel()">
           <ion-icon slot="start" name="print-outline"></ion-icon>
-          Print Label
+          {{ 'common.printLabel' | translate }}
         </ion-button>
 
         <ion-button expand="block" fill="clear" (click)="goToOrder()">

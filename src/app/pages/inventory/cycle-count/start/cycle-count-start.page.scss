@@ -64,7 +64,7 @@ ion-header ion-toolbar {
 
   .required {
     color: var(--ion-color-danger);
-    margin-left: 2px;
+    margin-inline-start: 2px;
   }
 
   .optional {
@@ -73,7 +73,7 @@ ion-header ion-toolbar {
     color: var(--ion-color-medium);
     text-transform: none;
     letter-spacing: 0;
-    margin-left: 4px;
+    margin-inline-start: 4px;
   }
 }
 

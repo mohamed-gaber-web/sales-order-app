@@ -68,7 +68,7 @@ ion-header ion-toolbar {
   text-overflow: ellipsis;
 }
 
-.banner-right { flex-shrink: 0; text-align: right; }
+.banner-right { flex-shrink: 0; text-align: end; }
 .banner-qty-block { .banner-value { font-size: 20px; } }
 
 // ── Meta row ──────────────────────────────────────────────────────────────────
@@ -181,7 +181,7 @@ ion-header ion-toolbar {
 
 .bom-qty {
   flex-shrink: 0;
-  text-align: right;
+  text-align: end;
   display: flex;
   flex-direction: column;
   gap: 1px;
@@ -208,7 +208,7 @@ ion-header ion-toolbar {
   display: flex;
   align-items: center;
   padding: 0 16px;
-  border-left: 1px solid var(--gp-border, #e5e7eb);
+  border-inline-start: 1px solid var(--gp-border, #e5e7eb);
 }
 
 .issued-toggle {

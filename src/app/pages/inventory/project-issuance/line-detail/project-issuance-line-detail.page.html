@@ -33,13 +33,13 @@
           </div>
           @if (salesCategory) {
             <div class="info-row">
-              <span class="info-label">Category</span>
+              <span class="info-label">{{ 'field.category' | translate }}</span>
               <span class="info-value">{{ salesCategory }}</span>
             </div>
           }
           @if (linePropertyId) {
             <div class="info-row">
-              <span class="info-label">Line Property</span>
+              <span class="info-label">{{ 'field.lineProperty' | translate }}</span>
               <span class="info-value">{{ linePropertyId }}</span>
             </div>
           }
@@ -61,7 +61,7 @@
       </div>
       <div class="card-body">
         <ds-form-field
-          label="Quantity"
+          [label]="'field.quantity' | translate"
           [required]="true"
           [showError]="(form.get('quantityToIssue')?.invalid && form.get('quantityToIssue')?.touched) ?? false"
           [errorMessage]="form.get('quantityToIssue')?.hasError('max') ? 'Cannot exceed remaining (' + remainingQuantity + ')' : 'Enter a quantity greater than 0'">
@@ -81,7 +81,7 @@
           <span class="qty-required">Required: {{ requiredQuantity }}</span>
         </div>
 
-        <ds-form-field label="Unit" [required]="true">
+        <ds-form-field [label]="'field.unit' | translate" [required]="true">
           <ion-item lines="none" class="input-item">
             <ion-icon name="resize-outline" slot="start" color="medium"></ion-icon>
             <ion-input formControlName="unit" placeholder="EA" inputmode="text" clearInput="true"></ion-input>
@@ -98,23 +98,23 @@
       </div>
       <div class="card-body">
         <div class="dims-grid">
-          <ds-form-field label="Site" [required]="true"
+          <ds-form-field [label]="'field.site' | translate" [required]="true"
             [showError]="(form.get('site')?.invalid && form.get('site')?.touched) ?? false"
-            errorMessage="Site is required.">
+            [errorMessage]="'msg.siteRequired' | translate">
             <ion-item lines="none" class="input-item">
               <ion-input formControlName="site" placeholder="e.g. S1" inputmode="text" clearInput="true"></ion-input>
             </ion-item>
           </ds-form-field>
 
-          <ds-form-field label="Warehouse" [required]="true"
+          <ds-form-field [label]="'field.warehouse' | translate" [required]="true"
             [showError]="(form.get('warehouse')?.invalid && form.get('warehouse')?.touched) ?? false"
-            errorMessage="Warehouse is required.">
+            [errorMessage]="'msg.warehouseRequired' | translate">
             <ion-item lines="none" class="input-item">
               <ion-input formControlName="warehouse" placeholder="e.g. W1" inputmode="text" clearInput="true"></ion-input>
             </ion-item>
           </ds-form-field>
 
-          <ds-form-field label="Location" [optional]="true">
+          <ds-form-field [label]="'field.location' | translate" [optional]="true">
             <ion-item lines="none" class="input-item">
               <ion-input formControlName="location" placeholder="e.g. A-01-01" inputmode="text" clearInput="true"></ion-input>
             </ion-item>
@@ -151,7 +151,7 @@
           (toggleChange)="postPackingSlip = $event">
         </ds-toggle-row>
         <ds-toggle-row
-          title="Print Label"
+          [title]="'common.printLabel' | translate"
           subtitle="Print a label after successfully posting"
           icon="print-outline"
           [checked]="printLabel"

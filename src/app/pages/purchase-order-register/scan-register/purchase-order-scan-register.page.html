@@ -28,7 +28,7 @@
         <ion-card-content>
           <div class="summary-hero">
             <div>
-              <p class="summary-label">Purchase Order</p>
+              <p class="summary-label">{{ 'doc.purchaseOrder' | translate }}</p>
               <p class="summary-value primary">{{ poNumber }}</p>
             </div>
             <div class="summary-badge">{{ confirmedCount }} items</div>
@@ -40,7 +40,7 @@
               <span class="summary-field-value">{{ confirmedRegistrationId }}</span>
             </div>
             <div class="summary-field">
-              <span class="summary-field-label">Total Qty</span>
+              <span class="summary-field-label">{{ 'field.totalQty' | translate }}</span>
               <span class="summary-field-value accent">{{ confirmedTotalQty | number:'1.0-3' }}</span>
             </div>
           </div>
@@ -49,7 +49,7 @@
 
       <div class="receipt-card">
         <div class="receipt-row header">
-          <span>Item</span>
+          <span>{{ 'field.item' | translate }}</span>
           <span>Qty registered</span>
         </div>
         @for (ci of confirmedItems; track ci.itemNumber) {
@@ -74,7 +74,7 @@
 
       <ion-button expand="block" fill="outline" class="label-print-btn" (click)="printLabel()">
         <ion-icon slot="start" name="print-outline"></ion-icon>
-        Print Label
+        {{ 'common.printLabel' | translate }}
       </ion-button>
 
       <ion-button expand="block" fill="clear" class="back-order-btn" (click)="goToOrder()">
@@ -91,7 +91,7 @@
   <div class="web-page-header">
     <div class="web-page-header-inner">
       <div class="web-title-group">
-        <h1 class="web-page-title">Register</h1>
+        <h1 class="web-page-title">{{ 'doc.register' | translate }}</h1>
       </div>
     </div>
   </div>
@@ -101,11 +101,11 @@
     <!-- Selected PO hero -->
     <div class="po-hero">
       <div class="po-hero-info">
-        <span class="po-hero-label">Purchase Order</span>
+        <span class="po-hero-label">{{ 'doc.purchaseOrder' | translate }}</span>
         <span class="po-hero-number">{{ poNumber }}</span>
       </div>
       <ion-button fill="clear" size="small" class="change-po-btn" (click)="changeOrder()">
-        Change
+        {{ 'common.change' | translate }}
       </ion-button>
     </div>
 
@@ -119,14 +119,14 @@
       <ion-input
         [(ngModel)]="searchTerm"
         type="text"
-        placeholder="Search item number or name..."
+        [placeholder]="'placeholder.searchItems' | translate"
         [debounce]="300"
         [clearInput]="true"
         class="custom-input"
         (ionInput)="onSearchInput($any($event).detail.value || '')"
         (ionBlur)="onSearchBlur()">
       </ion-input>
-      <ion-button class="scan-btn" (click)="scanItem()" title="Scan QR / Barcode">
+      <ion-button class="scan-btn" (click)="scanItem()" [title]="'common.scanQrBarcode' | translate">
         <ion-icon slot="icon-only" name="scan-outline"></ion-icon>
       </ion-button>
     </div>
@@ -145,7 +145,7 @@
           <ion-input
             [(ngModel)]="manualItemNumber"
             type="text"
-            placeholder="Item number"
+            [placeholder]="'field.itemNumber' | translate"
             class="custom-input manual-item-input"
             (keyup.enter)="addManualItem()">
           </ion-input>
@@ -153,7 +153,7 @@
             [(ngModel)]="manualQty"
             type="number"
             [min]="0.001"
-            placeholder="Qty"
+            [placeholder]="'field.qty' | translate"
             class="custom-input manual-qty-input"
             (keyup.enter)="addManualItem()">
           </ion-input>
@@ -173,7 +173,7 @@
     @if (showDropdown) {
       <div class="select-dropdown">
         <div class="select-dropdown-close">
-          <ion-button fill="clear" size="small" color="medium" (click)="closeDropdown()" aria-label="Close results">
+          <ion-button fill="clear" size="small" color="medium" (click)="closeDropdown()" [aria-label]="'common.closeResults' | translate">
             <ion-icon slot="icon-only" name="close-outline"></ion-icon>
           </ion-button>
         </div>
@@ -238,14 +238,14 @@
                 color="medium"
                 class="cart-item-remove"
                 (click)="removeFromCart(item)"
-                aria-label="Remove item">
+                [aria-label]="'common.removeItem' | translate">
                 <ion-icon slot="icon-only" name="close-outline"></ion-icon>
               </ion-button>
             </div>
 
             <div class="cart-item-controls">
               <div class="qbox">
-                <ion-button fill="clear" class="step-btn" (click)="adjustQty(item, -1)" aria-label="Decrease quantity">
+                <ion-button fill="clear" class="step-btn" (click)="adjustQty(item, -1)" [aria-label]="'common.decreaseQuantity' | translate">
                   <ion-icon slot="icon-only" name="remove-outline"></ion-icon>
                 </ion-button>
                 <div class="qbox-value">
@@ -261,12 +261,12 @@
                     [class.invalid]="!isQtyValid(item)">
                   </ion-input>
                 </div>
-                <ion-button fill="clear" class="step-btn" (click)="adjustQty(item, 1)" aria-label="Increase quantity">
+                <ion-button fill="clear" class="step-btn" (click)="adjustQty(item, 1)" [aria-label]="'common.increaseQuantity' | translate">
                   <ion-icon slot="icon-only" name="add-outline"></ion-icon>
                 </ion-button>
               </div>
 
-              <div class="unit-display" aria-label="Unit">
+              <div class="unit-display" [aria-label]="'field.unit' | translate">
                 <span class="unit-display-value">{{ item.line.PurchaseUnitSymbol || '—' }}</span>
                 <ion-icon name="chevron-down-outline" class="unit-display-chevron"></ion-icon>
               </div>
@@ -291,7 +291,7 @@
         }
 
         <div class="cart-total">
-          <span>Total quantity</span>
+          <span>{{ 'field.totalQuantity' | translate }}</span>
           <span>{{ totalQty | number:'1.0-3' }}</span>
         </div>
       </div>
@@ -306,7 +306,7 @@
     @if (!showDropdown && !searchTerm && cart.length === 0) {
       <ds-empty-state
         icon="barcode-outline"
-        title="Scan or Search Items"
+        [title]="'placeholder.scanOrSearchItems' | translate"
         [message]="'Enter an item number or name, or tap the scan icon, to add lines from PO ' + poNumber + '. Scan as many items as you need — they\'ll appear here.'">
       </ds-empty-state>
     }

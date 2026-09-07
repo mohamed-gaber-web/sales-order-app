@@ -76,7 +76,7 @@ ion-header ion-toolbar {
   border-radius: var(--ds-radius-xl);
   background: var(--gp-card-bg);
   box-shadow: var(--ds-shadow-sm);
-  text-align: left;
+  text-align: start;
   transition: border-color var(--ds-motion-fast) var(--ds-ease-out);
 
   &:active {
@@ -382,7 +382,7 @@ ion-header ion-toolbar {
   border: none;
   border-radius: var(--ds-radius-md);
   background: transparent;
-  text-align: left;
+  text-align: start;
 
   &:active {
     background: var(--ds-navy-soft);
@@ -635,7 +635,7 @@ ion-header ion-toolbar {
     font-size: 10.5px;
     font-weight: 600;
     color: var(--ds-txt-3);
-    margin-left: 2px;
+    margin-inline-start: 2px;
   }
 }
 

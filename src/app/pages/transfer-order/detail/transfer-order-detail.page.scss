@@ -88,10 +88,10 @@ ion-header ion-toolbar {
   .field-item {
     padding: 14px 18px;
     min-width: 0;
-    border-right: 1px solid var(--gp-border);
+    border-inline-end: 1px solid var(--gp-border);
     border-bottom: 1px solid var(--gp-border);
 
-    &:nth-child(even) { border-right: none; }
+    &:nth-child(even) { border-inline-end: none; }
     &:nth-last-child(-n+2) { border-bottom: none; }
 
     .field-label {
@@ -304,6 +304,13 @@ ion-header ion-toolbar {
   border-radius: 3px;
   background: linear-gradient(90deg, var(--gp-navy, #002559) 0%, #1a3b6a 100%);
   animation: gp-progress-reveal 0.9s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+
+  // The bar grows from the reading edge, so both the wipe and the gradient
+  // turn around in Arabic.
+  :host-context([dir='rtl']) & {
+    background: linear-gradient(270deg, var(--gp-navy, #002559) 0%, #1a3b6a 100%);
+    animation-name: gp-progress-reveal-rtl;
+  }
   animation-delay: 0.2s;
 
   &.full {

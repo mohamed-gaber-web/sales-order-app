@@ -8,7 +8,7 @@
           <img src="assets/icon/grow-path-logo.svg" alt="Grow Path" class="splash-logo" />
         </div>
         <h1 class="splash-title">Grow Path</h1>
-        <p class="splash-subtitle">Inventory Management</p>
+        <p class="splash-subtitle">{{ 'app.tagline' | translate }}</p>
         <div class="splash-dots">
           <span></span><span></span><span></span>
         </div>
@@ -26,7 +26,7 @@
             <div class="app-logo">
               <img src="assets/icon/grow-path-logo.svg" alt="Grow Path" />
             </div>
-            <p class="app-tagline">Inventory Management</p>
+            <p class="app-tagline">{{ 'app.tagline' | translate }}</p>
           </div>
         </ion-toolbar>
       </ion-header>
@@ -45,19 +45,19 @@
               routerLinkActive="selected"
               class="menu-item menu-dashboard">
               <ion-icon aria-hidden="true" slot="start" name="grid-outline"></ion-icon>
-              <ion-label>Dashboard</ion-label>
+              <ion-label>{{ 'menu.dashboard' | translate }}</ion-label>
             </ion-item>
           </ion-menu-toggle>
 
           <!-- Grouped sections -->
-          @for (group of menuGroups; track group.title) {
+          @for (group of menuGroups; track group.titleKey) {
             <div class="menu-group" [class.expanded]="group.expanded">
 
               <!-- Parent toggle -->
               <div class="menu-group-header" (click)="toggleGroup(group)">
                 <div class="group-header-left">
                   <ion-icon [name]="group.icon + '-outline'"></ion-icon>
-                  <span>{{ group.title }}</span>
+                  <span>{{ group.titleKey | translate }}</span>
                 </div>
                 <ion-icon
                   name="chevron-forward-outline"
@@ -69,12 +69,12 @@
               <!-- Sub-items -->
               <div class="menu-sub-list" [class.visible]="group.expanded">
                 <div class="menu-sub-inner">
-                  @for (item of group.items; track item.title) {
+                  @for (item of group.items; track item.titleKey) {
                     @if (item.comingSoon) {
                       <ion-item lines="none" detail="false" class="menu-item menu-sub-item menu-coming-soon">
                         <ion-icon aria-hidden="true" slot="start" [name]="item.icon + '-outline'"></ion-icon>
-                        <ion-label>{{ item.title }}</ion-label>
-                        <ion-note slot="end" class="soon-badge">Soon</ion-note>
+                        <ion-label>{{ item.titleKey | translate }}</ion-label>
+                        <ion-note slot="end" class="soon-badge">{{ 'menu.soon' | translate }}</ion-note>
                       </ion-item>
                     } @else {
                       <ion-menu-toggle auto-hide="false">
@@ -86,7 +86,7 @@
                           routerLinkActive="selected"
                           class="menu-item menu-sub-item">
                           <ion-icon aria-hidden="true" slot="start" [name]="item.icon + '-outline'"></ion-icon>
-                          <ion-label>{{ item.title }}</ion-label>
+                          <ion-label>{{ item.titleKey | translate }}</ion-label>
                         </ion-item>
                       </ion-menu-toggle>
                     }
@@ -105,23 +105,28 @@
         <div class="menu-footer">
           <ion-item button lines="none" class="menu-item theme-toggle" detail="false" (click)="toggleTheme()">
             <ion-icon [name]="themeIcon + '-outline'" slot="start"></ion-icon>
-            <ion-label>{{ themeLabel }} Mode</ion-label>
-            <ion-note slot="end" class="theme-badge">{{ themeLabel }}</ion-note>
+            <ion-label>{{ 'menu.themeMode' | translate: { mode: (themeLabelKey | translate) } }}</ion-label>
+            <ion-note slot="end" class="theme-badge">{{ themeLabelKey | translate }}</ion-note>
+          </ion-item>
+          <ion-item button lines="none" class="menu-item lang-toggle" detail="false" (click)="toggleLanguage()">
+            <ion-icon name="language-outline" slot="start"></ion-icon>
+            <ion-label>{{ 'language.label' | translate }}</ion-label>
+            <ion-note slot="end" class="lang-badge">{{ nextLangLabel() }}</ion-note>
           </ion-item>
           <ion-item button lines="none" class="menu-item" detail="false" (click)="logout()">
             <ion-icon name="log-out-outline" slot="start"></ion-icon>
-            <ion-label>Sign Out</ion-label>
+            <ion-label>{{ 'menu.signOut' | translate }}</ion-label>
             @if (isSignedIn()) {
               <ion-note slot="end" class="user-email-note">{{ displayName() }}</ion-note>
             }
           </ion-item>
           <ion-item button lines="none" class="menu-item" detail="false">
             <ion-icon name="settings-outline" slot="start"></ion-icon>
-            <ion-label>Settings</ion-label>
+            <ion-label>{{ 'menu.settings' | translate }}</ion-label>
           </ion-item>
           <ion-item button lines="none" class="menu-item" detail="false">
             <ion-icon name="help-circle-outline" slot="start"></ion-icon>
-            <ion-label>Help & Support</ion-label>
+            <ion-label>{{ 'menu.help' | translate }}</ion-label>
           </ion-item>
         </div>
       </ion-footer>
@@ -140,7 +145,7 @@
       <div class="btab-icon-wrap">
         <ion-icon [name]="isTab('/dashboard') ? 'home' : 'home-outline'"></ion-icon>
       </div>
-      <span class="btab-label">Home</span>
+      <span class="btab-label">{{ 'menu.tabs.home' | translate }}</span>
     </a>
 
     <a class="btab" [routerLink]="['/inventory/ai-hub']" [class.btab--active]="isTab('/inventory/ai-hub')" aria-label="AI Hub">
@@ -150,21 +155,21 @@
           <span>AI</span>
         </div>
       </div>
-      <span class="btab-label">AI Hub</span>
+      <span class="btab-label">{{ 'menu.tabs.aiHub' | translate }}</span>
     </a>
 
     <a class="btab" [routerLink]="['/inventory']" [class.btab--active]="isInventoryTab()" aria-label="Inventory">
       <div class="btab-icon-wrap">
         <ion-icon [name]="isInventoryTab() ? 'layers' : 'layers-outline'"></ion-icon>
       </div>
-      <span class="btab-label">Inventory</span>
+      <span class="btab-label">{{ 'menu.tabs.inventory' | translate }}</span>
     </a>
 
     <button class="btab" (click)="openProfile()" aria-label="Profile">
       <div class="btab-icon-wrap">
         <ion-icon name="person-outline"></ion-icon>
       </div>
-      <span class="btab-label">Profile</span>
+      <span class="btab-label">{{ 'menu.tabs.profile' | translate }}</span>
     </button>
 
   </nav>

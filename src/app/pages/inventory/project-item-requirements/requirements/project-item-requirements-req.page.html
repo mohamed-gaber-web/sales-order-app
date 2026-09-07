@@ -30,7 +30,7 @@
       <div class="hero-left">
         <span class="hero-eyebrow">
           <ion-icon name="folder-open-outline"></ion-icon>
-          Project
+          {{ 'doc.project' | translate }}
         </span>
         <h1 class="hero-project-id ds-mono">{{ projectId }}</h1>
         @if (projectName) {
@@ -52,22 +52,22 @@
     <div class="hero-stats">
       <div class="hero-stat">
         <span class="hero-stat-value stat-open">{{ openCount }}</span>
-        <span class="hero-stat-label">Open</span>
+        <span class="hero-stat-label">{{ 'status.open' | translate }}</span>
       </div>
       <div class="hero-stat-sep"></div>
       <div class="hero-stat">
         <span class="hero-stat-value stat-partial">{{ partialCount }}</span>
-        <span class="hero-stat-label">Partial</span>
+        <span class="hero-stat-label">{{ 'status.partial' | translate }}</span>
       </div>
       <div class="hero-stat-sep"></div>
       <div class="hero-stat">
         <span class="hero-stat-value stat-closed">{{ closedCount }}</span>
-        <span class="hero-stat-label">Closed</span>
+        <span class="hero-stat-label">{{ 'status.closed' | translate }}</span>
       </div>
       <div class="hero-stat-sep"></div>
       <div class="hero-stat">
         <span class="hero-stat-value">{{ requirements.length }}</span>
-        <span class="hero-stat-label">Total</span>
+        <span class="hero-stat-label">{{ 'field.total' | translate }}</span>
       </div>
     </div>
   </div>
@@ -287,7 +287,7 @@
     <div class="confirm-order-pill">
       <ion-icon name="receipt-outline"></ion-icon>
       <div class="confirm-order-detail">
-        <span class="confirm-order-label">Sales Order</span>
+        <span class="confirm-order-label">{{ 'doc.salesOrder' | translate }}</span>
         <span class="confirm-order-id ds-mono">{{ activeSalesId }}</span>
       </div>
     </div>
@@ -296,8 +296,8 @@
     <div class="confirm-table">
       <div class="confirm-thead">
         <span>Line</span>
-        <span>Item</span>
-        <span class="align-right">Qty</span>
+        <span>{{ 'field.item' | translate }}</span>
+        <span class="align-right">{{ 'field.qty' | translate }}</span>
       </div>
       @for (line of selectedLinesList; track line.req.LineNum) {
         <div class="confirm-trow">

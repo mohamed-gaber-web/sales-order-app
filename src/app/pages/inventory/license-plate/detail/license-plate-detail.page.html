@@ -15,7 +15,7 @@
       <ion-icon name="barcode-outline"></ion-icon>
     </div>
     <div class="lp-banner-text">
-      <span class="lp-id-label">License Plate ID</span>
+      <span class="lp-id-label">{{ 'field.licensePlateId' | translate }}</span>
       <span class="lp-id-value">{{ lpId }}</span>
     </div>
     <ion-badge [color]="getStatusColor(lp.Status)" class="status-badge">
@@ -27,15 +27,15 @@
   <div class="detail-card">
     <div class="section-header">
       <ion-icon name="location-outline" class="section-icon"></ion-icon>
-      <span class="section-title">Location</span>
+      <span class="section-title">{{ 'field.location' | translate }}</span>
     </div>
     <div class="field-grid">
       <div class="field-item">
-        <span class="field-label">Warehouse</span>
+        <span class="field-label">{{ 'field.warehouse' | translate }}</span>
         <span class="field-value">{{ lp.WarehouseId || '—' }}</span>
       </div>
       <div class="field-item">
-        <span class="field-label">Location</span>
+        <span class="field-label">{{ 'field.location' | translate }}</span>
         <span class="field-value">{{ lp.LocationId || '—' }}</span>
       </div>
     </div>

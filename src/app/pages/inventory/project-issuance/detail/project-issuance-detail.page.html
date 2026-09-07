@@ -46,17 +46,17 @@
     <div class="project-stats-row">
       <div class="proj-stat">
         <span class="proj-stat-value success">{{ openCount }}</span>
-        <span class="proj-stat-label">Open</span>
+        <span class="proj-stat-label">{{ 'status.open' | translate }}</span>
       </div>
       <div class="proj-stat-sep"></div>
       <div class="proj-stat">
         <span class="proj-stat-value warning">{{ partialCount }}</span>
-        <span class="proj-stat-label">Partial</span>
+        <span class="proj-stat-label">{{ 'status.partial' | translate }}</span>
       </div>
       <div class="proj-stat-sep"></div>
       <div class="proj-stat">
         <span class="proj-stat-value muted">{{ closedCount }}</span>
-        <span class="proj-stat-label">Closed</span>
+        <span class="proj-stat-label">{{ 'status.closed' | translate }}</span>
       </div>
     </div>
   </div>

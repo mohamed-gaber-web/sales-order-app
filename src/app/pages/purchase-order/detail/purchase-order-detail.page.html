@@ -45,7 +45,7 @@
       <!-- Hero gradient bar -->
       <div class="header-hero">
         <div>
-          <p class="po-label">Purchase Order</p>
+          <p class="po-label">{{ 'doc.purchaseOrder' | translate }}</p>
           <h2 class="po-number">{{ po.PurchaseOrderNumber }}</h2>
         </div>
         <div class="badge-group">
@@ -65,7 +65,7 @@
           <span class="field-value">{{ po.OrderVendorAccountNumber || po.VendorAccountNumber || '—' }}</span>
         </div>
         <div class="field-item">
-          <span class="field-label">Currency</span>
+          <span class="field-label">{{ 'field.currency' | translate }}</span>
           <span class="field-value">{{ po.CurrencyCode || '—' }}</span>
         </div>
         <div class="field-item">
@@ -81,7 +81,7 @@
     <div class="lines-section">
       <div class="lines-header">
         <h3 class="lines-title">
-          Lines
+          {{ 'field.lines' | translate }}
           <span class="lines-count">{{ po.PurchaseOrderLinesV2?.length ?? 0 }}</span>
         </h3>
         @if ((po.PurchaseOrderLinesV2?.length ?? 0) > 3) {
@@ -162,18 +162,18 @@
                   <span class="field-value">{{ line.OrderedPurchaseQuantity ?? line.PurchaseQuantity }}</span>
                 </div>
                 <div class="field-item">
-                  <span class="field-label">Remaining</span>
+                  <span class="field-label">{{ 'field.remaining' | translate }}</span>
                   <span class="field-value" [class.warning]="!isFullyReceived(line)" [class.success]="isFullyReceived(line)">
                     {{ getRemainingQty(line) }}
                   </span>
                 </div>
                 <div class="field-item">
-                  <span class="field-label">Unit</span>
+                  <span class="field-label">{{ 'field.unit' | translate }}</span>
                   <span class="field-value">{{ line.PurchaseUnitSymbol || '—' }}</span>
                 </div>
                 @if (line.ReceivingWarehouseId) {
                   <div class="field-item">
-                    <span class="field-label">Warehouse</span>
+                    <span class="field-label">{{ 'field.warehouse' | translate }}</span>
                     <span class="field-value">{{ line.ReceivingWarehouseId }}</span>
                   </div>
                 }
@@ -185,7 +185,7 @@
                   class="receive-btn"
                   (click)="receiveLine(line)">
                   <ion-icon slot="start" name="download-outline"></ion-icon>
-                  Receive
+                  {{ 'common.receive' | translate }}
                 </ion-button>
               }
             </div>

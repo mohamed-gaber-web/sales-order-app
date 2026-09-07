@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { ToastController } from '@ionic/angular';
 import { VanDayService } from '../../../../core/services/van-day.service';
 import { VanFieldOpsService } from '../../../../core/services/van-field-ops.service';
+import { FormatService } from '../../../../core';
 
 /** The rep working this van, for the day-close posting. */
 const SALESPERSON_ID = 'SP-014';
@@ -19,6 +20,7 @@ const SALESPERSON_ID = 'SP-014';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class VanDayClosePage {
+  private readonly format = inject(FormatService);
   private toastCtrl = inject(ToastController);
   private fieldOps = inject(VanFieldOpsService);
   readonly day = inject(VanDayService);
@@ -79,7 +81,7 @@ export class VanDayClosePage {
   }
 
   round(n: number): string {
-    return Math.round(n).toLocaleString('en-US');
+    return this.format.number(Math.round(n));
   }
 
   private async toast(message: string, color: 'success' | 'danger' | 'medium') {

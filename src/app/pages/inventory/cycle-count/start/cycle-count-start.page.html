@@ -3,7 +3,7 @@
     <ion-buttons slot="start">
       <ion-back-button defaultHref="/inventory/cycle-count" text=""></ion-back-button>
     </ion-buttons>
-    <ion-title>Barcode Count</ion-title>
+    <ion-title>{{ 'doc.barcodeCount' | translate }}</ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -13,7 +13,7 @@
   <div class="web-page-header">
     <div class="web-page-header-inner">
       <div class="web-title-group">
-        <h1 class="web-page-title">Barcode Count</h1>
+        <h1 class="web-page-title">{{ 'doc.barcodeCount' | translate }}</h1>
       </div>
     </div>
   </div>
@@ -23,7 +23,7 @@
 
     <div class="form-card">
       <div class="field-row" [class.field-invalid]="fieldInvalid(siteId)">
-        <ion-label class="field-label">Site <span class="required">*</span></ion-label>
+        <ion-label class="field-label">{{ 'field.site' | translate }} <span class="required">*</span></ion-label>
         <div class="select-trigger custom-input" (click)="toggleSitePicker()">
           <span [class.placeholder]="!siteId">{{ siteId ? (siteName || siteId) : 'Select site' }}</span>
           <ion-icon name="chevron-down-outline" [class.open]="showSitePicker"></ion-icon>
@@ -31,7 +31,7 @@
         @if (showSitePicker) {
           <div class="select-dropdown">
             <ion-searchbar
-              placeholder="Search sites..."
+              [placeholder]="'placeholder.searchSites' | translate"
               [debounce]="100"
               (ionInput)="onSiteSearch($any($event).detail.value || '')">
             </ion-searchbar>
@@ -56,13 +56,13 @@
         @if (fieldInvalid(siteId)) {
           <p class="field-error">
             <ion-icon name="alert-circle-outline"></ion-icon>
-            Site is required.
+            {{ 'msg.siteRequired' | translate }}
           </p>
         }
       </div>
 
       <div class="field-row" [class.field-invalid]="fieldInvalid(warehouseId)">
-        <ion-label class="field-label">Warehouse <span class="required">*</span></ion-label>
+        <ion-label class="field-label">{{ 'field.warehouse' | translate }} <span class="required">*</span></ion-label>
         <div class="select-trigger custom-input" (click)="toggleWarehousePicker()">
           <span [class.placeholder]="!warehouseId">{{ warehouseId ? (warehouseName || warehouseId) : 'Select warehouse' }}</span>
           <ion-icon name="chevron-down-outline" [class.open]="showWarehousePicker"></ion-icon>
@@ -70,7 +70,7 @@
         @if (showWarehousePicker) {
           <div class="select-dropdown">
             <ion-searchbar
-              placeholder="Search warehouses..."
+              [placeholder]="'placeholder.searchWarehouses' | translate"
               [debounce]="100"
               (ionInput)="onWarehouseSearch($any($event).detail.value || '')">
             </ion-searchbar>
@@ -95,13 +95,13 @@
         @if (fieldInvalid(warehouseId)) {
           <p class="field-error">
             <ion-icon name="alert-circle-outline"></ion-icon>
-            Warehouse is required.
+            {{ 'msg.warehouseRequired' | translate }}
           </p>
         }
       </div>
 
       <div class="field-row">
-        <ion-label class="field-label">Description <span class="optional">Optional</span></ion-label>
+        <ion-label class="field-label">{{ 'field.description' | translate }} <span class="optional">Optional</span></ion-label>
         <ion-input
           [(ngModel)]="description"
           placeholder="e.g. Aisle 3 spot count"

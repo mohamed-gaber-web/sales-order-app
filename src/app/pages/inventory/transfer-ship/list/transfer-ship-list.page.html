@@ -70,7 +70,7 @@
             <div class="card-body">
               <div class="card-top">
                 <span class="order-number">{{ order.TransferOrderNumber }}</span>
-                <ion-badge color="warning" class="status-badge">Ready to Ship</ion-badge>
+                <ion-badge color="warning" class="status-badge">{{ 'status.readyToShip' | translate }}</ion-badge>
               </div>
               <div class="card-route">
                 <ion-icon name="arrow-forward-outline" class="route-icon"></ion-icon>
@@ -81,13 +81,13 @@
               <div class="card-fields">
                 @if (order.RequestedShippingDate) {
                   <div class="field-item">
-                    <span class="field-label">Ship Date</span>
+                    <span class="field-label">{{ 'field.shipDate' | translate }}</span>
                     <span class="field-value">{{ order.RequestedShippingDate | date:'MMM d, y' }}</span>
                   </div>
                 }
                 @if (order.TransferOrderStatus) {
                   <div class="field-item">
-                    <span class="field-label">Status</span>
+                    <span class="field-label">{{ 'field.status' | translate }}</span>
                     <span class="field-value">{{ order.TransferOrderStatus }}</span>
                   </div>
                 }
@@ -103,7 +103,7 @@
   @if (isSearching) {
     <div class="searching-state">
       <ion-spinner name="crescent"></ion-spinner>
-      <p>Searching all orders...</p>
+      <p>{{ 'msg.searchingOrders' | translate }}</p>
     </div>
   }
 

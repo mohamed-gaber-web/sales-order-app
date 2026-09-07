@@ -3,9 +3,9 @@
     <ion-buttons slot="start">
       <ion-menu-button></ion-menu-button>
     </ion-buttons>
-    <ion-title>Inventory</ion-title>
+    <ion-title>{{ 'doc.inventory' | translate }}</ion-title>
     <ion-buttons slot="end">
-      <ion-button (click)="openScanner()" title="Scan QR / Barcode">
+      <ion-button (click)="openScanner()" [title]="'common.scanQrBarcode' | translate">
         <ion-icon slot="icon-only" name="qr-code-outline"></ion-icon>
       </ion-button>
     </ion-buttons>

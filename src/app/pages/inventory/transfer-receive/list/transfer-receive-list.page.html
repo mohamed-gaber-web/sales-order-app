@@ -81,13 +81,13 @@
               <div class="card-fields">
                 @if (order.RequestedReceiptDate) {
                   <div class="field-item">
-                    <span class="field-label">Receive Date</span>
+                    <span class="field-label">{{ 'field.receiveDate' | translate }}</span>
                     <span class="field-value">{{ order.RequestedReceiptDate | date:'MMM d, y' }}</span>
                   </div>
                 }
                 @if (order.TransferOrderStatus) {
                   <div class="field-item">
-                    <span class="field-label">Status</span>
+                    <span class="field-label">{{ 'field.status' | translate }}</span>
                     <span class="field-value">{{ order.TransferOrderStatus }}</span>
                   </div>
                 }
@@ -103,7 +103,7 @@
   @if (isSearching) {
     <div class="searching-state">
       <ion-spinner name="crescent"></ion-spinner>
-      <p>Searching all orders...</p>
+      <p>{{ 'msg.searchingOrders' | translate }}</p>
     </div>
   }
 

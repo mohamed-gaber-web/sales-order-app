@@ -3,7 +3,7 @@
     <ion-buttons slot="start">
       <ion-back-button defaultHref="/inventory" text=""></ion-back-button>
     </ion-buttons>
-    <ion-title>Production Issue</ion-title>
+    <ion-title>{{ 'doc.productionIssue' | translate }}</ion-title>
     <ion-buttons slot="end">
       <ion-button fill="clear" (click)="loadOrders()">
         <ion-icon name="refresh-outline" slot="icon-only"></ion-icon>
@@ -26,18 +26,18 @@
 
   <!-- Hero Banner -->
   <div class="hero-banner">
-    <div class="hero-badge"><span class="hero-badge-dot"></span>Live</div>
+    <div class="hero-badge"><span class="hero-badge-dot"></span>{{ 'status.live' | translate }}</div>
     <h1 class="hero-heading">Production <span class="hero-accent">Issue</span></h1>
     <p class="hero-sub">Issue materials to released production orders</p>
     <div class="hero-stats">
       <div class="hero-stat">
         <span class="hero-stat-value">{{ filteredOrders.length }}</span>
-        <span class="hero-stat-label">Open Orders</span>
+        <span class="hero-stat-label">{{ 'doc.openOrders' | translate }}</span>
       </div>
       <div class="hero-stat-sep"></div>
       <div class="hero-stat">
         <span class="hero-stat-value">USMF</span>
-        <span class="hero-stat-label">Company</span>
+        <span class="hero-stat-label">{{ 'field.company' | translate }}</span>
       </div>
     </div>
   </div>
@@ -100,7 +100,7 @@
   @if (isSearching) {
     <div class="searching-state">
       <ion-spinner name="crescent"></ion-spinner>
-      <p>Searching all orders...</p>
+      <p>{{ 'msg.searchingOrders' | translate }}</p>
     </div>
   }
 

@@ -109,26 +109,30 @@ export function findErpBlocker(
   return null;
 }
 
-/** What to tell the user for each blocker. Written for a rep, not an operator. */
-export const ERP_BLOCKER_MESSAGES: Readonly<Record<ErpBlocker, { title: string; detail: string }>> = {
+/**
+ * Which strings to show for each blocker.
+ *
+ * Keys rather than sentences: this is rendered on a screen a user may be
+ * reading in Arabic, and a message baked in here could never follow. The
+ * wording lives in `assets/i18n`, under `auth.erp.*`.
+ */
+export const ERP_BLOCKER_MESSAGES: Readonly<
+  Record<ErpBlocker, { titleKey: string; detailKey: string }>
+> = {
   no_environment: {
-    title: 'No ERP environment yet',
-    detail:
-      'Your workspace has not been connected to Dynamics 365. An administrator needs to add an environment in the admin portal before any data can load.',
+    titleKey: 'auth.erp.noEnvironmentTitle',
+    detailKey: 'auth.erp.noEnvironmentDetail',
   },
   not_configured: {
-    title: 'ERP connection not finished',
-    detail:
-      'Your Dynamics environment exists but has no sign-in details saved. An administrator needs to add the client ID and secret in the admin portal, then run the connection test.',
+    titleKey: 'auth.erp.notConfiguredTitle',
+    detailKey: 'auth.erp.notConfiguredDetail',
   },
   failing: {
-    title: 'ERP connection is not working',
-    detail:
-      'Dynamics rejected the saved sign-in details — usually an expired secret. An administrator needs to update them in the admin portal.',
+    titleKey: 'auth.erp.failingTitle',
+    detailKey: 'auth.erp.failingDetail',
   },
   no_company: {
-    title: 'No company set up',
-    detail:
-      'Your Dynamics environment is connected, but no company has been added to it yet. An administrator needs to add one in the admin portal.',
+    titleKey: 'auth.erp.noCompanyTitle',
+    detailKey: 'auth.erp.noCompanyDetail',
   },
 };

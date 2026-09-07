@@ -3,12 +3,12 @@
     <ion-buttons slot="start">
       <ion-back-button defaultHref="/inventory" text=""></ion-back-button>
     </ion-buttons>
-    <ion-title>Assembly</ion-title>
+    <ion-title>{{ 'doc.assembly' | translate }}</ion-title>
   </ion-toolbar>
   <ion-toolbar class="segment-toolbar">
     <ion-segment [(ngModel)]="activeSegment" class="gp-segment">
       <ion-segment-button value="assembly">
-        <ion-label>Assembly</ion-label>
+        <ion-label>{{ 'doc.assembly' | translate }}</ion-label>
       </ion-segment-button>
       <ion-segment-button value="disassembly">
         <ion-label>Disassembly</ion-label>

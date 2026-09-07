@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { ToastController } from '@ionic/angular';
 import { VanDayService } from '../../../../core/services/van-day.service';
 import { VanFieldOpsService } from '../../../../core/services/van-field-ops.service';
+import { FormatService } from '../../../../core';
 
 type ReturnType = 'Full' | 'Partial';
 
@@ -26,6 +27,7 @@ const FULL_QTY = 10;
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class VanReturnPage implements OnInit {
+  private readonly format = inject(FormatService);
   private router = inject(Router);
   private toastCtrl = inject(ToastController);
   private fieldOps = inject(VanFieldOpsService);
@@ -97,7 +99,7 @@ export class VanReturnPage implements OnInit {
   }
 
   money(n: number): string {
-    return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return this.format.number(n, 2, 2);
   }
 
   private async toast(message: string, color: 'success' | 'danger') {

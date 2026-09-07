@@ -3,6 +3,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { RouterModule } from '@angular/router';
+import { provideTranslateService, TranslatePipe } from '@ngx-translate/core';
 
 import { AppComponent } from './app.component';
 
@@ -11,10 +12,17 @@ describe('AppComponent', () => {
     await TestBed.configureTestingModule({
       declarations: [AppComponent],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
-      imports: [RouterModule.forRoot([])],
-      // The shell reads the signed-in user from PortalSessionStore, which
-      // reaches the portal API through HttpClient.
-      providers: [provideHttpClient(), provideHttpClientTesting()],
+      // `TranslatePipe` is standalone, and the shell's own template uses it.
+      imports: [RouterModule.forRoot([]), TranslatePipe],
+      providers: [
+        // The shell reads the signed-in user from PortalSessionStore, which
+        // reaches the portal API through HttpClient.
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        // No loader: the tests assert behaviour, not wording, so an empty
+        // dictionary is enough and keeps them off the network.
+        provideTranslateService(),
+      ],
     }).compileComponents();
   });
 

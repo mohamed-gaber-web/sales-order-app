@@ -30,7 +30,7 @@
       <p class="van-section-title">Return type</p>
       <div class="van-seg">
         <button type="button" [class.on]="type() === 'Full'" (click)="setType('Full')">Full</button>
-        <button type="button" [class.on]="type() === 'Partial'" (click)="setType('Partial')">Partial</button>
+        <button type="button" [class.on]="type() === 'Partial'" (click)="setType('Partial')">{{ 'status.partial' | translate }}</button>
       </div>
 
       <div class="ret-item" [class.dim]="type() === 'Full'">

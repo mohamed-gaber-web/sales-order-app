@@ -4,11 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 import { RouterModule, Routes } from '@angular/router';
 import { OnHandPage } from './on-hand.page';
+import { TranslatePipe } from '@ngx-translate/core';
 
 const routes: Routes = [{ path: '', component: OnHandPage }];
 
 @NgModule({
-  imports: [CommonModule, FormsModule, IonicModule, RouterModule.forChild(routes)],
+  imports: [CommonModule, FormsModule, IonicModule, RouterModule.forChild(routes), TranslatePipe],
   declarations: [OnHandPage]
 })
 export class OnHandModule {}

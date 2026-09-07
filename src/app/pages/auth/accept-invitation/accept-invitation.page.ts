@@ -1,5 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
+import { TranslateService } from '@ngx-translate/core';
 import { ActivatedRoute } from '@angular/router';
 import {
   MIN_INVITATION_PASSWORD_LENGTH,
@@ -22,6 +23,7 @@ import { passwordsMatch } from '../password-match.validator';
 })
 export class AcceptInvitationPage {
   private readonly fb = inject(FormBuilder);
+  private readonly translate = inject(TranslateService);
   private readonly route = inject(ActivatedRoute);
   private readonly auth = inject(UserAuthService);
 
@@ -64,10 +66,7 @@ export class AcceptInvitationPage {
       // Unknown, expired, already-accepted and disabled-user tokens are refused
       // through one path with one message — "already used" would confirm the
       // token was real.
-      this.errorMessage = describePortalError(
-        error,
-        'That invitation is no longer valid. Ask your administrator for a new one.',
-      );
+      this.errorMessage = describePortalError(error, this.translate, 'auth.acceptInvitation.genericError');
     } finally {
       this.isLoading = false;
     }

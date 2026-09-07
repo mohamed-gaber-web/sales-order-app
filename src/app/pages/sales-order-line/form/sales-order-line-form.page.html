@@ -20,14 +20,14 @@
   @if (isLoading) {
     <div class="loading-container">
       <ion-spinner name="crescent"></ion-spinner>
-      <p>Loading form options...</p>
+      <p>{{ 'msg.loadingOptions' | translate }}</p>
     </div>
   } @else {
     <!-- Web Page Header (desktop only) -->
     <div class="web-form-header">
       <div class="web-form-header-inner">
         <div class="web-breadcrumb">
-          <a (click)="goBack()" class="breadcrumb-link">Sales Orders</a>
+          <a (click)="goBack()" class="breadcrumb-link">{{ 'doc.salesOrders' | translate }}</a>
           <ion-icon name="chevron-forward-outline"></ion-icon>
           <span>{{ salesOrderNumber }}</span>
         </div>
@@ -42,7 +42,7 @@
         <div class="form-section">
           <div class="section-header">
             <ion-icon name="document-text-outline"></ion-icon>
-            <h3>Order Information</h3>
+            <h3>{{ 'doc.orderInformation' | translate }}</h3>
           </div>
 
           <ion-list lines="none">
@@ -64,7 +64,7 @@
                   label="Quantity *"
                   labelPlacement="stacked"
                   type="number"
-                  placeholder="Enter quantity"
+                  [placeholder]="'placeholder.enterQuantity' | translate"
                   min="0.01"
                   step="1">
                 </ion-input>
@@ -134,7 +134,7 @@
             @if (showSitePopover) {
               <div class="select-dropdown">
                 <ion-searchbar
-                  placeholder="Search sites..."
+                  [placeholder]="'placeholder.searchSites' | translate"
                   [debounce]="100"
                   (ionInput)="onSiteSearch($any($event).detail.value || '')">
                 </ion-searchbar>
@@ -159,7 +159,7 @@
             @if (showWarehousePopover) {
               <div class="select-dropdown">
                 <ion-searchbar
-                  placeholder="Search warehouses..."
+                  [placeholder]="'placeholder.searchWarehouses' | translate"
                   [debounce]="100"
                   (ionInput)="onWarehouseSearch($any($event).detail.value || '')">
                 </ion-searchbar>
@@ -210,7 +210,7 @@
             @if (showItemDropdown) {
               <div class="select-dropdown">
                 <div class="select-dropdown-close">
-                  <ion-button fill="clear" size="small" color="medium" (click)="closeItemDropdown()" aria-label="Close results">
+                  <ion-button fill="clear" size="small" color="medium" (click)="closeItemDropdown()" [aria-label]="'common.closeResults' | translate">
                     <ion-icon slot="icon-only" name="close-outline"></ion-icon>
                   </ion-button>
                 </div>
@@ -246,7 +246,7 @@
             <ion-item class="form-item">
               <ion-select
                 formControlName="ProductConfigurationId"
-                label="Configuration"
+                [label]="'field.configuration' | translate"
                 labelPlacement="stacked"
                 interface="popover"
                 [placeholder]="availableConfigurations.length > 0 ? 'Select configuration' : 'No configurations available'">
@@ -263,7 +263,7 @@
               <ion-item class="form-item">
                 <ion-select
                   formControlName="ProductSizeId"
-                  label="Size"
+                  [label]="'field.size' | translate"
                   labelPlacement="stacked"
                   interface="popover"
                   [placeholder]="availableSizes.length > 0 ? 'Select size' : 'No sizes available'">
@@ -279,7 +279,7 @@
               <ion-item class="form-item">
                 <ion-select
                   formControlName="ProductColorId"
-                  label="Color"
+                  [label]="'field.color' | translate"
                   labelPlacement="stacked"
                   interface="popover"
                   [placeholder]="availableColors.length > 0 ? 'Select color' : 'No colors available'">
@@ -296,7 +296,7 @@
             <ion-item class="form-item">
               <ion-select
                 formControlName="ProductStyleId"
-                label="Style"
+                [label]="'field.style' | translate"
                 labelPlacement="stacked"
                 interface="popover"
                 [placeholder]="availableStyles.length > 0 ? 'Select style' : 'No styles available'">

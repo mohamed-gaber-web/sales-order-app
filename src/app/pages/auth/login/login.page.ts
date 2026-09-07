@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { TranslateService } from '@ngx-translate/core';
 import {
   LookupService,
   MobileConfigStore,
@@ -18,6 +19,7 @@ import {
 })
 export class LoginPage {
   private readonly fb = inject(FormBuilder);
+  private readonly translate = inject(TranslateService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly auth = inject(UserAuthService);
@@ -86,7 +88,7 @@ export class LoginPage {
       // The API answers identically for a wrong password, an unknown address and
       // a disabled account, on purpose. Showing its message verbatim is what
       // keeps this screen from becoming an account-enumeration oracle.
-      this.errorMessage = describePortalError(error, 'Could not sign you in. Please try again.');
+      this.errorMessage = describePortalError(error, this.translate, 'auth.login.genericError');
     } finally {
       this.isLoading = false;
     }

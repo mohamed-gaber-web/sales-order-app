@@ -140,12 +140,12 @@ describe('TenantConfigStore', () => {
     expect(store.hasModule('nonexistent')).toBeFalse();
   });
 
-  it('surfaces a message a person can act on', () => {
+  it('surfaces translation keys, so the screen can render in any language', () => {
     const { store } = makeStore();
     store.set({ connections: [connection({ state: 'not_configured' })], companies: [], modules: [] });
 
-    expect(store.blockerMessage()?.title).toContain('not finished');
-    expect(store.blockerMessage()?.detail).toContain('administrator');
+    expect(store.blockerMessage()?.titleKey).toBe('auth.erp.notConfiguredTitle');
+    expect(store.blockerMessage()?.detailKey).toBe('auth.erp.notConfiguredDetail');
   });
 
   it('forgets everything on sign-out', () => {

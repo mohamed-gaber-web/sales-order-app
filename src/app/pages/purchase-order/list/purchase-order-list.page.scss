@@ -363,8 +363,13 @@
   to   { opacity: 1; transform: scale(1); }
 }
 
+// `translateX` is physical, so the reveal has to arrive from the reading edge:
+// from the right in English, from the left in Arabic. Driven by a custom
+// property rather than a mirrored copy of the keyframes, because Angular's
+// style scoper does not rewrite keyframe names inside a @media block — a
+// second `@keyframes …Rtl` referenced from one would never resolve.
 @keyframes actionsReveal {
-  from { opacity: 0; transform: translateX(10px); }
+  from { opacity: 0; transform: translateX(var(--actions-reveal-from, 10px)); }
   to   { opacity: 1; transform: translateX(0); }
 }
 
@@ -437,6 +442,8 @@
       align-items: center;
       gap: 12px;
       animation: actionsReveal 0.44s 0.1s var(--ease-out-expo) both;
+
+      :host-context([dir='rtl']) & { --actions-reveal-from: -10px; }
     }
 
     .web-searchbar {

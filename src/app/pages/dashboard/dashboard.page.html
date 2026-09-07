@@ -10,7 +10,7 @@
       </div>
     }
     <ion-buttons slot="end">
-      <ion-button (click)="openScanner()" class="scan-btn" title="Scan QR / Barcode">
+      <ion-button (click)="openScanner()" class="scan-btn" [title]="'common.scanQrBarcode' | translate">
         <ion-icon slot="icon-only" name="scan-outline"></ion-icon>
       </ion-button>
     </ion-buttons>
@@ -55,7 +55,7 @@
           @if (isLoadingStats) { <span class="h-skel"></span> }
           @else { <span class="h-num-val">{{ animatedPoCount ?? '—' }}</span> }
         </div>
-        <div class="h-stat-label">Pending POs</div>
+        <div class="h-stat-label">{{ 'dashboard.statPendingPos' | translate }}</div>
       </div>
 
       <div class="h-divider"></div>
@@ -68,7 +68,7 @@
           @if (isLoadingStats) { <span class="h-skel"></span> }
           @else { <span class="h-num-val">{{ animatedSoCount ?? '—' }}</span> }
         </div>
-        <div class="h-stat-label">Open Sales</div>
+        <div class="h-stat-label">{{ 'dashboard.statOpenSales' | translate }}</div>
       </div>
 
       <div class="h-divider"></div>
@@ -81,7 +81,7 @@
           @if (isLoadingStats) { <span class="h-skel"></span> }
           @else { <span class="h-num-val">{{ animatedToCount ?? '—' }}</span> }
         </div>
-        <div class="h-stat-label">Transfers</div>
+        <div class="h-stat-label">{{ 'dashboard.statTransfers' | translate }}</div>
       </div>
     </div>
   </div>
@@ -91,7 +91,7 @@
     <div class="section-header">
       <div class="section-title-row">
         <div class="section-dot alert-dot"></div>
-        <p class="section-label">Needs Attention</p>
+        <p class="section-label">{{ 'dashboard.needsAttention' | translate }}</p>
       </div>
       <span class="section-count">{{ alerts.length }}</span>
     </div>
@@ -105,7 +105,7 @@
           <div class="alert-icon-wrap" [style.background]="alert.bg">
             <ion-icon [name]="alert.icon" [style.color]="alert.color"></ion-icon>
           </div>
-          <p class="alert-label">{{ alert.label }}</p>
+          <p class="alert-label">{{ alert.labelKey | translate: { count: alert.count } }}</p>
           <ion-icon name="chevron-forward-outline" class="alert-chevron"></ion-icon>
         </div>
       }
@@ -117,7 +117,7 @@
     <div class="section-header">
       <div class="section-title-row">
         <div class="section-dot primary-dot"></div>
-        <p class="section-label">Quick Access</p>
+        <p class="section-label">{{ 'dashboard.quickAccess' | translate }}</p>
       </div>
     </div>
 
@@ -134,8 +134,8 @@
             </div>
           </div>
           <div class="mod-bottom">
-            <p class="mod-title">{{ mod.title }}</p>
-            <p class="mod-sub">{{ mod.subtitle }}</p>
+            <p class="mod-title">{{ mod.titleKey | translate }}</p>
+            <p class="mod-sub">{{ mod.subtitleKey | translate }}</p>
           </div>
         </div>
       }
@@ -151,9 +151,9 @@
           <ion-icon name="sparkles"></ion-icon>
         </div>
         <div class="ai-hub-text">
-          <div class="ai-hub-badge">AI-Powered</div>
-          <p class="ai-hub-title">AI Hub</p>
-          <p class="ai-hub-sub">45 smart warehouse capabilities</p>
+          <div class="ai-hub-badge">{{ 'dashboard.aiPowered' | translate }}</div>
+          <p class="ai-hub-title">{{ 'dashboard.aiHubTitle' | translate }}</p>
+          <p class="ai-hub-sub">{{ 'dashboard.aiHubSubtitle' | translate: { count: 45 } }}</p>
         </div>
       </div>
       <div class="ai-hub-arrow">
@@ -167,13 +167,13 @@
     <div class="ai-feat-header">
       <div class="ai-feat-title-row">
         <ion-icon name="sparkles-outline"></ion-icon>
-        <p class="section-label" style="margin:0">AI Features</p>
+        <p class="section-label" style="margin:0">{{ 'dashboard.aiFeatures' | translate }}</p>
       </div>
-      <span class="ai-soon-chip">Coming Soon</span>
+      <span class="ai-soon-chip">{{ 'dashboard.comingSoon' | translate }}</span>
     </div>
 
     <div class="ai-feat-cards">
-      @for (feat of aiFeatures; track feat.title; let i = $index) {
+      @for (feat of aiFeatures; track feat.titleKey; let i = $index) {
         <div class="ai-feat-card" [style.animation-delay]="(i * 0.08) + 's'">
           <div class="ai-feat-icon" [style.background]="feat.gradient">
             <ion-icon [name]="feat.icon"></ion-icon>
@@ -181,12 +181,12 @@
           <div class="ai-feat-body">
             <div class="ai-feat-module">
               <ion-icon [name]="feat.moduleIcon"></ion-icon>
-              {{ feat.module }}
+              {{ feat.moduleKey | translate }}
             </div>
-            <p class="ai-feat-title">{{ feat.title }}</p>
-            <p class="ai-feat-desc">{{ feat.desc }}</p>
+            <p class="ai-feat-title">{{ feat.titleKey | translate }}</p>
+            <p class="ai-feat-desc">{{ feat.descKey | translate }}</p>
           </div>
-          <span class="ai-soon-badge">Soon</span>
+          <span class="ai-soon-badge">{{ 'dashboard.soon' | translate }}</span>
         </div>
       }
     </div>

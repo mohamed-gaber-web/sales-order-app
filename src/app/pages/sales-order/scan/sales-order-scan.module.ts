@@ -5,6 +5,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { IonicModule } from '@ionic/angular';
 import { SalesOrderScanPage } from './sales-order-scan.page';
 import { ScannerModalModule } from '../../inventory/scanner/scanner-modal.module';
+import { TranslatePipe } from '@ngx-translate/core';
 
 const routes: Routes = [
   { path: '', component: SalesOrderScanPage }
@@ -17,8 +18,7 @@ const routes: Routes = [
     ReactiveFormsModule,
     IonicModule,
     RouterModule.forChild(routes),
-    ScannerModalModule,
-  ],
+    ScannerModalModule, TranslatePipe],
   declarations: [SalesOrderScanPage]
 })
 export class SalesOrderScanModule {}

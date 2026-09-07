@@ -5,12 +5,15 @@
     <div class="blob blob-blue"></div>
   </div>
 
+  <!-- No side menu on these screens, so the language control lives here -->
+  <app-language-toggle></app-language-toggle>
+
   <div class="brand-section">
     <div class="brand-logo-wrap">
       <ion-icon name="construct-outline" class="brand-icon"></ion-icon>
     </div>
     <h1 class="brand-name">Grow Path</h1>
-    <p class="brand-tagline">Setup needed</p>
+    <p class="brand-tagline">{{ 'auth.setupRequired.tagline' | translate }}</p>
   </div>
 
   <div class="auth-card">
@@ -19,7 +22,7 @@
     <div class="card-inner">
 
       <div class="card-head">
-        <h2 class="card-title">{{ message()?.title ?? 'Setup needed' }}</h2>
+        <h2 class="card-title">{{ (message()?.titleKey ?? 'auth.setupRequired.title') | translate }}</h2>
         @if (workspace.dataAreaId(); as area) {
           <div class="workspace-chip">
             <ion-icon name="business-outline"></ion-icon>
@@ -28,13 +31,12 @@
         }
       </div>
 
-      <p class="card-sub">{{ message()?.detail }}</p>
+      <p class="card-sub">{{ message()?.detailKey | translate }}</p>
 
       <div class="notice-box">
         <ion-icon name="information-circle-outline"></ion-icon>
         <p>
-          You are signed in correctly — this is not a problem with your account.
-          Your workspace is not connected to Dynamics 365 yet.
+          {{ 'auth.setupRequired.notice' | translate }}
         </p>
       </div>
 
@@ -48,12 +50,13 @@
                 <span class="env-url">{{ connection.url }}</span>
               </div>
               <span class="env-state" [class]="'state-' + connection.state">
-                {{ connection.state === 'not_configured' ? 'no credentials'
-                 : connection.state === 'failing' ? 'rejected' : 'connected' }}
+                {{ (connection.state === 'not_configured' ? 'auth.setupRequired.stateNotConfigured'
+                  : connection.state === 'failing' ? 'auth.setupRequired.stateFailing'
+                  : 'auth.setupRequired.stateConnected') | translate }}
               </span>
             </div>
             @if (connection.error) {
-              <p class="env-error">Last check: {{ connection.error }}</p>
+              <p class="env-error">{{ 'auth.setupRequired.lastCheck' | translate: { error: connection.error } }}</p>
             }
           }
         </div>
@@ -64,17 +67,17 @@
           <ion-spinner name="crescent"></ion-spinner>
         } @else {
           <ion-icon name="refresh-outline"></ion-icon>
-          <span>Check again</span>
+          <span>{{ 'auth.setupRequired.checkAgain' | translate }}</span>
         }
       </button>
 
       <div class="link-row link-row-center">
-        <button class="link-btn" type="button" (click)="signOut()">Sign out</button>
+        <button class="link-btn" type="button" (click)="signOut()">{{ 'auth.setupRequired.signOut' | translate }}</button>
       </div>
 
     </div>
 
-    <p class="auth-footer">Ask your administrator to finish setup in the admin portal.</p>
+    <p class="auth-footer">{{ 'auth.setupRequired.footer' | translate }}</p>
   </div>
 
 </ion-content>

@@ -134,7 +134,7 @@
             <!-- On-hand reference -->
             @if (entry.line.OnHandQuantity !== undefined) {
               <div class="onhand-row">
-                <span class="onhand-label">On Hand</span>
+                <span class="onhand-label">{{ 'field.onHand' | translate }}</span>
                 <span class="onhand-value">{{ entry.line.OnHandQuantity }}</span>
               </div>
             }

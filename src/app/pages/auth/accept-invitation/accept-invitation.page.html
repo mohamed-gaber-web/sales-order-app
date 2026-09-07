@@ -5,12 +5,15 @@
     <div class="blob blob-blue"></div>
   </div>
 
+  <!-- No side menu on these screens, so the language control lives here -->
+  <app-language-toggle></app-language-toggle>
+
   <div class="brand-section">
     <div class="brand-logo-wrap">
       <ion-icon name="person-add-outline" class="brand-icon"></ion-icon>
     </div>
     <h1 class="brand-name">Grow Path</h1>
-    <p class="brand-tagline">Set up your account</p>
+    <p class="brand-tagline">{{ 'auth.acceptInvitation.tagline' | translate }}</p>
   </div>
 
   <div class="auth-card">
@@ -20,16 +23,16 @@
 
       <div class="card-inner">
         <div class="card-head">
-          <h2 class="card-title">You're all set</h2>
+          <h2 class="card-title">{{ 'auth.acceptInvitation.doneTitle' | translate }}</h2>
         </div>
         <div class="success-box">
           <ion-icon name="checkmark-circle-outline"></ion-icon>
-          <p>{{ acceptedEmail }} is ready. Sign in with the password you just chose.</p>
+          <p>{{ 'auth.acceptInvitation.doneMessage' | translate: { email: acceptedEmail } }}</p>
         </div>
 
         <button class="primary-btn" type="button" routerLink="/auth/login">
           <ion-icon name="log-in-outline"></ion-icon>
-          <span>Sign In</span>
+          <span>{{ 'auth.shared.signIn' | translate }}</span>
         </button>
       </div>
 
@@ -37,18 +40,18 @@
 
       <form class="card-inner" [formGroup]="form" (ngSubmit)="accept()">
         <div class="card-head">
-          <h2 class="card-title">Accept your invitation</h2>
+          <h2 class="card-title">{{ 'auth.acceptInvitation.title' | translate }}</h2>
         </div>
         <p class="card-sub">
-          Choose a password of at least {{ minLength }} characters to finish setting up your account.
+          {{ 'auth.acceptInvitation.subtitle' | translate: { count: minLength } }}
         </p>
 
         <ds-form-field
-          [label]="'Invitation token'"
+          [label]="'auth.acceptInvitation.token' | translate"
           [required]="true"
-          hint="Filled in automatically when you open the link from your invitation."
+          [hint]="'auth.acceptInvitation.tokenHint' | translate"
           [showError]="(form.get('token')?.invalid && form.get('token')?.touched) ?? false"
-          errorMessage="Paste the token from your invitation.">
+          [errorMessage]="'auth.acceptInvitation.tokenError' | translate">
           <ion-item lines="none" class="input-item">
             <ion-icon name="ticket-outline" slot="start"></ion-icon>
             <ion-input
@@ -56,16 +59,16 @@
               formControlName="token"
               type="text"
               autocomplete="off"
-              placeholder="Paste your invitation token">
+              [placeholder]="'auth.acceptInvitation.tokenPlaceholder' | translate">
             </ion-input>
           </ion-item>
         </ds-form-field>
 
         <ds-form-field
-          [label]="'Password'"
+          [label]="'auth.acceptInvitation.password' | translate"
           [required]="true"
           [showError]="(form.get('password')?.invalid && form.get('password')?.touched) ?? false"
-          [errorMessage]="'Use at least ' + minLength + ' characters.'">
+          [errorMessage]="'auth.acceptInvitation.passwordError' | translate: { count: minLength }">
           <ion-item lines="none" class="input-item">
             <ion-icon name="lock-closed-outline" slot="start"></ion-icon>
             <ion-input
@@ -75,17 +78,17 @@
               placeholder="••••••••">
             </ion-input>
             <ion-button slot="end" fill="clear" type="button" (click)="showPassword = !showPassword"
-              [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'">
+              [attr.aria-label]="(showPassword ? 'auth.shared.hidePassword' : 'auth.shared.showPassword') | translate">
               <ion-icon [name]="showPassword ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
             </ion-button>
           </ion-item>
         </ds-form-field>
 
         <ds-form-field
-          [label]="'Confirm password'"
+          [label]="'auth.shared.confirmPassword' | translate"
           [required]="true"
           [showError]="hasMismatch"
-          errorMessage="Both passwords must match.">
+          [errorMessage]="'auth.shared.passwordMismatch' | translate">
           <ion-item lines="none" class="input-item">
             <ion-icon name="lock-closed-outline" slot="start"></ion-icon>
             <ion-input
@@ -110,18 +113,18 @@
             <ion-spinner name="crescent"></ion-spinner>
           } @else {
             <ion-icon name="checkmark-circle-outline"></ion-icon>
-            <span>Create account</span>
+            <span>{{ 'auth.acceptInvitation.submit' | translate }}</span>
           }
         </button>
 
         <div class="link-row link-row-center">
-          <button class="link-btn" type="button" routerLink="/auth/login">Back to sign in</button>
+          <button class="link-btn" type="button" routerLink="/auth/login">{{ 'auth.shared.backToSignIn' | translate }}</button>
         </div>
       </form>
 
     }
 
-    <p class="auth-footer">Grow Path · Inventory Management Platform</p>
+    <p class="auth-footer">{{ 'auth.shared.footer' | translate }}</p>
   </div>
 
 </ion-content>

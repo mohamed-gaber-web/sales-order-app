@@ -64,7 +64,7 @@
           </div>
         }
         <div class="field-item">
-          <span class="field-label">Lines</span>
+          <span class="field-label">{{ 'field.lines' | translate }}</span>
           <span class="field-value">1</span>
         </div>
       </div>
@@ -84,11 +84,11 @@
       </div>
       <div class="field-grid" style="margin-top: 16px">
         <div class="field-item">
-          <span class="field-label">Item</span>
+          <span class="field-label">{{ 'field.item' | translate }}</span>
           <span class="field-value">{{ stubLine.itemNumber }}</span>
         </div>
         <div class="field-item">
-          <span class="field-label">Description</span>
+          <span class="field-label">{{ 'field.description' | translate }}</span>
           <span class="field-value">{{ stubLine.itemName }}</span>
         </div>
         <div class="field-item">
@@ -128,7 +128,7 @@
         <span class="qty-target-value">{{ stubLine.requestedQty }} {{ stubLine.unitSymbol }}</span>
       </div>
       <div class="qbox">
-        <ion-button fill="clear" class="step-btn" (click)="adjustConfirmedQty(-1)" aria-label="Decrease quantity">
+        <ion-button fill="clear" class="step-btn" (click)="adjustConfirmedQty(-1)" [aria-label]="'common.decreaseQuantity' | translate">
           <ion-icon slot="icon-only" name="remove-outline"></ion-icon>
         </ion-button>
         <div class="qbox-value">
@@ -141,7 +141,7 @@
             <span class="qbox-unit">{{ stubLine.unitSymbol }}</span>
           }
         </div>
-        <ion-button fill="clear" class="step-btn" (click)="adjustConfirmedQty(1)" aria-label="Increase quantity">
+        <ion-button fill="clear" class="step-btn" (click)="adjustConfirmedQty(1)" [aria-label]="'common.increaseQuantity' | translate">
           <ion-icon slot="icon-only" name="add-outline"></ion-icon>
         </ion-button>
       </div>
@@ -162,7 +162,7 @@
       </div>
       <div class="field-grid" style="margin-top: 16px">
         <div class="field-item">
-          <span class="field-label">Item</span>
+          <span class="field-label">{{ 'field.item' | translate }}</span>
           <span class="field-value">{{ stubLine.itemNumber }}</span>
         </div>
         <div class="field-item">

@@ -132,7 +132,7 @@ body.ion-palette-dark .filter-chip.active {
 }
 
 .result-count {
-  margin-left: auto;
+  margin-inline-start: auto;
   font-size: 12px;
   font-weight: 600;
   color: var(--ds-txt-3);
@@ -232,7 +232,7 @@ body.ion-palette-dark .thumb-fallback {
 .qty-badge {
   position: absolute;
   top: 6px;
-  right: 6px;
+  inset-inline-end: 6px;
   min-width: 24px;
   height: 24px;
   padding: 0 7px;
@@ -515,7 +515,7 @@ body.ion-palette-dark .thumb-fallback {
 .cart-bar-count {
   position: absolute;
   top: -5px;
-  right: -5px;
+  inset-inline-end: -5px;
   min-width: 19px;
   height: 19px;
   padding: 0 5px;

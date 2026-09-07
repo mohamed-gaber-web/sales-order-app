@@ -54,10 +54,10 @@
         <ion-card class="context-card">
           <div class="context-hero">
             <div class="to-info">
-              <p class="to-label">Transfer Order</p>
+              <p class="to-label">{{ 'doc.transferOrder' | translate }}</p>
               <p class="to-number">{{ toNumber }}</p>
             </div>
-            <ion-badge color="warning" class="status-pill">Ready to Ship</ion-badge>
+            <ion-badge color="warning" class="status-pill">{{ 'status.readyToShip' | translate }}</ion-badge>
           </div>
           <div class="context-meta">
             <div class="route-row">
@@ -95,7 +95,7 @@
                   <span class="item-number">{{ entry.line.ItemNumber }}</span>
                 </div>
                 <div class="line-qty-info">
-                  <span class="remain-label">Remaining</span>
+                  <span class="remain-label">{{ 'field.remaining' | translate }}</span>
                   <span class="remain-qty">{{ entry.remainQty }} {{ entry.line.UnitId || '' }}</span>
                 </div>
               </div>
@@ -113,7 +113,7 @@
                   [min]="0.001"
                   [max]="entry.remainQty"
                   step="0.001"
-                  placeholder="Enter quantity"
+                  [placeholder]="'placeholder.enterQuantity' | translate"
                   class="qty-input"
                   [class.invalid]="entry.shipQty <= 0 || entry.shipQty > entry.remainQty">
                 </ion-input>

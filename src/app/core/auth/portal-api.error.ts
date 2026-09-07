@@ -1,4 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
+import { TranslateService } from '@ngx-translate/core';
 
 /**
  * A failed portal request, normalised into something a template can render.
@@ -13,6 +14,17 @@ export class PortalApiError extends Error {
     /** HTTP status, or 0 when the request never reached the server. */
     readonly status: number,
     message: string,
+    /**
+     * Set when the wording is **ours** and therefore translatable.
+     *
+     * Left undefined when the server supplied the text: we cannot translate a
+     * string we have never seen, and the API's 401 in particular is wording it
+     * chose deliberately — identical for a wrong password, an unknown address
+     * and a disabled account — so it is shown verbatim.
+     */
+    readonly messageKey?: string,
+    /** Interpolation values for `messageKey`. */
+    readonly messageParams?: Record<string, unknown>,
     /** Seconds to wait, from the `Retry-After` header on a 429. */
     readonly retryAfter: number | null = null,
   ) {
@@ -33,30 +45,46 @@ export class PortalApiError extends Error {
     // Status 0 means the network dropped it or the browser blocked it — the
     // server sent nothing, so there is no body to read.
     if (response.status === 0) {
-      return new PortalApiError(0, 'Could not reach the server. Check your connection and try again.');
+      return new PortalApiError(0, 'Could not reach the server.', 'error.offline');
     }
 
     if (response.status === 429) {
       const retryAfter = retryAfterFrom(response);
-      return new PortalApiError(429, throttleMessage(retryAfter), retryAfter);
+      return retryAfter
+        ? new PortalApiError(429, 'Too many attempts.', 'error.throttledSeconds',
+            { seconds: Math.ceil(retryAfter) }, retryAfter)
+        : new PortalApiError(429, 'Too many attempts.', 'error.throttled', undefined, null);
     }
 
-    return new PortalApiError(
-      response.status,
-      messageFrom(response.error) ?? defaultMessageFor(response.status),
-    );
+    // The server's own wording wins when it gave any, because only it knows what
+    // happened; ours is the fallback for a bare status.
+    const serverMessage = messageFrom(response.error);
+    return serverMessage
+      ? new PortalApiError(response.status, serverMessage)
+      : new PortalApiError(response.status, `Request failed with status ${response.status}.`,
+          defaultMessageKeyFor(response.status));
   }
 }
 
 /**
- * The sentence to show for any thrown value.
+ * The sentence to show a user for any thrown value, in their language.
  *
- * Handles the case every `catch` block otherwise re-implements: a
- * `PortalApiError` carrying the server's own wording, and something that is not
- * one at all.
+ * Three cases, which every `catch` block would otherwise re-implement: our own
+ * wording (translated), the server's wording (shown verbatim — we cannot
+ * translate what we have never seen), and something that is not a
+ * `PortalApiError` at all.
  */
-export function describePortalError(error: unknown, fallback = 'Something went wrong. Please try again.'): string {
-  return error instanceof PortalApiError ? error.message : fallback;
+export function describePortalError(
+  error: unknown,
+  translate: TranslateService,
+  fallbackKey = 'error.generic',
+): string {
+  if (error instanceof PortalApiError) {
+    return error.messageKey
+      ? (translate.instant(error.messageKey, error.messageParams) as string)
+      : error.message;
+  }
+  return translate.instant(fallbackKey) as string;
 }
 
 /** Nest answers `{ statusCode, message, error }`, with `message` sometimes an array. */
@@ -78,13 +106,6 @@ function retryAfterFrom(response: HttpErrorResponse): number | null {
   return typeof body === 'number' && body > 0 ? body : null;
 }
 
-function throttleMessage(retryAfter: number | null): string {
-  if (!retryAfter) return 'Too many attempts. Wait a moment and try again.';
-  const seconds = Math.ceil(retryAfter);
-  const unit = seconds === 1 ? 'second' : 'seconds';
-  return `Too many attempts. Try again in ${seconds} ${unit}.`;
-}
-
 /**
  * Wording of last resort, when the server gave a status and nothing else.
  *
@@ -93,21 +114,19 @@ function throttleMessage(retryAfter: number | null): string {
  * disabled account precisely so the response cannot be used to enumerate
  * accounts. A friendlier message here would leak what the API works to hide.
  */
-function defaultMessageFor(status: number): string {
+function defaultMessageKeyFor(status: number): string {
   switch (status) {
     case 400:
-      return 'That request was not valid. Check the details and try again.';
+      return 'error.badRequest';
     case 401:
-      return 'Those sign-in details are not correct.';
+      return 'error.unauthorized';
     case 403:
-      return 'You do not have access to that.';
+      return 'error.forbidden';
     case 404:
-      return 'That was not found.';
+      return 'error.notFound';
     case 409:
-      return 'That conflicts with something that already exists.';
+      return 'error.conflict';
     default:
-      return status >= 500
-        ? 'The server had a problem. Please try again shortly.'
-        : 'Something went wrong. Please try again.';
+      return status >= 500 ? 'error.server' : 'error.generic';
   }
 }
