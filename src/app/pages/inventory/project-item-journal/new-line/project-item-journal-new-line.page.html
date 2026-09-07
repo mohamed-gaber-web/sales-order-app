@@ -45,13 +45,13 @@
       <div class="section-icon-wrap">
         <ion-icon name="folder-open-outline"></ion-icon>
       </div>
-      <span>Project</span>
+      <span>{{ 'doc.project' | translate }}</span>
     </div>
 
     <!-- Project picker -->
     <div class="field-row" [class.field-invalid]="submitted && !projectId.trim()">
       <label class="field-label">
-        Project <span class="required-star">*</span>
+        {{ 'doc.project' | translate }} <span class="required-star">*</span>
       </label>
       <div class="picker-trigger" (click)="openProjectPicker()">
         <div class="picker-value">
@@ -88,7 +88,7 @@
       <div class="section-icon-wrap">
         <ion-icon name="cube-outline"></ion-icon>
       </div>
-      <span>Item</span>
+      <span>{{ 'field.item' | translate }}</span>
     </div>
 
     <div class="field-row" [class.field-invalid]="submitted && !itemId.trim()">
@@ -104,7 +104,7 @@
     </div>
 
     <div class="field-row" [class.field-invalid]="submitted && quantity <= 0">
-      <label class="field-label">Quantity <span class="required-star">*</span></label>
+      <label class="field-label">{{ 'field.quantity' | translate }} <span class="required-star">*</span></label>
       <div class="stepper-row">
         <ion-button fill="outline" size="small" class="stepper-btn" (click)="decrementQty()" [disabled]="quantity <= 1">
           <ion-icon name="remove-outline" slot="icon-only"></ion-icon>
@@ -126,7 +126,7 @@
     </div>
 
     <div class="field-row">
-      <label class="field-label">Price Unit <span class="optional-tag">Read-only</span></label>
+      <label class="field-label">Price Unit <span class="optional-tag">{{ 'common.readOnly' | translate }}</span></label>
       <div class="field-value-readonly">1</div>
     </div>
   </div>
@@ -141,7 +141,7 @@
     </div>
 
     <div class="field-row" [class.field-invalid]="submitted && !categoryId">
-      <label class="field-label">Category <span class="required-star">*</span></label>
+      <label class="field-label">{{ 'field.category' | translate }} <span class="required-star">*</span></label>
       @if (categories.length > 0) {
         <ion-select
           [(ngModel)]="categoryId"
@@ -161,7 +161,7 @@
     </div>
 
     <div class="field-row" [class.field-invalid]="submitted && !linePropertyId">
-      <label class="field-label">Line Property <span class="required-star">*</span></label>
+      <label class="field-label">{{ 'field.lineProperty' | translate }} <span class="required-star">*</span></label>
       @if (lineProperties.length > 0) {
         <ion-select
           [(ngModel)]="linePropertyId"
@@ -181,7 +181,7 @@
     </div>
 
     <div class="field-row" [class.field-invalid]="submitted && !currencyId.trim()">
-      <label class="field-label">Currency <span class="required-star">*</span></label>
+      <label class="field-label">{{ 'field.currency' | translate }} <span class="required-star">*</span></label>
       <ion-input
         [(ngModel)]="currencyId"
         placeholder="USD"
@@ -218,26 +218,26 @@
     </div>
 
     <div class="field-row" [class.field-invalid]="submitted && !siteId.trim()">
-      <label class="field-label">Site <span class="required-star">*</span></label>
+      <label class="field-label">{{ 'field.site' | translate }} <span class="required-star">*</span></label>
       <ion-input
         [(ngModel)]="siteId"
         placeholder="Site ID"
         class="field-input ds-mono-input">
       </ion-input>
       @if (submitted && !siteId.trim()) {
-        <p class="field-error-msg">Site is required.</p>
+        <p class="field-error-msg">{{ 'msg.siteRequired' | translate }}</p>
       }
     </div>
 
     <div class="field-row" [class.field-invalid]="submitted && !warehouseId.trim()">
-      <label class="field-label">Warehouse <span class="required-star">*</span></label>
+      <label class="field-label">{{ 'field.warehouse' | translate }} <span class="required-star">*</span></label>
       <ion-input
         [(ngModel)]="warehouseId"
         placeholder="Warehouse ID"
         class="field-input ds-mono-input">
       </ion-input>
       @if (submitted && !warehouseId.trim()) {
-        <p class="field-error-msg">Warehouse is required.</p>
+        <p class="field-error-msg">{{ 'msg.warehouseRequired' | translate }}</p>
       }
     </div>
   </div>
@@ -257,19 +257,19 @@
 
     @if (showAdvanced) {
       <div class="field-row">
-        <label class="field-label">Configuration</label>
+        <label class="field-label">{{ 'field.configuration' | translate }}</label>
         <ion-input [(ngModel)]="configId" placeholder="Optional" class="field-input"></ion-input>
       </div>
       <div class="field-row">
-        <label class="field-label">Size</label>
+        <label class="field-label">{{ 'field.size' | translate }}</label>
         <ion-input [(ngModel)]="sizeId" placeholder="Optional" class="field-input"></ion-input>
       </div>
       <div class="field-row">
-        <label class="field-label">Color</label>
+        <label class="field-label">{{ 'field.color' | translate }}</label>
         <ion-input [(ngModel)]="colorId" placeholder="Optional" class="field-input"></ion-input>
       </div>
       <div class="field-row">
-        <label class="field-label">Style</label>
+        <label class="field-label">{{ 'field.style' | translate }}</label>
         <ion-input [(ngModel)]="styleId" placeholder="Optional" class="field-input"></ion-input>
       </div>
       <div class="field-row">

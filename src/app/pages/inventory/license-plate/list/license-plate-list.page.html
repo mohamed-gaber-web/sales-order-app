@@ -18,7 +18,7 @@
     <div class="lookup-row">
       <ion-input
         [(ngModel)]="lpId"
-        placeholder="License Plate ID"
+        [placeholder]="'field.licensePlateId' | translate"
         class="lp-input"
         fill="outline"
         (keyup.enter)="lookUp()">

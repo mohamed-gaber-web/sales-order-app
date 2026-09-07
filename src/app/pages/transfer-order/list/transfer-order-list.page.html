@@ -3,7 +3,7 @@
     <ion-buttons slot="start">
       <ion-menu-button></ion-menu-button>
     </ion-buttons>
-    <ion-title>Transfer Orders</ion-title>
+    <ion-title>{{ 'doc.transferOrders' | translate }}</ion-title>
   </ion-toolbar>
   <ion-toolbar class="search-toolbar">
     <ds-search
@@ -24,7 +24,7 @@
   <div class="web-page-header">
     <div class="web-page-header-inner">
       <div class="web-title-group">
-        <h1 class="web-page-title">Transfer Orders</h1>
+        <h1 class="web-page-title">{{ 'doc.transferOrders' | translate }}</h1>
         @if (!isLoading) {
           <span class="web-count-chip">{{ totalCount }}</span>
         }
@@ -44,18 +44,18 @@
 
   <!-- Hero Banner -->
   <div class="hero-banner">
-    <div class="hero-badge"><span class="hero-badge-dot"></span>Live</div>
-    <h1 class="hero-heading">Transfer <span class="hero-accent">Orders</span></h1>
+    <div class="hero-badge"><span class="hero-badge-dot"></span>{{ 'status.live' | translate }}</div>
+    <h1 class="hero-heading">Transfer <span class="hero-accent">{{ 'doc.orders' | translate }}</span></h1>
     <p class="hero-sub">Move stock between warehouses and sites</p>
     <div class="hero-stats">
       <div class="hero-stat">
         <span class="hero-stat-value">{{ totalCount }}</span>
-        <span class="hero-stat-label">Open Orders</span>
+        <span class="hero-stat-label">{{ 'doc.openOrders' | translate }}</span>
       </div>
       <div class="hero-stat-sep"></div>
       <div class="hero-stat">
         <span class="hero-stat-value">{{ company | uppercase }}</span>
-        <span class="hero-stat-label">Company</span>
+        <span class="hero-stat-label">{{ 'field.company' | translate }}</span>
       </div>
     </div>
   </div>
@@ -103,13 +103,13 @@
               </div>
               <div class="card-fields">
                 <div class="field-item">
-                  <span class="field-label">Ship Date</span>
+                  <span class="field-label">{{ 'field.shipDate' | translate }}</span>
                   <span class="field-value">
                     {{ order.RequestedShippingDate ? (order.RequestedShippingDate | date:'MMM d, y') : '—' }}
                   </span>
                 </div>
                 <div class="field-item">
-                  <span class="field-label">Receive Date</span>
+                  <span class="field-label">{{ 'field.receiveDate' | translate }}</span>
                   <span class="field-value">
                     {{ order.RequestedReceiptDate ? (order.RequestedReceiptDate | date:'MMM d, y') : '—' }}
                   </span>

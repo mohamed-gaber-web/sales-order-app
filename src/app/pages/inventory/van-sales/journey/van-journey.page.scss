@@ -44,12 +44,24 @@
   padding: 8px 10px 6px;
   box-shadow: var(--gp-shadow-sm);
 
-  svg { width: 100%; height: auto; display: block; }
+  // The map is a projection of real coordinates, not a layout. East must stay
+  // east, so it keeps its own direction no matter which way the page reads —
+  // otherwise the route is drawn geographically backwards in Arabic.
+  svg {
+    width: 100%;
+    height: auto;
+    display: block;
+    direction: ltr;
+  }
+
   .map-legend {
     font-size: 11px;
     color: var(--gp-text-muted, #6b7280);
     text-align: center;
     padding: 2px 0 4px;
+    // A distance, a separator and a count on one line: isolate the run so the
+    // bidi algorithm cannot reorder the number away from its unit.
+    unicode-bidi: isolate;
   }
 }
 

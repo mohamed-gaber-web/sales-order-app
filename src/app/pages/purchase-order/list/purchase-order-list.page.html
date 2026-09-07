@@ -3,7 +3,7 @@
     <ion-buttons slot="start">
       <ion-menu-button></ion-menu-button>
     </ion-buttons>
-    <ion-title>Purchase Orders</ion-title>
+    <ion-title>{{ 'doc.purchaseOrders' | translate }}</ion-title>
     <ion-buttons slot="end">
       <ion-button (click)="scanOrder()">
         <ion-icon slot="icon-only" name="scan-outline"></ion-icon>
@@ -12,7 +12,7 @@
   </ion-toolbar>
   <ion-toolbar class="search-toolbar">
     <ds-search
-      placeholder="Search PO number or vendor..."
+      [placeholder]="'placeholder.searchPo' | translate"
       [debounceMs]="300"
       (query)="onQueryChange($event)">
     </ds-search>
@@ -29,7 +29,7 @@
   <div class="web-page-header">
     <div class="web-page-header-inner">
       <div class="web-title-group">
-        <h1 class="web-page-title">Purchase Orders</h1>
+        <h1 class="web-page-title">{{ 'doc.purchaseOrders' | translate }}</h1>
         @if (!isLoading) {
           <span class="web-count-chip">{{ totalCount }}</span>
         }
@@ -38,7 +38,7 @@
         <ion-searchbar
           [(ngModel)]="searchTerm"
           (ionInput)="onSearchChange()"
-          placeholder="Search PO number or vendor..."
+          [placeholder]="'placeholder.searchPo' | translate"
           debounce="300"
           animated="false"
           class="web-searchbar">
@@ -49,18 +49,18 @@
 
   <!-- Hero Banner -->
   <div class="hero-banner">
-    <div class="hero-badge"><span class="hero-badge-dot"></span>Live</div>
-    <h1 class="hero-heading">Purchase <span class="hero-accent">Orders</span></h1>
+    <div class="hero-badge"><span class="hero-badge-dot"></span>{{ 'status.live' | translate }}</div>
+    <h1 class="hero-heading">Purchase <span class="hero-accent">{{ 'doc.orders' | translate }}</span></h1>
     <p class="hero-sub">Receive and manage incoming goods from vendors</p>
     <div class="hero-stats">
       <div class="hero-stat">
         <span class="hero-stat-value">{{ totalCount }}</span>
-        <span class="hero-stat-label">Open Orders</span>
+        <span class="hero-stat-label">{{ 'doc.openOrders' | translate }}</span>
       </div>
       <div class="hero-stat-sep"></div>
       <div class="hero-stat">
         <span class="hero-stat-value">{{ company | uppercase }}</span>
-        <span class="hero-stat-label">Company</span>
+        <span class="hero-stat-label">{{ 'field.company' | translate }}</span>
       </div>
     </div>
   </div>
@@ -106,7 +106,7 @@
               </div>
               <div class="card-fields">
                 <div class="field-item">
-                  <span class="field-label">Currency</span>
+                  <span class="field-label">{{ 'field.currency' | translate }}</span>
                   <span class="field-value">{{ order.CurrencyCode || '—' }}</span>
                 </div>
                 <div class="field-item">
@@ -133,7 +133,7 @@
   @if (isSearching) {
     <div class="searching-state">
       <ion-spinner name="crescent"></ion-spinner>
-      <p>Searching all orders...</p>
+      <p>{{ 'msg.searchingOrders' | translate }}</p>
     </div>
   }
 

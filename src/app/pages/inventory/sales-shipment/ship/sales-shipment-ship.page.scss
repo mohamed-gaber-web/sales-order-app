@@ -25,7 +25,7 @@ ion-header ion-toolbar {
   }
 
   .order-hero-customer {
-    text-align: right;
+    text-align: end;
   }
 
   .order-hero-label {
@@ -445,7 +445,7 @@ ion-header ion-toolbar {
 
   .summary-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(255,255,255,0.55); margin: 0 0 3px; }
   .summary-value { font-size: 18px; font-weight: 800; color: #fff; margin: 0; letter-spacing: -0.025em; }
-  .summary-chip { margin-left: auto; background: rgba(255,255,255,0.18); color: #fff; font-size: 11px; font-weight: 700; padding: 5px 12px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.22); white-space: nowrap; }
+  .summary-chip { margin-inline-start: auto; background: rgba(255,255,255,0.18); color: #fff; font-size: 11px; font-weight: 700; padding: 5px 12px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.22); white-space: nowrap; }
 }
 
 .summary-divider { height: 1px; background: var(--gp-border, rgba(0,0,0,0.08)); }
@@ -486,7 +486,7 @@ ion-header ion-toolbar {
 
     ion-icon { color: var(--gp-navy); font-size: 16px; flex-shrink: 0; }
     .session-slip-id { font-size: 13px; font-weight: 700; color: var(--ion-text-color); }
-    .session-slip-lines { margin-left: auto; font-size: 12px; color: var(--ion-color-medium); }
+    .session-slip-lines { margin-inline-start: auto; font-size: 12px; color: var(--ion-color-medium); }
   }
 }
 

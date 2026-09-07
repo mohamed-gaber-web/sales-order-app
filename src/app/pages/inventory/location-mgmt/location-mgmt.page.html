@@ -3,7 +3,7 @@
     <ion-buttons slot="start">
       <ion-back-button defaultHref="/inventory"></ion-back-button>
     </ion-buttons>
-    <ion-title>Location Management</ion-title>
+    <ion-title>{{ 'doc.locationManagement' | translate }}</ion-title>
     <ion-buttons slot="end">
       @if (selectedWarehouse) {
         <ion-button (click)="toggleCreateForm()" [title]="showCreateForm ? 'Cancel' : 'New Location'">
@@ -20,7 +20,7 @@
   <div class="web-page-header">
     <div class="web-page-header-inner">
       <div class="web-title-group">
-        <h1 class="web-page-title">Location Management</h1>
+        <h1 class="web-page-title">{{ 'doc.locationManagement' | translate }}</h1>
         @if (selectedWarehouse) {
           <span class="web-count-chip">{{ totalCount }} locations</span>
         }

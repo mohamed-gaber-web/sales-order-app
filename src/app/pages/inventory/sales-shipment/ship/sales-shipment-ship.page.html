@@ -28,7 +28,7 @@
 
           <div class="summary-hero">
             <div>
-              <p class="summary-label">Sales Order</p>
+              <p class="summary-label">{{ 'doc.salesOrder' | translate }}</p>
               <p class="summary-value">{{ slipPdfData.salesOrderId }}</p>
             </div>
             <div class="summary-chip">{{ slipPdfData.dataAreaId.toUpperCase() }}</div>
@@ -38,7 +38,7 @@
 
           <div class="summary-grid">
             <div class="summary-field full">
-              <span class="summary-field-label">Packing Slip ID</span>
+              <span class="summary-field-label">{{ 'field.packingSlipId' | translate }}</span>
               <span class="summary-field-value accent">{{ slipPdfData.packingSlipId }}</span>
             </div>
             @if (slipPdfData.customerAccount) {
@@ -55,7 +55,7 @@
             }
             @if (slipPdfData.warehouse) {
               <div class="summary-field">
-                <span class="summary-field-label">Warehouse</span>
+                <span class="summary-field-label">{{ 'field.warehouse' | translate }}</span>
                 <span class="summary-field-value">{{ slipPdfData.warehouse }}</span>
               </div>
             }
@@ -132,12 +132,12 @@
 
       <div class="order-hero">
         <div class="order-hero-info">
-          <span class="order-hero-label">Sales Order</span>
+          <span class="order-hero-label">{{ 'doc.salesOrder' | translate }}</span>
           <span class="order-hero-number">{{ soNumber }}</span>
         </div>
         @if (order?.CustomerName) {
           <div class="order-hero-customer">
-            <span class="order-hero-label">Customer</span>
+            <span class="order-hero-label">{{ 'field.customer' | translate }}</span>
             <span class="order-hero-value">{{ order!.CustomerName }}</span>
           </div>
         }
@@ -216,14 +216,14 @@
                         class="step-btn"
                         [disabled]="(qtyControl(i)?.value ?? 0) <= 0.0001"
                         (click)="adjustQty(i, -1)"
-                        aria-label="Decrease quantity">−</button>
+                        [aria-label]="'common.decreaseQuantity' | translate">−</button>
                       <span class="qty-value">{{ qtyControl(i)?.value }}</span>
                       <button
                         type="button"
                         class="step-btn"
                         [disabled]="(qtyControl(i)?.value ?? 0) >= line.remaining"
                         (click)="adjustQty(i, 1)"
-                        aria-label="Increase quantity">+</button>
+                        [aria-label]="'common.increaseQuantity' | translate">+</button>
                     </div>
                   </div>
                 }

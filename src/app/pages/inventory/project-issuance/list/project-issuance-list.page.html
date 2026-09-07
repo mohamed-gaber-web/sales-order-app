@@ -3,7 +3,7 @@
     <ion-buttons slot="start">
       <ion-back-button defaultHref="/inventory" text=""></ion-back-button>
     </ion-buttons>
-    <ion-title>Project</ion-title>
+    <ion-title>{{ 'doc.project' | translate }}</ion-title>
     <ion-buttons slot="end">
       <ion-button fill="clear" (click)="loadProjects()">
         <ion-icon name="refresh-outline" slot="icon-only"></ion-icon>
@@ -28,9 +28,9 @@
   <div class="hero-banner">
     <div class="hero-badge">
       <span class="hero-badge-dot"></span>
-      Live
+      {{ 'status.live' | translate }}
     </div>
-    <h1 class="hero-heading">Project <span class="hero-accent">Issuance</span></h1>
+    <h1 class="hero-heading">{{ 'doc.project' | translate }} <span class="hero-accent">Issuance</span></h1>
     <p class="hero-sub">Issue items to open projects from your warehouse</p>
     <div class="hero-stats">
       <div class="hero-stat">
@@ -40,7 +40,7 @@
       <div class="hero-stat-sep"></div>
       <div class="hero-stat">
         <span class="hero-stat-value">{{ company | uppercase }}</span>
-        <span class="hero-stat-label">Company</span>
+        <span class="hero-stat-label">{{ 'field.company' | translate }}</span>
       </div>
     </div>
   </div>

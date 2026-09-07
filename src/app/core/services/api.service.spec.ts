@@ -2,6 +2,7 @@ import { HttpErrorResponse, provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { Platform } from '@ionic/angular';
+import { TranslateService, provideTranslateService } from '@ngx-translate/core';
 import { environment } from '../../../environments/environment';
 import { ApiService, D365_COMPANY_HEADER } from './api.service';
 
@@ -14,9 +15,18 @@ function apiFor(native: boolean): { api: ApiService; httpMock: HttpTestingContro
       provideHttpClient(),
       provideHttpClientTesting(),
       ApiService,
+      provideTranslateService(),
       { provide: Platform, useValue: { is: (name: string) => native && name === 'capacitor' } },
     ],
   });
+  const translate = TestBed.inject(TranslateService);
+  translate.setTranslation('en', {
+    d365: {
+      connectionNotConfigured: 'The ERP connection is not set up yet.',
+      unauthorized: 'The server could not sign in to the ERP.',
+    },
+  });
+  translate.use('en');
   return { api: TestBed.inject(ApiService), httpMock: TestBed.inject(HttpTestingController) };
 }
 
@@ -152,7 +162,10 @@ describe('ApiService — ERP routing through the portal proxy', () => {
 
       expect(error instanceof HttpErrorResponse).toBeTrue();
       expect(error.status).toBe(503);
-      expect(error.error.message).toContain('not set up yet');
+      expect(error.error.messageKey).toBe('d365.connectionNotConfigured');
+      // `message` too: two dozen screens read `err.error.message`, and setting
+      // only the key silently turned every ERP explanation into "try again".
+      expect(error.error.message).toBe('The ERP connection is not set up yet.');
       // The original code survives for logging.
       expect(error.error.error).toBe('connection_not_configured');
     });
@@ -161,7 +174,8 @@ describe('ApiService — ERP routing through the portal proxy', () => {
       const error = await failWith(502, 'd365_unauthorized');
 
       expect(error.status).toBe(502);
-      expect(error.error.message).toContain('could not sign in to the ERP');
+      expect(error.error.messageKey).toBe('d365.unauthorized');
+      expect(error.error.message).toBe('The server could not sign in to the ERP.');
     });
 
     it('passes an unrecognised failure through untouched', async () => {

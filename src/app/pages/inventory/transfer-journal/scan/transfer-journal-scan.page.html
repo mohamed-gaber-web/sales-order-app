@@ -28,7 +28,7 @@
         <ion-card-content>
           <div class="summary-hero">
             <div>
-              <p class="summary-label">Journal</p>
+              <p class="summary-label">{{ 'field.journal' | translate }}</p>
               <p class="summary-value primary">{{ confirmedJournalNumber }}</p>
             </div>
             <div class="summary-badge">{{ confirmedItems.length }} items</div>
@@ -44,11 +44,11 @@
               <span class="summary-field-value">{{ route.toWarehouseId }} · {{ route.toLocationId }}</span>
             </div>
             <div class="summary-field">
-              <span class="summary-field-label">Total Qty</span>
+              <span class="summary-field-label">{{ 'field.totalQty' | translate }}</span>
               <span class="summary-field-value accent">{{ confirmedTotalQty | number:'1.0-3' }}</span>
             </div>
             <div class="summary-field">
-              <span class="summary-field-label">Status</span>
+              <span class="summary-field-label">{{ 'field.status' | translate }}</span>
               <span class="summary-field-value">Not posted</span>
             </div>
           </div>
@@ -57,7 +57,7 @@
 
       <div class="transfer-card">
         <div class="transfer-row header">
-          <span>Item</span>
+          <span>{{ 'field.item' | translate }}</span>
           <span>Qty transferred</span>
         </div>
         @for (ci of confirmedItems; track ci.itemNumber) {
@@ -106,7 +106,7 @@
         <span class="route-hero-value">{{ route.fromWarehouseId }} · {{ route.fromLocationId }} <ion-icon name="arrow-forward-outline"></ion-icon> {{ route.toWarehouseId }} · {{ route.toLocationId }}</span>
       </div>
       <ion-button fill="clear" size="small" class="change-route-btn" (click)="changeLocations()">
-        Change
+        {{ 'common.change' | translate }}
       </ion-button>
     </div>
 
@@ -127,7 +127,7 @@
         (ionInput)="onSearchInput($any($event).detail.value || '')"
         (ionBlur)="onSearchBlur()">
       </ion-input>
-      <ion-button class="scan-btn" (click)="scanItem()" title="Scan QR / Barcode">
+      <ion-button class="scan-btn" (click)="scanItem()" [title]="'common.scanQrBarcode' | translate">
         <ion-icon slot="icon-only" name="scan-outline"></ion-icon>
       </ion-button>
     </div>
@@ -146,7 +146,7 @@
           <ion-input
             [(ngModel)]="manualItemNumber"
             type="text"
-            placeholder="Item number"
+            [placeholder]="'field.itemNumber' | translate"
             class="custom-input manual-item-input"
             (keyup.enter)="addManualItem()">
           </ion-input>
@@ -154,7 +154,7 @@
             [(ngModel)]="manualQty"
             type="number"
             [min]="0.001"
-            placeholder="Qty"
+            [placeholder]="'field.qty' | translate"
             class="custom-input manual-qty-input"
             (keyup.enter)="addManualItem()">
           </ion-input>
@@ -174,7 +174,7 @@
     @if (showDropdown) {
       <div class="select-dropdown">
         <div class="select-dropdown-close">
-          <ion-button fill="clear" size="small" color="medium" (click)="closeDropdown()" aria-label="Close results">
+          <ion-button fill="clear" size="small" color="medium" (click)="closeDropdown()" [aria-label]="'common.closeResults' | translate">
             <ion-icon slot="icon-only" name="close-outline"></ion-icon>
           </ion-button>
         </div>
@@ -230,14 +230,14 @@
                 color="medium"
                 class="cart-item-remove"
                 (click)="removeFromCart(item)"
-                aria-label="Remove item">
+                [aria-label]="'common.removeItem' | translate">
                 <ion-icon slot="icon-only" name="close-outline"></ion-icon>
               </ion-button>
             </div>
 
             <div class="cart-item-controls">
               <div class="qbox">
-                <ion-button fill="clear" class="step-btn" (click)="adjustQty(item, -1)" aria-label="Decrease quantity">
+                <ion-button fill="clear" class="step-btn" (click)="adjustQty(item, -1)" [aria-label]="'common.decreaseQuantity' | translate">
                   <ion-icon slot="icon-only" name="remove-outline"></ion-icon>
                 </ion-button>
                 <div class="qbox-value">
@@ -252,7 +252,7 @@
                     [class.invalid]="!isQtyValid(item)">
                   </ion-input>
                 </div>
-                <ion-button fill="clear" class="step-btn" (click)="adjustQty(item, 1)" aria-label="Increase quantity">
+                <ion-button fill="clear" class="step-btn" (click)="adjustQty(item, 1)" [aria-label]="'common.increaseQuantity' | translate">
                   <ion-icon slot="icon-only" name="add-outline"></ion-icon>
                 </ion-button>
               </div>
@@ -270,7 +270,7 @@
         }
 
         <div class="cart-total">
-          <span>Total quantity</span>
+          <span>{{ 'field.totalQuantity' | translate }}</span>
           <span>{{ totalQty | number:'1.0-3' }}</span>
         </div>
       </div>
@@ -285,7 +285,7 @@
     @if (!showDropdown && !searchTerm && cart.length === 0) {
       <ds-empty-state
         icon="barcode-outline"
-        title="Scan or Search Items"
+        [title]="'placeholder.scanOrSearchItems' | translate"
         message="Enter a product number or name, or tap the scan icon, to add items to this transfer. Scan as many as you need — they'll appear here.">
       </ds-empty-state>
     }

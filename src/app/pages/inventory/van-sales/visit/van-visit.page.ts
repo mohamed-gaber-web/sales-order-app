@@ -3,6 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { ActionSheetController, ToastController } from '@ionic/angular';
 import { VanDayService } from '../../../../core/services/van-day.service';
 import { VanFieldOpsService } from '../../../../core/services/van-field-ops.service';
+import { FormatService } from '../../../../core';
 
 /** Reasons a driver can close a visit without a sale. */
 const NO_SALE_REASONS = ['Closed', 'No cash', 'Well stocked', 'Other'];
@@ -20,6 +21,7 @@ const NO_SALE_REASONS = ['Closed', 'No cash', 'Well stocked', 'Other'];
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class VanVisitPage implements OnInit {
+  private readonly format = inject(FormatService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private toastCtrl = inject(ToastController);
@@ -102,7 +104,7 @@ export class VanVisitPage implements OnInit {
   }
 
   round(n: number): string {
-    return Math.round(n).toLocaleString('en-US');
+    return this.format.number(Math.round(n));
   }
 
   private async toast(message: string, color: 'success' | 'medium') {

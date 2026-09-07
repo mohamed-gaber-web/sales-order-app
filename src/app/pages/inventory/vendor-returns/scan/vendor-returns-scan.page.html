@@ -3,7 +3,7 @@
     <ion-buttons slot="start">
       <ion-back-button defaultHref="/inventory/vendor-returns/select-po"></ion-back-button>
     </ion-buttons>
-    <ion-title>Barcode Return</ion-title>
+    <ion-title>{{ 'doc.barcodeReturn' | translate }}</ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -13,7 +13,7 @@
   <div class="web-page-header">
     <div class="web-page-header-inner">
       <div class="web-title-group">
-        <h1 class="web-page-title">Barcode Return</h1>
+        <h1 class="web-page-title">{{ 'doc.barcodeReturn' | translate }}</h1>
       </div>
     </div>
   </div>
@@ -23,11 +23,11 @@
     <!-- Selected PO context -->
     <div class="po-context">
       <div class="po-context-info">
-        <span class="po-context-label">Purchase Order</span>
+        <span class="po-context-label">{{ 'doc.purchaseOrder' | translate }}</span>
         <span class="po-context-number">{{ poNumber }}</span>
       </div>
       <ion-button fill="clear" size="small" class="change-po-btn" (click)="changeOrder()">
-        Change
+        {{ 'common.change' | translate }}
       </ion-button>
     </div>
 
@@ -36,14 +36,14 @@
       <ion-input
         [(ngModel)]="searchTerm"
         type="text"
-        placeholder="Search item number or name..."
+        [placeholder]="'placeholder.searchItems' | translate"
         [debounce]="300"
         [clearInput]="true"
         class="custom-input"
         (ionInput)="onSearchInput($any($event).detail.value || '')"
         (ionBlur)="onSearchBlur()">
       </ion-input>
-      <ion-button fill="outline" class="scan-btn" (click)="scanItem()" title="Scan QR / Barcode">
+      <ion-button fill="outline" class="scan-btn" (click)="scanItem()" [title]="'common.scanQrBarcode' | translate">
         <ion-icon slot="icon-only" name="scan-outline"></ion-icon>
       </ion-button>
     </div>
@@ -52,7 +52,7 @@
     @if (showDropdown) {
       <div class="select-dropdown">
         <div class="select-dropdown-close">
-          <ion-button fill="clear" size="small" color="medium" (click)="closeDropdown()" aria-label="Close results">
+          <ion-button fill="clear" size="small" color="medium" (click)="closeDropdown()" [aria-label]="'common.closeResults' | translate">
             <ion-icon slot="icon-only" name="close-outline"></ion-icon>
           </ion-button>
         </div>

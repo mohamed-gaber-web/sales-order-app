@@ -27,12 +27,12 @@
     <div class="stats-strip">
       <div class="stat-item">
         <span class="stat-value">{{ lines.length }}</span>
-        <span class="stat-label">Lines</span>
+        <span class="stat-label">{{ 'field.lines' | translate }}</span>
       </div>
       <div class="stat-sep"></div>
       <div class="stat-item">
         <span class="stat-value">{{ formatQty(totalQty) }}</span>
-        <span class="stat-label">Total Qty</span>
+        <span class="stat-label">{{ 'field.totalQty' | translate }}</span>
       </div>
       <div class="stat-sep"></div>
       <div class="stat-item">
@@ -141,7 +141,7 @@
       <p>Tap <strong>+ Add Line</strong> to start recording material consumption.</p>
       <ion-button (click)="goAddLine()">
         <ion-icon name="add-outline" slot="start"></ion-icon>
-        Add Line
+        {{ 'common.addLine' | translate }}
       </ion-button>
     </div>
   }
@@ -153,6 +153,6 @@
 <div class="add-line-bar">
   <ion-button expand="block" (click)="goAddLine()" class="add-line-btn">
     <ion-icon name="add-outline" slot="start"></ion-icon>
-    Add Line
+    {{ 'common.addLine' | translate }}
   </ion-button>
 </div>

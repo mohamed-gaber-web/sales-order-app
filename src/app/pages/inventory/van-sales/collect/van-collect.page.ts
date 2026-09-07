@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { ToastController } from '@ionic/angular';
 import { VanDayService } from '../../../../core/services/van-day.service';
 import { VanFieldOpsService } from '../../../../core/services/van-field-ops.service';
+import { FormatService } from '../../../../core';
 
 type CollectMethod = 'Cash' | 'Cheque';
 
@@ -19,6 +20,7 @@ type CollectMethod = 'Cash' | 'Cheque';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class VanCollectPage implements OnInit {
+  private readonly format = inject(FormatService);
   private router = inject(Router);
   private toastCtrl = inject(ToastController);
   private fieldOps = inject(VanFieldOpsService);
@@ -106,7 +108,7 @@ export class VanCollectPage implements OnInit {
   }
 
   round(n: number): string {
-    return Math.round(n).toLocaleString('en-US');
+    return this.format.number(Math.round(n));
   }
 
   private async toast(message: string, color: 'success' | 'danger') {

@@ -96,7 +96,7 @@ ion-header ion-toolbar:last-child {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
-  padding-right: 16px;
+  padding-inline-end: 16px;
   &::-webkit-scrollbar { display: none; }
 }
 
@@ -151,7 +151,7 @@ ion-header ion-toolbar:last-child {
   background: none;
   border: none;
   cursor: pointer;
-  text-align: left;
+  text-align: start;
   -webkit-tap-highlight-color: transparent;
 
   &:active { background: rgba(0,0,0,0.02); }
@@ -213,7 +213,7 @@ ion-header ion-toolbar:last-child {
   flex-shrink: 0;
   font-size: 15px;
   color: var(--ion-color-medium);
-  margin-right: 14px;
+  margin-inline-end: 14px;
   transition: transform 0.28s cubic-bezier(0.4,0,0.2,1);
 
   &--open { transform: rotate(90deg); }
@@ -243,7 +243,7 @@ ion-header ion-toolbar:last-child {
   border: none;
   border-top: 1px solid var(--gp-border, rgba(0,0,0,0.06));
   cursor: pointer;
-  text-align: left;
+  text-align: start;
   -webkit-tap-highlight-color: transparent;
 
   &:active { background: var(--gp-bg, #f0f2f5); transform: scale(0.99); }

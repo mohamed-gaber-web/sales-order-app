@@ -8,6 +8,7 @@ import {
   SalesOrderLineResponse,
 } from '../../../core/services/sales-order-line.service';
 import { SalesOrderService } from '../../../core/services/sales-order.service';
+import { FormatService } from '../../../core';
 
 @Component({
   selector: 'app-sales-order-line-detail',
@@ -16,6 +17,7 @@ import { SalesOrderService } from '../../../core/services/sales-order.service';
   standalone: false,
 })
 export class SalesOrderLineDetailPage implements OnInit {
+  private readonly format = inject(FormatService);
   salesOrderNumber = '';
   allLines: SalesOrderLineResponse[] = [];
   lines: SalesOrderLineResponse[] = [];
@@ -336,10 +338,6 @@ export class SalesOrderLineDetailPage implements OnInit {
   }
 
   formatCurrency(value?: number): string {
-    if (value == null) return '—';
-    return value.toLocaleString('en-US', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
+    return this.format.number(value, 2, 2);
   }
 }

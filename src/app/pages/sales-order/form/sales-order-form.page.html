@@ -20,14 +20,14 @@
   @if (isLoading) {
     <div class="loading-container">
       <ion-spinner name="crescent"></ion-spinner>
-      <p>Loading form options...</p>
+      <p>{{ 'msg.loadingOptions' | translate }}</p>
     </div>
   } @else {
     <!-- Web Page Header (desktop only) -->
     <div class="web-form-header">
       <div class="web-form-header-inner">
         <div class="web-breadcrumb">
-          <a (click)="goBack()" class="breadcrumb-link">Sales Orders</a>
+          <a (click)="goBack()" class="breadcrumb-link">{{ 'doc.salesOrders' | translate }}</a>
           <ion-icon name="chevron-forward-outline"></ion-icon>
           <span>New Order</span>
         </div>
@@ -42,7 +42,7 @@
         <div class="form-section">
           <div class="section-header">
             <ion-icon name="document-text-outline"></ion-icon>
-            <h3>Order Information</h3>
+            <h3>{{ 'doc.orderInformation' | translate }}</h3>
           </div>
 
           <ion-list lines="none">

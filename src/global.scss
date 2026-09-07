@@ -283,10 +283,55 @@ body {
   letter-spacing: -0.01em;
 }
 
+// ─── Arabic / RTL ────────────────────────────────────────────────────────────
+//
+// Direction itself is set on <html> by LanguageService; Ionic's own components
+// and every `slot="start"`/`slot="end"` follow it without help. What is left is
+// the handful of things that read direction from CSS rather than from the DOM.
+
+[dir='rtl'] {
+  // Negative tracking is a Latin refinement. Arabic is a connected script, and
+  // pulling the letters together breaks the joins.
+  body,
+  ion-toolbar ion-title {
+    letter-spacing: normal;
+  }
+
+  // Icons that point *along* the reading direction have to turn around. Ionic
+  // flips its own back button and item chevrons; these are ours.
+  .chevron,
+  ion-icon[name$='-forward'],
+  ion-icon[name$='-forward-outline'],
+  ion-icon[name$='-back'],
+  ion-icon[name$='-back-outline'] {
+    transform: scaleX(-1);
+  }
+}
+
+// An LTR island inside Arabic text.
+//
+// Item numbers, order numbers, barcodes, currency codes and quantities are
+// Latin-and-digits and must keep their own order regardless of the surrounding
+// direction — `isolate` stops them from dragging neighbouring punctuation
+// around with them. This mirrors the treatment in the Arabic prototypes at the
+// repo root.
+.ltr,
+.gp-code {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
 // ── Keyframes (used by pages) ─────────────────────────────────
+// `inset()` takes physical edges, so the reveal has to be told which side to
+// start from or it wipes in from the wrong end in Arabic.
 @keyframes gp-progress-reveal {
   from { clip-path: inset(0 100% 0 0 round 4px); }
   to   { clip-path: inset(0 0% 0 0 round 4px); }
+}
+
+@keyframes gp-progress-reveal-rtl {
+  from { clip-path: inset(0 0 0 100% round 4px); }
+  to   { clip-path: inset(0 0 0 0% round 4px); }
 }
 
 @keyframes gp-float {

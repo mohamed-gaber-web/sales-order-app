@@ -8,6 +8,9 @@ export { SalesOrderLineService } from './services/sales-order-line.service';
 export type { Site, Warehouse, ProductVariant, CreateSalesOrderLineDto } from './services/sales-order-line.service';
 export { ThemeService } from './services/theme.service';
 export type { ThemeMode } from './services/theme.service';
+export { LanguageService, localeFor, persistedLang } from './services/language.service';
+export type { AppLang } from './services/language.service';
+export { FormatService } from './services/format.service';
 
 // Temporary: the Elsewedy sandbox token. Delete with useTestPurchaseOrderEnv.
 export { AuthService } from './services/auth.service';

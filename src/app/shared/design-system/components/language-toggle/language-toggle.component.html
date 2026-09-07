@@ -1,0 +1,8 @@
+<button
+  class="lang-toggle"
+  type="button"
+  (click)="switch()"
+  [attr.aria-label]="'language.switchTo' | translate: { language: label() }">
+  <ion-icon name="language-outline" aria-hidden="true"></ion-icon>
+  <span>{{ label() }}</span>
+</button>

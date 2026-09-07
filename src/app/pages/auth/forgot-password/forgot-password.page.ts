@@ -1,5 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
+import { TranslateService } from '@ngx-translate/core';
 import { UserAuthService, describePortalError } from '../../../core';
 
 @Component({
@@ -10,6 +11,7 @@ import { UserAuthService, describePortalError } from '../../../core';
 })
 export class ForgotPasswordPage {
   private readonly fb = inject(FormBuilder);
+  private readonly translate = inject(TranslateService);
   private readonly auth = inject(UserAuthService);
 
   readonly form = this.fb.nonNullable.group({
@@ -37,7 +39,7 @@ export class ForgotPasswordPage {
     } catch (error) {
       // Only a genuine failure lands here: a throttle, or the server being
       // unreachable. An unknown address is still a success.
-      this.errorMessage = describePortalError(error, 'Could not send the link. Please try again.');
+      this.errorMessage = describePortalError(error, this.translate, 'auth.forgotPassword.genericError');
     } finally {
       this.isLoading = false;
     }

@@ -38,7 +38,7 @@
       <div class="summary-card">
         <div class="summary-hero">
           <div>
-            <p class="summary-label">Sales Order</p>
+            <p class="summary-label">{{ 'doc.salesOrder' | translate }}</p>
             <p class="summary-value">{{ sale.orderNumber }}</p>
           </div>
           <span class="summary-badge">{{ sale.totalQty }} units</span>
@@ -46,7 +46,7 @@
         <div class="summary-divider"></div>
         <div class="summary-grid">
           <div class="summary-field">
-            <span class="field-label">Customer</span>
+            <span class="field-label">{{ 'field.customer' | translate }}</span>
             <span class="field-value">{{ sale.customerAccount }}</span>
           </div>
           <div class="summary-field">
@@ -54,7 +54,7 @@
             <span class="field-value">{{ sale.siteId ? sale.siteId + ' · ' : '' }}{{ sale.warehouseId }}</span>
           </div>
           <div class="summary-field">
-            <span class="field-label">Total</span>
+            <span class="field-label">{{ 'field.total' | translate }}</span>
             <span class="field-value accent">{{ sale.totalAmount | number:'1.2-2' }} {{ sale.currencyCode }}</span>
           </div>
           <div class="summary-field">
@@ -72,7 +72,7 @@
 
       <div class="issue-card">
         <div class="issue-row head">
-          <span>Item</span>
+          <span>{{ 'field.item' | translate }}</span>
           <span>Qty out</span>
         </div>
         @for (line of sale.lines; track line.itemNumber) {
@@ -95,7 +95,7 @@
 
       <button type="button" class="primary-btn" (click)="printLabel()">
         <ion-icon name="print-outline"></ion-icon>
-        Print Label
+        {{ 'common.printLabel' | translate }}
       </button>
 
       <button type="button" class="secondary-btn" (click)="viewOrder()">
@@ -124,7 +124,7 @@
           <ion-icon name="person-outline"></ion-icon>
         </span>
         <span class="select-text">
-          <span class="select-label">Customer</span>
+          <span class="select-label">{{ 'field.customer' | translate }}</span>
           @if (customer(); as c) {
             <span class="select-value">{{ c.CustomerName || c.CustomerAccount }}</span>
             <span class="select-hint">{{ c.CustomerAccount }} · {{ currencyCode() }}</span>
@@ -178,7 +178,7 @@
 
         <div class="review-total">
           <span>
-            Total
+            {{ 'field.total' | translate }}
             <small>{{ cart.totalQty() }} units · {{ currencyCode() }}</small>
           </span>
           <span class="review-total-value">{{ cart.totalAmount() | number:'1.2-2' }}</span>
@@ -249,7 +249,7 @@
 
 <ion-footer class="ion-no-border" [class.footer-hidden]="!!result()">
   <ds-cta-bar
-    label="Receive"
+    [label]="'common.receive' | translate"
     icon="checkmark-circle-outline"
     [loading]="isSubmitting()"
     [disabled]="!canSubmit()"

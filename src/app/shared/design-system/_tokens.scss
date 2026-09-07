@@ -45,8 +45,13 @@
   --ds-attention-soft:   rgba(139, 92, 246, 0.10);
 
   // ── Typography ────────────────────────────────────────────
-  // Font family: inherit from Inter already set on body
-  --ds-font-sans:    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  // Inter carries the Latin text and has no Arabic glyphs, so IBM Plex Sans
+  // Arabic follows it and picks up every Arabic run. Ordered this way, Latin
+  // still renders in Inter even while the UI is in Arabic. Android — the only
+  // native platform here — has neither `-apple-system` nor `Segoe UI`, so
+  // without the Plex fallback Arabic would land on Noto Naskh at different
+  // metrics from the rest of the type scale.
+  --ds-font-sans:    'Inter', 'IBM Plex Sans Arabic', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --ds-font-mono:    'Menlo', 'Consolas', ui-monospace, monospace;
 
   --ds-text-xs:      10px;

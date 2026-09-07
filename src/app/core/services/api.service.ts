@@ -1,6 +1,7 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Platform } from '@ionic/angular';
+import { TranslateService } from '@ngx-translate/core';
 import { Observable, catchError, throwError } from 'rxjs';
 import { PortalApiService } from '../auth';
 import { describeD365ProxyError } from './d365-proxy.error';
@@ -50,6 +51,7 @@ export class ApiService {
   private readonly http = inject(HttpClient);
   private readonly platform = inject(Platform);
   private readonly portal = inject(PortalApiService);
+  private readonly translate = inject(TranslateService);
 
   /** True on native (Capacitor/Cordova) — there's no dev/Vercel proxy available there. */
   readonly isNative = this.platform.is('capacitor') || this.platform.is('cordova');
@@ -81,7 +83,7 @@ export class ApiService {
   }
 
   getByUrl<T>(url: string): Observable<T> {
-    return this.http.get<T>(url).pipe(catchError(translateD365Failure));
+    return this.http.get<T>(url).pipe(catchError(error => this.translateD365Failure(error)));
   }
 
   post<T>(path: string, body: unknown): Observable<T> {
@@ -127,6 +129,37 @@ export class ApiService {
     return isD365Path(path) ? this.portal.url(`${D365_PREFIX}${path}`) : path;
   }
 
+  /**
+   * Replaces a proxy failure code with a sentence the caller can show.
+   *
+   * Writes **both**: `message`, because two dozen screens already read
+   * `err.error.message` and would otherwise fall through to a bare "failed,
+   * try again"; and `messageKey`, so a caller that wants to re-translate after
+   * a language change can. Setting only the key was a silent regression — the
+   * screens kept compiling and quietly stopped explaining themselves.
+   */
+  private translateD365Failure(error: unknown): Observable<never> {
+    if (!(error instanceof HttpErrorResponse)) return throwError(() => error);
+
+    const messageKey = describeD365ProxyError(error);
+    if (!messageKey) return throwError(() => error);
+
+    return throwError(
+      () =>
+        new HttpErrorResponse({
+          status: error.status,
+          statusText: error.statusText,
+          url: error.url ?? undefined,
+          headers: error.headers,
+          error: {
+            ...(error.error as object),
+            messageKey,
+            message: this.translate.instant(messageKey) as string,
+          },
+        })
+    );
+  }
+
   private request<T>(
     method: string,
     path: string,
@@ -145,32 +178,6 @@ export class ApiService {
         headers:
           proxied && company ? { ...headers, [D365_COMPANY_HEADER]: company } : headers,
       })
-      .pipe(catchError(translateD365Failure));
+      .pipe(catchError(error => this.translateD365Failure(error)));
   }
-}
-
-/**
- * Replaces a proxy failure code with a sentence, keeping the error type.
- *
- * The 107 call sites downstream handle `HttpErrorResponse`, so this must not
- * change what they catch — only what the body says. Without it a misconfigured
- * ERP connection surfaces as a bare "failed to load", which sends whoever is
- * holding the device looking in entirely the wrong place.
- */
-function translateD365Failure(error: unknown): Observable<never> {
-  if (!(error instanceof HttpErrorResponse)) return throwError(() => error);
-
-  const message = describeD365ProxyError(error);
-  if (!message) return throwError(() => error);
-
-  return throwError(
-    () =>
-      new HttpErrorResponse({
-        status: error.status,
-        statusText: error.statusText,
-        url: error.url ?? undefined,
-        headers: error.headers,
-        error: { ...(error.error as object), message },
-      })
-  );
 }

@@ -55,7 +55,7 @@
         <ion-card class="context-card">
           <div class="context-hero">
             <div class="to-info">
-              <p class="to-label">Transfer Order</p>
+              <p class="to-label">{{ 'doc.transferOrder' | translate }}</p>
               <p class="to-number">{{ toNumber }}</p>
             </div>
             <ion-badge color="primary" class="status-pill">In Transit</ion-badge>
@@ -114,7 +114,7 @@
                   [min]="0.001"
                   [max]="entry.remainQty"
                   step="0.001"
-                  placeholder="Enter quantity"
+                  [placeholder]="'placeholder.enterQuantity' | translate"
                   class="qty-input"
                   [class.invalid]="entry.receiveQty <= 0 || entry.receiveQty > entry.remainQty">
                 </ion-input>

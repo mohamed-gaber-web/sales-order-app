@@ -21,12 +21,12 @@
 
         <div class="result-details">
           <div class="detail-row">
-            <span class="detail-label">Sales Order</span>
+            <span class="detail-label">{{ 'doc.salesOrder' | translate }}</span>
             <span class="detail-value ds-mono">{{ salesOrderID }}</span>
           </div>
           @if (packingSlipId) {
             <div class="detail-row">
-              <span class="detail-label">Packing Slip ID</span>
+              <span class="detail-label">{{ 'field.packingSlipId' | translate }}</span>
               <span class="detail-value ds-mono">{{ packingSlipId }}</span>
             </div>
           }

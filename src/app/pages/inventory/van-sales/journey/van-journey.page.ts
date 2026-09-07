@@ -11,6 +11,7 @@ import {
 import { DeviceLocationService } from '../../../../core/services/device-location.service';
 import { SalesOrderHeaderV3Response } from '../../../../models/sales-order.model';
 import { GeoPoint, VanVisit } from '../../../../models/van-journey.model';
+import { FormatService } from '../../../../core';
 
 /** A stop as the list and the map draw it: its place in the day, and the drive to it. */
 interface StopRow {
@@ -73,6 +74,7 @@ function fromDateInput(value: string): Date | null {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class VanJourneyPage implements OnInit {
+  private readonly format = inject(FormatService);
   private router = inject(Router);
   private toastCtrl = inject(ToastController);
   private journey = inject(VanJourneyService);
@@ -600,7 +602,7 @@ export class VanJourneyPage implements OnInit {
   orderTime(order: SalesOrderHeaderV3Response): string {
     const parsed = this.parse(order.OrderCreationDateTime);
     if (!parsed) return '';
-    const time = parsed.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    const time = this.format.time(parsed);
     return this.singleDay() ? time : `${this.shortDate(parsed)} ${time}`;
   }
 
@@ -618,7 +620,7 @@ export class VanJourneyPage implements OnInit {
 
   /** `4 Mar` — the short form used in headings and on cards. */
   private shortDate(date: Date): string {
-    return date.toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+    return this.format.date(date);
   }
 
   private parse(raw: string | undefined): Date | null {
@@ -689,7 +691,7 @@ export class VanJourneyPage implements OnInit {
   }
 
   private round(n: number): string {
-    return Math.round(n).toLocaleString('en-US');
+    return this.format.number(Math.round(n));
   }
 
   private async toast(message: string) {

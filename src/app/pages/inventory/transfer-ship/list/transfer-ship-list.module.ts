@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 import { RouterModule, Routes } from '@angular/router';
 import { TransferShipListPage } from './transfer-ship-list.page';
+import { TranslatePipe } from '@ngx-translate/core';
 
 const routes: Routes = [
   {
@@ -17,8 +18,7 @@ const routes: Routes = [
     CommonModule,
     FormsModule,
     IonicModule,
-    RouterModule.forChild(routes),
-  ],
+    RouterModule.forChild(routes), TranslatePipe],
   declarations: [TransferShipListPage],
 })
 export class TransferShipListModule {}

@@ -25,7 +25,7 @@
         </div>
 
         <div class="form-field" [class.field-error]="hasError(reserveForm, 'orderType')">
-          <label class="field-label">Order Type</label>
+          <label class="field-label">{{ 'field.orderType' | translate }}</label>
           <div class="select-wrap">
             <ion-select formControlName="orderType" placeholder="Select order type" interface="action-sheet" class="gp-select">
               @for (t of orderTypes; track t.value) {
@@ -47,7 +47,7 @@
         </div>
 
         <div class="form-field" [class.field-error]="hasError(reserveForm, 'itemNumber')">
-          <label class="field-label">Item Number</label>
+          <label class="field-label">{{ 'field.itemNumber' | translate }}</label>
           <ion-input formControlName="itemNumber" placeholder="e.g. ITEM-001" fill="outline" class="gp-input"></ion-input>
           @if (hasError(reserveForm, 'itemNumber')) {
             <span class="error-msg">Item number is required</span>
@@ -55,7 +55,7 @@
         </div>
 
         <div class="form-field" [class.field-error]="hasError(reserveForm, 'quantity')">
-          <label class="field-label">Quantity</label>
+          <label class="field-label">{{ 'field.quantity' | translate }}</label>
           <ion-input formControlName="quantity" type="number" placeholder="0" fill="outline" class="gp-input"></ion-input>
           @if (hasError(reserveForm, 'quantity')) {
             <span class="error-msg">Enter a valid quantity</span>
@@ -84,7 +84,7 @@
         </div>
 
         <div class="form-field" [class.field-error]="hasError(releaseForm, 'orderType')">
-          <label class="field-label">Order Type</label>
+          <label class="field-label">{{ 'field.orderType' | translate }}</label>
           <div class="select-wrap">
             <ion-select formControlName="orderType" placeholder="Select order type" interface="action-sheet" class="gp-select">
               @for (t of orderTypes; track t.value) {
@@ -106,7 +106,7 @@
         </div>
 
         <div class="form-field" [class.field-error]="hasError(releaseForm, 'itemNumber')">
-          <label class="field-label">Item Number</label>
+          <label class="field-label">{{ 'field.itemNumber' | translate }}</label>
           <ion-input formControlName="itemNumber" placeholder="e.g. ITEM-001" fill="outline" class="gp-input"></ion-input>
           @if (hasError(releaseForm, 'itemNumber')) {
             <span class="error-msg">Item number is required</span>
@@ -114,7 +114,7 @@
         </div>
 
         <div class="form-field" [class.field-error]="hasError(releaseForm, 'quantity')">
-          <label class="field-label">Quantity</label>
+          <label class="field-label">{{ 'field.quantity' | translate }}</label>
           <ion-input formControlName="quantity" type="number" placeholder="0" fill="outline" class="gp-input"></ion-input>
           @if (hasError(releaseForm, 'quantity')) {
             <span class="error-msg">Enter a valid quantity</span>

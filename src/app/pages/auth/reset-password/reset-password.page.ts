@@ -1,5 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
+import { TranslateService } from '@ngx-translate/core';
 import { ActivatedRoute } from '@angular/router';
 import { MIN_RESET_PASSWORD_LENGTH, UserAuthService, describePortalError } from '../../../core';
 import { passwordsMatch } from '../password-match.validator';
@@ -12,6 +13,7 @@ import { passwordsMatch } from '../password-match.validator';
 })
 export class ResetPasswordPage {
   private readonly fb = inject(FormBuilder);
+  private readonly translate = inject(TranslateService);
   private readonly route = inject(ActivatedRoute);
   private readonly auth = inject(UserAuthService);
 
@@ -62,10 +64,7 @@ export class ResetPasswordPage {
     } catch (error) {
       // Unknown, expired and already-used tokens are refused identically — a
       // per-reason message would confirm the token was real.
-      this.errorMessage = describePortalError(
-        error,
-        'That reset link is no longer valid. Request a new one.',
-      );
+      this.errorMessage = describePortalError(error, this.translate, 'auth.resetPassword.genericError');
     } finally {
       this.isLoading = false;
     }

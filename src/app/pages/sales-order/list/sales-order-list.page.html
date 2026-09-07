@@ -54,18 +54,18 @@
 
   <!-- Hero Banner -->
   <div class="hero-banner">
-    <div class="hero-badge"><span class="hero-badge-dot"></span>Live</div>
-    <h1 class="hero-heading">{{ isReturnMode ? 'Return' : 'Sales' }} <span class="hero-accent">Orders</span></h1>
+    <div class="hero-badge"><span class="hero-badge-dot"></span>{{ 'status.live' | translate }}</div>
+    <h1 class="hero-heading">{{ isReturnMode ? 'Return' : 'Sales' }} <span class="hero-accent">{{ 'doc.orders' | translate }}</span></h1>
     <p class="hero-sub">{{ isReturnMode ? 'Pick and process customer return orders' : 'Process and ship customer orders efficiently' }}</p>
     <div class="hero-stats">
       <div class="hero-stat">
         <span class="hero-stat-value">{{ totalCount }}</span>
-        <span class="hero-stat-label">Open Orders</span>
+        <span class="hero-stat-label">{{ 'doc.openOrders' | translate }}</span>
       </div>
       <div class="hero-stat-sep"></div>
       <div class="hero-stat">
         <span class="hero-stat-value">{{ company | uppercase }}</span>
-        <span class="hero-stat-label">Company</span>
+        <span class="hero-stat-label">{{ 'field.company' | translate }}</span>
       </div>
     </div>
   </div>
@@ -124,7 +124,7 @@
                 <span class="field-value">{{ order.SalesTable_SalesName || '—' }}</span>
               </div>
               <div class="field-item">
-                <span class="field-label">Order Type</span>
+                <span class="field-label">{{ 'field.orderType' | translate }}</span>
                 <span class="field-value">{{ order.SalesType || '—' }}</span>
               </div>
               <div class="field-item">

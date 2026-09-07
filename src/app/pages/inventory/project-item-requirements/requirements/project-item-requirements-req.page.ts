@@ -1,8 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ToastController } from '@ionic/angular';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { FormatService } from '../../../../core';
 import {
   ProjectItemRequirementsService,
   PIRItemRequirement,
@@ -23,6 +24,7 @@ interface SelectedLine {
   standalone: false,
 })
 export class ProjectItemRequirementsReqPage implements OnInit {
+  private readonly format = inject(FormatService);
   projectId = '';
   projectName = '';
   customerAccount = '';
@@ -313,7 +315,7 @@ export class ProjectItemRequirementsReqPage implements OnInit {
     if (!dateStr) return '';
     const d = new Date(dateStr);
     if (isNaN(d.getTime())) return '';
-    return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+    return this.format.date(d);
   }
 
   getDimensions(req: PIRItemRequirement): string {

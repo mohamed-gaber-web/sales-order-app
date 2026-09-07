@@ -1,9 +1,10 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, inject, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { IonInfiniteScroll, ToastController } from '@ionic/angular';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { ProjectItemRequirementsService, PIRProject } from '../../../../core/services/project-item-requirements.service';
+import { FormatService } from '../../../../core';
 
 type FilterId = 'all' | 'inProcess' | 'completed' | 'recent';
 
@@ -14,6 +15,7 @@ type FilterId = 'all' | 'inProcess' | 'completed' | 'recent';
   standalone: false,
 })
 export class ProjectItemRequirementsListPage {
+  private readonly format = inject(FormatService);
   @ViewChild(IonInfiniteScroll) infiniteScroll!: IonInfiniteScroll;
 
   projects: PIRProject[] = [];
@@ -196,6 +198,6 @@ export class ProjectItemRequirementsListPage {
     if (!dateStr) return '';
     const d = new Date(dateStr);
     if (isNaN(d.getTime())) return '';
-    return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    return this.format.date(d);
   }
 }

@@ -155,7 +155,9 @@ ion-header ion-toolbar {
     .qty-fill {
       position: absolute;
       top: 0;
-      left: 0;
+      // Anchored to the reading edge: the bar has to grow from the same side
+      // the text starts on.
+      inset-inline-start: 0;
       height: 100%;
       border-radius: 4px;
 
@@ -166,6 +168,13 @@ ion-header ion-toolbar {
       &.pending {
         background: linear-gradient(90deg, var(--gp-accent) 0%, var(--gp-accent-end) 100%);
         animation: gp-progress-reveal 1s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+
+        // The bar grows from the reading edge, so both the wipe and the
+        // gradient turn around in Arabic.
+        :host-context([dir='rtl']) & {
+          background: linear-gradient(270deg, var(--gp-accent) 0%, var(--gp-accent-end) 100%);
+          animation-name: gp-progress-reveal-rtl;
+        }
         animation-delay: 0.35s;
       }
     }
@@ -271,7 +280,7 @@ ion-header ion-toolbar {
 
   .required {
     color: var(--ion-color-danger);
-    margin-left: 2px;
+    margin-inline-start: 2px;
   }
 }
 
@@ -526,8 +535,8 @@ ion-header ion-toolbar {
 @media (min-width: 992px) {
   .context-card,
   .form-card {
-    margin-left: auto;
-    margin-right: auto;
+    margin-inline-start: auto;
+    margin-inline-end: auto;
     max-width: 580px;
   }
 

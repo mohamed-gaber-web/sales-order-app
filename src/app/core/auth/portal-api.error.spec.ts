@@ -1,4 +1,6 @@
 import { HttpErrorResponse, HttpHeaders } from '@angular/common/http';
+import { TestBed } from '@angular/core/testing';
+import { TranslateService, provideTranslateService } from '@ngx-translate/core';
 import { PortalApiError, describePortalError } from './portal-api.error';
 
 describe('PortalApiError', () => {
@@ -6,7 +8,7 @@ describe('PortalApiError', () => {
     const error = PortalApiError.from(new HttpErrorResponse({ status: 0 }));
 
     expect(error.status).toBe(0);
-    expect(error.message).toContain('Could not reach the server');
+    expect(error.messageKey).toBe('error.offline');
     expect(error.isRetryable).toBeTrue();
   });
 
@@ -21,12 +23,15 @@ describe('PortalApiError', () => {
     );
 
     expect(error.message).toBe('Those sign-in details are not correct.');
+    // No key: the server chose this wording, and we cannot translate what we
+    // have never seen.
+    expect(error.messageKey).toBeUndefined();
     expect(error.isUnauthorized).toBeTrue();
   });
 
   it('falls back to indistinguishable wording when a 401 carries no body', () => {
     const error = PortalApiError.from(new HttpErrorResponse({ status: 401 }));
-    expect(error.message).toBe('Those sign-in details are not correct.');
+    expect(error.messageKey).toBe('error.unauthorized');
   });
 
   it('turns a throttle into a wait the user can act on', () => {
@@ -38,7 +43,8 @@ describe('PortalApiError', () => {
     );
 
     expect(error.retryAfter).toBe(42);
-    expect(error.message).toContain('42 seconds');
+    expect(error.messageKey).toBe('error.throttledSeconds');
+    expect(error.messageParams).toEqual({ seconds: 42 });
     expect(error.isRetryable).toBeTrue();
   });
 
@@ -47,7 +53,7 @@ describe('PortalApiError', () => {
       new HttpErrorResponse({ status: 429, error: { retryAfter: 1 } }),
     );
 
-    expect(error.message).toContain('1 second');
+    expect(error.messageParams).toEqual({ seconds: 1 });
   });
 
   it("takes the first message when Nest's validation pipe sends an array", () => {
@@ -65,11 +71,26 @@ describe('PortalApiError', () => {
 });
 
 describe('describePortalError', () => {
-  it('uses the error message when there is one', () => {
-    expect(describePortalError(new PortalApiError(401, 'Nope.'))).toBe('Nope.');
+  let translate: TranslateService;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({ providers: [provideTranslateService()] });
+    translate = TestBed.inject(TranslateService);
+    translate.setTranslation('en', { error: { generic: 'Something went wrong.' } });
+    translate.use('en');
+  });
+
+  it("shows the server's own wording verbatim when it gave any", () => {
+    expect(describePortalError(new PortalApiError(401, 'Nope.'), translate)).toBe('Nope.');
+  });
+
+  it('translates our own wording', () => {
+    const error = new PortalApiError(0, 'unused', 'error.generic');
+    expect(describePortalError(error, translate)).toBe('Something went wrong.');
   });
 
   it('falls back for anything that is not a portal error', () => {
-    expect(describePortalError(new TypeError('boom'), 'Try again.')).toBe('Try again.');
+    expect(describePortalError(new TypeError('boom'), translate, 'error.generic'))
+      .toBe('Something went wrong.');
   });
 });

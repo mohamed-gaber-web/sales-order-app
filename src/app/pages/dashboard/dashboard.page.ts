@@ -1,15 +1,23 @@
 import { Component, NgZone, OnInit, computed, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { ModalController, ToastController } from '@ionic/angular';
-import { PortalSessionStore, TenantConfigStore } from '../../core';
+import { FormatService, PortalSessionStore, TenantConfigStore } from '../../core';
 import { PurchaseOrderService } from '../../core/services/purchase-order.service';
 import { SalesOrderService } from '../../core/services/sales-order.service';
 import { TransferOrderService } from '../../core/services/transfer-order.service';
 import { BarcodeScannerService } from '../../core/services/barcode-scanner.service';
 import { ScannerModalComponent } from '../inventory/scanner/scanner-modal.component';
 
+/**
+ * A line in the "Needs attention" list.
+ *
+ * `labelKey` plus `count` rather than a finished sentence: Arabic puts the
+ * number and the noun in a different order from English, so only a
+ * parameterised string can read correctly in both.
+ */
 interface AlertItem {
-  label: string;
+  labelKey: string;
+  count: number;
   icon: string;
   color: string;
   bg: string;
@@ -17,8 +25,8 @@ interface AlertItem {
 }
 
 interface Module {
-  title: string;
-  subtitle: string;
+  titleKey: string;
+  subtitleKey: string;
   icon: string;
   route: string;
   color: string;
@@ -32,6 +40,7 @@ interface Module {
   standalone: false
 })
 export class DashboardPage implements OnInit {
+  private readonly format = inject(FormatService);
   private readonly session = inject(PortalSessionStore);
   private readonly tenantConfig = inject(TenantConfigStore);
 
@@ -52,9 +61,7 @@ export class DashboardPage implements OnInit {
   }
 
   get currentDate(): string {
-    return new Date().toLocaleDateString('en-US', {
-      weekday: 'long', month: 'long', day: 'numeric'
-    });
+    return this.format.dateLong(new Date());
   }
 
   /**
@@ -78,21 +85,24 @@ export class DashboardPage implements OnInit {
 
   readonly alerts: AlertItem[] = [
     {
-      label: '3 Purchase Orders awaiting receipt',
+      labelKey: 'dashboard.alerts.poAwaitingReceipt',
+      count: 3,
       icon: 'download-outline',
       color: '#d97706',
       bg: 'rgba(217,119,6,.09)',
       route: '/purchase-order/list',
     },
     {
-      label: '2 Sales Orders ready to ship',
+      labelKey: 'dashboard.alerts.soReadyToShip',
+      count: 2,
       icon: 'cube-outline',
       color: '#002559',
       bg: 'rgba(0,37,89,.07)',
       route: '/sales-order/list',
     },
     {
-      label: '1 Transfer Order past due date',
+      labelKey: 'dashboard.alerts.toPastDue',
+      count: 1,
       icon: 'alert-circle-outline',
       color: '#dc2626',
       bg: 'rgba(220,38,38,.07)',
@@ -102,48 +112,48 @@ export class DashboardPage implements OnInit {
 
   readonly modules: Module[] = [
     {
-      title: 'Purchase Orders',
-      subtitle: 'Receive incoming goods',
+      titleKey: 'doc.purchaseOrders',
+      subtitleKey: 'dashboard.modules.purchaseOrdersSub',
       icon: 'cube-outline',
       route: '/purchase-order/list',
       color: '#F24C1A',
       colorEnd: '#F28E26',
     },
     {
-      title: 'Sales Orders',
-      subtitle: 'Process customer orders',
+      titleKey: 'doc.salesOrders',
+      subtitleKey: 'dashboard.modules.salesOrdersSub',
       icon: 'cart-outline',
       route: '/sales-order/list',
       color: '#002559',
       colorEnd: '#003a7d',
     },
     {
-      title: 'Transfer Orders',
-      subtitle: 'Move stock between sites',
+      titleKey: 'doc.transferOrders',
+      subtitleKey: 'dashboard.modules.transferOrdersSub',
       icon: 'swap-horizontal-outline',
       route: '/transfer-order/list',
       color: '#0f766e',
       colorEnd: '#0d9488',
     },
     {
-      title: 'Production Issue',
-      subtitle: 'Issue to production orders',
+      titleKey: 'doc.productionIssue',
+      subtitleKey: 'dashboard.modules.productionIssueSub',
       icon: 'construct-outline',
       route: '/inventory/production-issue',
       color: '#7c3aed',
       colorEnd: '#6d28d9',
     },
     {
-      title: 'Inventory',
-      subtitle: 'Manage warehouse operations',
+      titleKey: 'doc.inventory',
+      subtitleKey: 'dashboard.modules.inventorySub',
       icon: 'business-outline',
       route: '/inventory',
       color: '#1d4ed8',
       colorEnd: '#1e40af',
     },
     {
-      title: 'Project',
-      subtitle: 'Issue items to projects',
+      titleKey: 'doc.project',
+      subtitleKey: 'dashboard.modules.projectSub',
       icon: 'folder-open-outline',
       route: '/inventory/project-issuance',
       color: '#002559',
@@ -153,34 +163,34 @@ export class DashboardPage implements OnInit {
 
   readonly aiFeatures = [
     {
-      module: 'Sales Orders',
+      moduleKey: 'doc.salesOrders',
       moduleIcon: 'cart-outline',
-      title: 'Inventory Availability Check',
-      desc: 'Before confirming a sales order line, AI verifies live stock and warns if inventory may fall short.',
+      titleKey: 'dashboard.ai.availabilityTitle',
+      descKey: 'dashboard.ai.availabilityDesc',
       icon: 'checkmark-circle-outline',
       gradient: 'linear-gradient(135deg, #002559 0%, #1a3b6a 100%)',
     },
     {
-      module: 'Purchase Orders',
+      moduleKey: 'doc.purchaseOrders',
       moduleIcon: 'cube-outline',
-      title: 'Smart Reorder Suggestions',
-      desc: 'AI analyses sales velocity and lead times to recommend exactly what to buy and when.',
+      titleKey: 'dashboard.ai.reorderTitle',
+      descKey: 'dashboard.ai.reorderDesc',
       icon: 'bulb-outline',
       gradient: 'linear-gradient(135deg, #F24C1A 0%, #F28E26 100%)',
     },
     {
-      module: 'Transfer Orders',
+      moduleKey: 'doc.transferOrders',
       moduleIcon: 'swap-horizontal-outline',
-      title: 'Optimal Transfer Routing',
-      desc: 'AI picks the best source warehouse for each transfer based on current stock and distance.',
+      titleKey: 'dashboard.ai.routingTitle',
+      descKey: 'dashboard.ai.routingDesc',
       icon: 'navigate-outline',
       gradient: 'linear-gradient(135deg, #0f766e 0%, #0d9488 100%)',
     },
     {
-      module: 'Cycle Count',
+      moduleKey: 'dashboard.ai.cycleCount',
       moduleIcon: 'clipboard-outline',
-      title: 'Smart Count Prioritisation',
-      desc: 'AI ranks which items to count first by flagging high-risk discrepancies before they become losses.',
+      titleKey: 'dashboard.ai.countTitle',
+      descKey: 'dashboard.ai.countDesc',
       icon: 'stats-chart-outline',
       gradient: 'linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%)',
     },

@@ -72,7 +72,7 @@ ion-content {
   background: var(--ds-bg-0);
   border-radius: var(--ds-radius-md);
   overflow: hidden;
-  text-align: left;
+  text-align: start;
 }
 
 .detail-row {
@@ -95,14 +95,14 @@ ion-content {
   font-size: var(--ds-text-sm);
   font-weight: var(--ds-weight-semibold);
   color: var(--ds-txt-0);
-  text-align: right;
+  text-align: end;
 }
 
 // ── Error payload ─────────────────────────────────────────────
 .error-payload-wrap {
   width: 100%;
   margin-top: var(--ds-space-2);
-  text-align: left;
+  text-align: start;
 }
 
 .payload-label {

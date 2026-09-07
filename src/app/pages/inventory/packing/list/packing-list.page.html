@@ -96,14 +96,14 @@
         <div class="scan-row">
           <ion-input
             [(ngModel)]="scanItemNumber"
-            placeholder="Item Number"
+            [placeholder]="'field.itemNumber' | translate"
             fill="outline"
             class="gp-input scan-item-input">
           </ion-input>
           <ion-input
             [(ngModel)]="scanQty"
             type="number"
-            placeholder="Qty"
+            [placeholder]="'field.qty' | translate"
             fill="outline"
             class="gp-input scan-qty-input">
           </ion-input>

@@ -9,21 +9,20 @@ import { HttpErrorResponse } from '@angular/common/http';
  *
  * Mirrors `failure()` in the API's `d365-proxy.controller.ts`.
  */
-const D365_PROXY_MESSAGES: Readonly<Record<string, string>> = {
+const D365_PROXY_MESSAGE_KEYS: Readonly<Record<string, string>> = {
   /** An administrator has not finished connecting this environment in the portal. */
-  connection_not_configured:
-    'The ERP connection is not set up yet. Ask your administrator to finish it in the admin portal.',
+  connection_not_configured: 'd365.connectionNotConfigured',
   /** The tenant has more than one environment and the request named no company. */
-  company_required: 'This account covers more than one company. Choose one and try again.',
+  company_required: 'd365.companyRequired',
   /** Our ERP service principal was refused — nothing to do with the user's session. */
-  d365_unauthorized: 'The server could not sign in to the ERP. Ask your administrator to check the connection.',
-  d365_timeout: 'The ERP took too long to answer. Try again in a moment.',
-  d365_unreachable: 'The ERP could not be reached. Try again in a moment.',
-  not_found: 'That record no longer exists.',
+  d365_unauthorized: 'd365.unauthorized',
+  d365_timeout: 'd365.timeout',
+  d365_unreachable: 'd365.unreachable',
+  not_found: 'd365.notFound',
 };
 
 /**
- * Turns a proxy failure into a sentence, or `null` if this is not one.
+ * Turns a proxy failure into a translation key, or `null` if this is not one.
  *
  * **The proxy never answers 401 for an ERP problem**, deliberately: an expired
  * ERP service-principal secret and an expired user session look identical to a
@@ -34,5 +33,5 @@ const D365_PROXY_MESSAGES: Readonly<Record<string, string>> = {
  */
 export function describeD365ProxyError(error: HttpErrorResponse): string | null {
   const code = (error.error as { error?: unknown } | null)?.error;
-  return typeof code === 'string' ? (D365_PROXY_MESSAGES[code] ?? null) : null;
+  return typeof code === 'string' ? (D365_PROXY_MESSAGE_KEYS[code] ?? null) : null;
 }

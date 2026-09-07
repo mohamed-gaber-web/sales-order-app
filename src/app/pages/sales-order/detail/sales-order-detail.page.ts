@@ -1,5 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { FormatService } from '../../../core';
 import { ActionSheetController, AlertController, ToastController } from '@ionic/angular';
 import { SalesOrder, OrderStatus, ORDER_STATUS_LABELS, ORDER_STATUS_COLORS } from '../../../models/sales-order.model';
 
@@ -16,6 +17,8 @@ export class SalesOrderDetailPage implements OnInit {
 
   statusLabels = ORDER_STATUS_LABELS;
   statusColors = ORDER_STATUS_COLORS;
+
+  private readonly format = inject(FormatService);
 
   constructor(
     private route: ActivatedRoute,
@@ -227,20 +230,19 @@ export class SalesOrderDetailPage implements OnInit {
     return this.statusColors[status];
   }
 
+  /**
+   * Amounts render as plain numbers.
+   *
+   * This used to force `USD`, which put a dollar sign in front of every order
+   * regardless of what it was actually priced in. The view model carries no
+   * currency code, so there is nothing truthful to label them with.
+   */
   formatCurrency(amount: number): string {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount);
+    return this.format.number(amount, 2, 2);
   }
 
   formatDate(date: Date): string {
-    return new Intl.DateTimeFormat('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    }).format(new Date(date));
+    return this.format.date(date);
   }
 
   callCustomer() {

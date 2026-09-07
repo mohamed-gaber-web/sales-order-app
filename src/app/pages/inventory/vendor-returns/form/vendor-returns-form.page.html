@@ -41,7 +41,7 @@
           <ion-icon name="arrow-undo-outline"></ion-icon>
         </div>
         <div class="banner-details">
-          <p class="banner-label">Purchase Order</p>
+          <p class="banner-label">{{ 'doc.purchaseOrder' | translate }}</p>
           <p class="banner-value">{{ poNumber }}</p>
           <p class="banner-sub">
             <ion-icon name="storefront-outline"></ion-icon>
@@ -50,7 +50,7 @@
         </div>
         @if (order.CurrencyCode) {
           <div class="banner-meta">
-            <p class="banner-label">Currency</p>
+            <p class="banner-label">{{ 'field.currency' | translate }}</p>
             <p class="banner-currency">{{ order.CurrencyCode }}</p>
           </div>
         }

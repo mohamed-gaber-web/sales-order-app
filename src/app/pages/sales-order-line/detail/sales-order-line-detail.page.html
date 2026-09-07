@@ -10,7 +10,7 @@
       </ion-button>
       <ion-button (click)="addLine()" color="light">
         <ion-icon slot="start" name="add-outline"></ion-icon>
-        Add Line
+        {{ 'common.addLine' | translate }}
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
@@ -34,7 +34,7 @@
     <div class="web-page-header-inner">
       <div class="web-title-group">
         <div class="web-breadcrumb">
-          <a (click)="goBack()" class="breadcrumb-link">Sales Orders</a>
+          <a (click)="goBack()" class="breadcrumb-link">{{ 'doc.salesOrders' | translate }}</a>
           <ion-icon name="chevron-forward-outline"></ion-icon>
           <span>{{ salesOrderNumber }}</span>
         </div>
@@ -54,7 +54,7 @@
         </ion-searchbar>
 <ion-button (click)="addLine()" class="web-add-btn">
           <ion-icon slot="start" name="add-outline"></ion-icon>
-          Add Line
+          {{ 'common.addLine' | translate }}
         </ion-button>
       </div>
     </div>
@@ -98,31 +98,31 @@
             <!-- Fields Grid -->
             <div class="line-fields">
               <div class="field-item">
-                <span class="field-label">Site</span>
+                <span class="field-label">{{ 'field.site' | translate }}</span>
                 <span class="field-value">{{ line.ShippingSiteId || '—' }}</span>
               </div>
               <div class="field-item">
-                <span class="field-label">Warehouse</span>
+                <span class="field-label">{{ 'field.warehouse' | translate }}</span>
                 <span class="field-value">{{ line.ShippingWarehouseId || '—' }}</span>
               </div>
               <div class="field-item">
-                <span class="field-label">Configuration</span>
+                <span class="field-label">{{ 'field.configuration' | translate }}</span>
                 <span class="field-value">{{ line.ProductConfigurationId || '—' }}</span>
               </div>
               <div class="field-item">
-                <span class="field-label">Size</span>
+                <span class="field-label">{{ 'field.size' | translate }}</span>
                 <span class="field-value">{{ line.ProductSizeId || '—' }}</span>
               </div>
               <div class="field-item">
-                <span class="field-label">Color</span>
+                <span class="field-label">{{ 'field.color' | translate }}</span>
                 <span class="field-value">{{ line.ProductColorId || '—' }}</span>
               </div>
               <div class="field-item">
-                <span class="field-label">Style</span>
+                <span class="field-label">{{ 'field.style' | translate }}</span>
                 <span class="field-value">{{ line.ProductStyleId || '—' }}</span>
               </div>
               <div class="field-item">
-                <span class="field-label">Quantity</span>
+                <span class="field-label">{{ 'field.quantity' | translate }}</span>
                 <span class="field-value">{{ line.OrderedSalesQuantity ?? '—' }}</span>
               </div>
             </div>
@@ -180,14 +180,14 @@
     <div class="empty-state">
       <ion-icon name="list-outline"></ion-icon>
       @if (searchTerm) {
-        <h3>No Results</h3>
+        <h3>{{ 'common.noResults' | translate }}</h3>
         <p>No results for "{{ searchTerm }}"</p>
       } @else {
         <h3>No Order Lines</h3>
         <p>This sales order has no lines yet. Add a line to get started.</p>
         <ion-button (click)="addLine()" class="add-btn">
           <ion-icon slot="start" name="add-outline"></ion-icon>
-          Add Line
+          {{ 'common.addLine' | translate }}
         </ion-button>
       }
     </div>

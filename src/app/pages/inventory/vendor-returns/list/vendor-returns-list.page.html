@@ -26,7 +26,7 @@
 
   <!-- Hero Banner -->
   <div class="hero-banner">
-    <div class="hero-badge"><span class="hero-badge-dot"></span>Live</div>
+    <div class="hero-badge"><span class="hero-badge-dot"></span>{{ 'status.live' | translate }}</div>
     <h1 class="hero-heading">Vendor <span class="hero-accent">Returns</span></h1>
     <p class="hero-sub">Return received items back to vendors</p>
     <div class="hero-stats">
@@ -37,7 +37,7 @@
       <div class="hero-stat-sep"></div>
       <div class="hero-stat">
         <span class="hero-stat-value">USMF</span>
-        <span class="hero-stat-label">Company</span>
+        <span class="hero-stat-label">{{ 'field.company' | translate }}</span>
       </div>
     </div>
   </div>
@@ -102,7 +102,7 @@
   @if (isSearching) {
     <div class="searching-state">
       <ion-spinner name="crescent"></ion-spinner>
-      <p>Searching all orders...</p>
+      <p>{{ 'msg.searchingOrders' | translate }}</p>
     </div>
   }
 

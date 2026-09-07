@@ -98,7 +98,7 @@
               <!-- Quantities grid -->
               <div class="card-fields">
                 <div class="field-item">
-                  <span class="field-label">On Hand</span>
+                  <span class="field-label">{{ 'field.onHand' | translate }}</span>
                   <span class="field-value">{{ item.OnHandQuantity ?? 0 | number:'1.0-2' }}</span>
                 </div>
                 <div class="field-item">
@@ -146,7 +146,7 @@
       <div class="empty-icon-wrap">
         <ion-icon name="cube-outline"></ion-icon>
       </div>
-      <h3>No Results</h3>
+      <h3>{{ 'common.noResults' | translate }}</h3>
       <p>{{ searchTerm ? 'No on-hand records for "' + searchTerm + '"' : 'No on-hand records found' }}</p>
     </div>
   }

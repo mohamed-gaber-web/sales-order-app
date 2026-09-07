@@ -127,7 +127,7 @@ ion-header ion-toolbar {
   gap: 10px;
   margin: 16px 16px 24px;
   background: rgba(0, 37, 89, 0.06);
-  border-left: 3px solid var(--gp-navy);
+  border-inline-start: 3px solid var(--gp-navy);
   border-radius: 0 10px 10px 0;
   padding: 12px 14px;
   animation: fadeSlideUp 0.3s ease 0.1s backwards;

@@ -58,17 +58,17 @@
     <div class="form-card">
       <div class="card-section-label">
         <ion-icon name="cube-outline"></ion-icon>
-        Item
+        {{ 'field.item' | translate }}
       </div>
       <div class="card-body">
         <ds-form-field
-          label="Item Number"
+          [label]="'field.itemNumber' | translate"
           [required]="true"
           [showError]="(form.get('itemNumber')?.invalid && form.get('itemNumber')?.touched) ?? false"
           errorMessage="Item number is required.">
           <ion-item lines="none" class="input-item">
             <ion-icon name="cube-outline" slot="start" color="medium"></ion-icon>
-            <ion-input formControlName="itemNumber" placeholder="Scan or enter item number" inputmode="text" clearInput="true"></ion-input>
+            <ion-input formControlName="itemNumber" [placeholder]="'placeholder.scanOrEnterItem' | translate" inputmode="text" clearInput="true"></ion-input>
             <ion-button slot="end" fill="clear" size="small">
               <ion-icon name="scan-outline"></ion-icon>
             </ion-button>
@@ -85,14 +85,14 @@
       </div>
       <div class="card-body">
         <div class="two-col">
-          <ds-form-field label="Quantity" [required]="true" class="flex-1"
+          <ds-form-field [label]="'field.quantity' | translate" [required]="true" class="flex-1"
             [showError]="(form.get('quantity')?.invalid && form.get('quantity')?.touched) ?? false"
             errorMessage="Enter a valid quantity.">
             <ion-item lines="none" class="input-item">
               <ion-input formControlName="quantity" type="number" inputmode="decimal" placeholder="0.00" min="0.001"></ion-input>
             </ion-item>
           </ds-form-field>
-          <ds-form-field label="Unit" [required]="true" class="unit-field">
+          <ds-form-field [label]="'field.unit' | translate" [required]="true" class="unit-field">
             <ion-item lines="none" class="input-item">
               <ion-input formControlName="unit" placeholder="EA" inputmode="text" clearInput="true"></ion-input>
             </ion-item>
@@ -109,23 +109,23 @@
       </div>
       <div class="card-body">
         <div class="dims-grid">
-          <ds-form-field label="Site" [required]="true"
+          <ds-form-field [label]="'field.site' | translate" [required]="true"
             [showError]="(form.get('site')?.invalid && form.get('site')?.touched) ?? false"
-            errorMessage="Site is required.">
+            [errorMessage]="'msg.siteRequired' | translate">
             <ion-item lines="none" class="input-item">
               <ion-input formControlName="site" placeholder="e.g. S1" inputmode="text" clearInput="true"></ion-input>
             </ion-item>
           </ds-form-field>
 
-          <ds-form-field label="Warehouse" [required]="true"
+          <ds-form-field [label]="'field.warehouse' | translate" [required]="true"
             [showError]="(form.get('warehouse')?.invalid && form.get('warehouse')?.touched) ?? false"
-            errorMessage="Warehouse is required.">
+            [errorMessage]="'msg.warehouseRequired' | translate">
             <ion-item lines="none" class="input-item">
               <ion-input formControlName="warehouse" placeholder="e.g. W1" inputmode="text" clearInput="true"></ion-input>
             </ion-item>
           </ds-form-field>
 
-          <ds-form-field label="Location" [optional]="true">
+          <ds-form-field [label]="'field.location' | translate" [optional]="true">
             <ion-item lines="none" class="input-item">
               <ion-input formControlName="location" placeholder="e.g. A-01-01" inputmode="text" clearInput="true"></ion-input>
             </ion-item>
@@ -154,7 +154,7 @@
         Project Dimensions
       </div>
       <div class="card-body">
-        <ds-form-field label="Line Property" [required]="true"
+        <ds-form-field [label]="'field.lineProperty' | translate" [required]="true"
           [showError]="(form.get('linePropertyId')?.invalid && form.get('linePropertyId')?.touched) ?? false"
           errorMessage="Line property is required.">
           <ion-item lines="none" class="input-item">
@@ -167,7 +167,7 @@
         </ds-form-field>
 
         <div class="dims-grid">
-          <ds-form-field label="Category" [optional]="true">
+          <ds-form-field [label]="'field.category' | translate" [optional]="true">
             <ion-item lines="none" class="input-item">
               <ion-input formControlName="categoryId" placeholder="e.g. MATERIAL" inputmode="text" clearInput="true"></ion-input>
             </ion-item>

@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ProjectItemJournalService, PIJJournalTrans } from '../../../../core/services/project-item-journal.service';
+import { FormatService } from '../../../../core';
 
 @Component({
   selector: 'app-pij-lines',
@@ -9,6 +10,7 @@ import { ProjectItemJournalService, PIJJournalTrans } from '../../../../core/ser
   standalone: false,
 })
 export class ProjectItemJournalLinesPage {
+  private readonly format = inject(FormatService);
   journalId = '';
   journalName = '';
   description = '';
@@ -75,7 +77,7 @@ export class ProjectItemJournalLinesPage {
     if (!dateStr) return '';
     const d = new Date(dateStr);
     if (isNaN(d.getTime())) return '';
-    return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    return this.format.date(d);
   }
 
   formatQty(qty?: number): string {

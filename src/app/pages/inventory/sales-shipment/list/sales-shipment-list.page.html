@@ -46,7 +46,7 @@
             <div class="card-body">
               <div class="card-top">
                 <span class="order-number">{{ order.SalesOrderNumber }}</span>
-                <ion-badge color="warning" class="status-badge">Ready to Ship</ion-badge>
+                <ion-badge color="warning" class="status-badge">{{ 'status.readyToShip' | translate }}</ion-badge>
               </div>
               <div class="card-vendor">
                 <ion-icon name="person-outline" class="card-vendor-icon"></ion-icon>
@@ -63,7 +63,7 @@
   @if (isSearching) {
     <div class="searching-state">
       <ion-spinner name="crescent"></ion-spinner>
-      <p>Searching all orders...</p>
+      <p>{{ 'msg.searchingOrders' | translate }}</p>
     </div>
   }
 

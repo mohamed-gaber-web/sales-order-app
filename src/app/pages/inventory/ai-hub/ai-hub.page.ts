@@ -1,8 +1,9 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { ModalController, ToastController } from '@ionic/angular';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { AI_HUB_DATA, AiCategory, AiFeature, TAG_LABELS, TagCode } from './ai-hub.data';
+import { FormatService } from '../../../core';
 
 type FilterChip = TagCode | 'all';
 
@@ -13,6 +14,7 @@ type FilterChip = TagCode | 'all';
   standalone: false,
 })
 export class AiHubPage implements OnInit, OnDestroy {
+  private readonly format = inject(FormatService);
 
   // ── State ────────────────────────────────────────────────────────
   searchQuery = '';
@@ -128,7 +130,6 @@ export class AiHubPage implements OnInit, OnDestroy {
 
   learnMore() {
     // Stub — wire to documentation or external link later
-    console.log('Learn more:', this.selectedFeature?.title);
   }
 
   // ── Helpers ──────────────────────────────────────────────────────
@@ -166,6 +167,6 @@ export class AiHubPage implements OnInit, OnDestroy {
 
   private updateClock() {
     const now = new Date();
-    this.currentTime = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+    this.currentTime = this.format.time(now);
   }
 }
