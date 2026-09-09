@@ -1,31 +1,18 @@
-import { Component, OnInit, OnDestroy, computed, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, computed, inject, signal } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { ToastController } from '@ionic/angular';
 import { filter, takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
-import { LanguageService, PortalSessionStore, ThemeService, UserAuthService } from './core';
-
-/**
- * A navigation entry.
- *
- * `titleKey` rather than a title: the menu renders in whichever language the
- * user chose, so a label baked in here could never follow. The wording lives in
- * `assets/i18n`, under `menu.*`.
- */
-interface MenuItem {
-  titleKey: string;
-  url: string | null;
-  icon: string;
-  comingSoon?: boolean;
-}
-
-interface MenuGroup {
-  titleKey: string;
-  icon: string;
-  expanded: boolean;
-  items: MenuItem[];
-}
+import {
+  LanguageService,
+  PortalSessionStore,
+  SETUP_REQUIRED_ROUTE,
+  TenantConfigStore,
+  ThemeService,
+  UserAuthService,
+} from './core';
+import { MENU_GROUPS, MenuGroup } from './app-menu';
 
 @Component({
   selector: 'app-root',
@@ -44,148 +31,46 @@ export class AppComponent implements OnInit, OnDestroy {
 
   private destroy$ = new Subject<void>();
   currentUrl = '';
-  public menuGroups: MenuGroup[] = [
-    {
-      titleKey: 'menu.groups.inventory',
-      icon: 'layers',
-      expanded: false,
-      items: [
-        { titleKey: 'menu.items.transferOrder', url: '/transfer-order/list', icon: 'swap-horizontal' },
-        { titleKey: 'menu.items.countCycle',    url: '/inventory/cycle-count', icon: 'refresh-circle' },
-        { titleKey: 'menu.items.barcodeCount',  url: '/inventory/cycle-count/count-by-barcode', icon: 'qr-code' },
-        { titleKey: 'menu.items.transferJournal', url: '/inventory/transfer-journal', icon: 'git-compare' },
-      ]
-    },
-    {
-      titleKey: 'menu.groups.purchaseOrder',
-      icon: 'cube',
-      expanded: false,
-      items: [
-        { titleKey: 'menu.items.productReceipt', url: '/purchase-order/list', icon: 'download' },
-        { titleKey: 'menu.items.register',        url: '/purchase-order-register', icon: 'clipboard' },
-        { titleKey: 'menu.items.barcodeReceipt', url: '/purchase-order/receive-by-barcode', icon: 'qr-code' },
-        { titleKey: 'menu.items.scanPaperPo',   url: '/purchase-order/scan-document', icon: 'document-text' },
-        { titleKey: 'menu.items.vendorReturn',   url: '/inventory/vendor-returns', icon: 'return-up-back' },
-        { titleKey: 'menu.items.barcodeReturn',  url: '/inventory/vendor-returns/select-po', icon: 'qr-code' },
-      ]
-    },
-    {
-      titleKey: 'menu.groups.salesOrder',
-      icon: 'cart',
-      expanded: false,
-      items: [
-        { titleKey: 'menu.items.packingSlip', url: '/sales-order/list', icon: 'archive' },
-        { titleKey: 'menu.items.reservation',  url: '/inventory/reservation', icon: 'bookmark' },
-      ]
-    },
-    {
-      titleKey: 'menu.groups.returnOrder',
-      icon: 'arrow-undo',
-      expanded: false,
-      items: [
-        { titleKey: 'menu.items.pickingSlip', url: '/sales-order/return-list', icon: 'list' },
-      ]
-    },
-    {
-      titleKey: 'menu.groups.project',
-      icon: 'folder-open',
-      expanded: false,
-      items: [
-        // { title: 'Project', url: '/inventory/project-issuance', icon: 'git-merge' },
-        { titleKey: 'menu.items.itemRequirements', url: '/inventory/project-item-requirements', icon: 'list' },
-        { titleKey: 'menu.items.itemJournal', url: '/inventory/project-item-journal', icon: 'document-text' },
-      ]
-    },
-    {
-      titleKey: 'menu.groups.production',
-      icon: 'construct',
-      expanded: false,
-      items: [
-        { titleKey: 'menu.items.pickingList',       url: '/inventory/production-picking', icon: 'list' },
-        { titleKey: 'menu.items.reportAsFinished', url: '/inventory/report-as-finished', icon: 'checkmark-circle' },
-      ]
-    },
-    {
-      titleKey: 'menu.groups.warehouse',
-      icon: 'business',
-      expanded: false,
-      items: [
-        { titleKey: 'menu.items.licensePlate',         url: '/inventory/license-plate', icon: 'barcode' },
-        { titleKey: 'menu.items.pickPut', url: '/inventory/pick-put',      icon: 'hand-right' },
-        { titleKey: 'menu.items.packing',    url: '/inventory/packing',       icon: 'cube' },
-      ]
-    },
-    {
-      titleKey: 'menu.groups.inquiry',
-      icon: 'search',
-      expanded: false,
-      items: [
-        { titleKey: 'menu.items.onHandList',      url: '/inventory/on-hand',  icon: 'stats-chart' },
-        { titleKey: 'menu.items.inventoryInquiry', url: '/inventory/inquiry',  icon: 'search' },
-      ]
-    },
-    {
-      titleKey: 'menu.groups.vanSales',
-      icon: 'car',
-      expanded: false,
-      items: [
-        { titleKey: 'menu.items.preSales',        url: null, icon: 'clipboard',     comingSoon: true },
-        { titleKey: 'menu.items.vanSales',        url: '/inventory/van-sales', icon: 'car' },
-        { titleKey: 'menu.items.orderManagement', url: null, icon: 'receipt',       comingSoon: true },
-        { titleKey: 'menu.items.mobileInvoicing', url: null, icon: 'document-text', comingSoon: true },
-        { titleKey: 'menu.items.vanStock',        url: null, icon: 'cube',          comingSoon: true },
-      ]
-    },
-    {
-      titleKey: 'menu.groups.routeTracking',
-      icon: 'navigate',
-      expanded: false,
-      items: [
-        { titleKey: 'menu.items.journeyPlan',        url: null, icon: 'calendar', comingSoon: true },
-        { titleKey: 'menu.items.routeManagement',    url: null, icon: 'map',      comingSoon: true },
-        { titleKey: 'menu.items.gpsTracking',        url: null, icon: 'locate',   comingSoon: true },
-        { titleKey: 'menu.items.dispatchDelivery', url: null, icon: 'send',     comingSoon: true },
-      ]
-    },
-    {
-      titleKey: 'menu.groups.tradePayments',
-      icon: 'pricetag',
-      expanded: false,
-      items: [
-        { titleKey: 'menu.items.promotionsDeals', url: null, icon: 'pricetags',  comingSoon: true },
-        { titleKey: 'menu.items.merchandising',      url: null, icon: 'storefront', comingSoon: true },
-        { titleKey: 'menu.items.customerCredit',    url: null, icon: 'card',       comingSoon: true },
-        { titleKey: 'menu.items.ePayment',          url: null, icon: 'wallet',     comingSoon: true },
-      ]
-    },
-    {
-      titleKey: 'menu.groups.performance',
-      icon: 'trending-up',
-      expanded: false,
-      items: [
-        { titleKey: 'menu.items.kpisTargets', url: null, icon: 'speedometer', comingSoon: true },
-        { titleKey: 'menu.items.commission',     url: null, icon: 'cash',        comingSoon: true },
-        { titleKey: 'menu.items.dashboards',     url: null, icon: 'bar-chart',   comingSoon: true },
-        { titleKey: 'menu.items.smartReports',  url: null, icon: 'analytics',   comingSoon: true },
-      ]
-    },
-    {
-      titleKey: 'menu.groups.distribution',
-      icon: 'git-network',
-      expanded: false,
-      items: [
-        { titleKey: 'menu.items.distributorManagement', url: null, icon: 'people', comingSoon: true },
-        { titleKey: 'menu.items.supervisorApp',         url: null, icon: 'eye',    comingSoon: true },
-        { titleKey: 'menu.items.erpIntegration',        url: null, icon: 'sync',   comingSoon: true },
-      ]
-    },
-  ];
+  private readonly tenantConfig = inject(TenantConfigStore);
 
-  toggleGroup(group: { expanded: boolean }) {
-    const opening = !group.expanded;
-    this.menuGroups.forEach(g => g.expanded = false);
-    if (opening) group.expanded = true;
+  /**
+   * The menu this tenant actually has.
+   *
+   * `MENU_GROUPS` is everything this build can render; the portal decides which
+   * of it a customer has bought. A group whose module is not held is absent
+   * rather than disabled — a greyed-out row advertises what a customer has not
+   * paid for, which is a sales conversation the app should not start by itself.
+   *
+   * Empty until `TenantConfigService.load()` settles, which is the safe way
+   * round: showing nothing for the moment before the entitlements arrive is
+   * recoverable, and showing everything and then taking it away is what a user
+   * reports as a bug. `hasModule` returns false for an unknown key, so a group
+   * added to this build before its module reaches the catalogue stays hidden
+   * rather than appearing for everybody.
+   */
+  readonly visibleGroups = computed(() =>
+    MENU_GROUPS.filter(group => this.tenantConfig.hasModule(group.moduleKey)),
+  );
+
+  /**
+   * Which group is open, by module key.
+   *
+   * A signal holding one key rather than an `expanded` flag on each group.
+   * `MENU_GROUPS` is a shared constant now, so a boolean written onto its
+   * objects would be process-wide state living on a module-level array — it
+   * would survive sign-out and follow the next user in.
+   */
+  readonly expandedGroup = signal<string | null>(null);
+
+  isExpanded(group: MenuGroup): boolean {
+    return this.expandedGroup() === group.moduleKey;
   }
+
+  /** Accordion: opening one closes the rest. */
+  toggleGroup(group: MenuGroup): void {
+    this.expandedGroup.update(open => (open === group.moduleKey ? null : group.moduleKey));
+  }
+
 
   showSplash = true;
   splashFading = false;
@@ -205,6 +90,36 @@ export class AppComponent implements OnInit, OnDestroy {
   readonly workspaceName = this.session.workspaceName;
 
   isAuthPage(): boolean { return this.currentUrl.startsWith('/auth'); }
+
+  /**
+   * The setup screen stands alone, like the sign-in screens.
+   *
+   * It is reached only when the workspace cannot talk to Dynamics at all — no
+   * environment, no credential, or one the ERP is rejecting.
+   */
+  isSetupRequiredPage(): boolean {
+    return this.currentUrl.startsWith(SETUP_REQUIRED_ROUTE);
+  }
+
+  /**
+   * Whether to render the menu and the bottom tabs at all.
+   *
+   * False on the sign-in screens, and false on the setup screen — which is the
+   * part that was missing. A workspace with no Dynamics environment reaches
+   * `/setup-required`, and every entry in that menu leads to a screen whose
+   * every request fails: the sidebar and the tab bar were offering a rep a
+   * choice of twenty ways to see an empty list, with a message explaining why
+   * hidden behind them.
+   *
+   * Route-based rather than reading `TenantConfigStore.blocker()`, deliberately.
+   * `erpConfiguredGuard` already guarantees a blocked workspace is *on* this
+   * route, so the route is the settled answer; the store's is not settled until
+   * the first fetch returns, and driving chrome from it would paint a full menu
+   * on launch and then tear it away a moment later.
+   */
+  showsAppChrome(): boolean {
+    return !this.isAuthPage() && !this.isSetupRequiredPage();
+  }
 
   /** Fire and forget: `signOut` clears locally and routes, whatever the server says. */
   logout(): void { void this.userAuth.signOut(); }

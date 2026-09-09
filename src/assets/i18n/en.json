@@ -241,7 +241,23 @@
       "stateConnected": "connected",
       "stateFailing": "rejected",
       "stateNotConfigured": "no credentials",
-      "lastCheck": "Last check: {{ error }}"
+      "lastCheck": "Last check: {{ error }}",
+      "stepsCaption": "What has to happen",
+      "stepInProgress": "Waiting on this",
+      "step": {
+        "environment": {
+          "title": "Record the environment",
+          "body": "Your operator adds the Dynamics instance your organisation runs on."
+        },
+        "credentials": {
+          "title": "Connect the credentials",
+          "body": "The connection is tested against Dynamics and saved only if it passes."
+        },
+        "company": {
+          "title": "Add a company",
+          "body": "At least one legal entity, so orders and stock know which company they belong to."
+        }
+      }
     },
     "erp": {
       "noEnvironmentTitle": "No ERP environment yet",

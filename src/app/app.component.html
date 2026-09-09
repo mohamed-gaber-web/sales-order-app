@@ -17,7 +17,12 @@
   }
 
   <!-- ── Main App ───────────────────────────────────────── -->
-  @if (!isAuthPage()) {
+  <!--
+    No menu and no tabs on the sign-in screens, and none on /setup-required
+    either: a workspace with no Dynamics environment cannot load any screen the
+    menu points at, so offering them hides the one message that explains why.
+  -->
+  @if (showsAppChrome()) {
   <ion-split-pane contentId="main-content" when="lg">
     <ion-menu contentId="main-content" type="overlay">
       <ion-header class="ion-no-border">
@@ -49,9 +54,15 @@
             </ion-item>
           </ion-menu-toggle>
 
-          <!-- Grouped sections -->
-          @for (group of menuGroups; track group.titleKey) {
-            <div class="menu-group" [class.expanded]="group.expanded">
+          <!--
+            Grouped sections — only the modules this tenant is entitled to.
+
+            `visibleGroups()` filters `MENU_GROUPS` through the entitlements the
+            admin portal returned on `/modules`. A group the customer has not
+            bought is absent, not disabled.
+          -->
+          @for (group of visibleGroups(); track group.moduleKey) {
+            <div class="menu-group" [class.expanded]="isExpanded(group)">
 
               <!-- Parent toggle -->
               <div class="menu-group-header" (click)="toggleGroup(group)">
@@ -62,12 +73,12 @@
                 <ion-icon
                   name="chevron-forward-outline"
                   class="chevron"
-                  [class.open]="group.expanded">
+                  [class.open]="isExpanded(group)">
                 </ion-icon>
               </div>
 
               <!-- Sub-items -->
-              <div class="menu-sub-list" [class.visible]="group.expanded">
+              <div class="menu-sub-list" [class.visible]="isExpanded(group)">
                 <div class="menu-sub-inner">
                   @for (item of group.items; track item.titleKey) {
                     @if (item.comingSoon) {
@@ -138,7 +149,7 @@
   }
 
   <!-- ── Bottom Tab Bar (mobile only) ─────────────────────── -->
-  @if (!isAuthPage()) {
+  @if (showsAppChrome()) {
   <nav class="bottom-tabs" aria-label="Main navigation">
 
     <a class="btab" [routerLink]="['/dashboard']" [class.btab--active]="isTab('/dashboard')" aria-label="Home">

@@ -80,7 +80,9 @@
       "PowerShell(.\\gradlew.bat assembleDebug)",
       "PowerShell(Get-Item *app-debug.apk*)",
       "Read(//c/Users/n00105/nvm//**)",
-      "Read(//c/Users/n00105/nvm/v22.12.0//**)"
+      "Read(//c/Users/n00105/nvm/v22.12.0//**)",
+      "Bash(rm -f src/app/core/services/user-auth.service.ts src/app/core/guards/auth.guard.ts)",
+      "Bash(rmdir src/app/core/guards)"
     ]
   }
 }

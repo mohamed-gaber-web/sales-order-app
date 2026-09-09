@@ -9,10 +9,32 @@ module.exports = {
   // Proxied rather than called directly so the browser makes no cross-origin
   // request: the portal's CORS allowlist (PORTAL_ORIGIN) then needs no entry for
   // this app's dev server.
+  //
+  // LOCAL DEVELOPMENT: pointed at the API on this machine, not production.
+  //
+  // These are two different databases. A tenant created through the admin
+  // portal's dev server (which talks to http://localhost:3000) does not exist
+  // in the Railway database, so signing in here with those credentials is
+  // refused — and refused with the same wording as a wrong password, because
+  // /auth/login answers identically for an unknown address, a bad password and
+  // a disabled account. That uniformity stops the endpoint being an
+  // account-enumeration oracle; it also makes "wrong server" look exactly like
+  // "wrong password", which is the trap this comment exists to mark.
+  //
+  // Switch the target back to
+  //   https://admin-portal-production-db9b.up.railway.app
+  // to test against production data. `vercel.json` performs the production
+  // rewrite and is unaffected by this file.
+  //
+  // Note this only serves the *browser* dev build. A device or emulator does
+  // not resolve `localhost` to this machine and never uses this proxy at all —
+  // it calls `environment.portalApiBaseUrl` directly, which would need this
+  // machine's LAN address.
   '/api/portal': {
-    target: 'https://admin-portal-production-db9b.up.railway.app',
+    target: 'http://localhost:3000',
     changeOrigin: true,
-    secure: true,
+    // The local API is plain HTTP with no certificate to verify.
+    secure: false,
     pathRewrite: {
       '^/api/portal': '',
     },

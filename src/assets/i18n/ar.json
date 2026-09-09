@@ -241,7 +241,23 @@
       "stateConnected": "متصل",
       "stateFailing": "مرفوض",
       "stateNotConfigured": "لا توجد بيانات اعتماد",
-      "lastCheck": "آخر فحص: {{ error }}"
+      "lastCheck": "آخر فحص: {{ error }}",
+      "stepsCaption": "ما الذي يجب أن يحدث",
+      "stepInProgress": "في انتظار هذه الخطوة",
+      "step": {
+        "environment": {
+          "title": "تسجيل البيئة",
+          "body": "يضيف المشغّل مثيل Dynamics الذي تعمل عليه مؤسستك."
+        },
+        "credentials": {
+          "title": "ربط بيانات الاعتماد",
+          "body": "يُختبر الاتصال مع Dynamics ولا يُحفظ إلا إذا نجح."
+        },
+        "company": {
+          "title": "إضافة شركة",
+          "body": "شركة واحدة على الأقل، حتى تعرف الطلبات والمخزون الشركة التي تتبعها."
+        }
+      }
     },
     "erp": {
       "noEnvironmentTitle": "لا توجد بيئة ERP بعد",

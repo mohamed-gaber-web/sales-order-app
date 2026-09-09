@@ -40,6 +40,57 @@
         </p>
       </div>
 
+      <!--
+        What has to happen, and how far along it is.
+
+        A rep can perform none of these steps - they are an operator's job in
+        the admin portal - so this is not a checklist to work through. It turns
+        "something is wrong" into "we are on step two of three", which is the
+        thing worth relaying to whoever can fix it.
+
+        The state comes from the same blocker that sent the user here, so the
+        diagram cannot claim progress the workspace has not made.
+      -->
+      <div class="setup-steps">
+        <p class="steps-caption">{{ 'auth.setupRequired.stepsCaption' | translate }}</p>
+
+        @for (step of steps(); track step.key; let last = $last) {
+          <div
+            class="step"
+            [class.step-done]="step.done"
+            [class.step-active]="step.active"
+            [style.animation-delay]="($index * 120) + 'ms'"
+          >
+            <div class="step-rail">
+              <div class="step-dot">
+                @if (step.done) {
+                  <ion-icon name="checkmark-outline"></ion-icon>
+                } @else {
+                  <ion-icon [name]="step.icon"></ion-icon>
+                }
+                @if (step.active) {
+                  <span class="pulse-ring" aria-hidden="true"></span>
+                }
+              </div>
+              @if (!last) {
+                <div class="step-line"><span class="step-line-fill"></span></div>
+              }
+            </div>
+
+            <div class="step-text">
+              <span class="step-title">{{ step.titleKey | translate }}</span>
+              <span class="step-body">{{ step.bodyKey | translate }}</span>
+              @if (step.active) {
+                <span class="step-badge">
+                  <span class="dot-flash" aria-hidden="true"></span>
+                  {{ 'auth.setupRequired.stepInProgress' | translate }}
+                </span>
+              }
+            </div>
+          </div>
+        }
+      </div>
+
       <!-- What the portal reports, so an administrator on the phone can act -->
       @if (connections().length) {
         <div class="env-list">

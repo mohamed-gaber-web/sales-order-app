@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { TenantConfigService, TenantConfigStore, UserAuthService } from '../../core';
 
@@ -23,6 +23,42 @@ export class SetupRequiredPage {
   private readonly router = inject(Router);
 
   readonly message = this.config.blockerMessage;
+
+  /**
+   * The three records a workspace needs, and how far along it is.
+   *
+   * Derived from the same blocker the guard uses rather than tracked
+   * separately, so the picture on screen cannot drift from the reason the user
+   * was sent here. The blocker is ordered — an environment must exist before it
+   * can carry a credential, and a credential must work before a company is
+   * worth having — so it maps onto a sequence directly.
+   *
+   * A rep cannot perform any of these. That is the point of showing them: it
+   * turns "something is wrong" into "we are on step two of three", which is a
+   * thing you can relay to an administrator over the phone.
+   */
+  readonly steps = computed(() => {
+    const blocker = this.config.blocker();
+
+    // Index of the step currently being waited on. Past the end means done.
+    const active =
+      blocker === 'no_environment' ? 0
+      : blocker === 'not_configured' || blocker === 'failing' ? 1
+      : blocker === 'no_company' ? 2
+      : 3;
+
+    return ([
+      { key: 'environment', icon: 'server-outline' },
+      { key: 'credentials', icon: 'key-outline' },
+      { key: 'company', icon: 'business-outline' },
+    ] as const).map((step, index) => ({
+      ...step,
+      titleKey: 'auth.setupRequired.step.' + step.key + '.title',
+      bodyKey: 'auth.setupRequired.step.' + step.key + '.body',
+      done: index < active,
+      active: index === active,
+    }));
+  });
   readonly connections = this.config.connections;
   readonly workspace = inject(TenantConfigStore);
 

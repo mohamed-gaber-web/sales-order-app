@@ -85,3 +85,170 @@ body.ion-palette-dark {
     border-top-color: rgba(255, 255, 255, 0.08);
   }
 }
+
+/* ── Setup progress ───────────────────────────────────────────────────────
+ *
+ * A three-step diagram of what an operator has to record before this
+ * workspace can reach Dynamics. The rep reading it can perform none of the
+ * steps; its job is to turn "something is wrong" into "we are on step two of
+ * three", which is what they relay to whoever can fix it.
+ *
+ * The motion is deliberately small. Rows fade up once on arrival, the current
+ * step breathes, and the connecting line fills toward it. Anything livelier on
+ * a screen somebody reaches when they are already blocked reads as decoration
+ * rather than information.
+ */
+.setup-steps {
+  margin-top: 1.25rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.steps-caption {
+  margin: 0 0 0.85rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ion-color-medium, #7c8798);
+}
+
+.step {
+  display: flex;
+  gap: 0.85rem;
+  /* `backwards` so the row is invisible during its stagger delay rather than
+     flashing at full opacity and then animating. */
+  animation: step-in 420ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+@keyframes step-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.step-rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 0 0 auto;
+}
+
+.step-dot {
+  position: relative;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ion-color-light, #eef1f6);
+  color: var(--ion-color-medium, #7c8798);
+  transition: background-color 280ms ease, color 280ms ease;
+
+  ion-icon { font-size: 1rem; }
+}
+
+.step-line {
+  width: 2px;
+  flex: 1 1 auto;
+  min-height: 1.35rem;
+  margin: 2px 0;
+  background: var(--ion-color-light, #eef1f6);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+/* Fills top-down, so the eye is drawn toward the step being waited on. */
+.step-line-fill {
+  display: block;
+  width: 100%;
+  height: 0;
+  background: var(--ion-color-success, #2dd36f);
+  transition: height 420ms ease 200ms;
+}
+
+.step-done {
+  .step-dot {
+    background: var(--ion-color-success, #2dd36f);
+    color: #fff;
+  }
+  .step-line-fill { height: 100%; }
+}
+
+.step-active .step-dot {
+  background: var(--ion-color-primary, #3880ff);
+  color: #fff;
+}
+
+/* One ring, expanding and fading. A spinner would promise that something is
+   happening right now; nothing is, until a person acts. */
+.pulse-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid var(--ion-color-primary, #3880ff);
+  animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse-ring {
+  0%   { transform: scale(1);    opacity: 0.65; }
+  70%  { transform: scale(1.75); opacity: 0; }
+  100% { transform: scale(1.75); opacity: 0; }
+}
+
+.step-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding-bottom: 1.1rem;
+  min-width: 0;
+}
+
+.step-title {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--ion-text-color, #1b2434);
+}
+
+.step-body {
+  font-size: 0.76rem;
+  line-height: 1.45;
+  color: var(--ion-color-medium, #7c8798);
+}
+
+.step-badge {
+  align-self: flex-start;
+  margin-top: 0.35rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  background: rgba(56, 128, 255, 0.12);
+  color: var(--ion-color-primary, #3880ff);
+}
+
+.dot-flash {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: dot-flash 1.4s ease-in-out infinite;
+}
+
+@keyframes dot-flash {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.25; }
+}
+
+/* Motion is an enhancement here, never the information. With it suppressed the
+   diagram still reads: colour and the tick carry every state the animation
+   emphasises. */
+@media (prefers-reduced-motion: reduce) {
+  .step { animation: none; }
+  .pulse-ring,
+  .dot-flash { animation: none; }
+  .step-line-fill { transition: none; }
+}
