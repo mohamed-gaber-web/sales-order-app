@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { ToastController } from '@ionic/angular';
+import { AlertController, ToastController } from '@ionic/angular';
 import { VanDayService } from '../../../../core/services/van-day.service';
 import { VanJourneyService } from '../../../../core/services/van-journey.service';
 import { SalesOrderService } from '../../../../core/services/sales-order.service';
@@ -12,6 +12,25 @@ import { DeviceLocationService } from '../../../../core/services/device-location
 import { SalesOrderHeaderV3Response } from '../../../../models/sales-order.model';
 import { GeoPoint, VanVisit } from '../../../../models/van-journey.model';
 import { FormatService } from '../../../../core';
+import {
+  ALL_ROLES,
+  NetworkStatusService,
+  ROLE_LABEL,
+  Role,
+  TAX_DOC_LABEL,
+  VanDevToolsService,
+  VanOutboxService,
+  VanRoleService,
+  VanStoreService,
+  taxDocKindFor,
+} from '../../../../core/van-sales';
+
+/** A small coloured tag on a stop card. */
+interface StopTag {
+  label: string;
+  color: string;
+  bg: string;
+}
 
 /** A stop as the list and the map draw it: its place in the day, and the drive to it. */
 interface StopRow {
@@ -81,7 +100,93 @@ export class VanJourneyPage implements OnInit {
   private salesOrders = inject(SalesOrderService);
   private route = inject(VanRouteService);
   private location = inject(DeviceLocationService);
+  private alertCtrl = inject(AlertController);
   readonly day = inject(VanDayService);
+  readonly store = inject(VanStoreService);
+  readonly role = inject(VanRoleService);
+  readonly outbox = inject(VanOutboxService);
+  readonly network = inject(NetworkStatusService);
+  readonly devTools = inject(VanDevToolsService);
+
+  readonly roles = ALL_ROLES;
+  readonly roleLabels = ROLE_LABEL;
+
+  /** Dev tools panel, collapsed by default. */
+  readonly devOpen = signal(false);
+
+  /** A route reload is under way. */
+  readonly reloading = signal(false);
+
+  // ── Role & master data ─────────────────────────────────────────────────────
+
+  /** READY orders per customer — the delivery rep's work list. */
+  private readonly readyByCustomer = computed(() => {
+    const counts = new Map<string, number>();
+    for (const o of this.store.orders()) {
+      if (o.status === 'READY') counts.set(o.customerId, (counts.get(o.customerId) ?? 0) + 1);
+    }
+    return counts;
+  });
+
+  /**
+   * Which stops this role works (spec §3): a collector only customers who owe,
+   * a delivery rep only customers with an order on the van. Stops already
+   * started or finished stay listed — they are the day's history.
+   *
+   * No filter until master data is loaded: without it every balance reads 0
+   * and the list would empty itself.
+   */
+  private readonly roleFilter = computed<{ note: string; keep: (account: string) => boolean } | null>(() => {
+    if (!this.store.isLoaded()) return null;
+    const role = this.role.role();
+    if (role === 'COLLECTOR') {
+      // Read here so the filter re-runs when a balance changes.
+      this.store.customers();
+      return { note: 'customers with balance', keep: (a) => this.store.balanceOf(a) > 0 };
+    }
+    if (role === 'DELIVERY_REP') {
+      const ready = this.readyByCustomer();
+      return { note: 'customers with orders to deliver', keep: (a) => (ready.get(a) ?? 0) > 0 };
+    }
+    return null;
+  });
+
+  /** The stop list as this role sees it. The map keeps the whole route. */
+  readonly visibleStops = computed(() => {
+    const filter = this.roleFilter();
+    const all = this.stops();
+    if (!filter) return all;
+    return all.filter((row) => row.visit.status !== 'pending' || filter.keep(row.visit.account));
+  });
+
+  /** "Showing 3 of 7 — customers with balance", or '' when nothing is hidden. */
+  readonly filterNote = computed(() => {
+    const filter = this.roleFilter();
+    const shown = this.visibleStops().length;
+    const total = this.stops().length;
+    if (!filter || shown === total) return '';
+    return `Showing ${shown} of ${total} — ${filter.note}`;
+  });
+
+  readonly emptyMessage = computed(() =>
+    this.roleFilter() ? "None of today's customers need this role." : "Today's route has no stops."
+  );
+
+  /**
+   * True when the stored day names customers the master data does not have —
+   * a day seeded before the van-sales data existed. The rep reloads it.
+   */
+  readonly staleRoute = computed(
+    () =>
+      this.store.customers().length > 0 &&
+      this.day.visits().some((v) => !this.store.customer(v.account))
+  );
+
+  readonly networkLabel = computed(() => {
+    const base = this.network.online() ? 'Online' : 'Offline';
+    const queued = this.outbox.pendingCount();
+    return queued > 0 ? `${base} · ${queued} queued` : base;
+  });
 
   // ── Route ordering ─────────────────────────────────────────────────────────
 
@@ -380,6 +485,7 @@ export class VanJourneyPage implements OnInit {
   readonly ordersFailed = signal(false);
 
   ngOnInit() {
+    void this.store.ensureLoaded();
     if (!this.day.isLoaded()) {
       this.seedDay();
     } else if (this.day.needsGeography()) {
@@ -551,16 +657,93 @@ export class VanJourneyPage implements OnInit {
     this.journey.loadToday().subscribe((seed) => this.day.applyGeography(seed));
   }
 
-  handleRefresh(event: CustomEvent) {
+  /**
+   * Pull-to-refresh: re-pulls master data, then reloads the route from it.
+   *
+   * A day with progress on it (a check-in, a finished stop) is kept and only
+   * has its geography refilled — wiping a round half-way through to pick up a
+   * changed price list would cost the rep the day's record. "Reload route"
+   * below the list is the explicit way to start over.
+   */
+  async handleRefresh(event: CustomEvent) {
     const complete = () => (event.target as HTMLIonRefresherElement).complete();
+    this.loadOrders();
+    await this.store.refresh();
+    const error = this.store.error();
+    if (error) this.toast(`Couldn't refresh — ${error}`);
+    const inProgress = this.day.visits().some((v) => v.status !== 'pending' || v.checkedIn);
     this.journey.loadToday().subscribe({
       next: (day) => {
-        this.day.reset(day);
+        if (inProgress) this.day.applyGeography(day);
+        else this.day.reset(day);
         complete();
       },
       error: complete,
     });
-    this.loadOrders();
+  }
+
+  /** Throws the stored route away and rebuilds today's from master data. */
+  async reloadRoute() {
+    const alert = await this.alertCtrl.create({
+      header: "Reload today's route?",
+      message:
+        'Stops are rebuilt from the latest data. Visit progress on this list is cleared; posted and queued documents are kept.',
+      buttons: [
+        { text: 'Cancel', role: 'cancel' },
+        { text: 'Reload', role: 'confirm' },
+      ],
+    });
+    await alert.present();
+    const { role } = await alert.onDidDismiss();
+    if (role !== 'confirm') return;
+
+    this.reloading.set(true);
+    await this.store.refresh();
+    this.journey.loadToday().subscribe({
+      next: (day) => {
+        this.day.reset(day);
+        this.reloading.set(false);
+        this.toast('Route reloaded');
+      },
+      error: () => {
+        this.reloading.set(false);
+        this.toast("Couldn't reload the route");
+      },
+    });
+  }
+
+  /** The network pill: sends the queue when there is signal. */
+  async syncNow() {
+    const queued = this.outbox.pendingCount();
+    if (!this.network.online()) {
+      this.toast(queued ? `Offline — ${queued} queued, sends when online` : 'Offline');
+      return;
+    }
+    if (!queued) {
+      this.toast('Everything is sent');
+      return;
+    }
+    if (this.outbox.syncing()) return;
+    const { posted, failed } = await this.outbox.sync();
+    this.toast(failed ? `Sent ${posted} · ${failed} failed — see Day close` : `Sent ${posted}`);
+  }
+
+  // ── Dev tools ──────────────────────────────────────────────────────────────
+
+  setDevRole(role: Role | null) {
+    this.role.setDevRole(role);
+  }
+
+  async resetDemo() {
+    const alert = await this.alertCtrl.create({
+      header: 'Reset demo data?',
+      message: 'Clears every van sales record on this device and the mock server, then reloads.',
+      buttons: [
+        { text: 'Cancel', role: 'cancel' },
+        { text: 'Reset', role: 'destructive', handler: () => this.devTools.resetAll() },
+      ],
+    });
+    await alert.present();
   }
 
   openVisit(visit: VanVisit) {
@@ -650,6 +833,27 @@ export class VanJourneyPage implements OnInit {
       return { label: 'COD', color: '#4b5563', bg: '#eef0f3' };
     }
     return null;
+  }
+
+  /** Credit, delivery, tax-document and balance tags, by role. */
+  tags(visit: VanVisit): StopTag[] {
+    const c = this.store.customer(visit.account);
+    if (!c) return [];
+    const tags: StopTag[] = [];
+    if (c.creditHold) tags.push({ label: 'Credit hold', color: '#b42318', bg: '#fdecea' });
+    else if (c.overdue) tags.push({ label: 'Overdue', color: '#9a6a00', bg: '#fdf3d7' });
+
+    if (this.role.can('DELIVER')) {
+      const ready = this.readyByCustomer().get(c.id) ?? 0;
+      if (ready > 0) tags.push({ label: `${ready} to deliver`, color: '#1a3b6a', bg: '#e6eefb' });
+    }
+
+    tags.push({ label: TAX_DOC_LABEL[taxDocKindFor(c, false)], color: '#4b5563', bg: '#eef0f3' });
+
+    if (this.role.role() === 'COLLECTOR') {
+      tags.push({ label: `Balance ${this.round(this.store.balanceOf(c.id))}`, color: '#1a3b6a', bg: '#e6eefb' });
+    }
+    return tags;
   }
 
   subtitle(visit: VanVisit): string {

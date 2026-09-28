@@ -95,6 +95,7 @@
                           lines="none"
                           detail="false"
                           routerLinkActive="selected"
+                          [routerLinkActiveOptions]="{ exact: item.exact ?? false }"
                           class="menu-item menu-sub-item">
                           <ion-icon aria-hidden="true" slot="start" [name]="item.icon + '-outline'"></ion-icon>
                           <ion-label>{{ item.titleKey | translate }}</ion-label>

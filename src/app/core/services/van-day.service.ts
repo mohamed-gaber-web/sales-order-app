@@ -250,6 +250,46 @@ export class VanDayService {
     }));
   }
 
+  /**
+   * Folds a posted van-sales document into the stop it belongs to — matched on
+   * customer account, since the transaction layer works in accounts, not in
+   * route sequence numbers. `done` closes the stop; KPIs add up regardless.
+   */
+  recordActivity(
+    account: string,
+    activity: { outcome?: string; done?: boolean; sales?: number; collected?: number; returns?: number; balance?: number }
+  ): void {
+    this.mutate((day) => {
+      const visit = day.visits.find((v) => v.account === account);
+      const firstFinish = !!visit && activity.done === true && visit.status !== 'done';
+      return {
+        ...day,
+        visits: day.visits.map((v) => {
+          if (v.account !== account) return v;
+          const outcome = activity.outcome
+            ? v.outcome && v.status === 'done' && !v.outcome.startsWith('No sale')
+              ? `${v.outcome} + ${activity.outcome.toLowerCase()}`
+              : activity.outcome
+            : v.outcome;
+          return {
+            ...v,
+            outcome,
+            status: activity.done ? 'done' : v.status,
+            balance: activity.balance ?? v.balance,
+          };
+        }),
+        lastCompletedVisitId: firstFinish && visit ? visit.id : day.lastCompletedVisitId,
+        kpi: {
+          ...day.kpi,
+          visited: day.kpi.visited + (firstFinish ? 1 : 0),
+          sales: day.kpi.sales + (activity.sales ?? 0),
+          collected: day.kpi.collected + (activity.collected ?? 0),
+          returns: day.kpi.returns + (activity.returns ?? 0),
+        },
+      };
+    });
+  }
+
   /** Queues a submitted new-customer request in the outbox. */
   addCustomerRequest(): void {
     this.mutate((day) => ({

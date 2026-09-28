@@ -29,8 +29,12 @@
       <div class="addr-row">
         <input class="van-field-input" [value]="address()" (input)="address.set($any($event.target).value)"
                placeholder="Street, area" />
-        <button type="button" class="gps-chip" [class.on]="gpsCaptured()" (click)="captureGps()">
-          <ion-icon [name]="gpsCaptured() ? 'checkmark-outline' : 'location-outline'"></ion-icon>
+        <button type="button" class="gps-chip" [class.on]="gpsCaptured()" [disabled]="locating()" (click)="captureGps()">
+          @if (locating()) {
+            <ion-spinner name="crescent"></ion-spinner>
+          } @else {
+            <ion-icon [name]="gpsCaptured() ? 'checkmark-outline' : 'location-outline'"></ion-icon>
+          }
           {{ gpsCaptured() ? 'Set' : 'GPS' }}
         </button>
       </div>

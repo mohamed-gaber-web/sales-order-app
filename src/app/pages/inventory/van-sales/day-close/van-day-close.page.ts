@@ -1,16 +1,26 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { ToastController } from '@ionic/angular';
-import { VanDayService } from '../../../../core/services/van-day.service';
-import { VanFieldOpsService } from '../../../../core/services/van-field-ops.service';
+import { Router } from '@angular/router';
+import { AlertController, ToastController } from '@ionic/angular';
 import { FormatService } from '../../../../core';
+import { VanDayService } from '../../../../core/services/van-day.service';
+import {
+  NetworkStatusService,
+  VanDocumentsService,
+  VanOutboxService,
+  VanStoreService,
+  VanTransactionsService,
+} from '../../../../core/van-sales';
 
-/** The rep working this van, for the day-close posting. */
-const SALESPERSON_ID = 'SP-014';
+/** Visit outcomes that count as a strike. */
+const STRIKE_OUTCOMES = ['Sold', 'Delivered', 'Order taken'];
 
 /**
- * End of day: flush the outbox to D365, reconcile cash and van stock, review the
- * day's KPIs, then close the day through `GPDayCloseService/close` (scaffolded).
- * The close is blocked while anything is still pending sync.
+ * Sync & day close (spec §7.9, F9, F14).
+ *
+ * Flush the outbox, hand over cash, e-wallet and cheques, unload the van,
+ * review the day, then close it through `VanTransactionsService.closeDay`
+ * (#33 unload, #41 day close). The close refuses while anything is unsent,
+ * so the day close is always the last document of the day (scenario 11).
  */
 @Component({
   selector: 'app-van-day-close',
@@ -21,76 +31,182 @@ const SALESPERSON_ID = 'SP-014';
 })
 export class VanDayClosePage {
   private readonly format = inject(FormatService);
-  private toastCtrl = inject(ToastController);
-  private fieldOps = inject(VanFieldOpsService);
+  private readonly toastCtrl = inject(ToastController);
+  private readonly alertCtrl = inject(AlertController);
+  private readonly router = inject(Router);
+  private readonly tx = inject(VanTransactionsService);
+
   readonly day = inject(VanDayService);
+  readonly store = inject(VanStoreService);
+  readonly outbox = inject(VanOutboxService);
+  readonly docs = inject(VanDocumentsService);
+  readonly network = inject(NetworkStatusService);
 
-  readonly isSyncing = signal(false);
-  readonly isClosing = signal(false);
+  readonly closing = signal(false);
+  readonly cashCounted = signal<number | null>(null);
 
-  readonly pending = computed(() => this.day.outbox()?.pending ?? 0);
+  readonly totals = this.tx.dayTotals;
+  readonly closed = this.store.dayClosed;
 
-  /** Strike rate: visits that ended in a sale, over visits made. */
-  readonly strikeRate = computed(() => {
-    const visits = this.day.visits();
-    const made = visits.filter((v) => v.status === 'done').length;
-    if (!made) return 0;
-    const noSale = visits.filter((v) => v.outcome?.startsWith('No sale')).length;
-    return Math.round(((made - noSale) / made) * 100);
+  readonly pendingCount = this.outbox.pendingCount;
+  readonly eDocsWaiting = computed(() => this.docs.eDocsWaiting().length);
+
+  readonly variance = computed(() => {
+    const counted = this.cashCounted();
+    return counted === null ? null : Math.round((counted - this.totals().cashExpected) * 100) / 100;
   });
 
-  sync() {
-    if (this.pending() === 0) {
-      this.toast('Nothing pending to sync', 'medium');
+  readonly chequeTotal = computed(() => this.docs.chequesInHand().reduce((s, c) => s + c.amount, 0));
+
+  readonly sellable = computed(() => this.store.vanStock().filter((s) => s.qty > 0));
+  readonly sellableUnits = computed(() => this.sellable().reduce((s, l) => s + l.qty, 0));
+  readonly damagedUnits = computed(() => this.store.local().damaged.reduce((s, l) => s + l.qty, 0));
+
+  readonly visited = computed(() => this.day.visits().filter((v) => v.status === 'done').length);
+
+  /** Share of visited stops that ended in a sale, a delivery or an order. */
+  readonly strikeRate = computed(() => {
+    const done = this.day.visits().filter((v) => v.status === 'done');
+    if (!done.length) return 0;
+    const hits = done.filter((v) => STRIKE_OUTCOMES.some((o) => v.outcome?.includes(o))).length;
+    return Math.round((hits / done.length) * 100);
+  });
+
+  ionViewWillEnter(): void {
+    void this.store.ensureLoaded();
+  }
+
+  // ── Sync ─────────────────────────────────────────────────────────────────
+
+  async syncNow(): Promise<void> {
+    if (!this.network.online()) {
+      await this.toast('Offline. Sync starts when the van is back online.', 'medium');
       return;
     }
-    this.isSyncing.set(true);
-    // The visit log flush stands in for the real outbox drain to D365.
-    this.fieldOps.logVisit().subscribe(() => {
-      const synced = this.day.markSynced();
-      this.isSyncing.set(false);
-      this.toast(`Synced ${synced} document${synced === 1 ? '' : 's'} to D365`, 'success');
+    await this.runSync();
+  }
+
+  /** The footer's "Go online and sync": also puts failed items back in the queue. */
+  async syncAll(): Promise<void> {
+    if (!this.network.online()) return;
+    if (this.outbox.failed().length) this.outbox.retryAllFailed();
+    await this.runSync();
+  }
+
+  retry(mobileTransId: string): void {
+    this.outbox.retry(mobileTransId);
+  }
+
+  retryAll(): void {
+    this.outbox.retryAllFailed();
+  }
+
+  private async runSync(): Promise<void> {
+    const before = this.pendingCount();
+    await this.outbox.sync();
+    await this.settle();
+    const left = this.pendingCount();
+    const sent = Math.max(0, before - left);
+    if (left === 0) await this.toast(sent ? `Synced ${sent} item${sent === 1 ? '' : 's'}` : 'All synced', 'success');
+    else if (this.outbox.failed().length) await this.toast(`${this.outbox.failed().length} failed. Check the errors below.`, 'danger');
+    else await this.toast(`${left} still queued`, 'medium');
+  }
+
+  /** An enqueue or a retry may already have started a pass; wait for it. */
+  private async settle(): Promise<void> {
+    for (let i = 0; i < 150 && this.outbox.syncing(); i++) await new Promise((r) => setTimeout(r, 200));
+  }
+
+  // ── Cash ─────────────────────────────────────────────────────────────────
+
+  onCashInput(raw: string): void {
+    const clean = raw.replace(/[^\d.]/g, '');
+    this.cashCounted.set(clean === '' ? null : Number(clean) || 0);
+  }
+
+  fillExpected(): void {
+    this.cashCounted.set(this.totals().cashExpected);
+  }
+
+  // ── Close ────────────────────────────────────────────────────────────────
+
+  async confirmClose(): Promise<void> {
+    if (!this.outbox.isEmpty()) {
+      await this.toast('Sync the outbox before closing the day.', 'danger');
+      return;
+    }
+    const counted = this.cashCounted();
+    if (counted === null) {
+      await this.toast('Enter the cash counted first.', 'danger');
+      return;
+    }
+    const v = this.variance() ?? 0;
+    const alert = await this.alertCtrl.create({
+      header: 'Close the day?',
+      message:
+        `Cash counted ${this.money(counted)}` +
+        (v !== 0 ? ` (${v > 0 ? '+' : ''}${this.money(v)} variance)` : '') +
+        `. ${this.docs.chequesInHand().length} cheques go to treasury. Visit actions lock until a new day.`,
+      buttons: [
+        { text: 'Cancel', role: 'cancel' },
+        { text: 'Close day', role: 'confirm' },
+      ],
     });
+    await alert.present();
+    const { role } = await alert.onDidDismiss();
+    if (role === 'confirm') await this.close(counted);
   }
 
-  close() {
-    if (this.pending() > 0) {
-      this.toast(`Finish sync first — ${this.pending()} pending`, 'danger');
+  private async close(counted: number): Promise<void> {
+    this.closing.set(true);
+    try {
+      this.tx.closeDay(counted);
+    } catch (e) {
+      this.closing.set(false);
+      await this.toast(e instanceof Error ? e.message : "Couldn't close the day.", 'danger');
       return;
     }
-    if (!this.day.isDayOpen()) return;
-
-    this.isClosing.set(true);
-    this.fieldOps
-      .closeDay({
-        salespersonId: SALESPERSON_ID,
-        journeyId: this.day.day()?.routeId ?? '',
-        cashCounted: this.day.kpi()?.collected ?? 0,
-      })
-      .subscribe({
-        next: (result) => {
-          this.day.closeDay();
-          this.isClosing.set(false);
-          this.toast(`Day closed — stock transfer ${result.stockTransfer}`, 'success');
-        },
-        error: () => {
-          this.isClosing.set(false);
-          this.toast("Couldn't close the day. Try again.", 'danger');
-        },
-      });
+    try {
+      await this.outbox.sync();
+      await this.settle();
+    } finally {
+      this.closing.set(false);
+    }
+    await this.toast(this.outbox.isEmpty() ? 'Day closed and synced' : 'Day closed. Unload syncs when online.', 'success');
   }
 
-  round(n: number): string {
-    return this.format.number(Math.round(n));
+  startNewDay(): void {
+    this.outbox.clearPosted();
+    this.store.startNewDay();
+    this.cashCounted.set(null);
+    void this.router.navigateByUrl('/inventory/van-sales');
   }
 
-  private async toast(message: string, color: 'success' | 'danger' | 'medium') {
-    const toast = await this.toastCtrl.create({
+  // ── Helpers ──────────────────────────────────────────────────────────────
+
+  money(n: number): string {
+    return this.format.number(n, 2, 2);
+  }
+
+  n(value: number): string {
+    return this.format.number(value);
+  }
+
+  date(iso: string): string {
+    return this.format.date(iso);
+  }
+
+  dateTime(iso: string | undefined): string {
+    return iso ? this.format.dateTime(iso) : '—';
+  }
+
+  private async toast(message: string, color: 'success' | 'danger' | 'medium'): Promise<void> {
+    const t = await this.toastCtrl.create({
       message,
       duration: color === 'danger' ? 3000 : 1800,
       position: 'top',
       color,
     });
-    await toast.present();
+    await t.present();
   }
 }

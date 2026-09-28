@@ -8,82 +8,178 @@
 </ion-header>
 
 <ion-content class="van-content">
-  @if (visit(); as v) {
-    <!-- Original invoice (mandatory) -->
-    <div class="van-card">
-      <p class="van-section-title">Original invoice — required</p>
-      @for (inv of originalInvoices(); track inv.invoiceId) {
-        <button type="button" class="inv-option" [class.on]="selectedInvoice() === inv.invoiceId"
-                (click)="selectInvoice(inv.invoiceId)">
-          <ion-icon [name]="selectedInvoice() === inv.invoiceId ? 'radio-button-on' : 'radio-button-off'"></ion-icon>
-          <span class="van-mono">{{ inv.invoiceId }}</span>
-          <span class="inv-date">{{ inv.date }}</span>
-          <span class="inv-amt">{{ money(inv.amount) }}</span>
-        </button>
-      } @empty {
-        <p class="van-hint" style="text-align:start">No open invoices to return against.</p>
-      }
-    </div>
+  @if (customer(); as c) {
+    @if (store.dayClosed()) {
+      <div class="van-card lock-card">
+        <ion-icon name="lock-closed-outline"></ion-icon>
+        <span>The day is closed. Returns open again tomorrow.</span>
+      </div>
+    }
+
+    @if (pendingApproval(); as p) {
+      <div class="van-card wait-card">
+        <ion-icon name="hourglass-outline"></ion-icon>
+        <div>
+          <p class="wait-title">Waiting for supervisor</p>
+          <p class="wait-line">The return posts automatically once approved. {{ p.detail }}</p>
+        </div>
+      </div>
+    } @else if (approvedApproval() && mode() === 'Free') {
+      <div class="van-card ok-card">
+        <ion-icon name="checkmark-circle-outline"></ion-icon>
+        <span>Supervisor approved a free return for this visit.</span>
+      </div>
+    }
 
     <!-- Type -->
     <div class="van-card">
       <p class="van-section-title">Return type</p>
       <div class="van-seg">
-        <button type="button" [class.on]="type() === 'Full'" (click)="setType('Full')">Full</button>
-        <button type="button" [class.on]="type() === 'Partial'" (click)="setType('Partial')">{{ 'status.partial' | translate }}</button>
-      </div>
-
-      <div class="ret-item" [class.dim]="type() === 'Full'">
-        <div class="ret-item-info">
-          <span class="van-value">Tomato paste IKK 320g</span>
-          <span class="van-label">On invoice: 10 · returning {{ returnedQty() }} · {{ money(netValue()) }}</span>
-        </div>
-        @if (type() === 'Partial') {
-          <div class="ret-stepper">
-            <button type="button" (click)="adjustQty(-1)"><ion-icon name="remove-outline"></ion-icon></button>
-            <span>{{ qty() }}</span>
-            <button type="button" (click)="adjustQty(1)"><ion-icon name="add-outline"></ion-icon></button>
-          </div>
+        <button type="button" [class.on]="mode() === 'AgainstInvoice'" (click)="setMode('AgainstInvoice')">
+          <ion-icon name="receipt-outline"></ion-icon> Against invoice
+        </button>
+        @if (canFreeReturn()) {
+          <button type="button" [class.on]="mode() === 'Free'" (click)="setMode('Free')">
+            <ion-icon name="cube-outline"></ion-icon> Free return
+          </button>
         }
       </div>
     </div>
 
-    <!-- Reason + controls -->
+    <!-- Invoice -->
+    @if (mode() === 'AgainstInvoice') {
+      <div class="van-card">
+        <p class="van-section-title">Invoice</p>
+        @for (inv of invoiceOptions(); track inv.id) {
+          <button type="button" class="inv-option" [class.on]="invoiceId() === inv.id" (click)="selectInvoice(inv.id)">
+            <ion-icon [name]="invoiceId() === inv.id ? 'radio-button-on' : 'radio-button-off'"></ion-icon>
+            <span class="van-mono">{{ inv.id }}</span>
+            <span class="inv-date">{{ inv.date }}@if (inv.lines) { · today }</span>
+            <span class="inv-amt van-mono">{{ money(inv.amount) }}</span>
+          </button>
+        } @empty {
+          <p class="van-hint start">No invoices to return against.</p>
+        }
+      </div>
+    }
+
+    <!-- Lines -->
     <div class="van-card">
-      <div class="van-row">
-        <span class="van-label">Reason code</span>
-        <span class="van-value">Damaged packaging · RTN-DMG</span>
-      </div>
-      <div class="van-row">
-        <span class="van-label">Disposition</span>
-        <span class="van-value">Damaged → quarantine</span>
-      </div>
+      <p class="van-section-title">Items</p>
+
+      @if (canAddProducts()) {
+        <ds-search placeholder="Add a product" [debounceMs]="150" (query)="query.set($event)"></ds-search>
+        @if (searchResults().length) {
+          <div class="results">
+            @for (p of searchResults(); track p.itemId) {
+              <button type="button" class="result" (click)="addProduct(p.itemId)">
+                <span class="result-name">{{ p.name }}</span>
+                <span class="van-label van-mono">{{ p.itemId }}</span>
+                <ion-icon name="add-circle-outline"></ion-icon>
+              </button>
+            }
+          </div>
+        }
+        @if (mode() === 'Free') {
+          <p class="van-hint start">Priced at the customer's last purchase price, else the price list.</p>
+        } @else {
+          <p class="van-hint start">No line detail on this invoice — add the returned products at list price.</p>
+        }
+      }
+
+      @for (l of lines(); track l.itemId) {
+        <div class="ret-item" [class.dim]="l.qty === 0">
+          <div class="ret-item-info">
+            <span class="van-value">{{ l.name }}</span>
+            <span class="van-label">
+              {{ money(l.price) }} each
+              @if (l.maxQty !== undefined) { · invoiced {{ l.maxQty }} }
+              @if (l.qty > 0) { · {{ money(lineValue(l)) }} incl. VAT }
+            </span>
+          </div>
+          <div class="ret-stepper">
+            <button type="button" aria-label="Less" (click)="step(l.itemId, -1)"><ion-icon name="remove-outline"></ion-icon></button>
+            <input
+              class="qty-input van-mono"
+              type="number"
+              inputmode="numeric"
+              min="0"
+              [attr.max]="l.maxQty ?? null"
+              [ngModel]="l.qty"
+              (ngModelChange)="setQty(l.itemId, $event)" />
+            <button type="button" aria-label="More" [disabled]="l.maxQty !== undefined && l.qty >= l.maxQty"
+                    (click)="step(l.itemId, 1)"><ion-icon name="add-outline"></ion-icon></button>
+            @if (l.maxQty === undefined) {
+              <button type="button" class="remove" aria-label="Remove" (click)="removeLine(l.itemId)">
+                <ion-icon name="trash-outline"></ion-icon>
+              </button>
+            }
+          </div>
+        </div>
+      } @empty {
+        @if (!canAddProducts()) {
+          <p class="van-hint start">Pick an invoice to see its lines.</p>
+        }
+      }
+    </div>
+
+    <!-- Reason -->
+    <div class="van-card">
+      <ds-form-field label="Reason" [required]="true">
+        <select class="van-input" [ngModel]="reasonCode()" (ngModelChange)="reasonCode.set($event)">
+          <option value="" disabled>Select a reason</option>
+          @for (r of store.reasons(); track r.code) {
+            <option [value]="r.code">{{ r.description }} · {{ r.code }}</option>
+          }
+        </select>
+      </ds-form-field>
+      @if (reason(); as r) {
+        <div class="van-row">
+          <span class="van-label">Disposition</span>
+          <span class="van-value">{{ dispositionLabel[r.disposition] }}</span>
+        </div>
+        <div class="van-row">
+          <span class="van-label">Stock goes to</span>
+          <ds-pill
+            [label]="destination() === 'VAN' ? 'Back on the van' : 'Damaged bucket'"
+            [color]="destination() === 'VAN' ? '#0e6f4e' : '#b42318'"
+            [bg]="destination() === 'VAN' ? '#e3f5ec' : '#fdecec'">
+          </ds-pill>
+        </div>
+      }
     </div>
 
     <div class="van-card controls-card">
-      <p class="controls-title">Controls enforced</p>
-      <p class="controls-line">✓ Within return policy (7 days) · ✓ Linked to a valid invoice</p>
-      <p class="controls-line">✓ Only the returned portion is reversed — the rest of the invoice stands</p>
-      <p class="controls-line">✓ Stock and the customer account update automatically once posted</p>
+      <p class="controls-title">Controls</p>
+      <p class="controls-line">Free returns above {{ money(limit()) }} incl. VAT need supervisor approval.</p>
+      <p class="controls-line">Sellable stock goes back on the van; the rest is unloaded as damaged at day close.</p>
     </div>
 
     <div class="van-card">
       <div class="van-row">
         <span class="van-value">Return value (incl. VAT)</span>
-        <span class="van-value neg">-{{ money(valueWithVat()) }}</span>
+        <span class="van-value neg van-mono">-{{ money(value()) }}</span>
       </div>
+      @if (mode() === 'Free' && value() > limit()) {
+        <p class="over-limit">Over the {{ money(limit()) }} limit by {{ money(value() - limit()) }}.</p>
+      }
+      @if (blocker() && !store.dayClosed()) {
+        <p class="van-hint start">{{ blocker() }}</p>
+      }
     </div>
 
     <div class="content-footer-space"></div>
+  } @else {
+    <ds-empty-state icon="person-outline" title="Customer not found" message="This stop's customer isn't in the van's master data."></ds-empty-state>
   }
 </ion-content>
 
 <ion-footer class="ion-no-border">
   <ds-cta-bar
-    label="Post return"
-    icon="arrow-undo-outline"
+    [label]="ctaLabel()"
+    [icon]="pendingApproval() ? 'hourglass-outline' : needsApproval() ? 'shield-checkmark-outline' : 'arrow-undo-outline'"
     [loading]="isPosting()"
     [disabled]="!canPost()"
-    (ctaClick)="post()">
+    (ctaClick)="submit()">
   </ds-cta-bar>
 </ion-footer>

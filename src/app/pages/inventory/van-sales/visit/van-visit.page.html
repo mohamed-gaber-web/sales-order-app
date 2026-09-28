@@ -9,21 +9,53 @@
 
 <ion-content class="van-content">
   @if (visit(); as v) {
+    @if (store.dayClosed()) {
+      <div class="visit-banner closed">
+        <ion-icon name="lock-closed-outline"></ion-icon>
+        <span>Day closed — visit actions are locked</span>
+      </div>
+    }
+
+    @if (creditBanner(); as cb) {
+      <div class="visit-banner hold" role="status">
+        <ion-icon name="warning-outline"></ion-icon>
+        <span><strong>{{ cb.title }}</strong> · {{ cb.detail }}</span>
+      </div>
+    }
+
     <!-- ── Check-in ───────────────────────────────────────────── -->
     <div class="van-card">
       <div class="van-row">
         <ds-pill
-          [label]="v.checkedIn ? 'Checked in · in geofence' : 'Not checked in'"
+          [label]="v.checkedIn ? 'Checked in' : overridePending() ? 'Waiting for override' : 'Not checked in'"
           [color]="v.checkedIn ? '#0e6f4e' : '#9a6a00'"
           [bg]="v.checkedIn ? '#e3f5ec' : '#fdf3d7'">
         </ds-pill>
         <span class="van-value van-mono">{{ v.account }}</span>
       </div>
-      @if (!v.checkedIn) {
-        <ion-button expand="block" class="checkin-btn" (click)="checkIn()">
-          <ion-icon slot="start" name="location-outline"></ion-icon>
-          Check in with GPS
-        </ion-button>
+
+      @if (!v.checkedIn && !store.dayClosed()) {
+        @if (overrideApproved()) {
+          <ion-button expand="block" class="checkin-btn" (click)="checkInWithOverride()">
+            <ion-icon slot="start" name="shield-checkmark-outline"></ion-icon>
+            Override approved — Check in
+          </ion-button>
+        } @else if (overridePending(); as p) {
+          <p class="checkin-note">
+            <ion-spinner name="dots"></ion-spinner>
+            {{ p.detail }}. Actions unlock once your supervisor approves.
+          </p>
+        } @else {
+          <ion-button expand="block" class="checkin-btn" [disabled]="checking()" (click)="checkIn()">
+            @if (checking()) {
+              <ion-spinner slot="start" name="crescent"></ion-spinner>
+              {{ geofenceRequired() ? 'Finding your location…' : 'Checking in…' }}
+            } @else {
+              <ion-icon slot="start" name="location-outline"></ion-icon>
+              {{ geofenceRequired() ? 'Check in with GPS' : 'Check in' }}
+            }
+          </ion-button>
+        }
       }
 
       <div class="van-hr"></div>
@@ -37,16 +69,33 @@
         </ds-pill>
       </div>
 
+      @if (customer(); as c) {
+        <div class="van-row">
+          <span class="van-label">Price list</span>
+          <span class="van-value">{{ c.priceGroup }}</span>
+        </div>
+        <div class="van-row">
+          <span class="van-label">Tax document</span>
+          <span class="van-value">{{ taxDocLabel() }}</span>
+        </div>
+        @if (c.loyalty; as l) {
+          <div class="van-row">
+            <span class="van-label">Loyalty</span>
+            <span class="van-value">{{ l.tier }} · <span class="van-mono">{{ round(l.points) }}</span> pts</span>
+          </div>
+        }
+      }
+
       @if (isCredit()) {
         <div class="van-row">
           <span class="van-label">Open balance</span>
-          <span class="van-value" [class.neg]="v.balance > 0" [class.pos]="v.balance === 0">
-            {{ round(v.balance) }}
+          <span class="van-value van-mono" [class.neg]="balance() > 0" [class.pos]="balance() === 0">
+            {{ round(balance()) }}
           </span>
         </div>
         <div class="van-row">
           <span class="van-label">Credit limit</span>
-          <span class="van-value">{{ round(v.limit) }}</span>
+          <span class="van-value van-mono">{{ round(limit()) }}</span>
         </div>
         <ds-progress
           class="credit-bar"
@@ -56,34 +105,87 @@
           [labelRight]="'Available ' + round(available())">
         </ds-progress>
       } @else {
+        @if (balance() > 0) {
+          <div class="van-row">
+            <span class="van-label">Open balance</span>
+            <span class="van-value van-mono neg">{{ round(balance()) }}</span>
+          </div>
+        }
         <p class="van-hint" style="text-align:start">Cash customer — invoices are settled on the spot.</p>
       }
     </div>
 
     <!-- ── Actions ────────────────────────────────────────────── -->
     <div class="action-grid">
-      <button type="button" class="action sell" [disabled]="!v.checkedIn" (click)="sell()">
-        <ion-icon name="receipt-outline"></ion-icon>
-        <span>Sell / Invoice</span>
-      </button>
-      <button type="button" class="action collect" [disabled]="!v.checkedIn || v.balance <= 0" (click)="collect()">
-        <ion-icon name="cash-outline"></ion-icon>
-        <span>Collect</span>
-      </button>
-      <button type="button" class="action return" [disabled]="!v.checkedIn" (click)="return()">
-        <ion-icon name="arrow-undo-outline"></ion-icon>
-        <span>Return</span>
-      </button>
-      <button type="button" class="action nosale" [disabled]="!v.checkedIn" (click)="endWithoutSale()">
-        <ion-icon name="close-circle-outline"></ion-icon>
-        <span>No sale</span>
-      </button>
+      @for (a of actions(); track a.key) {
+        <button type="button" class="action {{ a.tone }}"
+                [disabled]="locked() || a.disabled" (click)="runAction(a)">
+          @if (a.badge) {
+            <span class="action-badge" [class.done]="a.badge === 'Done'">{{ a.badge }}</span>
+          }
+          <ion-icon [name]="a.icon"></ion-icon>
+          <span>{{ a.label }}</span>
+        </button>
+      }
     </div>
 
-    @if (!v.checkedIn) {
+    @if (store.dayClosed()) {
+      <p class="van-hint">The day is closed. Visits open again tomorrow.</p>
+    } @else if (!v.checkedIn) {
       <p class="van-hint">Check in to unlock the visit actions.</p>
+    }
+
+    <!-- ── Today's documents ──────────────────────────────────── -->
+    @if (todaysDocs().length) {
+      <div class="van-card">
+        <p class="van-section-title">Today's documents</p>
+        @for (d of todaysDocs(); track d.id) {
+          <button type="button" class="doc-row" (click)="openDoc(d.id)">
+            <span class="doc-main">
+              <span class="doc-type">{{ docLabel(d.type) }}</span>
+              <span class="doc-id van-mono">{{ d.id }} · {{ docTime(d.createdAt) }}</span>
+            </span>
+            <span class="van-value van-mono">{{ round(d.total) }}</span>
+            <ion-icon class="doc-chev" name="chevron-forward"></ion-icon>
+          </button>
+        }
+      </div>
     }
 
     <div class="content-footer-space"></div>
   }
+
+  <!-- ── Check-in sheet (F13) ───────────────────────────────── -->
+  <ion-modal
+    [isOpen]="!!sheet()"
+    [initialBreakpoint]="0.45"
+    [breakpoints]="[0, 0.45, 0.7]"
+    (didDismiss)="closeSheet()">
+    <ng-template>
+      <div class="sheet">
+        @if (sheet(); as s) {
+          @if (s.kind === 'outside') {
+            <ion-icon class="sheet-icon" name="navigate-circle-outline"></ion-icon>
+            <h2 class="sheet-title">You're {{ metres(s.distance) }} from the customer</h2>
+            <p class="sheet-text">
+              Check-in works within {{ metres(store.repSetup()?.geofenceRadiusM ?? 100) }}. Move closer and try again,
+              or ask your supervisor to approve this check-in.
+            </p>
+          } @else {
+            <ion-icon class="sheet-icon" name="location-outline"></ion-icon>
+            <h2 class="sheet-title">No GPS position</h2>
+            <p class="sheet-text">
+              The device couldn't find your location. Check that location is on and try again,
+              or ask your supervisor to approve this check-in.
+            </p>
+          }
+          <ion-button expand="block" class="sheet-primary" (click)="requestOverride()">
+            <ion-icon slot="start" name="shield-outline"></ion-icon>
+            Request supervisor override
+          </ion-button>
+          <ion-button expand="block" fill="clear" (click)="checkIn()">Try again</ion-button>
+        }
+      </div>
+    </ng-template>
+  </ion-modal>
 </ion-content>

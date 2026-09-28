@@ -43,4 +43,19 @@ export const environment = {
    * or document scanning reports itself as unconfigured.
    */
   ocrApiBaseUrl: '',
+
+  /**
+   * Van Sales backend (VAN_SALES_UPDATE_SPEC.md §6.4). `mock` runs the whole
+   * cycle against an in-memory D365; `http` goes to the real one through the
+   * portal. With `http`, API numbers listed in `vanSalesMockEndpoints` still
+   * use the mock — switch the X++ services on one at a time as they ship.
+   */
+  vanSalesApi: 'mock' as 'http' | 'mock',
+  vanSalesMockEndpoints: [] as number[],
+
+  /** The ETA e-receipt middleware (#43). Empty until the backend team names it. */
+  etaMiddlewareBaseUrl: '',
+
+  /** Dev-only helpers in Van Sales: role switcher, offline and geofence simulation. */
+  devTools: false,
 };

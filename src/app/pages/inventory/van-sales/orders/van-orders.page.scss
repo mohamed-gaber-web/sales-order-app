@@ -1,0 +1,87 @@
+@import '../van-shared.scss';
+
+.stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 12px 14px 0;
+}
+
+.hint-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: calc(100% - 28px);
+  text-align: start;
+  font: inherit;
+  cursor: pointer;
+
+  > ion-icon:first-child { font-size: 22px; color: var(--gp-navy); flex-shrink: 0; }
+}
+
+.hint-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+  color: var(--gp-text-muted, #6b7280);
+
+  strong { font-size: 14px; color: var(--ion-text-color, #16233c); }
+}
+
+.chev { font-size: 16px; color: var(--gp-text-muted, #6b7280); }
+
+.chips {
+  display: flex;
+  gap: 8px;
+  padding-inline: 14px;
+  margin-top: 4px;
+}
+
+.chip {
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--gp-border);
+  background: var(--gp-card-bg);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gp-text-muted, #6b7280);
+  cursor: pointer;
+
+  &.on {
+    background: var(--gp-navy);
+    border-color: var(--gp-navy);
+    color: #fff;
+  }
+}
+
+.order-card { padding: 0; }
+
+.order-head {
+  display: block;
+  width: 100%;
+  padding: 14px;
+  border: none;
+  background: transparent;
+  text-align: start;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.cust {
+  font-size: 14px;
+  color: var(--ion-text-color, #16233c);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.order-card .van-hr { margin: 0 14px 10px; }
+
+.line {
+  padding-inline: 14px;
+  &:last-child { padding-bottom: 14px; }
+  em { font-style: normal; color: var(--gp-accent); font-size: 11px; margin-inline-start: 4px; }
+}

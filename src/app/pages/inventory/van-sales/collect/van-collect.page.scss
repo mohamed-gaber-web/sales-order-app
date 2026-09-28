@@ -1,20 +1,171 @@
 @import '../van-shared.scss';
 
+.lock-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #fdf3d7;
+  border-color: #edd3a0;
+  color: #6b5a2a;
+  font-size: 13px;
+  font-weight: 600;
+
+  ion-icon { font-size: 18px; color: #9a6a00; flex-shrink: 0; }
+}
+
 .balance-card {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
   background: #fdecec;
   border-color: #f3c4c4;
+}
+
+.balance-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.customer-name {
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .balance-amount {
   font-size: 20px;
 }
 
-.amount-field {
+.amount-field,
+.wallet-field {
   display: block;
   margin-top: 12px;
+}
+
+.van-input {
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 10px;
+  border: 1px solid var(--gp-border);
+  border-radius: var(--gp-radius-sm);
+  background: var(--gp-card-bg);
+  color: var(--ion-text-color, #16233c);
+  font-size: 14px;
+  text-align: start;
+
+  &:focus {
+    outline: none;
+    border-color: var(--gp-navy);
+  }
+}
+
+.cheque-card {
+  &.invalid { border-color: #f3c4c4; }
+}
+
+.cheque-head {
+  margin-bottom: 10px;
+}
+
+.cheque-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+  }
+}
+
+.cheque-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+
+  .van-quick {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px;
+    border-radius: var(--gp-radius-sm);
+    border: 1px solid var(--gp-border);
+    background: var(--gp-card-bg);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--gp-navy);
+    cursor: pointer;
+  }
+}
+
+.photo {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  img {
+    width: 56px;
+    height: 36px;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 1px solid var(--gp-border);
+  }
+}
+
+.link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border: none;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--gp-navy);
+  cursor: pointer;
+
+  &.danger { color: var(--ion-color-danger, #d92d20); }
+  ion-icon { font-size: 16px; }
+}
+
+.add-cheque {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: calc(100% - 28px);
+  margin: 0 14px;
+  padding: 12px;
+  border: 1px dashed var(--gp-navy);
+  border-radius: var(--gp-radius-md);
+  background: transparent;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gp-navy);
+  cursor: pointer;
+
+  ion-icon { font-size: 18px; }
+}
+
+.field-error {
+  font-size: 12px;
+  color: var(--ion-color-danger, #d92d20);
+  margin: 8px 0 0;
+}
+
+.van-hint.start {
+  text-align: start;
+  margin-inline: 0;
 }
 
 .van-row .van-label {

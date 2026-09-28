@@ -1,0 +1,181 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/inventory/van-sales"></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ doc() ? typeLabel[doc()!.type] : 'Receipt' }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="van-content">
+  <ion-refresher slot="fixed" (ionRefresh)="onRefresh($any($event))">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  @if (doc(); as d) {
+    <!-- Paper -->
+    <article class="paper">
+      <header class="paper-head">
+        <strong class="company">{{ company() || 'Van sales' }}</strong>
+        @if (rep(); as r) {
+          <span>Rep {{ r.workerName }} · Van {{ r.vanWarehouse }}</span>
+          @if (r.deviceSerial) { <span class="van-mono">POS {{ r.deviceSerial }}</span> }
+        }
+      </header>
+
+      <div class="dash"></div>
+
+      <div class="doc-title">
+        <span class="kind">{{ typeLabel[d.type] }}</span>
+        <span class="van-mono num">{{ d.id }}</span>
+      </div>
+      <div class="kv"><span>Date</span><span class="van-mono">{{ when(d.createdAt) }}</span></div>
+      <div class="kv"><span>Customer</span><span class="van-mono">{{ d.customerId }}</span></div>
+      <div class="cust-name">{{ d.customerName }}</div>
+      @if (d.payMode) {
+        <div class="kv"><span>Payment</span><span>{{ d.payMode === 'CASH' ? 'Cash' : 'Credit' }}</span></div>
+      }
+
+      @if (d.lines.length) {
+        <div class="dash"></div>
+        @for (l of d.lines; track l.itemId) {
+          <div class="line">
+            <div class="line-name">{{ l.name }}</div>
+            <div class="kv">
+              <span class="van-mono">{{ num(l.qty) }} × {{ money(l.unitPrice) }}</span>
+              <span class="van-mono">{{ money(l.net) }}</span>
+            </div>
+            @if (l.lineDiscount > 0) {
+              <div class="kv sub"><span>Discount</span><span class="van-mono">−{{ money(l.lineDiscount) }}</span></div>
+            }
+            @if (l.freeQty > 0) {
+              <div class="sub free">+ {{ num(l.freeQty) }} free</div>
+            }
+            @if (l.promoLabel) {
+              <div class="sub promo">{{ l.promoLabel }}</div>
+            }
+          </div>
+        }
+      }
+
+      @if (d.type === 'RECEIPT') {
+        <div class="dash"></div>
+        @if (d.paymentMethod) {
+          <div class="kv"><span>Method</span><span>{{ methodLabel[d.paymentMethod] }}</span></div>
+        }
+        @if (d.walletRef) {
+          <div class="kv"><span>Wallet ref</span><span class="van-mono">{{ d.walletRef }}</span></div>
+        }
+        @for (c of d.cheques ?? []; track c.bank + c.number) {
+          <div class="line">
+            <div class="kv"><span>{{ c.bank }} <span class="van-mono">#{{ c.number }}</span></span><span class="van-mono">{{ money(c.amount) }}</span></div>
+            <div class="sub">Due {{ c.dueDate }}</div>
+          </div>
+        }
+        @if (d.settlement?.length) {
+          <div class="sub-title">Settled</div>
+          @for (s of d.settlement!; track s.invoiceId) {
+            <div class="kv sub"><span class="van-mono">{{ s.invoiceId }}</span><span class="van-mono">{{ money(s.amount) }}</span></div>
+          }
+        }
+      }
+
+      @if (d.type === 'RETURN') {
+        <div class="dash"></div>
+        @if (d.reasonText || d.reasonCode) {
+          <div class="kv"><span>Reason</span><span>{{ d.reasonText || d.reasonCode }}</span></div>
+        }
+        @if (d.disposition) {
+          <div class="kv"><span>Goes to</span><span>{{ dispositionLabel[d.disposition] }}</span></div>
+        }
+        @if (d.originalInvoice) {
+          <div class="kv"><span>Original invoice</span><span class="van-mono">{{ d.originalInvoice }}</span></div>
+        }
+      }
+
+      @if (d.type === 'DELIVERY') {
+        <div class="dash"></div>
+        @if (d.salesId) {
+          <div class="kv"><span>Sales order</span><span class="van-mono">{{ d.salesId }}</span></div>
+        }
+        @if (d.rejectReason) {
+          <div class="kv"><span>Short reason</span><span>{{ d.rejectReason }}</span></div>
+        }
+        <div class="kv"><span>Proof of delivery</span><span>{{ d.signatureId ? 'Signed' : 'Not signed' }}</span></div>
+        @if (signatureUrl(); as sig) {
+          <img class="signature" [src]="sig" alt="Customer signature" />
+        }
+      }
+
+      <div class="dash"></div>
+      @if (d.type !== 'RECEIPT') {
+        <div class="kv"><span>Gross</span><span class="van-mono">{{ money(d.gross) }}</span></div>
+        @if (d.discounts > 0) {
+          <div class="kv"><span>Discounts</span><span class="van-mono">−{{ money(d.discounts) }}</span></div>
+        }
+        <div class="kv"><span>Net</span><span class="van-mono">{{ money(d.net) }}</span></div>
+        <div class="kv"><span>VAT</span><span class="van-mono">{{ money(d.vat) }}</span></div>
+      }
+      <div class="kv total">
+        <span>{{ d.type === 'RECEIPT' ? 'Amount received' : 'Total' }}</span>
+        <span class="van-mono">{{ money(d.total) }} {{ store.currency() }}</span>
+      </div>
+      @if (d.pointsEarned) {
+        <div class="kv"><span>Points earned</span><span class="van-mono">+{{ num(d.pointsEarned) }}</span></div>
+      }
+      @if (d.pointsRedeemed) {
+        <div class="kv"><span>Points redeemed</span><span class="van-mono">−{{ num(d.pointsRedeemed) }}</span></div>
+      }
+      @if (d.type === 'ORDER') {
+        <p class="note">Order confirmation — not a tax document.</p>
+      }
+    </article>
+
+    <!-- E-document -->
+    @if (d.taxDocKind) {
+      <div class="van-card edoc">
+        <div class="van-row">
+          <span class="van-value">{{ taxDocLabel[d.taxDocKind] }}</span>
+          <ds-pill [label]="eDocLabel[d.eDocStatus]" [color]="eDocPill[d.eDocStatus].color" [bg]="eDocPill[d.eDocStatus].bg"></ds-pill>
+        </div>
+        @if (d.etaUuid) {
+          <div class="uuid van-mono">{{ d.etaUuid }}</div>
+        }
+        @if (qrDataUrl(); as qr) {
+          <img class="qr" [src]="qr" alt="E-document QR code" />
+        } @else {
+          <p class="van-hint">QR appears once the document is validated. Pull down to refresh.</p>
+        }
+      </div>
+    }
+
+    <!-- Output -->
+    <div class="out-actions">
+      <ds-button variant="outline" icon="print-outline" label="Print receipt" [loading]="printing()" (btnClick)="print()"></ds-button>
+      <ds-button variant="outline" icon="share-outline" label="Share PDF" [loading]="sharing()" (btnClick)="sharePdf()"></ds-button>
+    </div>
+
+    <div class="content-footer-space"></div>
+  } @else {
+    <ds-empty-state
+      icon="document-outline"
+      title="Document not found"
+      message="It isn't stored on this device."
+      buttonLabel="Back to route"
+      (buttonClick)="nextStop()">
+    </ds-empty-state>
+  }
+</ion-content>
+
+@if (doc()) {
+  <ion-footer class="ion-no-border">
+    <ds-cta-bar
+      label="Next stop"
+      icon="arrow-forward-outline"
+      secondaryLabel="Back to visit"
+      secondaryIcon="arrow-back-outline"
+      (ctaClick)="nextStop()"
+      (secondaryClick)="backToVisit()">
+    </ds-cta-bar>
+  </ion-footer>
+}

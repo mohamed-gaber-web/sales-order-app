@@ -1,8 +1,9 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { ToastController } from '@ionic/angular';
-import { VanDayService } from '../../../../core/services/van-day.service';
-import { VanFieldOpsService } from '../../../../core/services/van-field-ops.service';
+import { DeviceLocationService } from '../../../../core/services/device-location.service';
+import { GeoPoint } from '../../../../models/van-journey.model';
+import { NetworkStatusService, VanTransactionsService } from '../../../../core/van-sales';
 
 type PaymentMode = 'COD' | 'Credit';
 
@@ -11,15 +12,12 @@ const REQUIRED_DOCS = ['Commercial registration', 'Tax card', 'National address'
 type RequiredDoc = (typeof REQUIRED_DOCS)[number];
 
 /**
- * Submit a request to onboard a new customer.
+ * Submit a request to onboard a new customer (API #35).
  *
- * On submit this posts `POST /data/CustomerPaymentJournalHeaders`, opening a
- * `CustPay` journal batch. That is what was specified, and it is worth stating
- * plainly what it does and does not do: it creates an empty payment batch. The
- * form's name, phone, tax number and attachments are validated here but are not
- * carried by that entity, and no customer account is created — onboarding is
- * `CustomersV3` plus `GPCustomerRequestService/submit`, still scaffolded on
- * `VanFieldOpsService.submitCustomerRequest`.
+ * Goes through the van-sales outbox, so a request raised with no signal is
+ * kept on the device and sent when the van is back online. The request id is
+ * minted on the device and shown to the rep, so they can quote it to Finance
+ * before D365 has even seen it.
  */
 @Component({
   selector: 'app-van-new-customer',
@@ -31,8 +29,9 @@ type RequiredDoc = (typeof REQUIRED_DOCS)[number];
 export class VanNewCustomerPage {
   private router = inject(Router);
   private toastCtrl = inject(ToastController);
-  private fieldOps = inject(VanFieldOpsService);
-  private day = inject(VanDayService);
+  private tx = inject(VanTransactionsService);
+  private network = inject(NetworkStatusService);
+  private location = inject(DeviceLocationService);
 
   readonly docs = REQUIRED_DOCS;
 
@@ -40,7 +39,9 @@ export class VanNewCustomerPage {
   readonly phone = signal('');
   readonly taxNumber = signal('');
   readonly address = signal('');
-  readonly gpsCaptured = signal(false);
+  readonly position = signal<GeoPoint | null>(null);
+  readonly locating = signal(false);
+  readonly gpsCaptured = computed(() => this.position() !== null);
   readonly paymentMode = signal<PaymentMode>('COD');
   readonly attached = signal<ReadonlySet<RequiredDoc>>(new Set());
   readonly isPosting = signal(false);
@@ -61,7 +62,13 @@ export class VanNewCustomerPage {
   }
 
   captureGps() {
-    this.gpsCaptured.set(true);
+    if (this.locating()) return;
+    this.locating.set(true);
+    this.location.getCurrent().subscribe((fix) => {
+      this.locating.set(false);
+      if (fix) this.position.set(fix);
+      else this.toast("Couldn't get a GPS fix. You can still submit.", 'danger');
+    });
   }
 
   isAttached(doc: RequiredDoc): boolean {
@@ -81,28 +88,32 @@ export class VanNewCustomerPage {
     if (!this.canSubmit()) return;
 
     this.isPosting.set(true);
-    this.fieldOps.createPaymentJournalHeader().subscribe({
-      next: (header) => {
-        this.day.addCustomerRequest();
-        this.isPosting.set(false);
-        const batch = header?.JournalBatchNumber;
-        this.toast(
-          batch ? `Payment journal ${batch} created` : 'Payment journal created',
-          'success'
-        );
-        this.router.navigate(['/inventory/van-sales']);
-      },
-      error: () => {
-        this.isPosting.set(false);
-        this.toast("Couldn't create the payment journal. Try again.", 'danger');
-      },
+    const pos = this.position();
+    const requestId = this.tx.submitCustomerRequest({
+      Name: this.name().trim(),
+      Phone: this.phone().trim(),
+      TaxNumber: this.taxNumber().trim(),
+      Address: this.address().trim(),
+      PaymentTerms: this.paymentMode() === 'Credit' ? 'CREDIT' : 'CASH',
+      Documents: [...this.attached()],
+      Lat: pos?.lat ?? null,
+      Lon: pos?.lng ?? null,
     });
+    this.isPosting.set(false);
+
+    this.toast(
+      this.network.online()
+        ? `Request ${requestId} sent for review`
+        : `Request ${requestId} queued — sends when online`,
+      'success'
+    );
+    this.router.navigate(['/inventory/van-sales']);
   }
 
   private async toast(message: string, color: 'success' | 'danger') {
     const toast = await this.toastCtrl.create({
       message,
-      duration: color === 'success' ? 2200 : 3000,
+      duration: color === 'success' ? 2600 : 3000,
       position: 'top',
       color,
     });

@@ -1,0 +1,57 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/inventory/van-sales"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Deliveries</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="van-content">
+  <div class="stats">
+    <ds-stat label="To deliver" [value]="toDeliver()" [highlighted]="toDeliver() > 0"></ds-stat>
+    <ds-stat label="Orders" [value]="store.orders().length"></ds-stat>
+  </div>
+
+  @if (store.dayClosed()) {
+    <p class="van-hint">Day closed — deliveries are locked.</p>
+  }
+
+  @for (g of groups(); track g.customerId) {
+    <div class="van-card group">
+      <div class="group-head">
+        <div class="group-name">
+          <span class="van-value">{{ g.name }}</span>
+          @if (g.address) { <span class="van-label">{{ g.address }}</span> }
+        </div>
+        @if (g.ready) {
+          <span class="ready-count">{{ g.ready }} to deliver</span>
+        }
+      </div>
+
+      @for (row of g.rows; track row.order.salesId) {
+        <button type="button" class="order" (click)="open(row)">
+          <div class="order-main">
+            <span class="van-value van-mono">{{ row.order.salesId }}</span>
+            <span class="van-label">
+              {{ row.order.lines.length }} {{ row.order.lines.length === 1 ? 'line' : 'lines' }} · {{ row.qty }} pcs · Ship {{ row.order.requestedShipDate }}
+            </span>
+          </div>
+          <div class="order-side">
+            <ds-pill [label]="row.status.label" [color]="row.status.color" [bg]="row.status.bg"></ds-pill>
+            <span class="van-value van-mono">{{ money(row.total) }}</span>
+          </div>
+          <ion-icon class="chev" [name]="row.order.status === 'READY' ? 'chevron-forward-outline' : 'receipt-outline'"></ion-icon>
+        </button>
+      }
+    </div>
+  } @empty {
+    <ds-empty-state
+      icon="cube-outline"
+      title="No orders to deliver"
+      message="Pre-sold orders for your route appear here after a refresh.">
+    </ds-empty-state>
+  }
+
+  <div class="content-footer-space"></div>
+</ion-content>

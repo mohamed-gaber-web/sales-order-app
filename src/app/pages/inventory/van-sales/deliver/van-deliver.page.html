@@ -1,0 +1,174 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/inventory/van-sales/deliveries"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Deliver {{ salesId() }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="van-content">
+  @if (order(); as o) {
+    @if (!deliverable()) {
+      <ds-empty-state
+        icon="checkmark-done-outline"
+        title="Nothing to deliver"
+        message="This order is no longer ready for delivery."
+        buttonLabel="Back to deliveries"
+        (buttonClick)="back()">
+      </ds-empty-state>
+    } @else {
+      @if (store.dayClosed()) {
+        <div class="van-card locked">
+          <ion-icon name="lock-closed-outline"></ion-icon>
+          <span>Day closed — deliveries are locked until tomorrow.</span>
+        </div>
+      }
+
+      <!-- Customer -->
+      <div class="van-card">
+        <div class="van-row">
+          <span class="van-value">{{ customer()?.name || o.customerId }}</span>
+          <span class="van-label van-mono">{{ o.customerId }}</span>
+        </div>
+        <div class="van-row">
+          <span class="van-label">Requested ship date</span>
+          <span class="van-value">{{ o.requestedShipDate }}</span>
+        </div>
+        <div class="van-row">
+          <span class="van-label">Delivering</span>
+          <span class="van-value van-mono" [class.neg]="anyShort()">{{ deliveredQty() }} / {{ orderedQty() }}</span>
+        </div>
+      </div>
+
+      <!-- Lines -->
+      <div class="van-card">
+        <p class="van-section-title">Lines</p>
+        @for (l of lines(); track l.itemId) {
+          <div class="line" [class.short]="l.qty < l.ordered">
+            <div class="line-info">
+              <span class="van-value">{{ l.name }}</span>
+              <span class="van-label">
+                Ordered {{ l.ordered }}
+                @if (l.freeQty) { · +{{ l.freeQty }} free }
+                · Van {{ l.stock }}
+              </span>
+              @if (l.stockShort) {
+                <span class="warn"><ion-icon name="warning-outline"></ion-icon> Only {{ l.stock }} on the van</span>
+              }
+            </div>
+            <div class="stepper">
+              <button type="button" aria-label="Less" [disabled]="l.qty <= 0 || store.dayClosed()" (click)="step(l.itemId, -1)">
+                <ion-icon name="remove-outline"></ion-icon>
+              </button>
+              <input
+                class="van-mono"
+                type="text"
+                inputmode="numeric"
+                [attr.aria-label]="'Delivered quantity for ' + l.name"
+                [value]="l.qty"
+                [disabled]="store.dayClosed()"
+                (change)="onQtyInput(l.itemId, $any($event.target).value)" />
+              <button type="button" aria-label="More" [disabled]="l.qty >= l.ordered || store.dayClosed()" (click)="step(l.itemId, 1)">
+                <ion-icon name="add-outline"></ion-icon>
+              </button>
+            </div>
+          </div>
+        }
+        @if (anyStockShort()) {
+          <p class="van-hint start">Van stock is short on some lines. Deliver only what is on the van.</p>
+        }
+      </div>
+
+      <!-- Reject reason -->
+      @if (anyShort()) {
+        <div class="van-card">
+          <ds-form-field label="Reason for short delivery" [required]="true" [showError]="!finalReason()" errorMessage="Required when a line is short">
+            <select class="select" [ngModel]="rejectReason()" (ngModelChange)="rejectReason.set($event)">
+              <option value="" disabled>Pick a reason</option>
+              @for (r of reasons; track r) {
+                <option [value]="r">{{ r }}</option>
+              }
+            </select>
+          </ds-form-field>
+          @if (rejectReason() === 'Other') {
+            <ds-form-field label="Describe" [required]="true" class="other">
+              <input
+                class="text"
+                type="text"
+                maxlength="120"
+                placeholder="What happened?"
+                [ngModel]="otherText()"
+                (ngModelChange)="otherText.set($event)" />
+            </ds-form-field>
+          }
+          <p class="van-hint start">Undelivered quantity stays on the van.</p>
+        </div>
+      }
+
+      <!-- Payment -->
+      <div class="van-card">
+        <p class="van-section-title">Payment</p>
+        <div class="van-seg">
+          <button type="button" [class.on]="payMode() === 'CASH'" (click)="payMode.set('CASH')">
+            <ion-icon name="cash-outline"></ion-icon> Cash
+          </button>
+          @if (!cashOnly()) {
+            <button type="button" [class.on]="payMode() === 'CREDIT'" (click)="payMode.set('CREDIT')">
+              <ion-icon name="card-outline"></ion-icon> Credit
+            </button>
+          }
+        </div>
+        @if (cashOnly()) {
+          <p class="van-hint start">Cash customer — paid on delivery.</p>
+        }
+
+        <div class="van-hr"></div>
+        <div class="van-row">
+          <span class="van-label">Net</span>
+          <span class="van-value van-mono">{{ money(totals().net) }}</span>
+        </div>
+        <div class="van-row">
+          <span class="van-label">VAT</span>
+          <span class="van-value van-mono">{{ money(totals().vat) }}</span>
+        </div>
+        <div class="van-row total">
+          <span class="van-value">Total</span>
+          <span class="van-value van-mono">{{ money(totals().total) }} {{ store.currency() }}</span>
+        </div>
+      </div>
+
+      <!-- Signature -->
+      <div class="van-card">
+        <p class="van-section-title">Proof of delivery</p>
+        <app-van-signature-pad [disabled]="store.dayClosed()" (signatureChange)="onSignature($event)"></app-van-signature-pad>
+      </div>
+
+      @if (blocker(); as b) {
+        <p class="van-hint">{{ b }}</p>
+      }
+
+      <div class="content-footer-space"></div>
+    }
+  } @else {
+    <ds-empty-state
+      icon="search-outline"
+      title="Order not found"
+      [message]="'No order ' + salesId() + ' on this device.'"
+      buttonLabel="Back to deliveries"
+      (buttonClick)="back()">
+    </ds-empty-state>
+  }
+</ion-content>
+
+@if (order() && deliverable()) {
+  <ion-footer class="ion-no-border">
+    <ds-cta-bar
+      label="Confirm delivery"
+      icon="checkmark-done-outline"
+      [loading]="posting()"
+      [disabled]="!canConfirm()"
+      (ctaClick)="confirm()">
+    </ds-cta-bar>
+  </ion-footer>
+}

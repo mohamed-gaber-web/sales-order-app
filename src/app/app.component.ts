@@ -13,6 +13,7 @@ import {
   UserAuthService,
 } from './core';
 import { MENU_GROUPS, MenuGroup } from './app-menu';
+import { VanRoleService } from './core/van-sales/van-role.service';
 
 @Component({
   selector: 'app-root',
@@ -32,6 +33,7 @@ export class AppComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   currentUrl = '';
   private readonly tenantConfig = inject(TenantConfigStore);
+  private readonly vanRole = inject(VanRoleService);
 
   /**
    * The menu this tenant actually has.
@@ -49,7 +51,12 @@ export class AppComponent implements OnInit, OnDestroy {
    * rather than appearing for everybody.
    */
   readonly visibleGroups = computed(() =>
-    MENU_GROUPS.filter(group => this.tenantConfig.hasModule(group.moduleKey)),
+    MENU_GROUPS.filter(group => this.tenantConfig.hasModule(group.moduleKey)).map(group => ({
+      ...group,
+      // Inside a group, an item tied to van-sales actions shows only to a role
+      // that may take one of them — a collector has no business in Deliveries.
+      items: group.items.filter(item => !item.vanActions || item.vanActions.some(a => this.vanRole.can(a))),
+    })),
   );
 
   /**

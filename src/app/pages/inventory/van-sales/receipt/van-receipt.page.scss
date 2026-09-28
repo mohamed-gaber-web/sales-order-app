@@ -1,0 +1,176 @@
+@import '../van-shared.scss';
+
+// A receipt roll on the screen: white in both themes, like the paper it prints on.
+.paper {
+  background: #ffffff;
+  color: #121c30;
+  margin: 12px auto;
+  max-width: 400px;
+  width: calc(100% - 28px);
+  padding: 18px 16px 20px;
+  border-radius: 4px;
+  box-shadow: var(--gp-shadow-md);
+  font-size: 13px;
+}
+
+.paper-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  text-align: center;
+  color: #4b5563;
+  font-size: 12px;
+
+  .company {
+    font-size: 15px;
+    color: #002559;
+  }
+}
+
+.dash {
+  border-top: 1px dashed #c9ced8;
+  margin: 12px 0;
+}
+
+.doc-title {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  margin-bottom: 8px;
+
+  .kind {
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #002559;
+  }
+
+  .num {
+    font-size: 15px;
+    font-weight: 700;
+  }
+}
+
+.kv {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  padding: 2px 0;
+
+  span:first-child {
+    text-align: start;
+    color: #4b5563;
+  }
+
+  span:last-child {
+    text-align: end;
+    font-weight: 600;
+  }
+}
+
+.cust-name {
+  font-weight: 700;
+  text-align: start;
+  margin: 2px 0 4px;
+}
+
+.line + .line {
+  margin-top: 8px;
+}
+
+.line-name {
+  font-weight: 600;
+  text-align: start;
+}
+
+.sub {
+  font-size: 12px;
+  color: #6b7280;
+  padding-inline-start: 10px;
+  text-align: start;
+}
+
+.sub.kv {
+  padding-inline-start: 10px;
+}
+
+.free,
+.promo {
+  color: #0e6f4e;
+  font-weight: 600;
+}
+
+.sub-title {
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #4b5563;
+  text-align: start;
+}
+
+.total {
+  font-size: 16px;
+  margin-top: 4px;
+
+  span:first-child,
+  span:last-child {
+    color: #002559;
+    font-weight: 800;
+  }
+}
+
+.note {
+  margin: 12px 0 0;
+  text-align: center;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.signature {
+  display: block;
+  width: 100%;
+  max-height: 120px;
+  object-fit: contain;
+  margin-top: 8px;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+}
+
+.edoc {
+  .uuid {
+    margin-top: 10px;
+    font-size: 11px;
+    word-break: break-all;
+    color: var(--gp-text-muted, #6b7280);
+    text-align: start;
+  }
+
+  .van-hint {
+    text-align: start;
+    margin: 8px 0 0;
+  }
+}
+
+.qr {
+  display: block;
+  width: 180px;
+  height: 180px;
+  margin: 12px auto 0;
+  background: #ffffff;
+  border-radius: 4px;
+}
+
+.out-actions {
+  display: flex;
+  gap: 10px;
+  margin: 4px 14px 0;
+
+  ds-button {
+    flex: 1;
+    display: block;
+  }
+}

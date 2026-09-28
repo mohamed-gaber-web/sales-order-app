@@ -1,22 +1,59 @@
 @import '../van-shared.scss';
 
-.outbox-head {
+.head {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 8px;
   margin-bottom: 10px;
+
+  .van-section-title { margin: 0; }
+}
+
+.link {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gp-navy);
+  text-decoration: none;
 }
 
 .sync-btn {
-  margin-top: 12px;
-  --background: var(--gp-navy);
-  --border-radius: var(--gp-radius-sm);
+  display: block;
+  margin-top: 14px;
 }
 
-.kpi-card {
-  background: #f6f8fc;
-  border-color: #c9dbfb;
+.failed-card {
+  border-color: #f5c2bd;
 }
+
+.failed-row,
+.cheque-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-block: 10px;
+
+  & + & { border-top: 1px solid var(--gp-border); }
+}
+
+.cheque-row { padding-block: 8px; }
+
+.failed-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+
+  .err { color: var(--ion-color-danger, #d92d20); }
+}
+
+.cash-field {
+  display: block;
+  margin-top: 12px;
+}
+
+.variance { margin-top: 12px; }
 
 .closed-card {
   text-align: center;
@@ -26,4 +63,12 @@
   ion-icon { font-size: 40px; color: var(--ion-color-success, #0e9f6e); }
   .closed-title { font-size: 17px; font-weight: 700; color: #0e6f4e; margin: 6px 0 2px; }
   .closed-sub { font-size: 13px; color: #4b6b5c; margin: 0; }
+  .closed-rows { margin: 12px 0; text-align: start; }
+}
+
+:host-context(body.ion-palette-dark) .closed-card {
+  background: rgba(14, 159, 110, 0.12);
+  border-color: rgba(14, 159, 110, 0.35);
+
+  .closed-title, .closed-sub { color: var(--ion-color-success, #0e9f6e); }
 }

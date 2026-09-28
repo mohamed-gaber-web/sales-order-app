@@ -1,0 +1,134 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button [defaultHref]="'/inventory/van-sales/visit/' + (visit()?.id ?? '')"></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ survey()?.name || 'Survey' }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="van-content">
+  @if (visit(); as v) {
+    @if (survey(); as s) {
+      <div class="van-card">
+        <div class="van-row">
+          <span class="van-value">{{ customer()?.name || v.name }}</span>
+          @if (surveyedToday()) {
+            <ds-pill label="Surveyed today" color="#0e6f4e" bg="#e3f5ec"></ds-pill>
+          }
+        </div>
+        @if (surveyedToday()) {
+          <p class="van-hint start">Saving again sends a new response.</p>
+        }
+      </div>
+
+      @if (store.dayClosed()) {
+        <div class="van-card locked">
+          <ion-icon name="lock-closed-outline"></ion-icon>
+          <span>Day closed — surveys are locked until tomorrow.</span>
+        </div>
+      }
+
+      @for (q of s.questions; track q.id; let i = $index) {
+        <div class="van-card question" [class.missing]="missing().has(q.id)">
+          <div class="q-head">
+            <span class="q-text"><span class="q-no">{{ i + 1 }}.</span> {{ q.text }}</span>
+            @if (q.required) {
+              @if (missing().has(q.id)) {
+                <span class="q-flag req">Required</span>
+              } @else {
+                <ion-icon class="q-flag ok" name="checkmark-circle"></ion-icon>
+              }
+            }
+          </div>
+
+          @switch (q.type) {
+            @case ('YES_NO') {
+              <div class="van-seg">
+                <button type="button" [class.on]="value(q) === true" (click)="setAnswer(q, true)">Yes</button>
+                <button type="button" [class.on]="value(q) === false" (click)="setAnswer(q, false)">No</button>
+              </div>
+            }
+            @case ('CHOICE') {
+              <div class="chips">
+                @for (opt of q.options ?? []; track opt) {
+                  <button type="button" class="chip" [class.on]="value(q) === opt" (click)="setAnswer(q, value(q) === opt ? null : opt)">
+                    {{ opt }}
+                  </button>
+                }
+              </div>
+            }
+            @case ('NUMBER') {
+              <input
+                class="field van-mono"
+                type="text"
+                inputmode="decimal"
+                placeholder="0"
+                [attr.aria-label]="q.text"
+                [value]="value(q) ?? ''"
+                (input)="onNumber(q, $any($event.target).value)" />
+            }
+            @case ('TEXT') {
+              <textarea
+                class="field"
+                rows="3"
+                maxlength="500"
+                placeholder="Type here"
+                [attr.aria-label]="q.text"
+                [ngModel]="value(q) ?? ''"
+                (ngModelChange)="setAnswer(q, $event)"></textarea>
+            }
+            @case ('PHOTO') {
+              <div class="photos">
+                @for (p of photosOf(q); track p; let pi = $index) {
+                  <div class="thumb">
+                    <img [src]="p.dataUrl" alt="Survey photo {{ pi + 1 }}" />
+                    <span class="stamp">{{ time(p.takenAt) }}</span>
+                    <button type="button" class="remove" aria-label="Remove photo" (click)="removePhoto(q, pi)">
+                      <ion-icon name="close"></ion-icon>
+                    </button>
+                  </div>
+                }
+                @if (photosOf(q).length < maxPhotos) {
+                  <button type="button" class="add-photo" [disabled]="capturing() === q.id || store.dayClosed()" (click)="addPhoto(q)">
+                    @if (capturing() === q.id) {
+                      <ion-spinner name="crescent"></ion-spinner>
+                    } @else {
+                      <ion-icon name="camera-outline"></ion-icon>
+                    }
+                    <span>{{ photosOf(q).length ? 'Add' : 'Take photo' }}</span>
+                  </button>
+                }
+              </div>
+            }
+          }
+        </div>
+      }
+
+      @if (missing().size) {
+        <p class="van-hint">{{ missing().size }} required {{ missing().size === 1 ? 'question' : 'questions' }} left.</p>
+      }
+      <div class="content-footer-space"></div>
+    } @else {
+      <ds-empty-state
+        icon="clipboard-outline"
+        title="No survey for this customer"
+        message="There is no survey set up for this customer's group."
+        buttonLabel="Back to visit"
+        (buttonClick)="back()">
+      </ds-empty-state>
+    }
+  }
+</ion-content>
+
+@if (survey()) {
+  <ion-footer class="ion-no-border">
+    <ds-cta-bar
+      [label]="surveyedToday() ? 'Save again' : 'Save survey'"
+      icon="checkmark-circle-outline"
+      [loading]="saving()"
+      [disabled]="!canSave()"
+      (ctaClick)="save()">
+    </ds-cta-bar>
+  </ion-footer>
+}

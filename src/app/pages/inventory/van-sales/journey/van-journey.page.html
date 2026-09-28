@@ -23,6 +23,17 @@
       <div class="hero-route">
         <span class="hero-route-label">Route</span>
         <span class="hero-route-id van-mono">{{ d.routeId }}</span>
+        <span class="hero-role">{{ role.roleLabel() }}@if (role.isOverridden()) { · dev }</span>
+        <button type="button" class="net-pill" [class.offline]="!network.online()"
+                [class.queued]="outbox.pendingCount() > 0" (click)="syncNow()"
+                [attr.aria-label]="networkLabel() + (network.online() ? ' — sync now' : '')">
+          @if (outbox.syncing()) {
+            <ion-spinner name="crescent"></ion-spinner>
+          } @else {
+            <span class="net-dot"></span>
+          }
+          <span>{{ networkLabel() }}</span>
+        </button>
       </div>
       <div class="hero-stats">
         <ds-stat label="Visited" [value]="day.doneCount() + ' / ' + d.kpi.planned"></ds-stat>
@@ -30,6 +41,21 @@
         <ds-stat label="Collected" [value]="(d.kpi.collected | number:'1.0-0') ?? '0'"></ds-stat>
       </div>
     </div>
+
+    @if (store.dayClosed()) {
+      <div class="journey-banner closed">
+        <ion-icon name="lock-closed-outline"></ion-icon>
+        <span>Day closed — visit actions are locked</span>
+      </div>
+    }
+
+    @if (staleRoute()) {
+      <div class="journey-banner stale">
+        <ion-icon name="alert-circle-outline"></ion-icon>
+        <span>This route was saved before the latest data. Reload it to match today's customers.</span>
+        <button type="button" (click)="reloadRoute()">Reload</button>
+      </div>
+    }
 
     <!-- ── Schematic route map ────────────────────────────────── -->
     <div class="journey-map">
@@ -94,8 +120,12 @@
       </p>
     }
 
+    @if (filterNote()) {
+      <p class="route-note filter-note">{{ filterNote() }}</p>
+    }
+
     <div class="stop-list">
-      @for (row of stops(); track row.visit.id) {
+      @for (row of visibleStops(); track row.visit.id) {
         <button type="button" class="stop-card" [class.done]="row.visit.status === 'done'"
                 [class.current]="row.visit.status === 'current'" (click)="openVisit(row.visit)">
           <span class="stop-index" [class.done]="row.visit.status === 'done'"
@@ -114,6 +144,14 @@
                 <ds-pill [label]="pill.label" [color]="pill.color" [bg]="pill.bg"></ds-pill>
               }
             </span>
+            @let stopTags = tags(row.visit);
+            @if (stopTags.length) {
+              <span class="stop-tags">
+                @for (t of stopTags; track t.label) {
+                  <ds-pill [label]="t.label" [color]="t.color" [bg]="t.bg"></ds-pill>
+                }
+              </span>
+            }
             <span class="stop-address">{{ row.visit.address }}</span>
             <span class="stop-sub">
               {{ subtitle(row.visit) }}
@@ -123,7 +161,17 @@
           </span>
           <ion-icon class="stop-chev" name="chevron-forward"></ion-icon>
         </button>
+      } @empty {
+        <ds-empty-state icon="people-outline" title="No stops to show" [message]="emptyMessage()">
+        </ds-empty-state>
       }
+    </div>
+
+    <div class="route-reload">
+      <button type="button" [disabled]="reloading()" (click)="reloadRoute()">
+        @if (reloading()) { <ion-spinner name="crescent"></ion-spinner> }
+        Reload today's route
+      </button>
     </div>
 
     <!-- ── Orders ─────────────────────────────────────────────── -->
@@ -193,6 +241,40 @@
               @let ships = orderDate(o);
               <span class="stop-sub">{{ o.SalesOrderNumber }}@if (ships) { · ships {{ ships }} }</span>
             </span>
+          </div>
+        }
+      </div>
+    }
+
+    @if (devTools.enabled) {
+      <div class="dev-panel">
+        <button type="button" class="dev-head" (click)="devOpen.set(!devOpen())" [attr.aria-expanded]="devOpen()">
+          <ion-icon name="construct-outline"></ion-icon>
+          <span>Dev tools</span>
+          <span class="dev-role">{{ role.roleLabel() }}</span>
+          <ion-icon class="dev-chev" [name]="devOpen() ? 'chevron-up' : 'chevron-down'"></ion-icon>
+        </button>
+        @if (devOpen()) {
+          <div class="dev-body">
+            <p class="van-section-title">Role</p>
+            <div class="dev-roles">
+              @for (r of roles; track r) {
+                <button type="button" class="route-mode" [class.active]="role.isOverridden() && role.role() === r"
+                        (click)="setDevRole(r)">{{ roleLabels[r] }}</button>
+              }
+              <button type="button" class="route-mode" [class.active]="!role.isOverridden()"
+                      (click)="setDevRole(null)">Use setup role</button>
+            </div>
+            <ds-toggle-row title="Simulate offline" icon="cloud-offline-outline"
+                           [checked]="devTools.offline()" (toggleChange)="devTools.setOffline($event)">
+            </ds-toggle-row>
+            <ds-toggle-row title="At customer (skip geofence)" icon="navigate-outline"
+                           [checked]="devTools.atCustomer()" (toggleChange)="devTools.setAtCustomer($event)">
+            </ds-toggle-row>
+            <button type="button" class="dev-reset" (click)="resetDemo()">
+              <ion-icon name="trash-outline"></ion-icon>
+              Reset demo data
+            </button>
           </div>
         }
       </div>

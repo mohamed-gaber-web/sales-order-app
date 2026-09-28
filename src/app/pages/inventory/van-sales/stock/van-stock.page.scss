@@ -1,0 +1,121 @@
+@import '../van-shared.scss';
+
+.seg-card {
+  padding: 6px;
+
+  .van-seg button {
+    padding-inline: 4px;
+    font-size: 12px;
+  }
+
+  .count {
+    min-width: 18px;
+    padding: 0 5px;
+    border-radius: 9px;
+    background: var(--gp-navy);
+    color: #fff;
+    font-size: 11px;
+    line-height: 18px;
+  }
+}
+
+.stat-row {
+  display: flex;
+  gap: 8px;
+  margin: 12px 14px;
+
+  ds-stat { flex: 1; min-width: 0; }
+}
+
+.search-wrap {
+  margin: 12px 14px;
+}
+
+.list-card {
+  padding-block: 4px;
+}
+
+.stock-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-block: 10px;
+
+  & + & { border-top: 1px solid var(--gp-border); }
+
+  &.zero .name { color: var(--ion-color-danger, #d92d20); }
+}
+
+.stock-name {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+
+  .name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ion-text-color, #16233c);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.sub { margin: 4px 0 0; }
+
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+
+  button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 34px;
+    height: 34px;
+    border: 1px solid var(--gp-border);
+    border-radius: var(--gp-radius-sm);
+    background: var(--gp-card-bg);
+    color: var(--gp-navy);
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+
+    &:disabled { opacity: 0.4; cursor: default; }
+    &.ctn { padding-inline: 8px; }
+  }
+
+  input {
+    width: 48px;
+    height: 34px;
+    text-align: center;
+    border: 1px solid var(--gp-border);
+    border-radius: var(--gp-radius-sm);
+    background: var(--gp-card-bg);
+    color: var(--ion-text-color, #16233c);
+    font-size: 14px;
+    font-weight: 600;
+  }
+}
+
+.recv-input {
+  width: 72px;
+  height: 36px;
+  text-align: center;
+  border: 1px solid var(--gp-border);
+  border-radius: var(--gp-radius-sm);
+  background: var(--gp-card-bg);
+  color: var(--ion-text-color, #16233c);
+  font-size: 15px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.recv-btn {
+  display: block;
+  margin-top: 12px;
+}

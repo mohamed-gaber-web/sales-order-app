@@ -8,76 +8,203 @@
 </ion-header>
 
 <ion-content class="van-content">
-  @if (day.outbox(); as o) {
-    <!-- Outbox -->
-    <div class="van-card">
-      <div class="outbox-head">
-        <p class="van-section-title" style="margin:0">Outbox</p>
-        @if (pending() > 0) {
-          <ds-pill [label]="pending() + ' pending'" color="#9a6a00" bg="#fdf3d7"></ds-pill>
-        } @else {
-          <ds-pill label="All posted" color="#0e6f4e" bg="#e3f5ec"></ds-pill>
-        }
+  @if (closed()) {
+    <div class="van-card closed-card">
+      <ion-icon name="checkmark-circle"></ion-icon>
+      <p class="closed-title">Day closed</p>
+      <p class="closed-sub">Closed {{ dateTime(store.local().closedAt) }}</p>
+      <div class="closed-rows">
+        <div class="van-row">
+          <span class="van-label">Cash counted</span>
+          <span class="van-value van-mono">{{ money(store.local().cashCounted ?? 0) }}</span>
+        </div>
+        <div class="van-row">
+          <span class="van-label">Unload &amp; day close</span>
+          <span class="van-value">{{ outbox.isEmpty() ? 'Posted' : pendingCount() + ' queued' }}</span>
+        </div>
       </div>
-      <div class="van-row"><span class="van-label">Invoices</span><span class="van-value">{{ o.invoices }} posted</span></div>
-      <div class="van-row"><span class="van-label">Collections</span><span class="van-value">{{ o.collections }} posted</span></div>
-      <div class="van-row"><span class="van-label">Returns</span><span class="van-value">{{ o.returns }} posted</span></div>
-      <div class="van-row">
-        <span class="van-label">New-customer requests</span>
-        <span class="van-value">{{ o.customerRequests > 0 ? o.customerRequests + ' in review' : '—' }}</span>
-      </div>
-      @if (pending() > 0) {
-        <ion-button expand="block" class="sync-btn" [disabled]="isSyncing()" (click)="sync()">
-          @if (isSyncing()) { <ion-spinner name="crescent" slot="start"></ion-spinner> Syncing… }
-          @else { <ion-icon slot="start" name="cloud-upload-outline"></ion-icon> Sync now ({{ pending() }}) }
-        </ion-button>
+      <p class="closed-sub">Cheques went to treasury. Visit actions are locked.</p>
+    </div>
+  }
+
+  <!-- Outbox -->
+  <div class="van-card">
+    <div class="head">
+      <p class="van-section-title">Outbox</p>
+      @if (network.online()) {
+        <ds-pill label="Online" color="#0e6f4e" bg="#e3f5ec"></ds-pill>
+      } @else {
+        <ds-pill label="Offline" color="#9a3412" bg="#fdebd8"></ds-pill>
       }
     </div>
 
-    <!-- Reconciliation -->
-    @if (day.kpi(); as k) {
-      <div class="van-card">
-        <p class="van-section-title">End-of-day reconciliation</p>
-        <div class="van-row"><span class="van-label">Cash in the box</span><span class="van-value pos">{{ round(k.collected) }} = recorded</span></div>
-        <div class="van-row"><span class="van-label">Cheques</span><span class="van-value">—</span></div>
-        <div class="van-row"><span class="van-label">Van stock remaining</span><span class="van-value">Matched — transfer to WH</span></div>
+    @for (g of outbox.pendingByLabel(); track g.label) {
+      <div class="van-row">
+        <span class="van-label">{{ g.label }}</span>
+        <span class="van-value van-mono">{{ g.count }}</span>
       </div>
-
-      <!-- KPIs -->
-      <div class="van-card kpi-card">
-        <p class="van-section-title">Day KPIs — {{ day.day()?.routeId }}</p>
-        <div class="van-row"><span class="van-label">Planned / visited</span><span class="van-value">{{ k.planned }} / {{ day.doneCount() }}</span></div>
-        <div class="van-row"><span class="van-label">Strike rate (visit with a sale)</span><span class="van-value">{{ strikeRate() }}%</span></div>
-        <div class="van-row"><span class="van-label">Route adherence</span><span class="van-value">{{ k.adherence }}%</span></div>
-        <div class="van-row"><span class="van-label">Km planned / actual</span><span class="van-value">{{ k.kmPlanned }} / {{ k.kmActual }}</span></div>
-        @if (k.returns > 0) {
-          <div class="van-row"><span class="van-label">Returns today</span><span class="van-value neg">-{{ round(k.returns) }}</span></div>
-        }
-        <div class="van-hr"></div>
-        <div class="van-row"><span class="van-value">Total sales</span><span class="van-value accent">{{ round(k.sales) }}</span></div>
+    } @empty {
+      <div class="van-row">
+        <span class="van-label">Queue</span>
+        <span class="van-value pos">All posted</span>
       </div>
     }
+    <div class="van-row">
+      <span class="van-label">E-documents waiting</span>
+      <span class="van-value van-mono">{{ eDocsWaiting() }}</span>
+    </div>
 
-    @if (!day.isDayOpen()) {
-      <div class="van-card closed-card">
-        <ion-icon name="checkmark-circle"></ion-icon>
-        <p class="closed-title">Day closed</p>
-        <p class="closed-sub">All documents posted and reconciled.</p>
+    <ds-button
+      class="sync-btn"
+      variant="secondary"
+      expand="block"
+      icon="cloud-upload-outline"
+      [label]="outbox.syncing() ? 'Syncing…' : 'Sync now'"
+      [loading]="outbox.syncing()"
+      [disabled]="!network.online() || outbox.isEmpty()"
+      (btnClick)="syncNow()">
+    </ds-button>
+  </div>
+
+  @if (outbox.failed().length) {
+    <div class="van-card failed-card">
+      <div class="head">
+        <p class="van-section-title">Failed · {{ outbox.failed().length }}</p>
+        <ds-button variant="outline" size="sm" label="Retry all" icon="refresh-outline" (btnClick)="retryAll()"></ds-button>
       </div>
-    }
-
-    <div class="content-footer-space"></div>
+      @for (f of outbox.failed(); track f.mobileTransId) {
+        <div class="failed-row">
+          <div class="failed-text">
+            <span class="van-value">{{ f.label }}</span>
+            <span class="van-label err">{{ f.lastError || 'Unknown error' }}</span>
+            <span class="van-label">{{ f.attempts }} attempt{{ f.attempts === 1 ? '' : 's' }} · #{{ f.apiNo }}</span>
+          </div>
+          <ds-button variant="ghost" size="sm" label="Retry" (btnClick)="retry(f.mobileTransId)"></ds-button>
+        </div>
+      }
+    </div>
   }
+
+  <!-- Hand-over -->
+  <div class="van-card">
+    <p class="van-section-title">Hand-over</p>
+    <div class="van-row">
+      <span class="van-label">Cash expected</span>
+      <span class="van-value van-mono">{{ money(totals().cashExpected) }}</span>
+    </div>
+
+    @if (!closed()) {
+      <ds-form-field label="Cash counted" class="cash-field">
+        <input
+          class="van-amount-input van-mono"
+          type="text"
+          inputmode="decimal"
+          placeholder="0.00"
+          [value]="cashCounted() ?? ''"
+          (input)="onCashInput($any($event.target).value)" />
+      </ds-form-field>
+      <div class="van-quick-row">
+        <button type="button" class="van-quick" (click)="fillExpected()">Matches expected</button>
+      </div>
+      @if (variance(); as v) {
+        <div class="van-row variance">
+          <span class="van-label">Variance</span>
+          <span class="van-value van-mono" [class.pos]="v > 0" [class.neg]="v < 0">{{ v > 0 ? '+' : '' }}{{ money(v) }}</span>
+        </div>
+      } @else if (cashCounted() !== null) {
+        <div class="van-row variance">
+          <span class="van-label">Variance</span>
+          <span class="van-value pos">None</span>
+        </div>
+      }
+    }
+
+    <div class="van-hr"></div>
+    <div class="van-row">
+      <span class="van-label">E-wallet</span>
+      <span class="van-value van-mono">{{ money(totals().walletCollected) }}</span>
+    </div>
+    <div class="van-row">
+      <span class="van-label">Cheques in hand</span>
+      <span class="van-value van-mono">{{ docs.chequesInHand().length }} · {{ money(chequeTotal()) }}</span>
+    </div>
+    @for (c of docs.chequesInHand(); track c.receiptId + c.bank + c.number) {
+      <div class="cheque-row">
+        <div class="failed-text">
+          <span class="van-value">{{ c.bank }} · <span class="van-mono">{{ c.number }}</span></span>
+          <span class="van-label">Due {{ date(c.dueDate) }}</span>
+        </div>
+        <span class="van-value van-mono">{{ money(c.amount) }}</span>
+      </div>
+    }
+  </div>
+
+  <!-- Unload -->
+  <div class="van-card">
+    <div class="head">
+      <p class="van-section-title">Van stock to unload</p>
+      <a class="link" routerLink="/inventory/van-sales/stock">View</a>
+    </div>
+    <div class="van-row">
+      <span class="van-label">Sellable → main warehouse</span>
+      <span class="van-value van-mono">{{ n(sellableUnits()) }} units · {{ sellable().length }} lines</span>
+    </div>
+    <div class="van-row">
+      <span class="van-label">Damaged → quarantine</span>
+      <span class="van-value van-mono">{{ n(damagedUnits()) }} units · {{ store.local().damaged.length }} lines</span>
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="van-card">
+    <p class="van-section-title">Today</p>
+    <div class="van-row">
+      <span class="van-label">Planned / visited</span>
+      <span class="van-value van-mono">{{ day.kpi()?.planned ?? day.visits().length }} / {{ visited() }}</span>
+    </div>
+    <div class="van-row">
+      <span class="van-label">Strike rate</span>
+      <span class="van-value van-mono">{{ strikeRate() }}%</span>
+    </div>
+    <div class="van-row">
+      <span class="van-label">Sales</span>
+      <span class="van-value van-mono">{{ money(totals().sales) }}</span>
+    </div>
+    <div class="van-row">
+      <span class="van-label">Orders</span>
+      <span class="van-value van-mono">{{ money(totals().orders) }}</span>
+    </div>
+    <div class="van-row">
+      <span class="van-label">Returns</span>
+      <span class="van-value van-mono" [class.neg]="totals().returns > 0">{{ money(totals().returns) }}</span>
+    </div>
+    <div class="van-row">
+      <span class="van-label">Documents issued</span>
+      <span class="van-value van-mono">{{ totals().documents }}</span>
+    </div>
+  </div>
+
+  <div class="content-footer-space"></div>
 </ion-content>
 
-@if (day.isDayOpen()) {
-  <ion-footer class="ion-no-border">
+<ion-footer class="ion-no-border">
+  @if (closed()) {
+    <ds-cta-bar label="Start a new day" icon="sunny-outline" (ctaClick)="startNewDay()"></ds-cta-bar>
+  } @else if (!outbox.isEmpty()) {
     <ds-cta-bar
-      [label]="pending() > 0 ? 'Close day — waiting on sync (' + pending() + ')' : 'Close the day'"
-      icon="flag-outline"
-      [loading]="isClosing()"
-      [disabled]="pending() > 0"
-      (ctaClick)="close()">
+      [label]="network.online() ? 'Go online and sync · ' + pendingCount() : 'Offline · ' + pendingCount() + ' queued'"
+      icon="cloud-upload-outline"
+      [loading]="outbox.syncing()"
+      [disabled]="!network.online()"
+      (ctaClick)="syncAll()">
     </ds-cta-bar>
-  </ion-footer>
-}
+  } @else {
+    <ds-cta-bar
+      label="Close day"
+      icon="flag-outline"
+      [loading]="closing()"
+      [disabled]="cashCounted() === null"
+      (ctaClick)="confirmClose()">
+    </ds-cta-bar>
+  }
+</ion-footer>

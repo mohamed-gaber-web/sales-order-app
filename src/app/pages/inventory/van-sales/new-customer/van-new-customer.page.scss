@@ -99,3 +99,8 @@
     &.done::before { background: var(--ion-color-success, #0e9f6e); }
   }
 }
+
+.gps-chip ion-spinner {
+  width: 14px;
+  height: 14px;
+}

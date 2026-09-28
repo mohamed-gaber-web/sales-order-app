@@ -1,0 +1,52 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/inventory/van-sales"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Collections</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="van-content">
+  <div class="stats">
+    <ds-stat label="Outstanding" [value]="money(outstanding())" accentColor="var(--ion-color-danger, #d92d20)"></ds-stat>
+    <ds-stat label="Collected today" [value]="money(collectedToday())" accentColor="var(--ion-color-success, #0e9f6e)"></ds-stat>
+  </div>
+
+  @if (rows().length) {
+    <p class="van-section-title list-title">{{ rows().length }} customers to collect from</p>
+    @for (r of rows(); track r.id) {
+      <button type="button" class="van-card row" (click)="open(r)">
+        <div class="row-main">
+          <span class="van-value row-name">{{ r.name }}</span>
+          <span class="van-label">
+            <span class="van-mono">{{ r.id }}</span>
+            @if (r.oldestDue) { · oldest due {{ r.oldestDue }} }
+          </span>
+          @if (r.creditHold || r.overdue) {
+            <div class="row-pills">
+              @if (r.creditHold) {
+                <ds-pill label="Credit hold" color="#b42318" bg="#fdecec"></ds-pill>
+              }
+              @if (r.overdue) {
+                <ds-pill label="Overdue" color="#9a6a00" bg="#fdf3d7"></ds-pill>
+              }
+            </div>
+          }
+        </div>
+        <div class="row-end">
+          <span class="van-value neg van-mono">{{ money(r.balance) }}</span>
+          <ion-icon name="chevron-forward-outline" class="chevron"></ion-icon>
+        </div>
+      </button>
+    }
+  } @else {
+    <ds-empty-state
+      icon="checkmark-done-outline"
+      title="Nothing outstanding"
+      message="No customer on this route owes a balance.">
+    </ds-empty-state>
+  }
+
+  <div class="content-footer-space"></div>
+</ion-content>

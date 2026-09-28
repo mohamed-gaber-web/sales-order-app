@@ -1,0 +1,63 @@
+@import '../van-shared.scss';
+
+.stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 12px 14px 0;
+}
+
+.list-title {
+  margin: 18px 14px 0;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: calc(100% - 28px);
+  text-align: start;
+  font: inherit;
+  cursor: pointer;
+  margin-top: 10px;
+  margin-bottom: 0;
+
+  &:active { transform: scale(0.99); }
+}
+
+.row-main {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.row-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.row-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.row-end {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.chevron {
+  font-size: 16px;
+  color: var(--gp-text-muted, #6b7280);
+}
+
+:host-context([dir='rtl']) .chevron {
+  transform: scaleX(-1);
+}

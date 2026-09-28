@@ -1,0 +1,251 @@
+@import '../van-shared.scss';
+
+.loading {
+  display: flex;
+  justify-content: center;
+  padding: 48px 0;
+}
+
+.cust {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+
+  .van-value {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.pay-seg {
+  margin-top: 12px;
+}
+
+.ship-field {
+  display: block;
+  margin-top: 12px;
+}
+
+.ship-input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ion-text-color, #16233c);
+  padding: 4px 0;
+
+  &:focus { outline: none; }
+}
+
+// ── Promotions strip ──────────────────────────────────────────
+.promo-strip {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-inline: 14px;
+  margin-top: 4px;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar { display: none; }
+}
+
+.promo {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 240px;
+  padding: 8px 12px;
+  border-radius: var(--gp-radius-sm);
+  background: #e6eefb;
+  color: #1a3b6a;
+
+  ion-icon { font-size: 16px; flex: 0 0 auto; }
+
+  div {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  strong {
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  span {
+    font-size: 11px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+.search-wrap {
+  margin: 12px 14px 0;
+}
+
+// ── Product rows ──────────────────────────────────────────────
+.products {
+  padding: 4px 14px;
+}
+
+.prod {
+  padding: 10px 0;
+
+  & + .prod {
+    border-top: 1px solid var(--gp-border);
+  }
+
+  &.in-cart .prod-name {
+    color: var(--gp-navy);
+  }
+}
+
+.prod-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.prod-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  .short { color: var(--ion-color-danger, #d92d20); }
+}
+
+.prod-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ion-text-color, #16233c);
+  text-align: start;
+}
+
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 0 0 auto;
+}
+
+.st {
+  min-width: 34px;
+  height: 34px;
+  padding-inline: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--gp-border);
+  border-radius: var(--gp-radius-sm);
+  background: var(--gp-card-bg);
+  color: var(--gp-navy);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+
+  ion-icon { font-size: 18px; }
+
+  &:disabled { opacity: 0.4; }
+
+  &.ctn {
+    background: var(--gp-bg);
+  }
+}
+
+.qty {
+  width: 42px;
+  height: 34px;
+  text-align: center;
+  border: 1px solid var(--gp-border);
+  border-radius: var(--gp-radius-sm);
+  background: var(--gp-card-bg);
+  color: var(--ion-text-color, #16233c);
+  font-size: 14px;
+  font-weight: 700;
+
+  &:focus {
+    outline: none;
+    border-color: var(--gp-navy);
+  }
+}
+
+.prod-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.promo-note {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ion-color-success, #0e9f6e);
+}
+
+// ── Summary ───────────────────────────────────────────────────
+.disc-select {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+
+  select {
+    border: 1px solid var(--gp-border);
+    border-radius: var(--gp-radius-sm);
+    background: var(--gp-card-bg);
+    color: var(--ion-text-color, #16233c);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 6px 8px;
+  }
+}
+
+.redeem {
+  cursor: pointer;
+
+  .van-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+}
+
+.total {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--gp-navy);
+}
+
+// ── Blocking issues ───────────────────────────────────────────
+.issues {
+  background: #fdf3d7;
+  border-color: #f1dc9b;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.issue {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #7a4f00;
+  text-align: start;
+
+  ion-icon { font-size: 17px; flex: 0 0 auto; margin-top: 1px; }
+}
+
+.issue-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}

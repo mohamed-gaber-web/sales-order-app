@@ -1,0 +1,237 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button [defaultHref]="'/inventory/van-sales/visit/' + (visit()?.id ?? '')"></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ mode() === 'invoice' ? 'Sell' : 'Take order' }}</ion-title>
+    @if (canScan) {
+      <ion-buttons slot="end">
+        <ion-button (click)="scan()" aria-label="Scan barcode">
+          <ion-icon slot="icon-only" name="barcode-outline"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+    }
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="van-content">
+  @if (!loaded()) {
+    <div class="loading"><ion-spinner name="crescent"></ion-spinner></div>
+  } @else if (!allowed()) {
+    <ds-empty-state icon="lock-closed-outline" title="Not available" message="Your role can't sell or take orders."></ds-empty-state>
+  } @else if (store.dayClosed()) {
+    <ds-empty-state icon="lock-closed-outline" title="Day closed" message="Posting is locked until tomorrow."></ds-empty-state>
+  } @else if (customer(); as c) {
+    <!-- Customer & payment -->
+    <div class="van-card">
+      <div class="van-row">
+        <div class="cust">
+          <span class="van-value">{{ c.name }}</span>
+          <span class="van-label van-mono">{{ c.id }} · {{ c.priceGroup }}</span>
+        </div>
+        <ds-pill
+          [label]="mode() === 'invoice' ? (c.taxId ? 'E-Invoice' : 'E-Receipt') : 'Order · no tax doc'"
+          [color]="mode() === 'invoice' ? '#1a3b6a' : '#4b5563'"
+          [bg]="mode() === 'invoice' ? '#e6eefb' : '#eef0f3'">
+        </ds-pill>
+      </div>
+      <div class="van-seg pay-seg">
+        <button type="button" [class.on]="payMode() === 'CASH'" (click)="setPayMode('CASH')">
+          <ion-icon name="cash-outline"></ion-icon> Cash
+        </button>
+        @if (creditOffered()) {
+          <button type="button" [class.on]="payMode() === 'CREDIT'" (click)="setPayMode('CREDIT')">
+            <ion-icon name="card-outline"></ion-icon> Credit
+          </button>
+        }
+      </div>
+      @if (mode() === 'order') {
+        <ds-form-field label="Requested delivery" class="ship-field">
+          <input
+            class="ship-input"
+            type="date"
+            [min]="minShipDate"
+            [ngModel]="shipDate()"
+            (ngModelChange)="shipDate.set($event)" />
+        </ds-form-field>
+      }
+    </div>
+
+    <!-- Promotions -->
+    @if (livePromotions().length) {
+      <div class="promo-strip" aria-label="Active promotions">
+        @for (p of livePromotions(); track p.id) {
+          <div class="promo">
+            <ion-icon name="pricetag-outline"></ion-icon>
+            <div>
+              <strong>{{ p.name }}</strong>
+              <span>{{ p.text }}</span>
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Products -->
+    <div class="search-wrap">
+      <ds-search placeholder="Search name, code or barcode" [debounceMs]="200" (query)="onSearch($event)"></ds-search>
+    </div>
+
+    <div class="van-card products">
+      @for (p of products(); track p.itemId) {
+        <div class="prod" [class.in-cart]="qtyOf(p.itemId) > 0">
+          <div class="prod-main">
+            <div class="prod-info">
+              <span class="prod-name">{{ p.name }}</span>
+              <span class="van-label">
+                <span class="van-mono">{{ money(priceOf(p.itemId)) }}</span> / {{ p.unit }}
+                @if (mode() === 'invoice') {
+                  · <span [class.short]="store.stockOf(p.itemId) <= 0">{{ num(store.stockOf(p.itemId)) }} on van</span>
+                }
+              </span>
+            </div>
+            <div class="stepper">
+              <button type="button" class="st" aria-label="Less" [disabled]="qtyOf(p.itemId) <= 0" (click)="step(p, -1)">
+                <ion-icon name="remove-outline"></ion-icon>
+              </button>
+              <input
+                class="qty van-mono"
+                type="text"
+                inputmode="numeric"
+                [attr.aria-label]="'Quantity of ' + p.name"
+                [value]="qtyOf(p.itemId) || ''"
+                placeholder="0"
+                (change)="onQtyInput(p.itemId, $any($event.target).value)" />
+              <button type="button" class="st" aria-label="More" (click)="step(p, 1)">
+                <ion-icon name="add-outline"></ion-icon>
+              </button>
+              @if (p.cartonQty > 1) {
+                <button type="button" class="st ctn" [attr.aria-label]="'Add a carton of ' + p.cartonQty" (click)="step(p, p.cartonQty)">
+                  +ctn
+                </button>
+              }
+            </div>
+          </div>
+          @if (lineOf(p.itemId); as l) {
+            <div class="prod-line">
+              <span class="promo-note">{{ promoNote(p.itemId) }}</span>
+              <span class="van-value van-mono">{{ money(l.gross - l.lineDiscount) }}</span>
+            </div>
+          }
+        </div>
+      } @empty {
+        <p class="van-hint">No product matches.</p>
+      }
+    </div>
+
+    <!-- Summary -->
+    @if (pricing(); as pr) {
+      @if (pr.lines.length) {
+        <div class="van-card">
+          <p class="van-section-title">Summary · {{ cartCount() }} {{ cartCount() === 1 ? 'item' : 'items' }}</p>
+          <div class="van-row"><span class="van-label">Gross</span><span class="van-value van-mono">{{ money(pr.gross) }}</span></div>
+          @if (pr.lineDiscount > 0) {
+            <div class="van-row"><span class="van-label">Promotions</span><span class="van-value van-mono pos">−{{ money(pr.lineDiscount) }}</span></div>
+          }
+          @if (freeItemsCount() > 0) {
+            <div class="van-row"><span class="van-label">Free items</span><span class="van-value van-mono pos">{{ num(freeItemsCount()) }} pcs</span></div>
+          }
+          @if (pr.invoiceDiscount > 0) {
+            <div class="van-row"><span class="van-label">Invoice discount</span><span class="van-value van-mono pos">−{{ money(pr.invoiceDiscount) }}</span></div>
+          }
+          <div class="van-row">
+            <span class="van-label">Extra discount</span>
+            <span class="disc-select">
+              <select [ngModel]="manualPct()" (ngModelChange)="onDiscount($event)" aria-label="Extra discount">
+                @for (s of discountSteps; track s) {
+                  <option [ngValue]="s">{{ s }}%{{ s > limitPct() ? ' · approval' : '' }}</option>
+                }
+              </select>
+              @if (pr.manualDiscount > 0) {
+                <span class="van-value van-mono pos">−{{ money(pr.manualDiscount) }}</span>
+              }
+            </span>
+          </div>
+          @if (canRedeem()) {
+            <label class="van-row redeem">
+              <span class="van-label">
+                <ion-checkbox [checked]="redeem()" (ionChange)="redeem.set($event.detail.checked)"></ion-checkbox>
+                Redeem points ({{ num(customerPoints()) }})
+              </span>
+              @if (pr.redeemedValue > 0) {
+                <span class="van-value van-mono pos">−{{ money(pr.redeemedValue) }}</span>
+              }
+            </label>
+          }
+          <div class="van-hr"></div>
+          <div class="van-row"><span class="van-label">Net</span><span class="van-value van-mono">{{ money(pr.net) }}</span></div>
+          <div class="van-row"><span class="van-label">VAT</span><span class="van-value van-mono">{{ money(pr.vat) }}</span></div>
+          <div class="van-row total"><span>Total</span><span class="van-mono">{{ money(pr.total) }} {{ store.currency() }}</span></div>
+          @if (pr.pointsToEarn > 0) {
+            <div class="van-row"><span class="van-label">Points to earn</span><span class="van-value van-mono accent">+{{ num(pr.pointsToEarn) }}</span></div>
+          }
+        </div>
+
+        <!-- Blocking issues -->
+        @if (stockShort().length || discountOverLimit() || creditIssue()) {
+          <div class="van-card issues" role="alert">
+            @for (s of stockShort(); track s.itemId) {
+              <div class="issue">
+                <ion-icon name="cube-outline"></ion-icon>
+                <span>Stock short · {{ s.name }}: need {{ num(s.need) }}, van has {{ num(s.have) }}</span>
+              </div>
+            }
+            @if (discountOverLimit()) {
+              <div class="issue">
+                <ion-icon name="pricetags-outline"></ion-icon>
+                <span>{{ manualPct() }}% is over your {{ limitPct() }}% limit.</span>
+              </div>
+              <ds-button
+                variant="secondary"
+                size="sm"
+                expand="block"
+                [disabled]="!!discountPending()"
+                [icon]="discountPending() ? 'hourglass-outline' : 'send-outline'"
+                [label]="discountPending() ? 'Waiting for supervisor…' : 'Request ' + manualPct() + '% discount approval'"
+                (btnClick)="requestDiscount()">
+              </ds-button>
+            }
+            @if (creditIssue(); as msg) {
+              <div class="issue">
+                <ion-icon name="alert-circle-outline"></ion-icon>
+                <span>{{ msg }}</span>
+              </div>
+              <div class="issue-actions">
+                <ds-button
+                  variant="secondary"
+                  size="sm"
+                  [disabled]="!!creditPending()"
+                  [icon]="creditPending() ? 'hourglass-outline' : 'send-outline'"
+                  [label]="creditPending() ? 'Waiting for supervisor…' : 'Request credit override'"
+                  (btnClick)="requestCreditOverride()">
+                </ds-button>
+                <ds-button variant="outline" size="sm" icon="cash-outline" label="Switch to cash" (btnClick)="setPayMode('CASH')"></ds-button>
+              </div>
+            }
+          </div>
+        }
+      }
+    }
+
+    <div class="content-footer-space"></div>
+  } @else {
+    <ds-empty-state icon="person-outline" title="Customer not found" message="This stop's customer isn't in the van data. Refresh and try again."></ds-empty-state>
+  }
+</ion-content>
+
+@if (loaded() && customer() && allowed()) {
+  <ion-footer class="ion-no-border">
+    <ds-cta-bar
+      [label]="store.dayClosed() ? 'Day closed' : ctaLabel()"
+      [icon]="mode() === 'invoice' ? 'receipt-outline' : 'cart-outline'"
+      [loading]="posting()"
+      [disabled]="!canPost()"
+      (ctaClick)="post()">
+    </ds-cta-bar>
+  </ion-footer>
+}

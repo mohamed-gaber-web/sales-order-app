@@ -8,39 +8,166 @@
 </ion-header>
 
 <ion-content class="van-content">
-  @if (visit(); as v) {
+  @if (customer(); as c) {
+    @if (store.dayClosed()) {
+      <div class="van-card lock-card">
+        <ion-icon name="lock-closed-outline"></ion-icon>
+        <span>The day is closed. Collections open again tomorrow.</span>
+      </div>
+    }
+
     <!-- Open balance -->
     <div class="van-card balance-card">
-      <span class="van-label">Open balance</span>
-      <span class="van-value neg balance-amount">{{ round(balance()) }}</span>
+      <div class="balance-info">
+        <span class="van-label">Open balance</span>
+        <span class="van-label customer-name">{{ c.name }}</span>
+      </div>
+      <span class="van-value neg balance-amount van-mono">{{ money(balance()) }}</span>
     </div>
 
     <!-- Method -->
     <div class="van-card">
       <p class="van-section-title">Method</p>
       <div class="van-seg">
-        <button type="button" [class.on]="method() === 'Cash'" (click)="setMethod('Cash')">
+        <button type="button" [class.on]="method() === 'CASH'" (click)="setMethod('CASH')">
           <ion-icon name="cash-outline"></ion-icon> Cash
         </button>
-        <button type="button" [class.on]="method() === 'Cheque'" (click)="setMethod('Cheque')">
-          <ion-icon name="document-text-outline"></ion-icon> Cheque
+        <button type="button" [class.on]="method() === 'PDC'" (click)="setMethod('PDC')">
+          <ion-icon name="document-text-outline"></ion-icon> Cheques
+        </button>
+        <button type="button" [class.on]="method() === 'E_WALLET'" (click)="setMethod('E_WALLET')">
+          <ion-icon name="phone-portrait-outline"></ion-icon> E-wallet
         </button>
       </div>
 
-      <ds-form-field label="Amount collected" class="amount-field">
-        <input
-          class="van-amount-input van-mono"
-          type="text"
-          inputmode="numeric"
-          [value]="round(amount())"
-          (input)="onAmountInput($any($event.target).value)" />
-      </ds-form-field>
+      @if (method() !== 'PDC') {
+        <ds-form-field
+          label="Amount collected"
+          class="amount-field"
+          [errorMessage]="amountError()"
+          [showError]="!!amountError() && amount() > 0">
+          <input
+            class="van-amount-input van-mono"
+            type="number"
+            inputmode="decimal"
+            min="0"
+            placeholder="0.00"
+            [ngModel]="amount() || null"
+            (ngModelChange)="setAmount($event)" />
+        </ds-form-field>
 
-      <div class="van-quick-row">
-        <button type="button" class="van-quick" (click)="payHalf()">Half</button>
-        <button type="button" class="van-quick" (click)="payFull()">Full · {{ round(balance()) }}</button>
-      </div>
+        <div class="van-quick-row">
+          <button type="button" class="van-quick" (click)="payHalf()">Half</button>
+          <button type="button" class="van-quick" (click)="payFull()">Full · {{ money(balance()) }}</button>
+        </div>
+
+        @if (method() === 'E_WALLET') {
+          <ds-form-field label="Wallet reference" [required]="true" class="wallet-field">
+            <input
+              class="van-input van-mono"
+              type="text"
+              autocomplete="off"
+              placeholder="Transaction or phone number"
+              [ngModel]="walletRef()"
+              (ngModelChange)="walletRef.set($event)" />
+          </ds-form-field>
+        }
+      }
     </div>
+
+    <!-- Cheques -->
+    @if (method() === 'PDC') {
+      @let check = chequeCheck();
+      @for (q of cheques(); track q.key; let i = $index) {
+        <div class="van-card cheque-card" [class.invalid]="check.byIndex[i]">
+          <div class="van-row cheque-head">
+            <span class="van-value">Cheque {{ i + 1 }}</span>
+            @if (cheques().length > 1) {
+              <button type="button" class="link-btn danger" (click)="removeCheque(q.key)">
+                <ion-icon name="trash-outline"></ion-icon> Remove
+              </button>
+            }
+          </div>
+
+          <div class="cheque-grid">
+            <label class="field">
+              <span class="van-label">Bank</span>
+              <select class="van-input" [ngModel]="q.bank" (ngModelChange)="patchCheque(q.key, { bank: $event })">
+                <option value="" disabled>Select bank</option>
+                @for (b of store.banks(); track b) {
+                  <option [value]="b">{{ b }}</option>
+                }
+              </select>
+            </label>
+            <label class="field">
+              <span class="van-label">Cheque no.</span>
+              <input
+                class="van-input van-mono"
+                type="text"
+                inputmode="numeric"
+                autocomplete="off"
+                [ngModel]="q.number"
+                (ngModelChange)="patchCheque(q.key, { number: $event })" />
+            </label>
+            <label class="field">
+              <span class="van-label">Due date</span>
+              <input
+                class="van-input"
+                type="date"
+                [ngModel]="q.dueDate"
+                (ngModelChange)="patchCheque(q.key, { dueDate: $event })" />
+            </label>
+            <label class="field">
+              <span class="van-label">Amount</span>
+              <input
+                class="van-input van-mono"
+                type="number"
+                inputmode="decimal"
+                min="0"
+                placeholder="0.00"
+                [ngModel]="q.amount || null"
+                (ngModelChange)="setChequeAmount(q.key, $event)" />
+            </label>
+          </div>
+
+          <div class="cheque-actions">
+            <button type="button" class="van-quick" (click)="fillRemaining(q.key)">Fill remaining balance</button>
+            @if (q.photoDataUrl) {
+              <div class="photo">
+                <img [src]="q.photoDataUrl" alt="Cheque photo" />
+                <button type="button" class="link-btn danger" (click)="removePhoto(q.key)" aria-label="Remove photo">
+                  <ion-icon name="close-circle-outline"></ion-icon>
+                </button>
+              </div>
+            } @else {
+              <button type="button" class="van-quick" (click)="takePhoto(q.key)">
+                <ion-icon name="camera-outline"></ion-icon> Photo
+              </button>
+            }
+          </div>
+
+          @if (check.byIndex[i]; as err) {
+            <p class="field-error">{{ err }}</p>
+          }
+        </div>
+      }
+
+      <button type="button" class="add-cheque" (click)="addCheque()">
+        <ion-icon name="add-circle-outline"></ion-icon> Add another cheque
+      </button>
+
+      <div class="van-card">
+        <div class="van-row">
+          <span class="van-label">Cheques total · {{ cheques().length }}</span>
+          <span class="van-value van-mono">{{ money(check.total) }}</span>
+        </div>
+        @if (!check.ok) {
+          @for (e of check.errors; track e) {
+            <p class="field-error">{{ e }}</p>
+          }
+        }
+      </div>
+    }
 
     <!-- Settlement preview -->
     <div class="van-card">
@@ -50,26 +177,30 @@
           <span class="van-label">
             <ion-icon [name]="s.applied > 0 ? 'checkbox-outline' : 'square-outline'"></ion-icon>
             <span class="van-mono">{{ s.invoiceId }}</span> · {{ s.date }}
-            @if (s.applied > 0 && s.applied < s.open) { <em>(partial)</em> }
+            @if (s.partial) { <em>partial</em> }
           </span>
-          <span class="van-value">{{ round(s.applied) }}</span>
+          <span class="van-value van-mono">{{ money(s.applied) }} / {{ money(s.open) }}</span>
         </div>
+      } @empty {
+        <p class="van-hint start">No open invoices.</p>
       }
       <div class="van-hr"></div>
       <div class="van-row">
         <span class="van-label">Balance after</span>
-        <span class="van-value pos">{{ round(balanceAfter()) }}</span>
+        <span class="van-value van-mono" [class.pos]="balanceAfter() === 0">{{ money(balanceAfter()) }}</span>
       </div>
     </div>
 
     <div class="content-footer-space"></div>
+  } @else {
+    <ds-empty-state icon="person-outline" title="Customer not found" message="This stop's customer isn't in the van's master data."></ds-empty-state>
   }
 </ion-content>
 
 <ion-footer class="ion-no-border">
   <ds-cta-bar
-    label="Confirm collection"
-    icon="cash-outline"
+    [label]="ctaLabel()"
+    [icon]="store.dayClosed() ? 'lock-closed-outline' : 'cash-outline'"
     [loading]="isPosting()"
     [disabled]="!canPost()"
     (ctaClick)="post()">

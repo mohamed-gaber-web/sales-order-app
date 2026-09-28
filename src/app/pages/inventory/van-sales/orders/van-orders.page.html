@@ -1,0 +1,77 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/inventory/van-sales"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Pre-sales orders</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="van-content">
+  <div class="stats">
+    <ds-stat label="Taken today" [value]="todayCount()"></ds-stat>
+    <ds-stat label="Today's value" [value]="money(todayTotal())" [unit]="store.currency()"></ds-stat>
+  </div>
+
+  <button type="button" class="van-card hint-card" (click)="goToRoute()">
+    <ion-icon name="navigate-outline"></ion-icon>
+    <span class="hint-text">
+      <strong>Take an order</strong>
+      <span>Open a customer from today's route.</span>
+    </span>
+    <ion-icon name="chevron-forward-outline" class="chev"></ion-icon>
+  </button>
+
+  <div class="chips">
+    <button type="button" class="chip" [class.on]="filter() === 'TODAY'" (click)="filter.set('TODAY')">Today</button>
+    <button type="button" class="chip" [class.on]="filter() === 'ALL'" (click)="filter.set('ALL')">All</button>
+  </div>
+
+  @for (row of visible(); track row.salesId) {
+    <div class="van-card order-card">
+      <button type="button" class="order-head" (click)="open(row)">
+        <div class="van-row">
+          <span class="van-value van-mono">{{ row.salesId }}</span>
+          <ds-pill [label]="row.status.label" [color]="row.status.color" [bg]="row.status.bg"></ds-pill>
+        </div>
+        <div class="van-row">
+          <span class="cust">{{ row.customerName }}</span>
+          <span class="van-value van-mono">{{ money(row.total) }}</span>
+        </div>
+        <div class="van-row">
+          <span class="van-label">
+            {{ row.lineCount }} {{ row.lineCount === 1 ? 'line' : 'lines' }}
+            @if (row.shipDate) { · Ship {{ row.shipDate }} }
+          </span>
+          <ion-icon
+            class="chev"
+            [name]="row.hasDoc ? 'receipt-outline' : expanded() === row.salesId ? 'chevron-up-outline' : 'chevron-down-outline'">
+          </ion-icon>
+        </div>
+      </button>
+
+      @if (expanded() === row.salesId) {
+        <div class="van-hr"></div>
+        @for (l of row.lines; track l.itemId) {
+          <div class="van-row line">
+            <span class="van-label">
+              {{ productName(l.itemId) }}
+              @if (l.freeQty) { <em>+{{ l.freeQty }} free</em> }
+            </span>
+            <span class="van-value van-mono">{{ l.qty }} × {{ money(l.unitPrice) }}</span>
+          </div>
+        }
+      }
+    </div>
+  } @empty {
+    <ds-empty-state
+      icon="clipboard-outline"
+      [title]="filter() === 'TODAY' ? 'No orders today' : 'No orders'"
+      message="Orders you take on a visit show up here."
+      buttonLabel="Open today's route"
+      (buttonClick)="goToRoute()">
+    </ds-empty-state>
+  }
+
+  <div class="content-footer-space"></div>
+</ion-content>

@@ -348,3 +348,161 @@ body.ion-palette-dark .date-input::-webkit-calendar-picker-indicator {
   filter: invert(1);
   opacity: 0.7;
 }
+
+/* ── Role, network, banners ─────────────────────────────────── */
+
+.journey-hero .hero-route {
+  flex-wrap: wrap;
+}
+
+.hero-role {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+.net-pill {
+  margin-inline-start: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  unicode-bidi: isolate;
+
+  ion-spinner { width: 12px; height: 12px; color: #fff; }
+
+  .net-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #3ccf91;
+  }
+
+  &.queued .net-dot { background: #f5c451; }
+  &.offline .net-dot { background: #f97066; }
+}
+
+.journey-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 12px 14px 0;
+  padding: 10px 12px;
+  border-radius: var(--gp-radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+
+  ion-icon { flex: 0 0 auto; font-size: 18px; }
+  span { flex: 1; }
+
+  button {
+    flex: 0 0 auto;
+    background: none;
+    border: none;
+    padding: 0;
+    color: inherit;
+    font: inherit;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+
+  &.closed { background: #eef0f3; color: #374151; }
+  &.stale { background: #fdf3d7; color: #7a5300; }
+}
+
+.filter-note {
+  margin-top: -2px;
+}
+
+.stop-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.route-reload {
+  display: flex;
+  justify-content: center;
+  padding: 12px 14px 0;
+
+  button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: none;
+    padding: 6px;
+    color: var(--gp-navy);
+    font: inherit;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+
+    &:disabled { opacity: 0.5; }
+    ion-spinner { width: 14px; height: 14px; }
+  }
+}
+
+/* ── Dev tools ──────────────────────────────────────────────── */
+
+.dev-panel {
+  margin: 18px 14px 0;
+  border: 1px dashed var(--gp-border);
+  border-radius: var(--gp-radius-md);
+  background: var(--gp-card-bg);
+}
+
+.dev-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 12px;
+  background: none;
+  border: none;
+  color: var(--gp-text-muted, #6b7280);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: start;
+  cursor: pointer;
+
+  .dev-role {
+    margin-inline-start: auto;
+    color: var(--gp-navy);
+  }
+}
+
+.dev-body {
+  padding: 0 12px 12px;
+}
+
+.dev-roles {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.dev-reset {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  background: none;
+  border: none;
+  padding: 6px 0;
+  color: var(--ion-color-danger, #d92d20);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}

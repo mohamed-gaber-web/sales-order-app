@@ -1,0 +1,162 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/inventory/van-sales"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Supervisor</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="van-content">
+  <ion-refresher slot="fixed" (ionRefresh)="onRefresh($any($event))">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <div class="van-card seg-card">
+    <div class="van-seg">
+      <button type="button" [class.on]="tab() === 'approvals'" (click)="tab.set('approvals')">
+        Approvals
+        @if (pendingCount()) { <span class="count">{{ pendingCount() }}</span> }
+      </button>
+      <button type="button" [class.on]="tab() === 'cheques'" (click)="tab.set('cheques')">Cheques</button>
+      <button type="button" [class.on]="tab() === 'edocs'" (click)="tab.set('edocs')">E-documents</button>
+    </div>
+  </div>
+
+  @switch (tab()) {
+    @case ('approvals') {
+      @if (loadingApprovals() && !approvalList().length) {
+        <div class="spinner"><ion-spinner name="crescent"></ion-spinner></div>
+      }
+      @for (a of approvalList(); track a.id) {
+        <div class="van-card" [class.pending]="a.status === 'PENDING'">
+          <div class="van-row">
+            <span class="van-value">{{ approvalLabel(a.type) }}</span>
+            <ds-pill [label]="approvalPill(a.status).label" [color]="approvalPill(a.status).color" [bg]="approvalPill(a.status).bg"></ds-pill>
+          </div>
+          <p class="line strong">{{ customerName(a) }}</p>
+          <p class="line">{{ a.detail }}</p>
+          <p class="van-label meta">
+            Rep {{ a.repId || '—' }} · {{ dateTime(a.createdAt) }}
+            @if (a.decidedAt) { · Decided {{ dateTime(a.decidedAt) }} }
+          </p>
+          @if (a.status === 'PENDING') {
+            <div class="actions">
+              <ds-button
+                variant="outline"
+                size="sm"
+                label="Reject"
+                [disabled]="!!busy()"
+                (btnClick)="decide(a, 'REJECTED')">
+              </ds-button>
+              <ds-button
+                variant="secondary"
+                size="sm"
+                icon="checkmark-outline"
+                label="Approve"
+                [loading]="busy() === a.id"
+                [disabled]="!!busy()"
+                (btnClick)="decide(a, 'APPROVED')">
+              </ds-button>
+            </div>
+          }
+        </div>
+      } @empty {
+        @if (!loadingApprovals()) {
+          <ds-empty-state icon="checkmark-done-outline" title="No requests" message="Rep requests appear here."></ds-empty-state>
+        }
+      }
+    }
+
+    @case ('cheques') {
+      @if (loadingCheques() && !chequeList().length) {
+        <div class="spinner"><ion-spinner name="crescent"></ion-spinner></div>
+      }
+      @for (c of chequeList(); track chequeKey(c)) {
+        <div class="van-card">
+          <div class="van-row">
+            <span class="van-value">{{ c.bank }} · <span class="van-mono">{{ c.number }}</span></span>
+            <ds-pill [label]="chequePill(c.status).label" [color]="chequePill(c.status).color" [bg]="chequePill(c.status).bg"></ds-pill>
+          </div>
+          <p class="line strong">{{ chequeCustomer(c) }}</p>
+          <div class="van-row">
+            <span class="van-label">Due {{ date(c.dueDate) }} · <span class="van-mono">{{ c.receiptId }}</span></span>
+            <span class="van-value van-mono">{{ money(c.amount) }}</span>
+          </div>
+
+          <ol class="timeline">
+            @for (s of timeline(c); track s.label) {
+              <li [class.reached]="s.reached" [class.bad]="s.bad">
+                <span class="dot"></span>
+                <span class="step">{{ s.label }}</span>
+                @if (s.at) { <span class="van-label">{{ dateTime(s.at) }}</span> }
+              </li>
+            }
+          </ol>
+
+          @if (nextSteps(c).length) {
+            <div class="actions">
+              @for (n of nextSteps(c); track n.status) {
+                <ds-button
+                  [variant]="n.status === 'BOUNCED' ? 'danger' : 'secondary'"
+                  size="sm"
+                  [label]="n.label"
+                  [loading]="busy() === chequeKey(c)"
+                  [disabled]="!!busy()"
+                  (btnClick)="advance(c, n.status)">
+                </ds-button>
+              }
+            </div>
+          }
+        </div>
+      } @empty {
+        @if (!loadingCheques()) {
+          <ds-empty-state icon="document-text-outline" title="No cheques" message="Cheques collected by reps appear here."></ds-empty-state>
+        }
+      }
+    }
+
+    @case ('edocs') {
+      <div class="van-card filter-card">
+        <div class="chips">
+          @for (f of eDocFilters; track f.value) {
+            <button type="button" class="chip" [class.on]="eDocFilter() === f.value" (click)="eDocFilter.set(f.value)">
+              {{ f.label }}
+            </button>
+          }
+        </div>
+        <ds-button
+          variant="outline"
+          size="sm"
+          icon="refresh-outline"
+          label="Refresh status"
+          [loading]="refreshingEDocs()"
+          (btnClick)="refreshEDocs()">
+        </ds-button>
+      </div>
+
+      @if (eDocList().length) {
+        <div class="van-card list-card">
+          @for (d of eDocList(); track d.id) {
+            <a class="edoc-row" [routerLink]="['/inventory/van-sales/receipt', d.id]">
+              <div class="edoc-main">
+                <span class="van-value van-mono">{{ d.id }}</span>
+                <span class="van-label">{{ d.customerName }} · {{ kindLabel(d.taxDocKind) }}</span>
+                <span class="van-label van-mono">{{ shortUuid(d.etaUuid) }}</span>
+              </div>
+              <div class="edoc-side">
+                <span class="van-value van-mono">{{ money(d.total) }}</span>
+                <ds-pill [label]="eDocPill(d.eDocStatus).label" [color]="eDocPill(d.eDocStatus).color" [bg]="eDocPill(d.eDocStatus).bg"></ds-pill>
+              </div>
+              <ion-icon name="chevron-forward" class="chev"></ion-icon>
+            </a>
+          }
+        </div>
+      } @else {
+        <ds-empty-state icon="receipt-outline" title="No e-documents" message="Nothing matches this filter."></ds-empty-state>
+      }
+    }
+  }
+
+  <div class="bottom-space"></div>
+</ion-content>

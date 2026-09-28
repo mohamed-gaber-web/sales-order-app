@@ -22,6 +22,8 @@
  * the same way `tenant-config.models.ts` mirrors the response schemas.
  */
 
+import type { VanAction } from './core/van-sales/van-sales.models';
+
 /**
  * A navigation entry.
  *
@@ -34,6 +36,16 @@ export interface MenuItem {
   url: string | null;
   icon: string;
   comingSoon?: boolean;
+  /**
+   * Highlight only on this exact url. Needed when another item's url sits
+   * underneath this one — otherwise both light up at once.
+   */
+  exact?: boolean;
+  /**
+   * Van Sales only: the item shows when the rep's role may take any of these
+   * actions (VAN_SALES_UPDATE_SPEC.md §3). Absent means everyone in the group.
+   */
+  vanActions?: VanAction[];
 }
 
 export interface MenuGroup {
@@ -140,12 +152,18 @@ export const MENU_GROUPS: readonly MenuGroup[] = [
     moduleKey: 'van-sales',
     titleKey: 'menu.groups.vanSales',
     icon: 'car',
+    // One entry per job a rep does outside a visit. Selling, returns and surveys
+    // happen inside a customer visit, so they are reached from the route, not
+    // from here. Each item shows only to the roles that do that job (§3).
     items: [
-      { titleKey: 'menu.items.preSales', url: null, icon: 'clipboard', comingSoon: true },
-      { titleKey: 'menu.items.vanSales', url: '/inventory/van-sales', icon: 'car' },
-      { titleKey: 'menu.items.orderManagement', url: null, icon: 'receipt', comingSoon: true },
-      { titleKey: 'menu.items.mobileInvoicing', url: null, icon: 'document-text', comingSoon: true },
-      { titleKey: 'menu.items.vanStock', url: null, icon: 'cube', comingSoon: true },
+      { titleKey: 'menu.items.todaysRoute', url: '/inventory/van-sales', icon: 'map', exact: true, vanActions: ['SELL', 'TAKE_ORDER', 'DELIVER', 'COLLECT'] },
+      { titleKey: 'menu.items.preSalesOrders', url: '/inventory/van-sales/orders', icon: 'clipboard', vanActions: ['TAKE_ORDER'] },
+      { titleKey: 'menu.items.deliveries', url: '/inventory/van-sales/deliveries', icon: 'send', vanActions: ['DELIVER'] },
+      { titleKey: 'menu.items.collections', url: '/inventory/van-sales/collections', icon: 'cash', vanActions: ['COLLECT'] },
+      { titleKey: 'menu.items.vanStock', url: '/inventory/van-sales/stock', icon: 'cube', vanActions: ['VAN_STOCK'] },
+      { titleKey: 'menu.items.newCustomerRequest', url: '/inventory/van-sales/new-customer', icon: 'person-add', vanActions: ['NEW_CUSTOMER'] },
+      { titleKey: 'menu.items.syncDayClose', url: '/inventory/van-sales/day-close', icon: 'sync', vanActions: ['DAY_CLOSE'] },
+      { titleKey: 'menu.items.supervisor', url: '/inventory/van-sales/supervisor', icon: 'shield-checkmark', vanActions: ['APPROVE'] },
     ],
   },
   {

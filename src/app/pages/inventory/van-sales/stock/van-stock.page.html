@@ -1,0 +1,182 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/inventory/van-sales"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Van stock</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="van-content">
+  <div class="van-card seg-card">
+    <div class="van-seg">
+      <button type="button" [class.on]="tab() === 'onhand'" (click)="setTab('onhand')">On hand</button>
+      <button type="button" [class.on]="tab() === 'request'" (click)="setTab('request')">Load request</button>
+      <button type="button" [class.on]="tab() === 'receive'" (click)="setTab('receive')">
+        Receive
+        @if (incoming().length) { <span class="count">{{ incoming().length }}</span> }
+      </button>
+      <button type="button" [class.on]="tab() === 'damaged'" (click)="setTab('damaged')">Damaged</button>
+    </div>
+  </div>
+
+  @if (locked()) {
+    <p class="van-hint">Day closed. Stock is read-only until a new day starts.</p>
+  }
+
+  @switch (tab()) {
+    @case ('onhand') {
+      <div class="stat-row">
+        <ds-stat label="Units on van" [value]="n(totalUnits())"></ds-stat>
+        <ds-stat label="Lines" [value]="store.vanStock().length"></ds-stat>
+        <ds-stat label="At zero" [value]="zeroCount()" [highlighted]="zeroCount() > 0"></ds-stat>
+      </div>
+      <div class="search-wrap">
+        <ds-search placeholder="Search products" (query)="query.set($event)"></ds-search>
+      </div>
+      @if (onHand().length) {
+        <div class="van-card list-card">
+          @for (s of onHand(); track s.itemId) {
+            <div class="stock-row" [class.zero]="s.qty <= 0">
+              <div class="stock-name">
+                <span class="name">{{ s.name }}</span>
+                <span class="van-label van-mono">{{ s.itemId }}</span>
+              </div>
+              @if (s.qty <= 0) {
+                <ds-pill label="Out" color="#b42318" bg="#fdecea"></ds-pill>
+              } @else {
+                <span class="van-value van-mono">{{ n(s.qty) }}</span>
+              }
+            </div>
+          }
+        </div>
+      } @else {
+        <ds-empty-state icon="cube-outline" title="No stock" message="Nothing on the van matches."></ds-empty-state>
+      }
+    }
+
+    @case ('request') {
+      <div class="search-wrap">
+        <ds-search placeholder="Search products" (query)="query.set($event)"></ds-search>
+      </div>
+      <div class="van-card list-card">
+        @for (p of catalog(); track p.itemId) {
+          <div class="stock-row">
+            <div class="stock-name">
+              <span class="name">{{ p.name }}</span>
+              <span class="van-label">On van {{ n(store.stockOf(p.itemId)) }} · ctn {{ p.cartonQty }}</span>
+            </div>
+            <div class="stepper">
+              <button type="button" [disabled]="locked() || qtyOf(p.itemId) === 0" (click)="step(p.itemId, -1)" aria-label="Less">
+                <ion-icon name="remove"></ion-icon>
+              </button>
+              <input
+                class="van-mono"
+                type="text"
+                inputmode="numeric"
+                [disabled]="locked()"
+                [value]="qtyOf(p.itemId)"
+                (change)="setQty(p.itemId, $any($event.target).value)" />
+              <button type="button" [disabled]="locked()" (click)="step(p.itemId, 1)" aria-label="More">
+                <ion-icon name="add"></ion-icon>
+              </button>
+              @if (p.cartonQty > 1) {
+                <button type="button" class="ctn" [disabled]="locked()" (click)="step(p.itemId, p.cartonQty)">+ctn</button>
+              }
+            </div>
+          </div>
+        } @empty {
+          <p class="van-label">No products loaded.</p>
+        }
+      </div>
+
+      <div class="van-card">
+        <p class="van-section-title">Today's requests</p>
+        @for (r of requests(); track r.id) {
+          <div class="van-row">
+            <span class="van-label"><span class="van-mono">{{ r.id }}</span> · {{ time(r.at) }}</span>
+            <span class="van-value">{{ r.lines.length }} lines · {{ n(units(r.lines)) }} units</span>
+          </div>
+        } @empty {
+          <p class="van-label">None yet.</p>
+        }
+      </div>
+      <div class="content-footer-space"></div>
+    }
+
+    @case ('receive') {
+      <p class="van-hint">Transfers from the warehouse app appear here once D365 ships them.</p>
+      @for (t of incoming(); track t.id) {
+        <div class="van-card">
+          <div class="van-row">
+            <span class="van-value van-mono">{{ t.id }}</span>
+            <ds-pill label="Incoming" color="#1d4ed8" bg="#e8effd"></ds-pill>
+          </div>
+          <p class="van-label sub">Requested {{ time(t.at) }} · {{ n(units(t.lines)) }} units</p>
+          <div class="van-hr"></div>
+          @for (l of t.lines; track l.itemId) {
+            <div class="stock-row">
+              <div class="stock-name">
+                <span class="name">{{ store.productName(l.itemId) }}</span>
+                <span class="van-label">Requested {{ n(l.qty) }}</span>
+              </div>
+              <input
+                class="recv-input van-mono"
+                type="text"
+                inputmode="numeric"
+                [attr.aria-label]="'Received ' + store.productName(l.itemId)"
+                [disabled]="locked()"
+                [value]="receivedQty(t.id, l)"
+                (change)="setReceived(t.id, l.itemId, $any($event.target).value)" />
+            </div>
+          }
+          <ds-button
+            class="recv-btn"
+            variant="secondary"
+            expand="block"
+            icon="download-outline"
+            label="Receive into van"
+            [disabled]="locked()"
+            (btnClick)="receive(t)">
+          </ds-button>
+        </div>
+      } @empty {
+        <ds-empty-state icon="swap-horizontal-outline" title="Nothing incoming" message="Send a load request to fill the van."></ds-empty-state>
+      }
+    }
+
+    @case ('damaged') {
+      <div class="stat-row">
+        <ds-stat label="Damaged units" [value]="n(damagedUnits())"></ds-stat>
+        <ds-stat label="Lines" [value]="damaged().length"></ds-stat>
+      </div>
+      <p class="van-hint">Unloaded to quarantine at day close.</p>
+      @if (damaged().length) {
+        <div class="van-card list-card">
+          @for (d of damaged(); track d.itemId) {
+            <div class="stock-row">
+              <div class="stock-name">
+                <span class="name">{{ d.name }}</span>
+                <span class="van-label van-mono">{{ d.itemId }}</span>
+              </div>
+              <span class="van-value neg van-mono">{{ n(d.qty) }}</span>
+            </div>
+          }
+        </div>
+      } @else {
+        <ds-empty-state icon="shield-checkmark-outline" title="No damaged stock" message="Unsellable returns land here."></ds-empty-state>
+      }
+    }
+  }
+</ion-content>
+
+@if (tab() === 'request') {
+  <ion-footer class="ion-no-border">
+    <ds-cta-bar
+      [label]="draftLines().length ? 'Send load request · ' + n(draftUnits()) + ' units' : 'Send load request'"
+      icon="send-outline"
+      [disabled]="!draftLines().length || locked()"
+      (ctaClick)="sendRequest()">
+    </ds-cta-bar>
+  </ion-footer>
+}

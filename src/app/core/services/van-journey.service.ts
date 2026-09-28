@@ -1,6 +1,9 @@
-import { Injectable } from '@angular/core';
-import { Observable, of } from 'rxjs';
-import { GeoPoint, VanDay } from '../../models/van-journey.model';
+import { inject, Injectable } from '@angular/core';
+import { from, map, Observable } from 'rxjs';
+import { GeoPoint, VanDay, VanVisit } from '../../models/van-journey.model';
+import { MasterData } from '../van-sales/van-sales.models';
+import { customerBalance } from '../van-sales/van-rules';
+import { VanStoreService } from '../van-sales/van-store.service';
 
 /** The route this van is assigned to for the day. */
 const ROUTE_ID = 'RT-CAI-04';
@@ -39,9 +42,53 @@ const DEPOT: GeoPoint = { lat: 29.9553, lng: 30.9187 };
  */
 @Injectable({ providedIn: 'root' })
 export class VanJourneyService {
-  /** The day to seed a fresh round with (or reload on pull-to-refresh). */
+  private readonly store = inject(VanStoreService);
+
+  /**
+   * The day to seed a fresh round with (or reload on pull-to-refresh).
+   *
+   * Built from the Van Sales master data — journey plan (#13) joined to route
+   * customers (#1) — so the stops, balances and credit terms the route screen
+   * shows are the same records the sell, collect and return screens price and
+   * post against. Falls back to the built-in seed when nothing has been pulled.
+   */
   loadToday(): Observable<VanDay> {
-    return of(this.fetchToday());
+    return from(this.store.ensureLoaded()).pipe(map((master) => (master ? this.fromMaster(master) : this.fetchToday())));
+  }
+
+  private fromMaster(master: MasterData): VanDay {
+    const byId = new Map(master.customers.map((c) => [c.id, c]));
+    const visits: VanVisit[] = [...master.journey]
+      .sort((a, b) => a.sequence - b.sequence)
+      .filter((stop) => byId.has(stop.customerId))
+      .map((stop) => {
+        const c = byId.get(stop.customerId)!;
+        const credit = c.paymentTerms === 'CREDIT';
+        return {
+          id: stop.sequence,
+          account: c.id,
+          name: c.name,
+          eta: stop.eta ?? '',
+          window: stop.windowFrom && stop.windowTo ? `${stop.windowFrom}–${stop.windowTo}` : '',
+          mode: credit ? 'credit' : 'cod',
+          balance: customerBalance(c),
+          limit: credit ? c.creditLimit : 0,
+          status: 'pending',
+          checkedIn: false,
+          priority: stop.priority === 'HIGH' || c.overdue || c.creditHold,
+          geo: { lat: c.lat ?? DEPOT.lat, lng: c.lon ?? DEPOT.lng },
+          address: c.address,
+        } satisfies VanVisit;
+      });
+    return {
+      routeId: master.repSetup.routeId,
+      depot: DEPOT,
+      open: true,
+      visits,
+      kpi: { planned: visits.length, visited: 0, sales: 0, collected: 0, returns: 0, adherence: 100, kmPlanned: 38, kmActual: 0 },
+      outbox: { invoices: 0, collections: 0, returns: 0, customerRequests: 0, pending: 0 },
+      openInvoices: [],
+    };
   }
 
   private fetchToday(): VanDay {
