@@ -850,7 +850,7 @@ export class VanJourneyPage implements OnInit {
 
     tags.push({ label: TAX_DOC_LABEL[taxDocKindFor(c, false)], color: '#4b5563', bg: '#eef0f3' });
 
-    if (this.role.role() === 'COLLECTOR') {
+    if (this.role.role() === 'COLLECTOR' && this.role.seesBalance()) {
       tags.push({ label: `Balance ${this.round(this.store.balanceOf(c.id))}`, color: '#1a3b6a', bg: '#e6eefb' });
     }
     return tags;
@@ -859,7 +859,8 @@ export class VanJourneyPage implements OnInit {
   subtitle(visit: VanVisit): string {
     if (visit.status === 'done') return visit.outcome ?? '';
     if (visit.status === 'current') {
-      return `ETA ${visit.eta} · window ${visit.window || '—'} · balance ${this.round(visit.balance)}`;
+      const base = `ETA ${visit.eta} · window ${visit.window || '—'}`;
+      return this.role.seesBalance() ? `${base} · balance ${this.round(visit.balance)}` : base;
     }
     return `ETA ${visit.eta}`;
   }

@@ -1,0 +1,269 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/dashboard"></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ def()?.title ?? 'Dashboard' }}</ion-title>
+  </ion-toolbar>
+
+  @if (def()) {
+    <ion-toolbar class="filter-bar">
+      <div class="filters">
+        @if (data()?.snapshot) {
+          <span class="snapshot-label"><ion-icon name="camera-outline" aria-hidden="true"></ion-icon>Right now</span>
+        } @else {
+        <div class="chips" role="tablist" aria-label="Period">
+          @for (p of periods; track p.key) {
+            <button type="button" role="tab" class="chip" [attr.aria-selected]="period() === p.key" [class.on]="period() === p.key" (click)="setPeriod(p.key)">
+              {{ p.label }}
+            </button>
+          }
+        </div>
+        }
+        <button type="button" class="live-badge" (click)="refresh()" [disabled]="loading()" aria-label="Refresh from D365">
+          @if (loading()) {
+            <ion-spinner name="dots"></ion-spinner>
+          } @else {
+            <span class="live-dot" aria-hidden="true"></span>
+          }
+          {{ loading() ? 'Loading' : updatedAt() ? 'Live · ' + updatedAt() : 'Live' }}
+        </button>
+      </div>
+    </ion-toolbar>
+  }
+</ion-header>
+
+<ion-content class="dash-content">
+  <ion-refresher slot="fixed" (ionRefresh)="refresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  @if (def(); as d) {
+    @if (error() && !data()) {
+      <ds-empty-state
+        icon="cloud-offline-outline"
+        title="Couldn't reach D365"
+        [message]="error() + ' Pull down or tap Try again.'"
+        buttonLabel="Try again"
+        (buttonClick)="refresh()">
+      </ds-empty-state>
+    } @else if (!data()) {
+      <div class="first-load" role="status">
+        <ion-spinner name="crescent"></ion-spinner>
+        <p>Reading {{ d.title }} figures from D365…</p>
+      </div>
+    }
+    @if (data(); as x) {
+      <div class="dash-body" [class.stale]="loading()">
+      @let info = periodInfo();
+
+      <!-- ── About this module ─────────────────────────────────────── -->
+      <section class="about" [class.open]="aboutOpen()">
+        <button type="button" class="about-head" (click)="aboutOpen.set(!aboutOpen())" [attr.aria-expanded]="aboutOpen()">
+          <span class="about-icon"><ion-icon [name]="d.icon + '-outline'" aria-hidden="true"></ion-icon></span>
+          <span class="about-title">About {{ d.title }}</span>
+          <ion-icon class="chev" name="chevron-down-outline" aria-hidden="true"></ion-icon>
+        </button>
+        @if (aboutOpen()) {
+          <div class="about-body">
+            <p>{{ d.intro }}</p>
+            <p class="who"><strong>Used by:</strong> {{ d.audience }}</p>
+            <p class="how-title">How to read this page</p>
+            <ol class="how">
+              <li>The big number is the module's headline figure for the period you pick above.</li>
+              <li>Green and red chips compare each figure with the previous period of the same length. Green is good news, even when it goes down — fewer backorders is green.</li>
+              <li>Tap <ion-icon name="information-circle-outline" aria-label="info"></ion-icon> on any card to see what the figure means and how it is worked out.</li>
+              <li>Charts respond to touch, and every chart can be switched to a table.</li>
+            </ol>
+          </div>
+        }
+      </section>
+
+      @if (error()) {
+        <div class="note-banner critical" role="alert">
+          <ion-icon name="cloud-offline-outline" aria-hidden="true"></ion-icon>
+          <span>Refresh failed: {{ error() }} Showing the figures from {{ updatedAt() }}.</span>
+        </div>
+      }
+      @if (notes().length) {
+        <div class="note-banner" role="status">
+          <ion-icon name="information-circle-outline" aria-hidden="true"></ion-icon>
+          <span>
+            @for (n of notes(); track n) { {{ n }} }
+            The rest of the page is complete.
+          </span>
+        </div>
+      }
+
+      <!-- ── Hero ──────────────────────────────────────────────────── -->
+      <section class="hero">
+        <div class="hero-top">
+          <span class="hero-label">{{ x.hero.label }} · {{ info.current }}</span>
+          <button type="button" class="info-btn on-dark" (click)="toggle('hero')" [attr.aria-expanded]="isOpen('hero')" aria-label="What does this mean?">
+            <ion-icon name="information-circle-outline"></ion-icon>
+          </button>
+        </div>
+        <div class="hero-value">{{ heroValue(x.hero) }}</div>
+        <div class="hero-meta">
+          @if (hasDelta(x.hero)) {
+            <span [class]="'delta-chip ' + deltaTone(x.hero)">
+              <ion-icon [name]="deltaIcon(x.hero)" aria-hidden="true"></ion-icon>{{ deltaText(x.hero) }}
+            </span>
+            <span class="hero-vs">vs {{ info.previous.toLowerCase() }}</span>
+          } @else {
+            <span class="delta-chip"><ion-icon name="camera-outline" aria-hidden="true"></ion-icon>Right now</span>
+          }
+        </div>
+        @if (isOpen('hero')) {
+          <p class="hero-explain">{{ d.heroCaption }} {{ x.hero.explain }} {{ deltaSentence(x.hero) }}</p>
+        }
+      </section>
+
+      <!-- ── KPI tiles: tap one to read what it means ──────────────── -->
+      <div class="kpis">
+        @for (k of x.kpis; track k.key) {
+          <button type="button" class="kpi tappable" [class.expanded]="isOpen(k.key)" (click)="toggle(k.key)" [attr.aria-expanded]="isOpen(k.key)">
+            <div class="kpi-head">
+              <span class="kpi-icon"><ion-icon [name]="k.icon + '-outline'" aria-hidden="true"></ion-icon></span>
+              <span class="kpi-label">{{ k.label }}</span>
+              <ion-icon class="kpi-info" name="information-circle-outline" aria-hidden="true"></ion-icon>
+            </div>
+            <span class="kpi-value">{{ format(k.value, k.format) }}</span>
+            <div class="kpi-foot">
+              @if (hasDelta(k)) {
+                <span [class]="'delta ' + deltaTone(k)">
+                  <ion-icon [name]="deltaIcon(k)" aria-hidden="true"></ion-icon>{{ deltaText(k) }}
+                </span>
+              } @else {
+                <span class="delta flat"><ion-icon name="camera-outline" aria-hidden="true"></ion-icon>Now</span>
+              }
+            </div>
+            @if (isOpen(k.key)) {
+              <span class="kpi-explain">{{ k.explain }} {{ deltaSentence(k) }}</span>
+            }
+          </button>
+        }
+      </div>
+
+      <!-- ── Needs attention ───────────────────────────────────────── -->
+      @if (x.attention.length) {
+        <h2 class="section-title">Needs attention</h2>
+        <ul class="attention" role="list">
+          @for (a of x.attention; track a.text) {
+            <li [class]="'tone-' + a.tone">
+              <ion-icon [name]="a.tone === 'critical' ? 'alert-circle-outline' : a.tone === 'warning' ? 'warning-outline' : 'information-circle-outline'" aria-hidden="true"></ion-icon>
+              <span>{{ a.text }}</span>
+            </li>
+          }
+        </ul>
+      }
+
+      <!-- ── Trend ─────────────────────────────────────────────────── -->
+      @if (x.trend; as t) {
+      <h2 class="section-title">Trend</h2>
+      <section class="card">
+        <header class="card-head">
+          <div>
+            <h3>{{ t.title }}</h3>
+            <p>{{ period() === 'TODAY' ? 'By hour' : 'By day' }}, against {{ info.previous.toLowerCase() }}</p>
+          </div>
+          <button type="button" class="info-btn" (click)="toggle('trend')" [attr.aria-expanded]="isOpen('trend')" aria-label="What does this chart show?">
+            <ion-icon name="information-circle-outline"></ion-icon>
+          </button>
+        </header>
+        @if (isOpen('trend')) { <p class="explain">{{ t.explain }} The solid blue line is this period; the grey line is the previous one.</p> }
+        <app-trend-chart
+          [rows]="t.current"
+          [previous]="t.previous"
+          [format]="formatterFor(t.format)"
+          [short]="compact"
+          [label]="trendLabel"
+          [currentLabel]="info.current"
+          [previousLabel]="info.previous"
+          [labelHeader]="period() === 'TODAY' ? 'Hour' : 'Day'">
+        </app-trend-chart>
+      </section>
+      }
+
+      <!-- ── Stages ────────────────────────────────────────────────── -->
+      @if (x.pipeline; as pl) {
+        <h2 class="section-title">Stages</h2>
+        <section class="card">
+          <header class="card-head">
+            <div><h3>{{ pl.title }}</h3></div>
+            <button type="button" class="info-btn" (click)="toggle('pipeline')" [attr.aria-expanded]="isOpen('pipeline')" aria-label="What do these stages mean?">
+              <ion-icon name="information-circle-outline"></ion-icon>
+            </button>
+          </header>
+          @if (isOpen('pipeline')) { <p class="explain">{{ pl.explain }}</p> }
+          <ol class="pipeline" [style.grid-template-columns]="'repeat(' + pl.steps.length + ', minmax(0, 1fr))'">
+            @for (s of pl.steps; track s.label; let last = $last) {
+              <li [class.empty]="!s.count">
+                <span class="step-icon"><ion-icon [name]="s.icon + '-outline'" aria-hidden="true"></ion-icon></span>
+                <span class="step-count">{{ s.count }}</span>
+                <span class="step-label">{{ s.label }}</span>
+                @if (!last) { <ion-icon class="step-arrow" name="chevron-forward" aria-hidden="true"></ion-icon> }
+              </li>
+            }
+          </ol>
+        </section>
+      }
+
+      <!-- ── Breakdowns ────────────────────────────────────────────── -->
+      @if (x.breakdowns.length) { <h2 class="section-title">Breakdown</h2> }
+      @for (b of x.breakdowns; track b.key) {
+        <section class="card">
+          <header class="card-head">
+            <div>
+              <h3>{{ b.title }}</h3>
+              @if (b.insight) { <p>{{ b.insight }}</p> }
+            </div>
+            <button type="button" class="info-btn" (click)="toggle(b.key)" [attr.aria-expanded]="isOpen(b.key)" [attr.aria-label]="'About ' + b.title">
+              <ion-icon name="information-circle-outline"></ion-icon>
+            </button>
+          </header>
+          @if (isOpen(b.key)) { <p class="explain">{{ b.explain }}</p> }
+          @if (b.kind === 'split') {
+            <app-split-bar [parts]="b.rows" [format]="formatterFor(b.format)" [labelHeader]="b.title"></app-split-bar>
+          } @else {
+            <app-bar-list [rows]="b.rows" [format]="formatterFor(b.format)" [colors]="colorsFor(b.ordinal)" [labelHeader]="b.title" valueHeader="Value"></app-bar-list>
+          }
+        </section>
+      }
+
+      <!-- ── Go to the module's screens ────────────────────────────── -->
+      @if (links().length) {
+        <h2 class="section-title">Open in {{ d.title }}</h2>
+        <section class="card links">
+          @for (l of links(); track l.url) {
+            <a class="link-row" [routerLink]="l.url">
+              <span class="kpi-icon"><ion-icon [name]="l.icon + '-outline'" aria-hidden="true"></ion-icon></span>
+              <span class="link-label">{{ l.titleKey | translate }}</span>
+              <ion-icon class="link-chev" name="chevron-forward-outline" aria-hidden="true"></ion-icon>
+            </a>
+          }
+        </section>
+      }
+
+      <!-- ── Glossary ──────────────────────────────────────────────── -->
+      <h2 class="section-title">Glossary</h2>
+      <section class="card glossary">
+        @for (g of d.glossary; track g.term) {
+          <details>
+            <summary>{{ g.term }}<ion-icon name="chevron-down-outline" aria-hidden="true"></ion-icon></summary>
+            <p>{{ g.meaning }}</p>
+          </details>
+        }
+      </section>
+
+      <p class="footnote">
+        Live from D365 for your company: {{ d.sources.join(', ') }}.
+        Period figures compare {{ info.current.toLowerCase() }} with {{ info.previous.toLowerCase() }}; figures marked "Now" are a snapshot.
+      </p>
+      <div class="content-footer-space"></div>
+      </div>
+    }
+  } @else {
+    <ds-empty-state icon="speedometer-outline" title="No dashboard for this module" message="This module doesn't have a dashboard yet."></ds-empty-state>
+  }
+</ion-content>

@@ -1,0 +1,276 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/inventory/van-sales/surveys"></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ isNew() ? 'New survey' : 'Edit survey' }}</ion-title>
+    @if (!isNew()) {
+      <ion-buttons slot="end">
+        <ion-button (click)="remove()" aria-label="Delete survey">
+          <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+    }
+  </ion-toolbar>
+  <ion-toolbar class="mode-bar">
+    <div class="van-seg mode-seg">
+      <button type="button" [class.on]="mode() === 'edit'" (click)="setMode('edit')"><ion-icon name="create-outline"></ion-icon> Design</button>
+      <button type="button" [class.on]="mode() === 'preview'" (click)="setMode('preview')"><ion-icon name="eye-outline"></ion-icon> Preview</button>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="van-content">
+  @let d = draft();
+
+  @if (mode() === 'edit') {
+    <!-- ── The survey ─────────────────────────────────────────────── -->
+    <section class="van-card">
+      <p class="van-section-title">Survey</p>
+      <label class="fld">
+        <span class="fld-label">Name <em>*</em></span>
+        <input class="fld-input" type="text" maxlength="80" placeholder="e.g. Shelf check" [ngModel]="d.name" (ngModelChange)="patch({ name: $event })" />
+      </label>
+      <label class="fld">
+        <span class="fld-label">What it is for</span>
+        <textarea class="fld-input" rows="2" maxlength="240" placeholder="Shown to the rep above the questions" [ngModel]="d.description ?? ''" (ngModelChange)="patch({ description: $event })"></textarea>
+      </label>
+
+      <div class="toggle-line">
+        <div>
+          <span class="fld-label">Active</span>
+          <span class="fld-hint">Inactive surveys stay here but are not offered at visits.</span>
+        </div>
+        <ion-toggle [checked]="d.active !== false" (ionChange)="patch({ active: $event.detail.checked })" aria-label="Active"></ion-toggle>
+      </div>
+
+      <span class="fld-label">Who it is for</span>
+      <span class="fld-hint">Pick price groups, or leave all off to ask every customer.</span>
+      <div class="chips">
+        @for (g of priceGroups(); track g) {
+          <button type="button" class="chip" [class.on]="(d.customerGroups ?? []).includes(g)" (click)="toggleGroup(g)">{{ g }}</button>
+        }
+      </div>
+
+      <div class="two">
+        <label class="fld">
+          <span class="fld-label">Valid from</span>
+          <input class="fld-input" type="date" [ngModel]="d.validFrom ?? ''" (ngModelChange)="patch({ validFrom: $event || undefined })" />
+        </label>
+        <label class="fld">
+          <span class="fld-label">Valid until</span>
+          <input class="fld-input" type="date" [ngModel]="d.validTo ?? ''" (ngModelChange)="patch({ validTo: $event || undefined })" />
+        </label>
+      </div>
+
+      @for (e of check().survey; track e) {
+        <p class="problem"><ion-icon name="alert-circle-outline"></ion-icon>{{ e }}</p>
+      }
+    </section>
+
+    <!-- ── Questions ──────────────────────────────────────────────── -->
+    <p class="van-section-title list-title">Questions · {{ d.questions.length }}</p>
+
+    @for (q of d.questions; track q.id; let i = $index; let first = $first; let last = $last) {
+      <section class="van-card q-card" [class.open]="openId() === q.id" [class.has-problem]="problems(q).length > 0" [class.follow-up]="!!q.showIf">
+        <button type="button" class="q-summary" (click)="toggleOpen(q.id)" [attr.aria-expanded]="openId() === q.id">
+          <span class="q-no">Q{{ i + 1 }}</span>
+          <span class="q-sum-main">
+            <span class="q-sum-text" [class.placeholder]="!q.text.trim()">{{ q.text.trim() || 'Untitled question' }}</span>
+            <span class="q-sum-meta">
+              <span class="badge">{{ typeLabel(q.type) }}</span>
+              @if (q.required) { <span class="badge req">Required</span> }
+              @if (q.showIf) { <span class="badge cond"><ion-icon name="git-branch-outline"></ion-icon>{{ conditionText(q) }}</span> }
+              @if (problems(q).length) { <span class="badge bad">{{ problems(q).length }} to fix</span> }
+            </span>
+          </span>
+          <ion-icon class="chev" name="chevron-down-outline" aria-hidden="true"></ion-icon>
+        </button>
+
+        @if (openId() === q.id) {
+          <div class="q-body">
+            <label class="fld">
+              <span class="fld-label">Question <em>*</em></span>
+              <textarea class="fld-input" rows="2" maxlength="200" placeholder="What should the rep answer?" [ngModel]="q.text" (ngModelChange)="update(q.id, { text: $event })"></textarea>
+            </label>
+
+            <span class="fld-label">Answer type</span>
+            <div class="type-grid">
+              @for (t of types; track t.type) {
+                <button type="button" class="type-btn" [class.on]="q.type === t.type" (click)="changeType(q, t.type)">
+                  <ion-icon [name]="t.icon + '-outline'"></ion-icon>{{ t.label }}
+                </button>
+              }
+            </div>
+
+            <div class="toggle-line">
+              <span class="fld-label">Must be answered</span>
+              <ion-toggle [checked]="q.required" (ionChange)="update(q.id, { required: $event.detail.checked })" aria-label="Required"></ion-toggle>
+            </div>
+
+            <label class="fld">
+              <span class="fld-label">Help for the rep</span>
+              <input class="fld-input" type="text" maxlength="160" placeholder="Optional — e.g. count the front row only" [ngModel]="q.help ?? ''" (ngModelChange)="update(q.id, { help: $event })" />
+            </label>
+
+            @if (q.type === 'CHOICE' || q.type === 'MULTI_CHOICE') {
+              <span class="fld-label">Options</span>
+              @for (o of q.options ?? []; track $index; let oi = $index) {
+                <div class="opt-row">
+                  <input class="fld-input" type="text" maxlength="60" [placeholder]="'Option ' + (oi + 1)" [ngModel]="o" (ngModelChange)="setOption(q, oi, $event)" />
+                  <button type="button" class="icon-btn" aria-label="Remove option" [disabled]="(q.options?.length ?? 0) <= 2" (click)="removeOption(q, oi)">
+                    <ion-icon name="close-circle-outline"></ion-icon>
+                  </button>
+                </div>
+              }
+              <button type="button" class="link-btn" (click)="addOption(q)"><ion-icon name="add-outline"></ion-icon> Add option</button>
+            }
+
+            @if (q.type === 'NUMBER') {
+              <div class="two">
+                <label class="fld">
+                  <span class="fld-label">Lowest allowed</span>
+                  <input class="fld-input" type="number" inputmode="decimal" placeholder="No limit" [ngModel]="q.min ?? null" (ngModelChange)="setNumber(q.id, 'min', $event ?? '')" />
+                </label>
+                <label class="fld">
+                  <span class="fld-label">Highest allowed</span>
+                  <input class="fld-input" type="number" inputmode="decimal" placeholder="No limit" [ngModel]="q.max ?? null" (ngModelChange)="setNumber(q.id, 'max', $event ?? '')" />
+                </label>
+              </div>
+            }
+
+            @if (q.type === 'RATING') {
+              <span class="fld-label">Scale</span>
+              <div class="chips">
+                @for (n of [3, 4, 5, 7, 10]; track n) {
+                  <button type="button" class="chip" [class.on]="(q.max ?? 5) === n" (click)="update(q.id, { max: n })">1–{{ n }}</button>
+                }
+              </div>
+            }
+
+            <!-- Condition -->
+            <span class="fld-label">When to ask</span>
+            @if (parentsFor(q).length) {
+              <div class="cond">
+                <select class="fld-input" [ngModel]="q.showIf?.questionId ?? ''" (ngModelChange)="setConditionParent(q, $event)" aria-label="Depends on">
+                  <option value="">Always</option>
+                  @for (p of parentsFor(q); track p.id) {
+                    <option [value]="p.id">Only if Q{{ d.questions.indexOf(p) + 1 }} — {{ p.text || 'Untitled' }}</option>
+                  }
+                </select>
+                @if (q.showIf; as c) {
+                  @for (p of parentsFor(q); track p.id) {
+                    @if (p.id === c.questionId) {
+                      <select class="fld-input" [ngModel]="c.equals" (ngModelChange)="setConditionValue(q, $event)" aria-label="Answer that shows this question">
+                        @for (v of conditionValues(p); track v) {
+                          <option [value]="v">is “{{ v }}”</option>
+                        }
+                      </select>
+                    }
+                  }
+                }
+              </div>
+            } @else {
+              <span class="fld-hint">Always asked. To make it a follow-up, put a Yes/No, choice or rating question before it.</span>
+            }
+
+            @for (p of problems(q); track p) {
+              <p class="problem"><ion-icon name="alert-circle-outline"></ion-icon>{{ p }}</p>
+            }
+
+            <div class="q-actions">
+              <button type="button" class="icon-btn" aria-label="Move up" [disabled]="first" (click)="move(q, -1)"><ion-icon name="arrow-up-outline"></ion-icon></button>
+              <button type="button" class="icon-btn" aria-label="Move down" [disabled]="last" (click)="move(q, 1)"><ion-icon name="arrow-down-outline"></ion-icon></button>
+              <button type="button" class="icon-btn" aria-label="Duplicate question" (click)="duplicateQuestion(q)"><ion-icon name="copy-outline"></ion-icon></button>
+              <span class="spacer"></span>
+              <button type="button" class="icon-btn danger" aria-label="Delete question" (click)="removeQuestion(q)"><ion-icon name="trash-outline"></ion-icon></button>
+            </div>
+          </div>
+        }
+      </section>
+    }
+
+    @if (addingType()) {
+      <section class="van-card">
+        <p class="van-section-title">Add a question</p>
+        <div class="type-grid big">
+          @for (t of types; track t.type) {
+            <button type="button" class="type-btn" (click)="addQuestion(t.type)">
+              <ion-icon [name]="t.icon + '-outline'"></ion-icon>
+              <span><strong>{{ t.label }}</strong><small>{{ t.hint }}</small></span>
+            </button>
+          }
+        </div>
+        <button type="button" class="link-btn" (click)="addingType.set(false)">Cancel</button>
+      </section>
+    } @else {
+      <button type="button" class="add-q" (click)="addingType.set(true)"><ion-icon name="add-circle-outline"></ion-icon> Add question</button>
+    }
+  } @else {
+    <!-- ── Preview: the same rules as the field screen ────────────── -->
+    <div class="preview-note">
+      <ion-icon name="eye-outline"></ion-icon>
+      <span>This is what a rep sees. Answer to try the follow-up questions — nothing here is saved.</span>
+    </div>
+    <section class="van-card">
+      <span class="van-value">{{ d.name || 'Untitled survey' }}</span>
+      @if (d.description) { <p class="van-hint start">{{ d.description }}</p> }
+    </section>
+    @for (q of previewQuestions(); track q.id; let i = $index) {
+      <section class="van-card preview-q" [class.follow-up]="!!q.showIf">
+        <div class="pq-head">
+          <span><strong>{{ i + 1 }}.</strong> {{ q.text || 'Untitled question' }}</span>
+          @if (q.required && !previewAnswered(q)) { <span class="badge req">Required</span> }
+        </div>
+        @if (q.help) { <p class="fld-hint">{{ q.help }}</p> }
+        @switch (q.type) {
+          @case ('YES_NO') {
+            <div class="van-seg">
+              <button type="button" [class.on]="previewValue(q) === true" (click)="answerPreview(q, true)">Yes</button>
+              <button type="button" [class.on]="previewValue(q) === false" (click)="answerPreview(q, false)">No</button>
+            </div>
+          }
+          @case ('CHOICE') {
+            <div class="chips">
+              @for (o of q.options ?? []; track $index) {
+                @if (o.trim()) { <button type="button" class="chip" [class.on]="previewPicked(q, o)" (click)="answerPreview(q, o)">{{ o }}</button> }
+              }
+            </div>
+          }
+          @case ('MULTI_CHOICE') {
+            <div class="chips">
+              @for (o of q.options ?? []; track $index) {
+                @if (o.trim()) { <button type="button" class="chip" [class.on]="previewPicked(q, o)" (click)="togglePreviewPick(q, o)">{{ o }}</button> }
+              }
+            </div>
+          }
+          @case ('RATING') {
+            <div class="chips">
+              @for (n of conditionValues(q); track n) {
+                <button type="button" class="chip" [class.on]="previewValue(q) === +n" (click)="answerPreview(q, +n)">{{ n }}</button>
+              }
+            </div>
+          }
+          @case ('NUMBER') { <div class="fake-input">Number{{ q.min !== undefined || q.max !== undefined ? ' · ' + (q.min ?? '…') + '–' + (q.max ?? '…') : '' }}</div> }
+          @case ('TEXT') { <div class="fake-input">Free text</div> }
+          @case ('PHOTO') { <div class="fake-input"><ion-icon name="camera-outline"></ion-icon> Take photo</div> }
+        }
+      </section>
+    } @empty {
+      <ds-empty-state icon="help-circle-outline" title="No questions yet" message="Switch to Design and add the first question."></ds-empty-state>
+    }
+    <p class="van-hint">{{ previewQuestions().length }} of {{ d.questions.length }} questions showing for these answers.</p>
+  }
+
+  <div class="content-footer-space"></div>
+</ion-content>
+
+<ion-footer class="ion-no-border">
+  <ds-cta-bar
+    [label]="saveLabel()"
+    icon="checkmark-circle-outline"
+    [loading]="saving()"
+    [disabled]="!check().ok || saving() || (!dirty() && !isNew())"
+    (ctaClick)="save()">
+  </ds-cta-bar>
+</ion-footer>

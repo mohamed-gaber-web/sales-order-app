@@ -186,7 +186,10 @@ export class VanSellPage implements OnInit {
   });
   readonly creditIssue = computed(() => {
     const r = this.credit();
-    return r && !r.ok ? r.message ?? 'Credit is blocked.' : null;
+    if (!r || r.ok) return null;
+    // A seller is told credit is blocked and why, never by how much.
+    if (!this.role.seesBalance() && r.block === 'OVER_LIMIT') return 'This sale is over the customer’s credit limit.';
+    return r.message ?? 'Credit is blocked.';
   });
 
   readonly canPost = computed(

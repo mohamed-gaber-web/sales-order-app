@@ -67,6 +67,10 @@ export interface VanSalesApi {
   listCheques(): Observable<ChequeRecord[]>;
   updateChequeStatus(receiptId: string, number: string, bank: string, status: ChequeStatus): Observable<ChequeRecord>;
   getEDocStatus(uuids: string[]): Observable<{ uuid: string; status: EDocStatus; qrPayload?: string }[]>;
+
+  // Survey builder — definitions are server state, so these go online, not through the outbox.
+  saveSurvey(def: SurveyDefinition): Observable<SurveyDefinition>;
+  deleteSurvey(id: string): Observable<void>;
 }
 
 export const VAN_SALES_HTTP_API = new InjectionToken<VanSalesApi>('VanSalesHttpApi');

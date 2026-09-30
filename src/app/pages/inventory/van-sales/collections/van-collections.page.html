@@ -9,7 +9,9 @@
 
 <ion-content class="van-content">
   <div class="stats">
-    <ds-stat label="Outstanding" [value]="money(outstanding())" accentColor="var(--ion-color-danger, #d92d20)"></ds-stat>
+    @if (role.seesBalance()) {
+      <ds-stat label="Outstanding" [value]="money(outstanding())" accentColor="var(--ion-color-danger, #d92d20)"></ds-stat>
+    }
     <ds-stat label="Collected today" [value]="money(collectedToday())" accentColor="var(--ion-color-success, #0e9f6e)"></ds-stat>
   </div>
 
@@ -35,7 +37,11 @@
           }
         </div>
         <div class="row-end">
-          <span class="van-value neg van-mono">{{ money(r.balance) }}</span>
+          @if (role.seesBalance()) {
+            <span class="van-value neg van-mono">{{ money(r.balance) }}</span>
+          } @else {
+            <ds-pill label="To collect" color="#1a3b6a" bg="#e6eefb"></ds-pill>
+          }
           <ion-icon name="chevron-forward-outline" class="chevron"></ion-icon>
         </div>
       </button>

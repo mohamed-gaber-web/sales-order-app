@@ -5,7 +5,7 @@ import { VanSalesApi } from './van-sales-api';
 import { VanApiNo } from './van-sales-endpoints';
 import { VanSalesHttpApi } from './van-sales-http.api';
 import { VanSalesMockApi } from './van-sales-mock.api';
-import { ApprovalStatus, ChequeStatus, ServiceEnvelope } from './van-sales.models';
+import { ApprovalStatus, ChequeStatus, ServiceEnvelope, SurveyDefinition } from './van-sales.models';
 
 /**
  * The one `VanSalesApi` the app injects. Each call names its API number and is
@@ -58,4 +58,6 @@ export class VanSalesApiRouter implements VanSalesApi {
     return this.pick(93).updateChequeStatus(receiptId, number, bank, status);
   }
   getEDocStatus(uuids: string[]) { return this.pick(43).getEDocStatus(uuids); }
+  saveSurvey(def: SurveyDefinition) { return this.pick(15).saveSurvey(def); }
+  deleteSurvey(id: string) { return this.pick(15).deleteSurvey(id); }
 }

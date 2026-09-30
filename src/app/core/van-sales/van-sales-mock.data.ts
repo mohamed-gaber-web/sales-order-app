@@ -164,15 +164,29 @@ export const MOCK_PROMOTIONS: PromotionRule[] = [
   },
 ];
 
+/** Starting surveys for the demo — edit, add or delete them in the survey builder. */
 export const MOCK_SURVEYS: SurveyDefinition[] = [
   {
-    id: 'SV-SHELF', name: 'Shelf check',
+    id: 'SV-SHELF', name: 'Shelf check', active: true,
+    description: 'Is our range on the shelf, and how does it look against competitors?',
     questions: [
       { id: 'q1', text: 'Are our products on the shelf?', type: 'YES_NO', required: true },
-      { id: 'q2', text: 'Shelf position', type: 'CHOICE', required: true, options: ['Eye level', 'Top', 'Bottom', 'Floor stand'] },
-      { id: 'q3', text: 'Pasta facings', type: 'NUMBER', required: false },
-      { id: 'q4', text: 'Competitor activity', type: 'TEXT', required: false },
-      { id: 'q5', text: 'Photo of the shelf', type: 'PHOTO', required: true },
+      { id: 'q1b', text: 'Why not?', type: 'CHOICE', required: true, options: ['Out of stock', 'No shelf space', 'Store refused', 'Other'], showIf: { questionId: 'q1', equals: 'No' } },
+      { id: 'q2', text: 'Shelf position', type: 'CHOICE', required: true, options: ['Eye level', 'Top', 'Bottom', 'Floor stand'], showIf: { questionId: 'q1', equals: 'Yes' } },
+      { id: 'q3', text: 'Pasta facings', type: 'NUMBER', required: false, min: 0, max: 50, help: 'Count the packs facing the customer, front row only.', showIf: { questionId: 'q1', equals: 'Yes' } },
+      { id: 'q4', text: 'Competitors present', type: 'MULTI_CHOICE', required: false, options: ['Brand A', 'Brand B', 'Brand C', 'Store brand'] },
+      { id: 'q5', text: 'Shelf condition', type: 'RATING', required: true, max: 5, help: '1 is empty or dirty, 5 is full and tidy.' },
+      { id: 'q6', text: 'Competitor activity', type: 'TEXT', required: false },
+      { id: 'q7', text: 'Photo of the shelf', type: 'PHOTO', required: true },
+    ],
+  },
+  {
+    id: 'SV-PROMO', name: 'Promotion display', active: true, customerGroups: ['Key account', 'Wholesale'],
+    description: 'Check the promotion display at key accounts.',
+    questions: [
+      { id: 'p1', text: 'Is the promotion display up?', type: 'YES_NO', required: true },
+      { id: 'p2', text: 'Photo of the display', type: 'PHOTO', required: true, showIf: { questionId: 'p1', equals: 'Yes' } },
+      { id: 'p3', text: 'What is missing?', type: 'MULTI_CHOICE', required: true, options: ['Stand', 'Price tags', 'Posters', 'Stock'], showIf: { questionId: 'p1', equals: 'No' } },
     ],
   },
 ];

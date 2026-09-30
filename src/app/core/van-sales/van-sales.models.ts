@@ -24,7 +24,11 @@ export type VanAction =
   | 'NEW_CUSTOMER'
   | 'VAN_STOCK'
   | 'DAY_CLOSE'
-  | 'APPROVE';
+  | 'APPROVE'
+  /** See a customer's balance, credit limit and open invoice amounts. */
+  | 'VIEW_BALANCE'
+  /** Create and edit survey definitions. */
+  | 'MANAGE_SURVEYS';
 
 /** API #12 — who this rep is, and the limits their company set for them. */
 export interface RepSetup {
@@ -154,27 +158,51 @@ export interface LoyaltyRules {
   tiers: { name: string; minPoints: number }[];
 }
 
-/** API #15. */
-export type SurveyQuestionType = 'YES_NO' | 'CHOICE' | 'NUMBER' | 'TEXT' | 'PHOTO';
+/**
+ * API #15 — survey definitions, built by a supervisor in the survey builder and
+ * pulled to every van. Nothing about a survey is fixed in the app: the
+ * questions, their order, types, options and the conditions that show them
+ * all come from the definition.
+ */
+export type SurveyQuestionType = 'YES_NO' | 'CHOICE' | 'MULTI_CHOICE' | 'NUMBER' | 'RATING' | 'TEXT' | 'PHOTO';
 
 export interface SurveyQuestion {
   id: string;
   text: string;
   type: SurveyQuestionType;
   required: boolean;
+  /** Short guidance shown under the question. */
+  help?: string;
+  /** CHOICE and MULTI_CHOICE. */
   options?: string[];
+  /** NUMBER: allowed range. RATING: scale top (defaults to 5). */
+  min?: number;
+  max?: number;
+  /**
+   * Ask this question only when an earlier question was answered with
+   * `equals` (for YES_NO use 'Yes' or 'No'; for MULTI_CHOICE, when it was one
+   * of the picks).
+   */
+  showIf?: { questionId: string; equals: string };
 }
 
 export interface SurveyDefinition {
   id: string;
   name: string;
+  description?: string;
+  /** Inactive surveys stay in the builder but are not offered in the field. */
+  active?: boolean;
+  /** Price groups it is for; empty means every customer. */
   customerGroups?: string[];
+  validFrom?: string;
+  validTo?: string;
   questions: SurveyQuestion[];
+  updatedAt?: string;
 }
 
 export interface SurveyAnswer {
   questionId: string;
-  value: string | number | boolean | null;
+  value: string | number | boolean | string[] | null;
   /** For PHOTO questions: attachment ids in the local attachment store. */
   photoIds?: string[];
 }

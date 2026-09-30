@@ -29,6 +29,7 @@ import {
   EDocStatus,
   SalesOrder,
   ServiceEnvelope,
+  SurveyDefinition,
   VanStockLine,
 } from './van-sales.models';
 
@@ -38,6 +39,7 @@ const LATENCY_MS = 250;
 /** What the pretend D365 remembers between calls — and between reloads. */
 interface MockServerState {
   customers: Customer[];
+  surveys: SurveyDefinition[];
   vanStock: VanStockLine[];
   orders: SalesOrder[];
   approvals: ApprovalRequest[];
@@ -86,7 +88,7 @@ export class VanSalesMockApi implements VanSalesApi {
   getTaxGroups() { return this.ok(clone(MOCK_TAX_GROUPS)); }
   getReturnReasons() { return this.ok(clone(MOCK_REASONS)); }
   getPromotions() { return this.ok(clone(MOCK_PROMOTIONS)); }
-  getSurveys() { return this.ok(clone(MOCK_SURVEYS)); }
+  getSurveys() { return this.ok(clone(this.state.surveys)); }
   getLoyaltyRules() { return this.ok(clone(MOCK_LOYALTY)); }
   getBanks() { return this.ok([...MOCK_BANKS]); }
   getVanStock() { return this.ok(clone(this.state.vanStock)); }
@@ -185,6 +187,25 @@ export class VanSalesMockApi implements VanSalesApi {
   }
 
   /** D365 Electronic Invoicing (#44) validates a submitted document on the first status read. */
+  saveSurvey(def: SurveyDefinition) {
+    return defer(() => {
+      const saved: SurveyDefinition = { ...clone(def), updatedAt: new Date().toISOString() };
+      const i = this.state.surveys.findIndex((s) => s.id === def.id);
+      if (i >= 0) this.state.surveys[i] = saved;
+      else this.state.surveys.push(saved);
+      this.persist();
+      return of(clone(saved));
+    }).pipe(delay(LATENCY_MS));
+  }
+
+  deleteSurvey(id: string) {
+    return defer(() => {
+      this.state.surveys = this.state.surveys.filter((s) => s.id !== id);
+      this.persist();
+      return of(void 0);
+    }).pipe(delay(LATENCY_MS));
+  }
+
   getEDocStatus(uuids: string[]) {
     return defer(() => {
       for (const d of this.state.eDocs) {
@@ -428,6 +449,7 @@ export class VanSalesMockApi implements VanSalesApi {
   private seed(): MockServerState {
     return {
       customers: clone(MOCK_CUSTOMERS),
+      surveys: clone(MOCK_SURVEYS),
       vanStock: clone(MOCK_VAN_STOCK),
       orders: clone(MOCK_ORDERS).map((o) => ({
         ...o,
@@ -454,7 +476,10 @@ export class VanSalesMockApi implements VanSalesApi {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return null;
       const parsed = JSON.parse(raw) as MockServerState;
-      return parsed && Array.isArray(parsed.customers) && parsed.posted ? parsed : null;
+      if (!parsed || !Array.isArray(parsed.customers) || !parsed.posted) return null;
+      // Servers saved before surveys became editable start from the seed.
+      if (!Array.isArray(parsed.surveys)) parsed.surveys = clone(MOCK_SURVEYS);
+      return parsed;
     } catch {
       return null;
     }

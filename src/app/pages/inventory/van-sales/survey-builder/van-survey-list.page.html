@@ -1,0 +1,54 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/inventory/van-sales"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Survey builder</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="van-content">
+  <div class="intro">
+    <p>Build the surveys reps run at a visit. Add any questions you need, choose who each survey is for, and make follow-up questions appear only when an earlier answer calls for them.</p>
+    @if (!network.online()) {
+      <p class="offline"><ion-icon name="cloud-offline-outline"></ion-icon> Offline — you can look, but saving needs a connection.</p>
+    }
+  </div>
+
+  @if (loading() && !rows().length) {
+    <div class="center"><ion-spinner name="crescent"></ion-spinner></div>
+  }
+
+  @for (r of rows(); track r.survey.id) {
+    <button type="button" class="van-card survey-row" (click)="open(r.survey)">
+      <div class="row-main">
+        <div class="row-top">
+          <span class="row-name">{{ r.survey.name || 'Untitled survey' }}</span>
+          <span class="status" [class]="'status ' + r.status.tone">{{ r.status.label }}</span>
+        </div>
+        @if (r.survey.description) { <span class="row-desc">{{ r.survey.description }}</span> }
+        <span class="row-meta">
+          <ion-icon name="help-circle-outline" aria-hidden="true"></ion-icon>{{ r.survey.questions.length }} questions
+          <span class="dot">·</span>
+          <ion-icon name="people-outline" aria-hidden="true"></ion-icon>{{ groups(r.survey) }}
+        </span>
+      </div>
+      <span class="row-actions">
+        <span class="icon-btn" role="button" tabindex="0" aria-label="Copy survey" (click)="duplicate(r.survey, $event)" (keydown.enter)="duplicate(r.survey, $event)">
+          <ion-icon name="copy-outline"></ion-icon>
+        </span>
+        <ion-icon name="chevron-forward-outline" class="chevron" aria-hidden="true"></ion-icon>
+      </span>
+    </button>
+  } @empty {
+    @if (!loading()) {
+      <ds-empty-state icon="clipboard-outline" title="No surveys yet" message="Create the first survey your reps will run at a visit."></ds-empty-state>
+    }
+  }
+
+  <div class="content-footer-space"></div>
+</ion-content>
+
+<ion-footer class="ion-no-border">
+  <ds-cta-bar label="New survey" icon="add-circle-outline" [disabled]="!network.online()" (ctaClick)="create()"></ds-cta-bar>
+</ion-footer>

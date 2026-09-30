@@ -17,10 +17,29 @@
             <ds-pill label="Surveyed today" color="#0e6f4e" bg="#e3f5ec"></ds-pill>
           }
         </div>
+        @if (s.description) {
+          <p class="van-hint start">{{ s.description }}</p>
+        }
         @if (surveyedToday()) {
           <p class="van-hint start">Saving again sends a new response.</p>
         }
+        <ds-progress
+          class="survey-progress"
+          [value]="progress().ratio"
+          labelLeft="Answered"
+          [labelRight]="progress().done + ' of ' + progress().total">
+        </ds-progress>
       </div>
+
+      @if (surveys().length > 1) {
+        <div class="picker" role="tablist" aria-label="Survey">
+          @for (o of surveys(); track o.id) {
+            <button type="button" role="tab" class="chip" [class.on]="o.id === s.id" [attr.aria-selected]="o.id === s.id" (click)="choose(o.id)">
+              {{ o.name }}
+            </button>
+          }
+        </div>
+      }
 
       @if (store.dayClosed()) {
         <div class="van-card locked">
@@ -29,8 +48,8 @@
         </div>
       }
 
-      @for (q of s.questions; track q.id; let i = $index) {
-        <div class="van-card question" [class.missing]="missing().has(q.id)">
+      @for (q of questions(); track q.id; let i = $index) {
+        <div class="van-card question" [class.missing]="missing().has(q.id)" [class.follow-up]="!!q.showIf">
           <div class="q-head">
             <span class="q-text"><span class="q-no">{{ i + 1 }}.</span> {{ q.text }}</span>
             @if (q.required) {
@@ -39,8 +58,13 @@
               } @else {
                 <ion-icon class="q-flag ok" name="checkmark-circle"></ion-icon>
               }
+            } @else if (isAnswered(q)) {
+              <ion-icon class="q-flag ok" name="checkmark-circle"></ion-icon>
             }
           </div>
+          @if (q.help) {
+            <p class="q-help">{{ q.help }}</p>
+          }
 
           @switch (q.type) {
             @case ('YES_NO') {
@@ -58,15 +82,37 @@
                 }
               </div>
             }
+            @case ('MULTI_CHOICE') {
+              <div class="chips">
+                @for (opt of q.options ?? []; track opt) {
+                  <button type="button" class="chip" [class.on]="isPicked(q, opt)" [attr.aria-pressed]="isPicked(q, opt)" (click)="togglePick(q, opt)">
+                    @if (isPicked(q, opt)) { <ion-icon name="checkmark"></ion-icon> }
+                    {{ opt }}
+                  </button>
+                }
+              </div>
+              <p class="q-help">Pick all that apply.</p>
+            }
             @case ('NUMBER') {
               <input
                 class="field van-mono"
                 type="text"
                 inputmode="decimal"
-                placeholder="0"
+                [placeholder]="numberHint(q) || '0'"
                 [attr.aria-label]="q.text"
                 [value]="value(q) ?? ''"
                 (input)="onNumber(q, $any($event.target).value)" />
+              @if (error(q); as err) { <p class="q-error">{{ err }}</p> }
+            }
+            @case ('RATING') {
+              <div class="rating" role="radiogroup" [attr.aria-label]="q.text">
+                @for (n of ratingScale(q); track n) {
+                  <button type="button" role="radio" class="star" [class.on]="ratingOf(q) >= n" [attr.aria-checked]="ratingOf(q) === n" [attr.aria-label]="n + ' of ' + ratingScale(q).length" (click)="setAnswer(q, ratingOf(q) === n ? null : n)">
+                    <ion-icon [name]="ratingOf(q) >= n ? 'star' : 'star-outline'"></ion-icon>
+                  </button>
+                }
+                @if (ratingOf(q)) { <span class="rating-value">{{ ratingOf(q) }}/{{ ratingScale(q).length }}</span> }
+              </div>
             }
             @case ('TEXT') {
               <textarea
@@ -113,7 +159,7 @@
       <ds-empty-state
         icon="clipboard-outline"
         title="No survey for this customer"
-        message="There is no survey set up for this customer's group."
+        message="No active survey is set up for this customer's group. A supervisor can add one in the survey builder."
         buttonLabel="Back to visit"
         (buttonClick)="back()">
       </ds-empty-state>

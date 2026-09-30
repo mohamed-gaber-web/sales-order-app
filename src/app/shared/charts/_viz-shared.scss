@@ -1,0 +1,57 @@
+// Chrome shared by every report chart: the readout line (hover/tap detail),
+// the chart/table toggle, the table view and the empty line. Text wears text
+// tokens — never a series colour.
+
+@mixin viz-chrome {
+  .readout {
+    margin: 0 0 8px;
+    min-height: 18px;
+    font-size: 12px;
+    color: var(--viz-text);
+    font-variant-numeric: tabular-nums;
+
+    .muted { color: var(--viz-muted); }
+  }
+
+  .view-toggle {
+    margin-top: 8px;
+    padding: 4px 0;
+    border: none;
+    background: none;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--gp-navy, #002559);
+    cursor: pointer;
+  }
+
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    color: var(--viz-text);
+
+    th {
+      text-align: start;
+      font-weight: 600;
+      color: var(--viz-muted);
+      padding: 6px 4px;
+      border-bottom: 1px solid var(--viz-grid);
+    }
+
+    td {
+      padding: 6px 4px;
+      border-bottom: 1px solid var(--viz-grid);
+    }
+
+    .num {
+      text-align: end;
+      font-variant-numeric: tabular-nums;
+    }
+  }
+
+  .empty {
+    margin: 4px 0;
+    font-size: 12px;
+    color: var(--viz-muted);
+  }
+}

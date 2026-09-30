@@ -52,6 +52,12 @@ const routes: Routes = [
     canActivate: [authGuard, erpConfiguredGuard]
   },
   {
+    // One dashboard per menu group: /module-dashboard/sales-order, …/inventory.
+    path: 'module-dashboard',
+    loadChildren: () => import('./pages/module-dashboard/module-dashboard.module').then(m => m.ModuleDashboardModule),
+    canActivate: [authGuard, erpConfiguredGuard]
+  },
+  {
     path: 'inventory',
     loadChildren: () => import('./pages/inventory/inventory.module').then(m => m.InventoryModule),
     canActivate: [authGuard, erpConfiguredGuard]

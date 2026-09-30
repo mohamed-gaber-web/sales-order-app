@@ -11,6 +11,7 @@ import {
   validateCheques,
   VanStoreService,
   VanTransactionsService,
+  VanRoleService,
 } from '../../../../core/van-sales';
 
 /** A cheque card while it is being filled in. `key` keeps the @for stable. */
@@ -44,6 +45,8 @@ export class VanCollectPage implements OnInit {
   private readonly tx = inject(VanTransactionsService);
   readonly store = inject(VanStoreService);
   readonly day = inject(VanDayService);
+  /** Sellers collect without seeing the balance, invoice amounts or balance after. */
+  readonly role = inject(VanRoleService);
 
   readonly visit = this.day.currentVisit;
   readonly customer = computed(() => {
@@ -79,7 +82,7 @@ export class VanCollectPage implements OnInit {
     if (this.method() === 'PDC') return '';
     const a = this.collectAmount();
     if (!(a > 0)) return 'Enter an amount.';
-    if (a > round2(this.balance())) return 'More than the open balance.';
+    if (a > round2(this.balance())) return this.role.seesBalance() ? 'More than the open balance.' : 'More than the customer owes.';
     return '';
   });
 

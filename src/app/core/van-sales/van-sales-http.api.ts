@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { map, Observable } from 'rxjs';
+import { catchError, map, Observable, throwError } from 'rxjs';
 import { VAN_SALES_CONFIG } from './van-sales.config';
 import { ApiService } from '../services/api.service';
 import { ODataResponse } from '../models/lookup.models';
@@ -197,11 +197,44 @@ export class VanSalesHttpApi implements VanSalesApi {
         rows.map((r) => ({
           id: s(r['SurveyId']),
           name: s(r['Name']),
+          description: s(r['Description']) || undefined,
+          active: r['Active'] === undefined ? true : r['Active'] === 'Yes' || r['Active'] === true,
           customerGroups: list(r['CustomerGroups']),
+          validFrom: s(r['ValidFrom']).slice(0, 10) || undefined,
+          validTo: s(r['ValidTo']).slice(0, 10) || undefined,
           questions: parseJson(r['QuestionsJson'], []),
+          updatedAt: s(r['ModifiedDateTime']) || undefined,
         }))
       )
     );
+  }
+
+  /**
+   * Upserts a survey on `VSSurveys`. The questions travel as one JSON column,
+   * so the backend needs no child entity — and a new question type needs no
+   * schema change. Key shape to confirm against `$metadata`.
+   */
+  saveSurvey(def: SurveyDefinition): Observable<SurveyDefinition> {
+    const row = {
+      SurveyId: def.id,
+      Name: def.name,
+      Description: def.description ?? '',
+      Active: def.active === false ? 'No' : 'Yes',
+      CustomerGroups: (def.customerGroups ?? []).join(';'),
+      ValidFrom: def.validFrom ?? null,
+      ValidTo: def.validTo ?? null,
+      QuestionsJson: JSON.stringify(def.questions),
+    };
+    return this.api
+      .patch<unknown>(`${VAN_ENDPOINTS[15]}(SurveyId='${esc(def.id)}')`, row)
+      .pipe(
+        catchError((e: { status?: number }) => (e?.status === 404 ? this.api.post<unknown>(VAN_ENDPOINTS[15], row) : throwError(() => e))),
+        map(() => ({ ...def, updatedAt: new Date().toISOString() }))
+      );
+  }
+
+  deleteSurvey(id: string): Observable<void> {
+    return this.api.delete<void>(`${VAN_ENDPOINTS[15]}(SurveyId='${esc(id)}')`);
   }
 
   getLoyaltyRules(): Observable<LoyaltyRules> {

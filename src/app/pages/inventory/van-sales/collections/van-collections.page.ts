@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { ToastController } from '@ionic/angular';
 import { VanDayService } from '../../../../core/services/van-day.service';
 import { FormatService } from '../../../../core';
-import { round2, VanDocumentsService, VanStoreService } from '../../../../core/van-sales';
+import { round2, VanDocumentsService, VanRoleService, VanStoreService } from '../../../../core/van-sales';
 
 interface CollectionRow {
   id: string;
@@ -33,6 +33,8 @@ export class VanCollectionsPage {
   private readonly router = inject(Router);
   private readonly toastCtrl = inject(ToastController);
   private readonly store = inject(VanStoreService);
+  /** Sellers see who to collect from, not how much each customer owes. */
+  readonly role = inject(VanRoleService);
   private readonly docs = inject(VanDocumentsService);
   private readonly day = inject(VanDayService);
 

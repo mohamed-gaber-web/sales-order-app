@@ -1,0 +1,44 @@
+// Chart tokens for the van-sales reports (dataviz reference palette, validated
+// with validate_palette.js in both modes). Charts are written against these
+// roles, never raw hex, so light and dark swap in one place. Dark values are
+// their own steps for the dark surface — not an automatic flip.
+//
+// Light slot 3 (aqua) sits under 3:1 on the light surface, so every chart that
+// uses it carries visible labels and a table view (the relief rule).
+
+@mixin viz-tokens {
+  --viz-series-1: #2a78d6;
+  --viz-series-2: #eb6834;
+  --viz-series-3: #1baf7a;
+  --viz-grid: rgba(22, 35, 60, 0.08);
+  --viz-axis: rgba(22, 35, 60, 0.28);
+  --viz-text: var(--ion-text-color, #16233c);
+  --viz-muted: var(--gp-text-muted, #6b7280);
+  --viz-surface: var(--gp-card-bg, #ffffff);
+  --viz-track: rgba(22, 35, 60, 0.05);
+  // Ordinal ramp (blue 250 → 650): lightest step still clears 2:1 on light.
+  --viz-ord-1: #86b6ef;
+  --viz-ord-2: #5598e7;
+  --viz-ord-3: #2a78d6;
+  --viz-ord-4: #1c5cab;
+  --viz-ord-5: #104281;
+}
+
+@mixin viz-tokens-dark {
+  --viz-series-1: #3987e5;
+  --viz-series-2: #d95926;
+  --viz-series-3: #199e70;
+  --viz-grid: rgba(255, 255, 255, 0.08);
+  --viz-axis: rgba(255, 255, 255, 0.3);
+  --viz-track: rgba(255, 255, 255, 0.06);
+  // Dark ordinal: no darker than step 600 against the dark surface.
+  --viz-ord-1: #184f95;
+  --viz-ord-2: #256abf;
+  --viz-ord-3: #3987e5;
+  --viz-ord-4: #6da7ec;
+  --viz-ord-5: #9ec5f4;
+}
+
+// Use in each chart component:
+//   :host { display: block; @include viz-tokens; }
+//   :host-context(body.ion-palette-dark) { @include viz-tokens-dark; }

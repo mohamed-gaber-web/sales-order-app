@@ -99,6 +99,17 @@ const routes: Routes = [
         loadChildren: () => import('./day-close/van-day-close.module').then(m => m.VanDayCloseModule)
       },
       {
+        // Every role sees its own figures; nothing here writes.
+        path: 'reports',
+        loadChildren: () => import('./reports/van-reports.module').then(m => m.VanReportsModule)
+      },
+      {
+        // Survey builder: supervisors design the questions reps are asked.
+        path: 'surveys',
+        canActivate: [vanRoleGuard('MANAGE_SURVEYS')],
+        loadChildren: () => import('./survey-builder/van-survey-builder.module').then(m => m.VanSurveyBuilderModule)
+      },
+      {
         path: 'supervisor',
         canActivate: [vanRoleGuard('APPROVE')],
         loadChildren: () => import('./supervisor/van-supervisor.module').then(m => m.VanSupervisorModule)

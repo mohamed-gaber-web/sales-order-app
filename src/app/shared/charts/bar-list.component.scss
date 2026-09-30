@@ -1,0 +1,71 @@
+@use 'viz-tokens' as viz;
+@use 'viz-shared' as shared;
+
+:host {
+  display: block;
+  @include viz.viz-tokens;
+}
+
+:host-context(body.ion-palette-dark) {
+  @include viz.viz-tokens-dark;
+}
+
+@include shared.viz-chrome;
+
+.bars {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  // 2px surface gap between adjacent bars, plus row padding for the hit area.
+  gap: 2px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 38%) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding-block: 4px;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: opacity 120ms ease;
+
+  &.dim { opacity: 0.45; }
+  &:focus-visible { outline: 2px solid var(--viz-series-1); outline-offset: 2px; }
+}
+
+.label {
+  font-size: 12px;
+  color: var(--viz-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.track {
+  height: 10px;
+  background: var(--viz-track);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+// Thin mark, anchored to the baseline, 4px rounded data end.
+.fill {
+  display: block;
+  height: 100%;
+  border-start-end-radius: 4px;
+  border-end-end-radius: 4px;
+  transition: width 240ms ease;
+}
+
+.value {
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--viz-text);
+  text-align: end;
+  min-width: 56px;
+}

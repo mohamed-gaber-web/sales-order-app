@@ -5,13 +5,19 @@ import { VanStoreService } from './van-store.service';
 
 const DEV_ROLE_KEY = 'gp.vanSales.devRole';
 
-/** What each role may do in a visit and around it (spec §3). */
+/**
+ * What each role may do in a visit and around it (spec §3).
+ *
+ * Sellers do not see customer balances: they can still collect — typing what
+ * the customer hands over, settled oldest invoice first — but the balance,
+ * credit limit and invoice amounts stay with the roles that manage credit.
+ */
 const MATRIX: Record<Role, VanAction[]> = {
   VAN_SELLER: ['SELL', 'COLLECT', 'RETURN', 'FREE_RETURN', 'SURVEY', 'NO_SALE', 'NEW_CUSTOMER', 'VAN_STOCK', 'DAY_CLOSE'],
   PRE_SELLER: ['TAKE_ORDER', 'SURVEY', 'NO_SALE', 'NEW_CUSTOMER', 'DAY_CLOSE'],
-  DELIVERY_REP: ['DELIVER', 'COLLECT', 'RETURN', 'FREE_RETURN', 'NO_SALE', 'VAN_STOCK', 'DAY_CLOSE'],
-  COLLECTOR: ['COLLECT', 'NO_SALE', 'DAY_CLOSE'],
-  SUPERVISOR: ['APPROVE'],
+  DELIVERY_REP: ['DELIVER', 'COLLECT', 'RETURN', 'FREE_RETURN', 'NO_SALE', 'VAN_STOCK', 'DAY_CLOSE', 'VIEW_BALANCE'],
+  COLLECTOR: ['COLLECT', 'NO_SALE', 'DAY_CLOSE', 'VIEW_BALANCE'],
+  SUPERVISOR: ['APPROVE', 'VIEW_BALANCE', 'MANAGE_SURVEYS'],
 };
 
 export const ROLE_LABEL: Record<Role, string> = {
@@ -40,6 +46,8 @@ export class VanRoleService {
   readonly role = computed<Role>(() => this.devRole() ?? this.store.repSetup()?.role ?? 'VAN_SELLER');
   readonly roleLabel = computed(() => ROLE_LABEL[this.role()]);
   readonly isOverridden = computed(() => this.devRole() !== null);
+  /** Whether customer balances, limits and invoice amounts are shown. */
+  readonly seesBalance = computed(() => this.can('VIEW_BALANCE'));
 
   can(action: VanAction): boolean {
     const role = this.role();

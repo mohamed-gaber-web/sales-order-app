@@ -86,7 +86,12 @@
         }
       }
 
-      @if (isCredit()) {
+      @if (!role.seesBalance()) {
+        <div class="van-row">
+          <span class="van-label">Payment terms</span>
+          <span class="van-value">{{ isCredit() ? 'Credit — on account' : 'Cash' }}</span>
+        </div>
+      } @else if (isCredit()) {
         <div class="van-row">
           <span class="van-label">Open balance</span>
           <span class="van-value van-mono" [class.neg]="balance() > 0" [class.pos]="balance() === 0">

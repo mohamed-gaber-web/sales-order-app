@@ -1,0 +1,273 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/inventory/van-sales"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Van Sales dashboard</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="exportCsv()" aria-label="Export CSV">
+        <ion-icon slot="icon-only" name="download-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+
+  <!-- Filters: one row, scoping everything below -->
+  <ion-toolbar class="filter-bar">
+    <div class="filters">
+      <div class="chips" role="tablist" aria-label="Period">
+        @for (p of periods; track p.key) {
+          <button type="button" role="tab" class="chip" [attr.aria-selected]="period() === p.key" [class.on]="period() === p.key" (click)="setPeriod(p.key)">
+            {{ p.label }}
+          </button>
+        }
+      </div>
+      <button type="button" class="demo-toggle" [class.on]="demo()" (click)="toggleDemo()" [attr.aria-pressed]="demo()">
+        <ion-icon [name]="demo() ? 'sparkles' : 'sparkles-outline'" aria-hidden="true"></ion-icon>
+        Demo
+      </button>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="van-content">
+  <ion-refresher slot="fixed" (ionRefresh)="refresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  @let r = report();
+  @let info = periodInfo();
+
+  @if (demo()) {
+    <div class="demo-banner" role="status">
+      <ion-icon name="sparkles-outline" aria-hidden="true"></ion-icon>
+      <span>Showing demo data alongside real documents. Demo figures are never saved or sent.</span>
+    </div>
+  }
+
+  <!-- ── Hero: the one number this view leads with ─────────────────── -->
+  <section class="hero">
+    <div class="hero-top">
+      <span class="hero-label">Net sales · {{ info.current }}</span>
+      <span class="hero-currency">{{ store.currency() }}</span>
+    </div>
+    <div class="hero-value">{{ money(r.sales.total) }}</div>
+    <div class="hero-meta">
+      <span class="delta-chip" [class]="'delta-chip ' + deltaTone({ delta: salesDelta(), upIsGood: true })">
+        <ion-icon [name]="deltaIcon(salesDelta())" aria-hidden="true"></ion-icon>
+        {{ deltaText(salesDelta()) }}
+      </span>
+      <span class="hero-vs">vs {{ info.previous.toLowerCase() }}</span>
+    </div>
+    <div class="hero-facts">
+      <div><strong>{{ r.sales.count }}</strong><span>Invoices</span></div>
+      <div><strong>{{ r.sales.customers }}</strong><span>Customers</span></div>
+      <div><strong>{{ compact(r.promotions.discounts) }}</strong><span>Discounts</span></div>
+    </div>
+  </section>
+
+  <!-- ── KPI tiles ────────────────────────────────────────────────── -->
+  <div class="kpis">
+    @for (k of kpis(); track k.key) {
+      <div class="kpi">
+        <div class="kpi-head">
+          <span class="kpi-icon"><ion-icon [name]="k.icon + '-outline'" aria-hidden="true"></ion-icon></span>
+          <span class="kpi-label">{{ k.label }}</span>
+        </div>
+        <span class="kpi-value">{{ k.value }}</span>
+        <div class="kpi-foot">
+          <span class="delta" [class]="'delta ' + deltaTone(k)">
+            <ion-icon [name]="deltaIcon(k.delta)" aria-hidden="true"></ion-icon>{{ deltaText(k.delta) }}
+          </span>
+          <span class="kpi-sub">{{ k.sub }}</span>
+        </div>
+      </div>
+    }
+  </div>
+
+  @if (!hasActivity()) {
+    <ds-empty-state
+      icon="bar-chart-outline"
+      title="No activity in this period"
+      message="Sales, collections and returns posted on this device show up here. Turn on Demo to preview the dashboard.">
+    </ds-empty-state>
+  } @else {
+    <!-- ── Sales ──────────────────────────────────────────────────── -->
+    <h2 class="section-title">Sales</h2>
+
+    <section class="card">
+      <header class="card-head">
+        <div>
+          <h3>Sales trend</h3>
+          <p>{{ period() === 'TODAY' ? 'By hour' : 'By day' }}, against {{ info.previous.toLowerCase() }}</p>
+        </div>
+      </header>
+      <app-trend-chart
+        [rows]="r.trend"
+        [previous]="previousTrend()"
+        [format]="money"
+        [short]="compact"
+        [label]="trendLabel"
+        [currentLabel]="info.current"
+        [previousLabel]="info.previous"
+        [labelHeader]="period() === 'TODAY' ? 'Hour' : 'Day'">
+      </app-trend-chart>
+    </section>
+
+    <section class="card">
+      <header class="card-head">
+        <div>
+          <h3>Top products</h3>
+          @if (insights().product) { <p>{{ insights().product }}</p> }
+        </div>
+      </header>
+      <app-bar-list [rows]="r.byProduct" [format]="compact" countLabel="units" labelHeader="Product" valueHeader="Net"></app-bar-list>
+    </section>
+
+    <section class="card">
+      <header class="card-head">
+        <div>
+          <h3>Top customers</h3>
+          @if (insights().customer) { <p>{{ insights().customer }}</p> }
+        </div>
+      </header>
+      <app-bar-list [rows]="r.byCustomer" [format]="compact" countLabel="invoices" labelHeader="Customer" valueHeader="Sales"></app-bar-list>
+    </section>
+
+    <section class="card">
+      <header class="card-head"><div><h3>Cash and credit sales</h3></div></header>
+      <app-split-bar [parts]="paySplit()" [format]="money" labelHeader="Payment" emptyText="No sales in this period."></app-split-bar>
+    </section>
+
+    <!-- ── Money in ───────────────────────────────────────────────── -->
+    <h2 class="section-title">Money in</h2>
+
+    <section class="card">
+      <header class="card-head">
+        <div>
+          <h3>Collections by method</h3>
+          @if (insights().collections) { <p>{{ insights().collections }}</p> }
+        </div>
+        <span class="head-figure">{{ compact(r.collections.total) }}</span>
+      </header>
+      <app-split-bar [parts]="r.collections.byMethod" [format]="money" labelHeader="Method" emptyText="No collections in this period."></app-split-bar>
+    </section>
+
+    @if (chequePipeline().count) {
+      <section class="card">
+        <header class="card-head">
+          <div>
+            <h3>Cheque pipeline</h3>
+            <p>{{ chequePipeline().count }} cheques collected in this period</p>
+          </div>
+        </header>
+        <ol class="pipeline">
+          @for (s of chequePipeline().steps; track s.status) {
+            <li [class.empty]="!s.count">
+              <span class="step-icon"><ion-icon [name]="s.icon + '-outline'" aria-hidden="true"></ion-icon></span>
+              <span class="step-count">{{ s.count }}</span>
+              <span class="step-label">{{ s.label }}</span>
+              <span class="step-total">{{ compact(s.total) }}</span>
+            </li>
+          }
+        </ol>
+        @if (chequePipeline().bounced.count) {
+          <p class="alert critical">
+            <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+            {{ chequePipeline().bounced.count }} bounced{{ role.seesBalance() ? ' · ' + money(chequePipeline().bounced.total) + ' back on customer balances' : ' — the customers are on credit hold' }}
+          </p>
+        }
+      </section>
+    }
+  }
+
+  @if (role.seesBalance()) {
+  <!-- ── Credit: a snapshot of now, not of the period ───────────────── -->
+  <h2 class="section-title">Credit exposure <span class="section-note">now</span></h2>
+
+  <section class="card">
+    <div class="split-figures">
+      <div>
+        <span class="fig-label">Outstanding</span>
+        <span class="fig-value">{{ compact(outstanding()) }}</span>
+      </div>
+      <div>
+        <span class="fig-label">Overdue</span>
+        <span class="fig-value" [class.critical-text]="overdue() > 0">{{ compact(overdue()) }}</span>
+      </div>
+      <div>
+        <span class="fig-label">Overdue share</span>
+        <span class="fig-value">{{ overdueShare() }}%</span>
+      </div>
+    </div>
+    <div class="meter" role="img" [attr.aria-label]="overdueShare() + '% of receivables overdue'">
+      <span class="meter-fill" [style.width.%]="overdueShare()"></span>
+    </div>
+    <p class="card-sub">Receivables aging</p>
+    <app-bar-list [rows]="aging()" [format]="compact" [colors]="agingColors" countLabel="invoices" labelHeader="Days past due" valueHeader="Amount" emptyText="No open invoices."></app-bar-list>
+  </section>
+  }
+
+  @if (hasActivity()) {
+    <!-- ── Operations ─────────────────────────────────────────────── -->
+    <h2 class="section-title">Operations</h2>
+
+    <section class="card">
+      <header class="card-head">
+        <div>
+          <h3>Returns by reason</h3>
+          <p>{{ returnRate() }}% of net sales came back</p>
+        </div>
+      </header>
+      <app-bar-list [rows]="r.returns.byReason" [format]="money" countLabel="returns" labelHeader="Reason" valueHeader="Value" emptyText="No returns in this period."></app-bar-list>
+    </section>
+
+    @if (eDocTotal()) {
+      <section class="card">
+        <header class="card-head">
+          <div>
+            <h3>Tax documents</h3>
+            <p>{{ eDocValidPct() }}% validated by the tax authority</p>
+          </div>
+        </header>
+        <ul class="status-list" role="list">
+          @for (e of eDocRows(); track e.key) {
+            <li [class]="'tone-' + e.tone">
+              <ion-icon [name]="e.icon + '-outline'" aria-hidden="true"></ion-icon>
+              <span class="status-label">{{ e.label }}</span>
+              <span class="status-count">{{ e.value }}</span>
+            </li>
+          }
+        </ul>
+      </section>
+    }
+
+    <section class="card">
+      <header class="card-head"><div><h3>Promotions and loyalty</h3></div></header>
+      <div class="mini-grid">
+        <div><span class="fig-label">Discounts given</span><span class="fig-value">{{ compact(r.promotions.discounts) }}</span></div>
+        <div><span class="fig-label">Free units</span><span class="fig-value">{{ r.promotions.freeUnits }}</span></div>
+        <div><span class="fig-label">Points earned</span><span class="fig-value">{{ compact(r.promotions.pointsEarned) }}</span></div>
+        <div><span class="fig-label">Points redeemed</span><span class="fig-value">{{ compact(r.promotions.pointsRedeemed) }}</span></div>
+      </div>
+    </section>
+  }
+
+  <!-- ── Today's route ──────────────────────────────────────────────── -->
+  <h2 class="section-title">Today's route</h2>
+  <section class="card">
+    <div class="split-figures">
+      <div><span class="fig-label">Stops done</span><span class="fig-value">{{ day.doneCount() }}/{{ day.visits().length }}</span></div>
+      <div><span class="fig-label">Strike rate</span><span class="fig-value">{{ strikeRate() === null ? '—' : strikeRate() + '%' }}</span></div>
+      <div><span class="fig-label">Not synced</span><span class="fig-value" [class.warning-text]="outbox.pendingCount() > 0">{{ outbox.pendingCount() }}</span></div>
+    </div>
+    <div class="meter progress" role="img" [attr.aria-label]="day.doneCount() + ' of ' + day.visits().length + ' stops done'">
+      <span class="meter-fill" [style.width.%]="routeProgress() * 100"></span>
+    </div>
+  </section>
+
+  <p class="footnote">
+    {{ store.repSetup()?.workerName }} · {{ store.repSetup()?.vanWarehouse }} · {{ role.roleLabel() }}.
+    Figures come from documents issued on this device{{ demo() ? ', plus demo data' : '' }}. D365 holds the full picture across reps.
+  </p>
+  <div class="content-footer-space"></div>
+</ion-content>

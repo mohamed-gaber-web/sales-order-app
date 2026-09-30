@@ -8,6 +8,7 @@ import {
   MasterData,
   Product,
   SalesOrder,
+  SurveyDefinition,
   VanStockLine,
 } from './van-sales.models';
 import { localIsoDate } from './van-uuid';
@@ -184,6 +185,33 @@ export class VanStoreService {
   vatPctOf(itemId: string): number {
     const p = this.product(itemId);
     return this._master()?.taxGroups.find((t) => t.code === p?.taxGroup)?.ratePct ?? 0;
+  }
+
+  // ── Survey definitions (builder) ─────────────────────────────────────────
+
+  /**
+   * Saves a survey to the backend, then into the cached master data so the
+   * field screen offers it at once. Online only: a definition half-sent to
+   * some vans and not others would mean two versions of the same survey.
+   */
+  async saveSurvey(def: SurveyDefinition): Promise<SurveyDefinition> {
+    const saved = await firstValueFrom(this.api.saveSurvey(def));
+    this.mutate((m) => {
+      const exists = m.surveys.some((s) => s.id === saved.id);
+      return { ...m, surveys: exists ? m.surveys.map((s) => (s.id === saved.id ? saved : s)) : [...m.surveys, saved] };
+    });
+    return saved;
+  }
+
+  /** Pulls just the survey definitions — cheaper than a full refresh. */
+  async reloadSurveys(): Promise<void> {
+    const surveys = await firstValueFrom(this.api.getSurveys());
+    this.mutate((m) => ({ ...m, surveys }));
+  }
+
+  async deleteSurvey(id: string): Promise<void> {
+    await firstValueFrom(this.api.deleteSurvey(id));
+    this.mutate((m) => ({ ...m, surveys: m.surveys.filter((s) => s.id !== id) }));
   }
 
   // ── Optimistic mutations ─────────────────────────────────────────────────

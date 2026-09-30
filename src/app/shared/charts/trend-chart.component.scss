@@ -1,0 +1,158 @@
+@use 'viz-tokens' as viz;
+@use 'viz-shared' as shared;
+
+:host {
+  display: block;
+  @include viz.viz-tokens;
+  --viz-previous: rgba(22, 35, 60, 0.3);
+}
+
+:host-context(body.ion-palette-dark) {
+  @include viz.viz-tokens-dark;
+  --viz-previous: rgba(255, 255, 255, 0.35);
+}
+
+@include shared.viz-chrome;
+
+.legend {
+  display: flex;
+  gap: 16px;
+  list-style: none;
+  margin: 0 0 10px;
+  padding: 0;
+  font-size: 12px;
+  color: var(--viz-muted);
+
+  li { display: inline-flex; align-items: center; gap: 6px; }
+}
+
+// Line keys, not boxes — the legend mirrors the mark.
+.key {
+  display: inline-block;
+  width: 14px;
+  height: 2px;
+  border-radius: 1px;
+
+  &.current { background: var(--viz-series-1); }
+  &.previous { background: var(--viz-previous); }
+}
+
+.frame {
+  direction: ltr;
+  padding-inline-start: 38px;
+}
+
+// The x-axis band sits outside this fixed height, so labels are never clipped.
+.plot {
+  position: relative;
+  height: 170px;
+}
+
+.gridline {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 1px solid var(--viz-grid);
+  pointer-events: none;
+
+  &.base { border-top-color: var(--viz-axis); }
+}
+
+.tick {
+  position: absolute;
+  left: -38px;
+  width: 32px;
+  transform: translateY(-50%);
+  font-size: 10px;
+  color: var(--viz-muted);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.lines {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.area {
+  fill: var(--viz-series-1);
+  opacity: 0.1;
+}
+
+.line {
+  fill: none;
+  stroke-width: 2px;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+
+  &.current { stroke: var(--viz-series-1); }
+  &.previous { stroke: var(--viz-previous); stroke-width: 1.5px; }
+}
+
+// Markers >= 8px with a 2px surface ring.
+.end-dot,
+.hover-dot {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  margin: 0 0 -5px -5px;
+  border-radius: 50%;
+  background: var(--viz-series-1);
+  box-shadow: 0 0 0 2px var(--viz-surface);
+  pointer-events: none;
+}
+
+.crosshair {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--viz-axis);
+  pointer-events: none;
+}
+
+.tooltip {
+  position: absolute;
+  top: -4px;
+  transform: translateX(10px);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px;
+  min-width: 110px;
+  background: var(--viz-surface);
+  border: 1px solid var(--viz-grid);
+  border-radius: 8px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+  font-size: 12px;
+  color: var(--viz-text);
+  pointer-events: none;
+  z-index: 2;
+
+  &.flip { transform: translateX(calc(-100% - 10px)); }
+}
+
+.tt-title { color: var(--viz-muted); font-size: 11px; }
+.tt-row { display: inline-flex; align-items: center; gap: 6px; font-variant-numeric: tabular-nums; }
+
+.hit {
+  position: absolute;
+  inset: 0;
+  cursor: crosshair;
+  touch-action: pan-y;
+  outline: none;
+  z-index: 1;
+
+  &:focus-visible { box-shadow: inset 0 0 0 2px var(--viz-series-1); border-radius: 6px; }
+}
+
+.xlabels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  font-size: 10px;
+  color: var(--viz-muted);
+}

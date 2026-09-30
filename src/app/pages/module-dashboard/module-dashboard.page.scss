@@ -1,0 +1,338 @@
+@import '../../shared/charts/dashboard';
+
+.dash-content {
+  --background: var(--gp-bg);
+}
+
+.content-footer-space {
+  height: 40px;
+}
+
+.snapshot-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ion-text-color, #16233c);
+
+  ion-icon { font-size: 16px; color: var(--gp-text-muted, #6b7280); }
+}
+
+.live-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 11px;
+  border: 1px solid var(--gp-border);
+  border-radius: 999px;
+  background: var(--gp-card-bg);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--rp-good);
+  cursor: pointer;
+
+  ion-spinner { width: 16px; height: 12px; color: var(--gp-text-muted, #6b7280); }
+  &:disabled { color: var(--gp-text-muted, #6b7280); cursor: default; }
+}
+
+.live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--rp-good);
+  box-shadow: 0 0 0 3px var(--rp-good-bg);
+}
+
+.first-load {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 72px 24px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--gp-text-muted, #6b7280);
+}
+
+// Refetch keeps the frame: previous figures stay, dimmed, until the new ones land.
+.dash-body {
+  transition: opacity 200ms ease;
+
+  &.stale { opacity: 0.55; pointer-events: none; }
+}
+
+.note-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 10px 14px 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  line-height: 1.45;
+  background: var(--rp-warn-bg);
+  color: var(--rp-warn);
+
+  ion-icon { flex: none; font-size: 16px; margin-top: 1px; }
+  &.critical { background: var(--rp-bad-bg); color: var(--rp-bad); }
+}
+
+// ── About ───────────────────────────────────────────────────────────────
+
+.about {
+  margin: 12px 14px 0;
+  border-radius: var(--rp-card-radius);
+  background: var(--gp-card-bg);
+  border: 1px solid var(--gp-border);
+  box-shadow: var(--gp-shadow-sm);
+  overflow: hidden;
+
+  &.open .chev { transform: rotate(180deg); }
+}
+
+.about-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 14px 16px;
+  border: none;
+  background: none;
+  text-align: start;
+  cursor: pointer;
+  color: var(--ion-text-color, #16233c);
+}
+
+.about-icon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: var(--gp-navy, #002559);
+  color: #fff;
+
+  ion-icon { font-size: 17px; }
+}
+
+.about-title {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.chev {
+  font-size: 18px;
+  color: var(--gp-text-muted, #6b7280);
+  transition: transform 200ms ease;
+}
+
+.about-body {
+  padding: 0 16px 16px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ion-text-color, #16233c);
+
+  p { margin: 0 0 10px; }
+  .who { color: var(--gp-text-muted, #6b7280); }
+}
+
+.how-title {
+  margin-top: 14px !important;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--gp-text-muted, #6b7280);
+}
+
+.how {
+  margin: 0;
+  padding-inline-start: 18px;
+
+  li { margin-bottom: 6px; }
+  ion-icon { vertical-align: -3px; font-size: 16px; color: var(--gp-navy, #002559); }
+}
+
+// ── Explanations ────────────────────────────────────────────────────────
+
+.info-btn {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  margin: -6px -6px 0 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--gp-text-muted, #6b7280);
+  cursor: pointer;
+
+  ion-icon { font-size: 20px; }
+  &[aria-expanded='true'] { color: var(--gp-navy, #002559); background: var(--rp-flat-bg); }
+
+  &.on-dark {
+    color: rgba(255, 255, 255, 0.75);
+
+    &[aria-expanded='true'] { color: #fff; background: rgba(255, 255, 255, 0.14); }
+  }
+
+  :host-context(body.ion-palette-dark) &[aria-expanded='true']:not(.on-dark) { color: #cfe0ff; }
+}
+
+.explain {
+  margin: -4px 0 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--rp-flat-bg);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ion-text-color, #16233c);
+}
+
+.hero-explain {
+  margin: 14px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  font-size: 12px;
+  line-height: 1.5;
+  opacity: 0.9;
+}
+
+// KPI tiles are buttons here: tap to read the explanation.
+.kpi.tappable {
+  text-align: start;
+  font: inherit;
+  cursor: pointer;
+  transition: box-shadow 150ms ease, border-color 150ms ease;
+
+  &.expanded {
+    border-color: var(--gp-navy, #002559);
+    grid-column: 1 / -1;
+  }
+}
+
+.kpi-info {
+  margin-inline-start: auto;
+  font-size: 16px;
+  color: var(--gp-text-muted, #6b7280);
+}
+
+.kpi-explain {
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ion-text-color, #16233c);
+}
+
+// ── Needs attention ─────────────────────────────────────────────────────
+
+.attention {
+  list-style: none;
+  margin: 0 14px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    font-size: 13px;
+    line-height: 1.45;
+    border: 1px solid var(--gp-border);
+    background: var(--gp-card-bg);
+    color: var(--ion-text-color, #16233c);
+
+    ion-icon { flex: none; font-size: 18px; margin-top: 1px; }
+  }
+
+  .tone-critical { background: var(--rp-bad-bg); border-color: transparent; ion-icon { color: var(--rp-bad); } }
+  .tone-warning { background: var(--rp-warn-bg); border-color: transparent; ion-icon { color: var(--rp-warn); } }
+  .tone-neutral ion-icon { color: var(--gp-navy, #002559); }
+}
+
+// ── Pipeline arrows ─────────────────────────────────────────────────────
+
+.pipeline li { overflow: visible; }
+
+.step-arrow {
+  position: absolute;
+  inset-inline-end: -9px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+  font-size: 12px;
+  color: var(--gp-text-muted, #6b7280);
+
+  :host-context([dir='rtl']) & { transform: translateY(-50%) scaleX(-1); }
+}
+
+// ── Links ───────────────────────────────────────────────────────────────
+
+.links {
+  padding: 6px 8px;
+}
+
+.link-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 8px;
+  border-radius: 10px;
+  text-decoration: none;
+  color: var(--ion-text-color, #16233c);
+
+  & + & { border-top: 1px solid var(--gp-border); }
+  &:active { background: var(--rp-flat-bg); }
+}
+
+.link-label {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.link-chev {
+  font-size: 16px;
+  color: var(--gp-text-muted, #6b7280);
+
+  :host-context([dir='rtl']) & { transform: scaleX(-1); }
+}
+
+// ── Glossary ────────────────────────────────────────────────────────────
+
+.glossary {
+  padding: 4px 16px;
+
+  details + details { border-top: 1px solid var(--gp-border); }
+
+  summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ion-text-color, #16233c);
+    cursor: pointer;
+    list-style: none;
+
+    &::-webkit-details-marker { display: none; }
+    ion-icon { font-size: 16px; color: var(--gp-text-muted, #6b7280); transition: transform 200ms ease; }
+  }
+
+  details[open] summary ion-icon { transform: rotate(180deg); }
+
+  p {
+    margin: 0 0 12px;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--gp-text-muted, #6b7280);
+  }
+}

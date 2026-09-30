@@ -6,13 +6,19 @@ import { firstValueFrom } from 'rxjs';
 import { DeviceLocationService } from '../../../../core/services/device-location.service';
 import { VanDayService } from '../../../../core/services/van-day.service';
 import {
+  answerError,
+  applicableSurveys,
+  isAnswered,
+  localIsoDate,
+  ratingScale,
   SurveyAnswer,
+  SurveyDefinition,
   SurveyQuestion,
+  SurveyValue,
+  visibleQuestions,
   VanStoreService,
   VanTransactionsService,
 } from '../../../../core/van-sales';
-
-type AnswerValue = string | number | boolean | null;
 
 interface SurveyPhoto {
   dataUrl: string;
@@ -23,9 +29,13 @@ interface SurveyPhoto {
 const MAX_PHOTOS = 6;
 
 /**
- * Merchandising survey for the current customer (spec §7.6, F11). Questions
- * come from API #15; the definition is the first one open to the customer's
- * price group. Photos are time-stamped here; the foundation adds GPS.
+ * A merchandising survey for the current customer (spec §7.6, F11).
+ *
+ * Nothing here is fixed: the surveys, their questions, types, options and the
+ * conditions that show a question all come from the definitions a supervisor
+ * builds in the survey builder (API #15). A question with a condition appears
+ * only once the answer it depends on is given, and answers to questions that
+ * end up hidden are not sent.
  */
 @Component({
   selector: 'app-van-survey',
@@ -44,18 +54,24 @@ export class VanSurveyPage implements OnInit {
   readonly store = inject(VanStoreService);
 
   readonly maxPhotos = MAX_PHOTOS;
+  readonly ratingScale = ratingScale;
   readonly visit = this.day.currentVisit;
   readonly customer = computed(() => {
     const v = this.visit();
     return v ? (this.store.customer(v.account) ?? null) : null;
   });
 
-  readonly survey = computed(() => {
+  /** Every survey this customer should be asked today. */
+  readonly surveys = computed<SurveyDefinition[]>(() => {
     const c = this.customer();
-    if (!c) return null;
-    return (
-      this.store.surveys().find((s) => !s.customerGroups?.length || s.customerGroups.includes(c.priceGroup)) ?? null
-    );
+    return c ? applicableSurveys(this.store.surveys(), c.priceGroup, localIsoDate()) : [];
+  });
+
+  private readonly chosenId = signal<string | null>(null);
+
+  readonly survey = computed<SurveyDefinition | null>(() => {
+    const list = this.surveys();
+    return list.find((s) => s.id === this.chosenId()) ?? list[0] ?? null;
   });
 
   readonly surveyedToday = computed(() => {
@@ -63,19 +79,37 @@ export class VanSurveyPage implements OnInit {
     return !!c && this.store.local().surveyed.includes(c.id);
   });
 
-  readonly answers = signal<Record<string, AnswerValue>>({});
+  readonly answers = signal<Record<string, SurveyValue>>({});
   readonly photos = signal<Record<string, SurveyPhoto[]>>({});
   readonly saving = signal(false);
   readonly capturing = signal<string | null>(null);
 
-  readonly missing = computed(() => {
+  /** The questions asked right now, given the answers so far. */
+  readonly questions = computed(() => {
     const s = this.survey();
-    if (!s) return new Set<string>();
-    return new Set(s.questions.filter((q) => q.required && !this.isAnswered(q)).map((q) => q.id));
+    return s ? visibleQuestions(s, this.answers()) : [];
+  });
+
+  readonly missing = computed(
+    () => new Set(this.questions().filter((q) => q.required && !isAnswered(q, this.value(q), this.photosOf(q).length)).map((q) => q.id))
+  );
+
+  readonly invalid = computed(() => new Set(this.questions().filter((q) => !!answerError(q, this.value(q))).map((q) => q.id)));
+
+  readonly progress = computed(() => {
+    const qs = this.questions();
+    const done = qs.filter((q) => isAnswered(q, this.value(q), this.photosOf(q).length)).length;
+    return { done, total: qs.length, ratio: qs.length ? done / qs.length : 0 };
   });
 
   readonly canSave = computed(
-    () => !!this.survey() && !!this.customer() && this.missing().size === 0 && !this.saving() && !this.store.dayClosed()
+    () =>
+      !!this.survey() &&
+      !!this.customer() &&
+      this.missing().size === 0 &&
+      this.invalid().size === 0 &&
+      !this.saving() &&
+      !this.store.dayClosed()
   );
 
   async ngOnInit(): Promise<void> {
@@ -88,24 +122,64 @@ export class VanSurveyPage implements OnInit {
       return;
     }
     await this.store.ensureLoaded();
+    // Pick up definitions edited since the last pull; the cached ones stand offline.
+    this.store.reloadSurveys().catch(() => undefined);
   }
 
-  value(q: SurveyQuestion): AnswerValue {
+  choose(id: string): void {
+    if (id === this.survey()?.id) return;
+    this.chosenId.set(id);
+    this.answers.set({});
+    this.photos.set({});
+  }
+
+  value(q: SurveyQuestion): SurveyValue {
     return this.answers()[q.id] ?? null;
+  }
+
+  error(q: SurveyQuestion): string | null {
+    return answerError(q, this.value(q));
   }
 
   photosOf(q: SurveyQuestion): SurveyPhoto[] {
     return this.photos()[q.id] ?? [];
   }
 
-  setAnswer(q: SurveyQuestion, value: AnswerValue): void {
+  isAnswered(q: SurveyQuestion): boolean {
+    return isAnswered(q, this.value(q), this.photosOf(q).length);
+  }
+
+  setAnswer(q: SurveyQuestion, value: SurveyValue): void {
     this.answers.update((a) => ({ ...a, [q.id]: value }));
+  }
+
+  ratingOf(q: SurveyQuestion): number {
+    const v = this.value(q);
+    return typeof v === 'number' ? v : 0;
+  }
+
+  isPicked(q: SurveyQuestion, option: string): boolean {
+    const v = this.value(q);
+    return Array.isArray(v) && v.includes(option);
+  }
+
+  togglePick(q: SurveyQuestion, option: string): void {
+    const v = this.value(q);
+    const list = Array.isArray(v) ? v : [];
+    this.setAnswer(q, list.includes(option) ? list.filter((o) => o !== option) : [...list, option]);
   }
 
   onNumber(q: SurveyQuestion, raw: string): void {
     const text = String(raw).trim().replace(',', '.');
     const n = text === '' ? NaN : Number(text);
     this.setAnswer(q, Number.isFinite(n) ? n : null);
+  }
+
+  numberHint(q: SurveyQuestion): string {
+    if (q.min !== undefined && q.max !== undefined) return `${q.min}–${q.max}`;
+    if (q.min !== undefined) return `${q.min} or more`;
+    if (q.max !== undefined) return `Up to ${q.max}`;
+    return '';
   }
 
   async addPhoto(q: SurveyQuestion): Promise<void> {
@@ -142,13 +216,18 @@ export class VanSurveyPage implements OnInit {
     try {
       const resubmit = this.surveyedToday();
       const position = await firstValueFrom(this.location.getCurrent()).catch(() => null);
-      const answers: SurveyAnswer[] = survey.questions.map((q) => ({
+      // Only what was asked: answers left on questions that are now hidden are dropped.
+      const asked = this.questions();
+      const answers: SurveyAnswer[] = asked.map((q) => ({
         questionId: q.id,
         value: q.type === 'PHOTO' ? this.photosOf(q).length || null : this.value(q),
       }));
-      const photos = survey.questions.flatMap((q) =>
-        this.photosOf(q).map((p) => ({ questionId: q.id, dataUrl: p.dataUrl, takenAt: p.takenAt }))
-      );
+      const photos = asked
+        .filter((q) => q.type === 'PHOTO')
+        .reduce<{ questionId: string; dataUrl: string; takenAt: string }[]>(
+          (all, q) => all.concat(this.photosOf(q).map((p) => ({ questionId: q.id, dataUrl: p.dataUrl, takenAt: p.takenAt }))),
+          []
+        );
       await this.tx.submitSurvey(customer.id, survey, answers, photos, position);
       await this.toast(resubmit ? 'Survey resubmitted' : 'Survey saved', 'success');
       this.router.navigate(['/inventory/van-sales/visit', v.id], { replaceUrl: true });
@@ -162,14 +241,6 @@ export class VanSurveyPage implements OnInit {
   back(): void {
     const v = this.visit();
     this.router.navigate(v ? ['/inventory/van-sales/visit', v.id] : ['/inventory/van-sales']);
-  }
-
-  private isAnswered(q: SurveyQuestion): boolean {
-    if (q.type === 'PHOTO') return this.photosOf(q).length > 0;
-    const v = this.answers()[q.id];
-    if (v === null || v === undefined) return false;
-    if (typeof v === 'string') return v.trim().length > 0;
-    return true;
   }
 
   private async toast(message: string, color: 'success' | 'danger'): Promise<void> {

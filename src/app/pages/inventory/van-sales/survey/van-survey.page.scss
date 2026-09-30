@@ -151,3 +151,64 @@
   ion-spinner { width: 22px; height: 22px; }
   &:disabled { opacity: 0.5; cursor: default; }
 }
+
+// ── Dynamic survey additions ────────────────────────────────────────────
+
+.survey-progress {
+  display: block;
+  margin-top: 12px;
+}
+
+.picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0 14px;
+  margin: 4px 0;
+}
+
+.question.follow-up {
+  border-inline-start: 3px solid var(--gp-navy, #002559);
+}
+
+.q-help {
+  margin: -4px 0 10px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--gp-text-muted, #6b7280);
+}
+
+.q-error {
+  margin: 6px 0 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ion-color-danger, #d92d20);
+}
+
+.rating {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.star {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--gp-border, #d0d5dd);
+  cursor: pointer;
+
+  ion-icon { font-size: 28px; }
+  &.on { color: #eda100; }
+}
+
+.rating-value {
+  margin-inline-start: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ion-text-color, #16233c);
+}

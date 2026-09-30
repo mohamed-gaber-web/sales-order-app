@@ -1,0 +1,73 @@
+@use 'viz-tokens' as viz;
+@use 'viz-shared' as shared;
+
+:host {
+  display: block;
+  @include viz.viz-tokens;
+}
+
+:host-context(body.ion-palette-dark) {
+  @include viz.viz-tokens-dark;
+}
+
+@include shared.viz-chrome;
+
+.bar {
+  display: flex;
+  // 2px surface gap between stacked segments.
+  gap: 2px;
+  height: 14px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--viz-surface);
+}
+
+.seg {
+  flex-basis: 0;
+  min-width: 4px;
+  padding: 0;
+  border: none;
+  cursor: pointer;
+  transition: opacity 120ms ease;
+
+  &.dim { opacity: 0.4; }
+  &:focus-visible { outline: 2px solid var(--viz-text); outline-offset: -2px; }
+}
+
+.legend {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  li {
+    display: grid;
+    grid-template-columns: 10px minmax(0, 1fr) auto 40px;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--viz-text);
+    transition: opacity 120ms ease;
+
+    &.dim { opacity: 0.45; }
+  }
+}
+
+.swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+
+.amount {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.pct {
+  text-align: end;
+  color: var(--viz-muted);
+  font-variant-numeric: tabular-nums;
+}

@@ -75,6 +75,7 @@ export const MENU_GROUPS: readonly MenuGroup[] = [
     titleKey: 'menu.groups.inventory',
     icon: 'layers',
     items: [
+      { titleKey: 'menu.items.moduleDashboard', url: '/module-dashboard/inventory', icon: 'speedometer' },
       { titleKey: 'menu.items.transferOrder', url: '/transfer-order/list', icon: 'swap-horizontal' },
       { titleKey: 'menu.items.countCycle', url: '/inventory/cycle-count', icon: 'refresh-circle' },
       { titleKey: 'menu.items.barcodeCount', url: '/inventory/cycle-count/count-by-barcode', icon: 'qr-code' },
@@ -86,6 +87,7 @@ export const MENU_GROUPS: readonly MenuGroup[] = [
     titleKey: 'menu.groups.purchaseOrder',
     icon: 'cube',
     items: [
+      { titleKey: 'menu.items.moduleDashboard', url: '/module-dashboard/purchase-order', icon: 'speedometer' },
       { titleKey: 'menu.items.productReceipt', url: '/purchase-order/list', icon: 'download' },
       { titleKey: 'menu.items.register', url: '/purchase-order-register', icon: 'clipboard' },
       { titleKey: 'menu.items.barcodeReceipt', url: '/purchase-order/receive-by-barcode', icon: 'qr-code' },
@@ -99,6 +101,7 @@ export const MENU_GROUPS: readonly MenuGroup[] = [
     titleKey: 'menu.groups.salesOrder',
     icon: 'cart',
     items: [
+      { titleKey: 'menu.items.moduleDashboard', url: '/module-dashboard/sales-order', icon: 'speedometer' },
       { titleKey: 'menu.items.packingSlip', url: '/sales-order/list', icon: 'archive' },
       { titleKey: 'menu.items.reservation', url: '/inventory/reservation', icon: 'bookmark' },
     ],
@@ -108,6 +111,7 @@ export const MENU_GROUPS: readonly MenuGroup[] = [
     titleKey: 'menu.groups.returnOrder',
     icon: 'arrow-undo',
     items: [
+      { titleKey: 'menu.items.moduleDashboard', url: '/module-dashboard/return-order', icon: 'speedometer' },
       { titleKey: 'menu.items.pickingSlip', url: '/sales-order/return-list', icon: 'list' },
     ],
   },
@@ -116,6 +120,7 @@ export const MENU_GROUPS: readonly MenuGroup[] = [
     titleKey: 'menu.groups.project',
     icon: 'folder-open',
     items: [
+      { titleKey: 'menu.items.moduleDashboard', url: '/module-dashboard/project', icon: 'speedometer' },
       { titleKey: 'menu.items.itemRequirements', url: '/inventory/project-item-requirements', icon: 'list' },
       { titleKey: 'menu.items.itemJournal', url: '/inventory/project-item-journal', icon: 'document-text' },
     ],
@@ -125,6 +130,7 @@ export const MENU_GROUPS: readonly MenuGroup[] = [
     titleKey: 'menu.groups.production',
     icon: 'construct',
     items: [
+      { titleKey: 'menu.items.moduleDashboard', url: '/module-dashboard/production', icon: 'speedometer' },
       { titleKey: 'menu.items.pickingList', url: '/inventory/production-picking', icon: 'list' },
       { titleKey: 'menu.items.reportAsFinished', url: '/inventory/report-as-finished', icon: 'checkmark-circle' },
     ],
@@ -134,6 +140,7 @@ export const MENU_GROUPS: readonly MenuGroup[] = [
     titleKey: 'menu.groups.warehouse',
     icon: 'business',
     items: [
+      { titleKey: 'menu.items.moduleDashboard', url: '/module-dashboard/warehouse', icon: 'speedometer' },
       { titleKey: 'menu.items.licensePlate', url: '/inventory/license-plate', icon: 'barcode' },
       { titleKey: 'menu.items.pickPut', url: '/inventory/pick-put', icon: 'hand-right' },
       { titleKey: 'menu.items.packing', url: '/inventory/packing', icon: 'cube' },
@@ -144,6 +151,7 @@ export const MENU_GROUPS: readonly MenuGroup[] = [
     titleKey: 'menu.groups.inquiry',
     icon: 'search',
     items: [
+      { titleKey: 'menu.items.moduleDashboard', url: '/module-dashboard/inquiry', icon: 'speedometer' },
       { titleKey: 'menu.items.onHandList', url: '/inventory/on-hand', icon: 'stats-chart' },
       { titleKey: 'menu.items.inventoryInquiry', url: '/inventory/inquiry', icon: 'search' },
     ],
@@ -156,6 +164,7 @@ export const MENU_GROUPS: readonly MenuGroup[] = [
     // happen inside a customer visit, so they are reached from the route, not
     // from here. Each item shows only to the roles that do that job (§3).
     items: [
+      { titleKey: 'menu.items.moduleDashboard', url: '/inventory/van-sales/reports', icon: 'speedometer' },
       { titleKey: 'menu.items.todaysRoute', url: '/inventory/van-sales', icon: 'map', exact: true, vanActions: ['SELL', 'TAKE_ORDER', 'DELIVER', 'COLLECT'] },
       { titleKey: 'menu.items.preSalesOrders', url: '/inventory/van-sales/orders', icon: 'clipboard', vanActions: ['TAKE_ORDER'] },
       { titleKey: 'menu.items.deliveries', url: '/inventory/van-sales/deliveries', icon: 'send', vanActions: ['DELIVER'] },
@@ -164,6 +173,7 @@ export const MENU_GROUPS: readonly MenuGroup[] = [
       { titleKey: 'menu.items.newCustomerRequest', url: '/inventory/van-sales/new-customer', icon: 'person-add', vanActions: ['NEW_CUSTOMER'] },
       { titleKey: 'menu.items.syncDayClose', url: '/inventory/van-sales/day-close', icon: 'sync', vanActions: ['DAY_CLOSE'] },
       { titleKey: 'menu.items.supervisor', url: '/inventory/van-sales/supervisor', icon: 'shield-checkmark', vanActions: ['APPROVE'] },
+      { titleKey: 'menu.items.surveyBuilder', url: '/inventory/van-sales/surveys', icon: 'clipboard', vanActions: ['MANAGE_SURVEYS'] },
     ],
   },
   {
