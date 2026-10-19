@@ -105,7 +105,6 @@
                 type="number"
                 [(ngModel)]="entry.qty"
                 [min]="0"
-                [max]="entry.remainQty"
                 step="0.001"
                 [placeholder]="'placeholder.enterQuantity' | translate"
                 class="qty-input"
@@ -114,7 +113,7 @@
               @if (!isQtyValid(entry)) {
                 <p class="field-error">
                   <ion-icon name="alert-circle-outline"></ion-icon>
-                  {{ 'transferLine.qtyRange' | translate: { max: entry.remainQty } }}
+                  {{ 'transferLine.qtyInvalid' | translate }}
                 </p>
               }
             </div>

@@ -398,6 +398,18 @@ ion-header ion-toolbar {
     --background: linear-gradient(90deg, var(--gp-accent, #F24C1A) 0%, var(--gp-accent-end, #e03a08) 100%);
     --box-shadow: 0 3px 10px rgba(242, 76, 26, 0.25);
   }
+
+  // Secondary to Ship/Receive, so outlined rather than filled.
+  .line-op-btn {
+    --border-color: var(--gp-navy, #002559);
+    --color: var(--gp-navy, #002559);
+    margin: 0;
+    min-width: 0;
+  }
+}
+
+.line-actions-secondary {
+  margin-top: 8px;
 }
 
 // ── Error / Empty State ─────────────────────────────────────

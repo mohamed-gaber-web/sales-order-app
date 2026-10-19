@@ -2,10 +2,10 @@ import { TransferLineAction } from '../../../models/inventory.model';
 import { TransferOrderLine } from '../../../models/transfer-order.model';
 
 /**
- * Reservation and pick happen on the shipping side of a transfer, so they work
- * on orders that have not shipped yet and on the quantity still to ship.
- * Registration happens on the receiving side: shipped orders, quantity still to
- * receive. Getting this wrong sends D365 lines it will refuse.
+ * Which remaining quantity a line's quantity box starts at. Reservation and
+ * pick happen on the shipping side of a transfer (quantity still to ship);
+ * registration on the receiving side (quantity still to receive). Every action
+ * lists the same orders as the Transfer Order screen.
  */
 export type TransferLineSide = 'ship' | 'receive';
 

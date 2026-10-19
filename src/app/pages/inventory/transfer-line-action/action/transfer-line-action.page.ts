@@ -75,10 +75,12 @@ export class TransferLineActionPage implements OnInit {
       next: ({ header, lines }) => {
         this.header = header;
         this.dataAreaId = header.dataAreaId ?? this.dataAreaId;
-        this.lineEntries = lines
-          .map(line => ({ line, remainQty: remainingQty(line, this.config.side) }))
-          .filter(e => e.remainQty > 0)
-          .map(e => ({ ...e, qty: e.remainQty }));
+        // Every line, as on the Transfer Order screen. The quantity starts at what
+        // is left on this action's side; a line with nothing left starts at 0 (skipped).
+        this.lineEntries = lines.map(line => {
+          const remainQty = remainingQty(line, this.config.side);
+          return { line, remainQty, qty: remainQty };
+        });
         this.isLoading = false;
       },
       error: () => {
@@ -94,7 +96,8 @@ export class TransferLineActionPage implements OnInit {
 
   isQtyValid(entry: LineEntry): boolean {
     const qty = qtyOf(entry);
-    return !Number.isNaN(qty) && qty >= 0 && qty <= entry.remainQty;
+    // No upper cap: D365 owns the rule for how much may be reserved, picked or registered.
+    return !Number.isNaN(qty) && qty >= 0;
   }
 
   // A line set to 0 is skipped, so the operator can act on just some lines.

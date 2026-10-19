@@ -207,6 +207,21 @@
                   }
                 </div>
               }
+
+              <!-- Reserve / Pick / Register: one line per call -->
+              @if (!isLineComplete(line)) {
+                <div class="line-actions line-actions-secondary">
+                  @for (a of lineActions; track a.action) {
+                    <ion-button
+                      fill="outline"
+                      class="action-btn line-op-btn"
+                      (click)="runLineAction(line, a.action); $event.stopPropagation()">
+                      <ion-icon slot="start" [name]="a.icon"></ion-icon>
+                      {{ 'transferLine.' + a.action + '.label' | translate }}
+                    </ion-button>
+                  }
+                </div>
+              }
             </div>
           </div>
         </ion-card>

@@ -1,7 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AlertController, LoadingController, ToastController } from '@ionic/angular';
+import { TranslateService } from '@ngx-translate/core';
 import { TransferOrderService } from '../../../core/services/transfer-order.service';
+import { TransferShipmentService } from '../../../core/services/transfer-shipment.service';
+import { TransferLineAction } from '../../../models/inventory.model';
+import { TRANSFER_LINE_ACTIONS, remainingQty } from '../../inventory/transfer-line-action/transfer-line-action.config';
 import { TransferOrderHeader, TransferOrderLine } from '../../../models/transfer-order.model';
 
 @Component({
@@ -16,6 +20,8 @@ export class TransferOrderDetailPage implements OnInit {
   lines: TransferOrderLine[] = [];
   isLoading = false;
   searchTerm = '';
+
+  readonly lineActions = Object.values(TRANSFER_LINE_ACTIONS);
 
   get filteredLines(): TransferOrderLine[] {
     if (!this.searchTerm.trim()) return this.lines;
@@ -37,7 +43,9 @@ export class TransferOrderDetailPage implements OnInit {
     private toastCtrl: ToastController,
     private alertCtrl: AlertController,
     private loadingCtrl: LoadingController,
-    private toService: TransferOrderService
+    private toService: TransferOrderService,
+    private transferShipmentService: TransferShipmentService,
+    private translate: TranslateService
   ) {}
 
   ngOnInit() {
@@ -126,6 +134,85 @@ export class TransferOrderDetailPage implements OnInit {
       ]
     });
     await alert.present();
+  }
+
+  async runLineAction(line: TransferOrderLine, action: TransferLineAction) {
+    const label = this.translate.instant(`transferLine.${action}.label`);
+    const remaining = remainingQty(line, TRANSFER_LINE_ACTIONS[action].side);
+    const alert = await this.alertCtrl.create({
+      header: label,
+      subHeader: `${line.ItemNumber} — ${this.translate.instant('transferLine.line')} ${line.LineNumber}`,
+      inputs: [
+        {
+          name: 'qty',
+          type: 'number',
+          placeholder: this.translate.instant('transferLine.quantity'),
+          value: remaining > 0 ? remaining : this.safeNum(line.TransferQuantity),
+          min: 0.001,
+        }
+      ],
+      buttons: [
+        { text: this.translate.instant('common.cancel'), role: 'cancel' },
+        {
+          text: label,
+          handler: (data) => {
+            const qty = Number(data.qty);
+            if (!qty || qty <= 0) return false;
+            this.executeLineAction(line, action, qty, label);
+            return true;
+          }
+        }
+      ]
+    });
+    await alert.present();
+  }
+
+  private async executeLineAction(line: TransferOrderLine, action: TransferLineAction, qty: number, label: string) {
+    const loading = await this.loadingCtrl.create({
+      message: this.translate.instant(`transferLine.${action}.running`),
+      spinner: 'crescent',
+    });
+    await loading.present();
+
+    this.transferShipmentService.transferLineAction(action, {
+      _request: {
+        DataAreaId: (this.order?.dataAreaId as string ?? 'usmf').toUpperCase(),
+        OrderId: this.transferOrderNumber,
+        LineNum: line.LineNumber,
+        Qty: qty,
+        InventSiteId: '',
+        InventLocationId: '',
+        WMSLocationId: '',
+        InventBatchId: '',
+        InventSerialId: '',
+        LicensePlateId: '',
+      }
+    }).subscribe({
+      next: async (res) => {
+        await loading.dismiss();
+        const toast = await this.toastCtrl.create({
+          message: res.Success
+            ? this.translate.instant('transferLine.allDone', { action: label, count: 1 })
+            : res.ErrorMessage || res.DebugMessage || this.translate.instant('transferLine.failed', { action: label }),
+          buttons: [{ text: this.translate.instant('common.dismiss'), role: 'cancel' }],
+          color: res.Success ? 'success' : 'danger',
+          position: 'bottom'
+        });
+        await toast.present();
+        if (res.Success) this.loadDetail();
+      },
+      error: async (err) => {
+        await loading.dismiss();
+        const msg = err?.error?.Message ?? err?.error?.message ?? err?.message;
+        const toast = await this.toastCtrl.create({
+          message: msg || this.translate.instant('transferLine.failed', { action: label }),
+          buttons: [{ text: this.translate.instant('common.dismiss'), role: 'cancel' }],
+          color: 'danger',
+          position: 'bottom'
+        });
+        await toast.present();
+      }
+    });
   }
 
   private async executeShip(line: TransferOrderLine, qty: number) {

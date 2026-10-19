@@ -4,7 +4,7 @@ import { IonInfiniteScroll, ToastController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 import { Observable, Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
-import { TransferShipmentService } from '../../../../core/services/transfer-shipment.service';
+import { TransferOrderService } from '../../../../core/services/transfer-order.service';
 import { ODataResponse } from '../../../../core/models/lookup.models';
 import { TransferOrderHeader } from '../../../../models/transfer-order.model';
 import { TransferLineAction } from '../../../../models/inventory.model';
@@ -23,7 +23,7 @@ export class TransferLineListPage {
   private router = inject(Router);
   private toastCtrl = inject(ToastController);
   private translate = inject(TranslateService);
-  private transferShipmentService = inject(TransferShipmentService);
+  private transferOrderService = inject(TransferOrderService);
 
   readonly config: TransferLineActionConfig = TRANSFER_LINE_ACTIONS[
     inject(ActivatedRoute).snapshot.data['action'] as TransferLineAction
@@ -57,10 +57,9 @@ export class TransferLineListPage {
     this.loadOrders();
   }
 
+  // Same query as the Transfer Order list, so the three sub-menus show the same orders.
   private fetch(skip: number): Observable<ODataResponse<TransferOrderHeader>> {
-    return this.config.side === 'ship'
-      ? this.transferShipmentService.getShippableOrders(undefined, skip)
-      : this.transferShipmentService.getReceivableOrders(undefined, skip);
+    return this.transferOrderService.getOrderHeaders(skip);
   }
 
   loadOrders(onDone?: () => void) {
@@ -125,7 +124,7 @@ export class TransferLineListPage {
       return;
     }
     this.isSearching = true;
-    this.fetch(0).subscribe({
+    this.transferOrderService.getAllOrderHeaders().subscribe({
       next: res => {
         this.allOrders = this.deduplicate(res.value);
         this.allDataLoaded = true;

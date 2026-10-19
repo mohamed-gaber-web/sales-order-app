@@ -406,8 +406,6 @@
     "shipDate": "Ship date",
     "emptyTitle": "No Transfer Orders",
     "noResults": "No results for \"{{term}}\"",
-    "shipEmpty": "No transfer orders are waiting to ship",
-    "receiveEmpty": "No transfer orders are currently in transit",
     "loadMore": "Load More",
     "loadErrorTitle": "Could Not Load Order",
     "loadErrorBody": "Check your connection and try again.",
@@ -417,6 +415,8 @@
     "remaining": "Remaining",
     "quantity": "Quantity",
     "max": "Max",
-    "qtyRange": "Enter 0 to {{max}}. 0 skips this line."
+    "listEmpty": "No open transfer orders",
+    "qtyInvalid": "Enter 0 or more. 0 skips this line.",
+    "failed": "{{action}} failed. Try again."
   }
 }
