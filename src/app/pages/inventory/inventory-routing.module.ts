@@ -27,6 +27,21 @@ const routes: Routes = [
     loadChildren: () => import('./transfer-receive/transfer-receive.module').then(m => m.TransferReceiveModule)
   },
   {
+    path: 'transfer-reservation',
+    data: { action: 'reserve' },
+    loadChildren: () => import('./transfer-line-action/transfer-line-action.module').then(m => m.TransferLineActionModule)
+  },
+  {
+    path: 'transfer-pick',
+    data: { action: 'pick' },
+    loadChildren: () => import('./transfer-line-action/transfer-line-action.module').then(m => m.TransferLineActionModule)
+  },
+  {
+    path: 'transfer-registration',
+    data: { action: 'register' },
+    loadChildren: () => import('./transfer-line-action/transfer-line-action.module').then(m => m.TransferLineActionModule)
+  },
+  {
     path: 'production-issue',
     loadChildren: () => import('./production-issue/production-issue.module').then(m => m.ProductionIssueModule)
   },

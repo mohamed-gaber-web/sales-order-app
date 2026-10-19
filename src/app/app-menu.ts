@@ -77,6 +77,9 @@ export const MENU_GROUPS: readonly MenuGroup[] = [
     items: [
       { titleKey: 'menu.items.moduleDashboard', url: '/module-dashboard/inventory', icon: 'speedometer' },
       { titleKey: 'menu.items.transferOrder', url: '/transfer-order/list', icon: 'swap-horizontal' },
+      { titleKey: 'menu.items.transferReservation', url: '/inventory/transfer-reservation', icon: 'lock-closed' },
+      { titleKey: 'menu.items.transferPick', url: '/inventory/transfer-pick', icon: 'hand-left' },
+      { titleKey: 'menu.items.transferRegistration', url: '/inventory/transfer-registration', icon: 'clipboard' },
       { titleKey: 'menu.items.countCycle', url: '/inventory/cycle-count', icon: 'refresh-circle' },
       { titleKey: 'menu.items.barcodeCount', url: '/inventory/cycle-count/count-by-barcode', icon: 'qr-code' },
       { titleKey: 'menu.items.transferJournal', url: '/inventory/transfer-journal', icon: 'git-compare' },

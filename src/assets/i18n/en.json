@@ -114,7 +114,10 @@
       "smartReports": "Smart Reports",
       "distributorManagement": "Distributor Management",
       "supervisorApp": "Supervisor App",
-      "erpIntegration": "ERP Integration"
+      "erpIntegration": "ERP Integration",
+      "transferReservation": "Transfer Reservation",
+      "transferPick": "Transfer Pick",
+      "transferRegistration": "Transfer Registration"
     },
     "tabs": {
       "home": "Home",
@@ -379,5 +382,41 @@
     "searchPo": "Search PO number or vendor...",
     "searchSites": "Search sites...",
     "searchWarehouses": "Search warehouses..."
+  },
+  "transferLine": {
+    "line": "Line",
+    "allDone": "{{action}} done for {{count}} line(s).",
+    "someFailed": "{{action}} failed on {{failed}} of {{count}} line(s).\n{{details}}",
+    "reserve": {
+      "label": "Reserve",
+      "running": "Reserving lines...",
+      "title": "Transfer Reservation"
+    },
+    "pick": {
+      "label": "Pick",
+      "running": "Picking lines...",
+      "title": "Transfer Pick"
+    },
+    "register": {
+      "label": "Register",
+      "running": "Registering lines...",
+      "title": "Transfer Registration"
+    },
+    "searchPlaceholder": "Search order or warehouse...",
+    "shipDate": "Ship date",
+    "emptyTitle": "No Transfer Orders",
+    "noResults": "No results for \"{{term}}\"",
+    "shipEmpty": "No transfer orders are waiting to ship",
+    "receiveEmpty": "No transfer orders are currently in transit",
+    "loadMore": "Load More",
+    "loadErrorTitle": "Could Not Load Order",
+    "loadErrorBody": "Check your connection and try again.",
+    "from": "From",
+    "to": "To",
+    "noOpenLines": "No open lines left on this order.",
+    "remaining": "Remaining",
+    "quantity": "Quantity",
+    "max": "Max",
+    "qtyRange": "Enter 0 to {{max}}. 0 skips this line."
   }
 }

@@ -161,6 +161,25 @@ export interface TransferReceiveRequest {
   };
 }
 
+// One transfer line, shared by transferLineReservation / transferLinePick /
+// transferLineRegistration. Empty dimension strings let D365 resolve defaults.
+export interface TransferLineActionRequest {
+  _request: {
+    DataAreaId: string;
+    OrderId: string;
+    LineNum: number;
+    Qty: number;
+    InventSiteId: string;
+    InventLocationId: string;
+    WMSLocationId: string;
+    InventBatchId: string;
+    InventSerialId: string;
+    LicensePlateId: string;
+  };
+}
+
+export type TransferLineAction = 'reserve' | 'pick' | 'register';
+
 // ── Cycle Count (US-04) ──────────────────────────────────────────────────────
 
 export interface CycleCountEntry {

@@ -1,0 +1,146 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button [defaultHref]="listUrl" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ 'transferLine.' + config.action + '.label' | translate }} {{ toNumber }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="action-content">
+
+  <!-- Loading Skeleton -->
+  @if (isLoading) {
+    <div class="page-body">
+      <ion-card class="context-card">
+        <ion-card-content>
+          <ion-skeleton-text animated style="width: 55%; height: 22px; border-radius: 6px"></ion-skeleton-text>
+          <ion-skeleton-text animated style="width: 70%; height: 14px; margin-top: 10px; border-radius: 6px"></ion-skeleton-text>
+        </ion-card-content>
+      </ion-card>
+      @for (i of [1, 2, 3]; track i) {
+        <ion-card class="line-card">
+          <ion-card-content>
+            <ion-skeleton-text animated style="width: 40%; height: 16px; border-radius: 6px"></ion-skeleton-text>
+            <ion-skeleton-text animated style="width: 65%; height: 13px; margin-top: 8px; border-radius: 6px"></ion-skeleton-text>
+            <ion-skeleton-text animated style="width: 100%; height: 44px; margin-top: 12px; border-radius: 10px"></ion-skeleton-text>
+          </ion-card-content>
+        </ion-card>
+      }
+    </div>
+  }
+
+  <!-- Error State -->
+  @if (!isLoading && loadError) {
+    <div class="error-state">
+      <div class="error-icon-wrap">
+        <ion-icon name="cloud-offline-outline"></ion-icon>
+      </div>
+      <h3>{{ 'transferLine.loadErrorTitle' | translate }}</h3>
+      <p>{{ 'transferLine.loadErrorBody' | translate }}</p>
+      <ion-button (click)="loadOrderWithLines()" fill="outline" class="retry-btn">
+        <ion-icon slot="start" name="refresh-outline"></ion-icon>
+        {{ 'common.retry' | translate }}
+      </ion-button>
+    </div>
+  }
+
+  @if (!isLoading && !loadError && header) {
+    <div class="page-body">
+
+      <!-- Order Banner -->
+      <ion-card class="context-card">
+        <div class="context-hero">
+          <div class="to-info">
+            <p class="to-label">{{ 'doc.transferOrder' | translate }}</p>
+            <p class="to-number">{{ toNumber }}</p>
+          </div>
+          @if (header.TransferOrderStatus) {
+            <ion-badge color="primary" class="status-pill">{{ header.TransferOrderStatus }}</ion-badge>
+          }
+        </div>
+        <div class="context-meta">
+          <div class="route-row">
+            <ion-icon name="swap-horizontal-outline" class="route-icon"></ion-icon>
+            <span class="warehouse-label">{{ 'transferLine.from' | translate }}</span>
+            <span class="warehouse-id">{{ header.ShippingWarehouseId || '—' }}</span>
+            <ion-icon name="chevron-forward-outline" class="arrow-icon"></ion-icon>
+            <span class="warehouse-label">{{ 'transferLine.to' | translate }}</span>
+            <span class="warehouse-id dest">{{ header.ReceivingWarehouseId || '—' }}</span>
+          </div>
+        </div>
+      </ion-card>
+
+      <!-- Empty Lines State -->
+      @if (lineEntries.length === 0) {
+        <div class="empty-lines">
+          <ion-icon name="checkmark-circle-outline" color="success"></ion-icon>
+          <p>{{ 'transferLine.noOpenLines' | translate }}</p>
+        </div>
+      }
+
+      <!-- Line Cards -->
+      @for (entry of lineEntries; track entry.line.LineNumber) {
+        <ion-card class="line-card">
+          <ion-card-content>
+            <div class="line-header">
+              <div class="line-item-info">
+                <span class="line-number">{{ 'transferLine.line' | translate }} {{ entry.line.LineNumber }}</span>
+                <span class="item-number">{{ entry.line.ItemNumber }}</span>
+              </div>
+              <div class="line-qty-info">
+                <span class="remain-label">{{ 'transferLine.remaining' | translate }}</span>
+                <span class="remain-qty">{{ entry.remainQty }} {{ entry.line.UnitId || '' }}</span>
+              </div>
+            </div>
+
+            <div class="qty-input-row">
+              <div class="qty-label-row">
+                <span class="input-label">{{ 'transferLine.quantity' | translate }}</span>
+                <button type="button" class="max-btn" (click)="setMaxQty(entry)">
+                  {{ 'transferLine.max' | translate }} ({{ entry.remainQty }})
+                </button>
+              </div>
+              <ion-input
+                type="number"
+                [(ngModel)]="entry.qty"
+                [min]="0"
+                [max]="entry.remainQty"
+                step="0.001"
+                [placeholder]="'placeholder.enterQuantity' | translate"
+                class="qty-input"
+                [class.invalid]="!isQtyValid(entry)">
+              </ion-input>
+              @if (!isQtyValid(entry)) {
+                <p class="field-error">
+                  <ion-icon name="alert-circle-outline"></ion-icon>
+                  {{ 'transferLine.qtyRange' | translate: { max: entry.remainQty } }}
+                </p>
+              }
+            </div>
+          </ion-card-content>
+        </ion-card>
+      }
+
+      <!-- The one action this screen exists for -->
+      @if (lineEntries.length > 0) {
+        <div class="submit-wrap">
+          <ion-button
+            expand="block"
+            class="submit-btn"
+            (click)="submit()"
+            [disabled]="!isFormValid || isSubmitting">
+            @if (isSubmitting) {
+              <ion-spinner name="crescent" slot="start"></ion-spinner>
+            } @else {
+              <ion-icon slot="start" [name]="config.icon"></ion-icon>
+            }
+            {{ 'transferLine.' + config.action + '.label' | translate }}
+          </ion-button>
+        </div>
+      }
+
+    </div>
+  }
+
+</ion-content>

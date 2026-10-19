@@ -114,7 +114,10 @@
       "smartReports": "التقارير الذكية",
       "distributorManagement": "إدارة الموزعين",
       "supervisorApp": "تطبيق المشرف",
-      "erpIntegration": "التكامل مع ERP"
+      "erpIntegration": "التكامل مع ERP",
+      "transferReservation": "حجز التحويل",
+      "transferPick": "انتقاء التحويل",
+      "transferRegistration": "تسجيل التحويل"
     },
     "tabs": {
       "home": "الرئيسية",
@@ -379,5 +382,41 @@
     "searchPo": "ابحث برقم أمر الشراء أو المورد…",
     "searchSites": "ابحث في المواقع…",
     "searchWarehouses": "ابحث في المستودعات…"
+  },
+  "transferLine": {
+    "line": "السطر",
+    "allDone": "تم {{action}} لعدد {{count}} سطر.",
+    "someFailed": "فشل {{action}} في {{failed}} من {{count}} سطر.\n{{details}}",
+    "reserve": {
+      "label": "حجز",
+      "running": "جارٍ حجز السطور...",
+      "title": "حجز التحويل"
+    },
+    "pick": {
+      "label": "انتقاء",
+      "running": "جارٍ انتقاء السطور...",
+      "title": "انتقاء التحويل"
+    },
+    "register": {
+      "label": "تسجيل",
+      "running": "جارٍ تسجيل السطور...",
+      "title": "تسجيل التحويل"
+    },
+    "searchPlaceholder": "ابحث عن أمر أو مستودع...",
+    "shipDate": "تاريخ الشحن",
+    "emptyTitle": "لا توجد أوامر تحويل",
+    "noResults": "لا توجد نتائج لـ \"{{term}}\"",
+    "shipEmpty": "لا توجد أوامر تحويل بانتظار الشحن",
+    "receiveEmpty": "لا توجد أوامر تحويل قيد النقل حاليًا",
+    "loadMore": "تحميل المزيد",
+    "loadErrorTitle": "تعذّر تحميل الأمر",
+    "loadErrorBody": "تحقق من الاتصال وحاول مرة أخرى.",
+    "from": "من",
+    "to": "إلى",
+    "noOpenLines": "لا توجد سطور مفتوحة في هذا الأمر.",
+    "remaining": "المتبقي",
+    "quantity": "الكمية",
+    "max": "الحد الأقصى",
+    "qtyRange": "أدخل من 0 إلى {{max}}. القيمة 0 تتخطى هذا السطر."
   }
 }

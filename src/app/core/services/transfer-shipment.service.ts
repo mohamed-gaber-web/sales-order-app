@@ -3,9 +3,23 @@ import { Observable, forkJoin, map } from 'rxjs';
 import { ApiService } from './api.service';
 import { ODataResponse } from '../models/lookup.models';
 import { TransferOrderHeader, TransferOrderLine } from '../../models/transfer-order.model';
-import { TransferShipRequest, TransferReceiveRequest, TransferActionResponse } from '../../models/inventory.model';
+import {
+  TransferShipRequest,
+  TransferReceiveRequest,
+  TransferActionResponse,
+  TransferLineAction,
+  TransferLineActionRequest,
+} from '../../models/inventory.model';
 
 export const TS_PAGE_SIZE = 10;
+
+const TRANSFER_SERVICE_PATH = '/api/services/GP_transferOrderAPIServiceGroup/GP_transferOrderAPIService';
+
+const TRANSFER_LINE_OPERATIONS: Record<TransferLineAction, string> = {
+  reserve: 'transferLineReservation',
+  pick: 'transferLinePick',
+  register: 'transferLineRegistration',
+};
 
 @Injectable({ providedIn: 'root' })
 export class TransferShipmentService {
@@ -71,7 +85,15 @@ export class TransferShipmentService {
 
   receiveTransferOrder(payload: TransferReceiveRequest): Observable<TransferActionResponse> {
     return this.api.post<TransferActionResponse>(
-      '/api/services/GP_transferOrderAPIServiceGroup/GP_transferOrderAPIService/receiveTransferOrder',
+      `${TRANSFER_SERVICE_PATH}/receiveTransferOrder`,
+      payload
+    );
+  }
+
+  // Reservation, pick and registration all take one line per call.
+  transferLineAction(action: TransferLineAction, payload: TransferLineActionRequest): Observable<TransferActionResponse> {
+    return this.api.post<TransferActionResponse>(
+      `${TRANSFER_SERVICE_PATH}/${TRANSFER_LINE_OPERATIONS[action]}`,
       payload
     );
   }
