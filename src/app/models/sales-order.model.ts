@@ -113,3 +113,32 @@ export const ORDER_STATUS_COLORS: Record<OrderStatus, string> = {
   delivered: 'success',
   cancelled: 'danger'
 };
+
+// ── Sales line actions (reserve / pick / register / cancel) ─────────────────
+
+export type SalesLineAction = 'reserve' | 'pick' | 'register' | 'cancelRemainder' | 'cancelPartial';
+
+/** Inventory dimensions sent by reserve, pick and register. Empty strings let D365 resolve defaults. */
+export interface SalesLineDimensions {
+  InventSiteId: string;
+  InventLocationId: string;
+  WMSLocationId: string;
+  InventBatchId: string;
+  InventSerialId: string;
+  LicensePlateId: string;
+}
+
+/**
+ * One sales line per call. salesLineCancel takes only the first four fields;
+ * Qty 0 there means "cancel the whole remainder".
+ */
+export interface SalesLineActionRequest {
+  _request: {
+    DataAreaId: string;
+    OrderId: string;
+    LineNum: number;
+    Qty: number;
+  } & Partial<SalesLineDimensions>;
+}
+
+export type SalesLineActionResponse = PackingSlipResponse;

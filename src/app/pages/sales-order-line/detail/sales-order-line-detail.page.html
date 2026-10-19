@@ -168,6 +168,21 @@
                 <ion-icon slot="start" name="document-text-outline"></ion-icon>
                 Packing Slip
               </ion-button>
+
+              <!-- Reserve / Pick / Register / Cancel: one line per call -->
+              <div class="line-op-grid">
+                @for (a of actionsFor(line); track a.action) {
+                  <ion-button
+                    fill="outline"
+                    class="line-op-btn"
+                    [class.destructive]="a.destructive"
+                    [disabled]="isRunningLineAction || !hasLineNumber(line)"
+                    (click)="runLineAction(line, a.action)">
+                    <ion-icon slot="start" [name]="a.icon"></ion-icon>
+                    {{ 'salesLine.' + a.action + '.label' | translate }}
+                  </ion-button>
+                }
+              </div>
             </div>
           </ion-card-content>
         </ion-card>

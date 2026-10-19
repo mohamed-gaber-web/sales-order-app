@@ -1,0 +1,51 @@
+// Additions on top of the shared transfer-receive action styles.
+
+.product-name {
+  display: block;
+  font-size: 12px;
+  color: var(--ion-color-medium);
+  margin-top: 2px;
+}
+
+.select-row {
+  --background: transparent;
+  --padding-start: 0;
+  --inner-padding-end: 0;
+  margin-top: 8px;
+  font-size: 14px;
+}
+
+.dims-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.dim-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.dim-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ion-color-medium);
+}
+
+.dim-input {
+  --padding-start: 10px;
+  --padding-end: 10px;
+  border: 1px solid var(--gp-border, #e5e7eb);
+  border-radius: 10px;
+  font-size: 14px;
+  min-height: 40px;
+}
+
+// Cancel is the one action here that destroys demand: say so in colour.
+.submit-wrap .submit-btn.destructive {
+  --background: var(--ion-color-danger, #dc2626);
+  --box-shadow: 0 4px 16px rgba(220, 38, 38, 0.22);
+}

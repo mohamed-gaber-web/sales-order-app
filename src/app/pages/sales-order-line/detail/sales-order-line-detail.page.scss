@@ -217,6 +217,34 @@ ion-header {
 
     ion-icon { font-size: 16px; }
   }
+
+  // Secondary to Packing Slip, so outlined rather than filled.
+  .line-op-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+    margin-top: 8px;
+  }
+
+  .line-op-btn {
+    --border-color: var(--gp-navy, #002559);
+    --color: var(--gp-navy, #002559);
+    --border-radius: 10px;
+    margin: 0;
+    min-width: 0;
+    height: 38px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: none;
+    white-space: normal;
+
+    &.destructive {
+      --border-color: var(--ion-color-danger);
+      --color: var(--ion-color-danger);
+    }
+
+    ion-icon { font-size: 15px; }
+  }
 }
 
 // ── Empty State ────────────────────────────────────────────

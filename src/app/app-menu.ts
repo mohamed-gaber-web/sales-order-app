@@ -107,6 +107,11 @@ export const MENU_GROUPS: readonly MenuGroup[] = [
       { titleKey: 'menu.items.moduleDashboard', url: '/module-dashboard/sales-order', icon: 'speedometer' },
       { titleKey: 'menu.items.packingSlip', url: '/sales-order/list', icon: 'archive' },
       { titleKey: 'menu.items.reservation', url: '/inventory/reservation', icon: 'bookmark' },
+      { titleKey: 'menu.items.salesLineReservation', url: '/sales-order/line-reservation', icon: 'lock-closed' },
+      { titleKey: 'menu.items.salesLinePick', url: '/sales-order/line-pick', icon: 'hand-left' },
+      { titleKey: 'menu.items.salesLineRegistration', url: '/sales-order/line-registration', icon: 'clipboard' },
+      { titleKey: 'menu.items.salesLineCancelRemainder', url: '/sales-order/line-cancel-remainder', icon: 'close-circle' },
+      { titleKey: 'menu.items.salesLineCancelPartial', url: '/sales-order/line-cancel-partial', icon: 'remove-circle' },
     ],
   },
   {

@@ -2,13 +2,23 @@ import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { finalize } from 'rxjs/operators';
 import { ActivatedRoute, Router } from '@angular/router';
-import { AlertController, LoadingController, ToastController } from '@ionic/angular';
+import { AlertController, AlertInput, LoadingController, ToastController } from '@ionic/angular';
 import {
   SalesOrderLineService,
   SalesOrderLineResponse,
 } from '../../../core/services/sales-order-line.service';
 import { SalesOrderService } from '../../../core/services/sales-order.service';
 import { FormatService } from '../../../core';
+import { TranslateService } from '@ngx-translate/core';
+import { SalesLineAction, SalesLineDimensions } from '../../../models/sales-order.model';
+import {
+  DIMENSION_FIELDS,
+  SALES_LINE_ACTIONS,
+  SalesLineActionConfig,
+  buildSalesLineRequest,
+  initialQty,
+  lineDimensions,
+} from '../../sales-order/line-action/sales-line-action.config';
 
 @Component({
   selector: 'app-sales-order-line-detail',
@@ -37,6 +47,11 @@ export class SalesOrderLineDetailPage implements OnInit {
   private loadingCtrl = inject(LoadingController);
   private orderLineService = inject(SalesOrderLineService);
   private salesOrderService = inject(SalesOrderService);
+  private translate = inject(TranslateService);
+
+  private readonly salesLineActions = Object.values(SALES_LINE_ACTIONS).filter(a => !a.returnsOnly);
+  private readonly returnLineActions = Object.values(SALES_LINE_ACTIONS).filter(a => a.returnsOnly || a.destructive);
+  isRunningLineAction = false;
 
   ngOnInit() {
     this.salesOrderNumber =
@@ -184,6 +199,164 @@ export class SalesOrderLineDetailPage implements OnInit {
         await toast.present();
       },
     });
+  }
+
+  /**
+   * Reserve, pick, register or cancel this one line. Asks for what the action
+   * needs (a quantity, plus dimensions for pick; a confirmation for cancel),
+   * then sends the same request the line-action screens send.
+   */
+  async runLineAction(line: SalesOrderLineResponse, action: SalesLineAction) {
+    // A position in this list is not a line number (it is ordered by creation
+    // sequence, and filtered by search), so a line without one is not actionable.
+    if (this.isRunningLineAction || line.LineNumber === undefined || line.LineNumber === null) return;
+    // Claimed before any prompt opens, so quick taps can't stack two operations.
+    this.isRunningLineAction = true;
+    const config = SALES_LINE_ACTIONS[action];
+    const label = this.translate.instant(`salesLine.${action}.label`);
+    const lineNum = line.LineNumber;
+    const startQty = initialQty(config, line);
+
+    const inputs: AlertInput[] = [];
+    if (config.input !== 'none') {
+      inputs.push({
+        name: 'qty',
+        type: 'number',
+        placeholder: this.translate.instant('transferLine.quantity'),
+        value: startQty > 0 ? startQty : undefined,
+        min: 0.001,
+      });
+    }
+    if (config.input === 'qtyDims') {
+      const dims = lineDimensions(line);
+      for (const field of DIMENSION_FIELDS) {
+        inputs.push({
+          name: field,
+          type: 'text',
+          placeholder: this.translate.instant(`salesLine.dims.${field}`),
+          value: dims[field],
+        });
+      }
+    }
+
+    const alert = await this.alertCtrl.create({
+      header: label,
+      subHeader: `${line.ItemNumber} — ${this.translate.instant('transferLine.line')} ${lineNum}`,
+      message: config.input === 'none'
+        ? this.translate.instant('salesLine.confirmCancel', { count: 1, order: this.salesOrderNumber })
+        : undefined,
+      inputs,
+      buttons: [
+        { text: this.translate.instant('common.cancel'), role: 'cancel' },
+        {
+          text: label,
+          role: 'confirm',
+          handler: (data: Record<string, string> | undefined) => {
+            const qty = config.input === 'none' ? 0 : Number(data?.['qty']);
+            // Keep the prompt open on a bad quantity.
+            return config.input === 'none' || qty > 0;
+          },
+        },
+      ],
+    });
+    await alert.present();
+    const { role, data } = await alert.onDidDismiss<{ values?: Record<string, string> }>();
+    if (role !== 'confirm') {
+      this.isRunningLineAction = false;
+      return;
+    }
+
+    const values = data?.values ?? {};
+    const qty = config.input === 'none' ? 0 : Number(values['qty']);
+    const dims = config.input === 'qtyDims'
+      ? (Object.fromEntries(DIMENSION_FIELDS.map(f => [f, values[f] ?? ''])) as unknown as SalesLineDimensions)
+      : undefined;
+
+    // Cancel Partial took a quantity in the prompt above; like every cancel, it
+    // still has to be confirmed before it reaches D365.
+    if (config.destructive && config.input !== 'none') {
+      const confirm = await this.alertCtrl.create({
+        header: label,
+        message: this.translate.instant('salesLine.confirmCancelQty', { qty, line: lineNum, order: this.salesOrderNumber }),
+        buttons: [
+          { text: this.translate.instant('common.cancel'), role: 'cancel' },
+          { text: label, role: 'destructive' },
+        ],
+      });
+      await confirm.present();
+      if ((await confirm.onDidDismiss()).role !== 'destructive') {
+        this.isRunningLineAction = false;
+        return;
+      }
+    }
+
+    this.executeLineAction(line, lineNum, action, qty, label, dims);
+  }
+
+  hasLineNumber(line: SalesOrderLineResponse): boolean {
+    return line.LineNumber !== undefined && line.LineNumber !== null;
+  }
+
+  /** Return lines (negative quantity) can be registered or cancelled; normal lines anything but registered. */
+  actionsFor(line: SalesOrderLineResponse): SalesLineActionConfig[] {
+    const isReturn = Number(line.RemainingSalesPhysicalQuantity ?? line.OrderedSalesQuantity ?? 0) < 0;
+    return isReturn ? this.returnLineActions : this.salesLineActions;
+  }
+
+  private async executeLineAction(
+    line: SalesOrderLineResponse,
+    lineNum: number,
+    action: SalesLineAction,
+    qty: number,
+    label: string,
+    dims?: SalesLineDimensions,
+  ) {
+    this.isRunningLineAction = true;
+    const loading = await this.loadingCtrl.create({
+      message: this.translate.instant(`salesLine.${action}.running`),
+      spinner: 'crescent',
+    });
+    await loading.present();
+
+    this.salesOrderService.salesLineAction(action, buildSalesLineRequest(action, {
+      dataAreaId: line.dataAreaId ?? 'usmf',
+      orderId: this.salesOrderNumber,
+      lineNum,
+      qty,
+      dims,
+    }))
+      .pipe(
+        finalize(() => {
+          loading.dismiss();
+          this.isRunningLineAction = false;
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: async (res) => {
+          const toast = await this.toastCtrl.create({
+            message: res.Success
+              ? this.translate.instant('transferLine.allDone', { action: label, count: 1 })
+              : res.ErrorMessage || res.DebugMessage || this.translate.instant('transferLine.failed', { action: label }),
+            buttons: [{ text: this.translate.instant('common.dismiss'), role: 'cancel' }],
+            color: res.Success ? 'success' : 'danger',
+            position: 'bottom',
+          });
+          await toast.present();
+          if (res.Success) this.loadLines();
+        },
+        error: async (err: unknown) => {
+          const e = err as { error?: { Message?: string; message?: string }; message?: string };
+          const toast = await this.toastCtrl.create({
+            message: e?.error?.Message ?? e?.error?.message ?? e?.message
+              ?? this.translate.instant('transferLine.failed', { action: label }),
+            buttons: [{ text: this.translate.instant('common.dismiss'), role: 'cancel' }],
+            color: 'danger',
+            position: 'bottom',
+          });
+          await toast.present();
+        },
+      });
   }
 
   lineKey(line: SalesOrderLineResponse, i: number): string {

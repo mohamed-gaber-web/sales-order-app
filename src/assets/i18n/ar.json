@@ -117,7 +117,12 @@
       "erpIntegration": "التكامل مع ERP",
       "transferReservation": "حجز التحويل",
       "transferPick": "انتقاء التحويل",
-      "transferRegistration": "تسجيل التحويل"
+      "transferRegistration": "تسجيل التحويل",
+      "salesLineReservation": "حجز المبيعات",
+      "salesLinePick": "انتقاء المبيعات",
+      "salesLineRegistration": "تسجيل المرتجع",
+      "salesLineCancelRemainder": "إلغاء المتبقي",
+      "salesLineCancelPartial": "إلغاء جزئي"
     },
     "tabs": {
       "home": "الرئيسية",
@@ -383,7 +388,7 @@
     "searchPo": "ابحث برقم أمر الشراء أو المورد…",
     "searchSites": "ابحث في المواقع…",
     "searchWarehouses": "ابحث في المستودعات…",
-    "productReceipt": "اختياري — يُنشأ تلقائيًا إذا تُرك فارغًا"
+    "productReceipt": "إيصال الاستلام"
   },
   "transferLine": {
     "line": "السطر",
@@ -420,5 +425,48 @@
     "listEmpty": "لا توجد أوامر تحويل مفتوحة",
     "qtyInvalid": "أدخل 0 أو أكثر. القيمة 0 تتخطى هذا السطر.",
     "failed": "فشل {{action}}. حاول مرة أخرى."
+  },
+  "salesLine": {
+    "salesOrder": "أمر بيع",
+    "searchPlaceholder": "ابحث عن أمر أو عميل...",
+    "emptyTitle": "لا توجد أوامر بيع",
+    "listEmpty": "لا توجد أوامر بيع مفتوحة",
+    "returnsEmpty": "لا توجد أوامر مرتجع مفتوحة",
+    "confirmCancel": "إلغاء {{count}} سطر في {{order}}؟ لا يمكن التراجع عن ذلك.",
+    "cancelThisLine": "إلغاء الكمية المتبقية {{qty}}",
+    "reserve": {
+      "label": "حجز",
+      "title": "حجز المبيعات",
+      "running": "جارٍ حجز السطور..."
+    },
+    "pick": {
+      "label": "انتقاء",
+      "title": "انتقاء المبيعات",
+      "running": "جارٍ انتقاء السطور..."
+    },
+    "register": {
+      "label": "تسجيل",
+      "title": "تسجيل المرتجع",
+      "running": "جارٍ تسجيل السطور..."
+    },
+    "cancelRemainder": {
+      "label": "إلغاء المتبقي",
+      "title": "إلغاء المتبقي",
+      "running": "جارٍ إلغاء السطور..."
+    },
+    "cancelPartial": {
+      "label": "إلغاء جزئي",
+      "title": "إلغاء جزئي",
+      "running": "جارٍ إلغاء السطور..."
+    },
+    "dims": {
+      "InventSiteId": "الموقع",
+      "InventLocationId": "المستودع",
+      "WMSLocationId": "الموضع",
+      "InventBatchId": "الدفعة",
+      "InventSerialId": "الرقم التسلسلي",
+      "LicensePlateId": "لوحة الترخيص"
+    },
+    "confirmCancelQty": "إلغاء {{qty}} من السطر {{line}} في {{order}}؟ لا يمكن التراجع عن ذلك."
   }
 }

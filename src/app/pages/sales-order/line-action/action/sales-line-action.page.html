@@ -1,0 +1,162 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button [defaultHref]="listUrl" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ 'salesLine.' + config.action + '.label' | translate }} {{ salesId }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="action-content">
+
+  <!-- Loading Skeleton -->
+  @if (isLoading) {
+    <div class="page-body">
+      @for (i of [1, 2, 3]; track i) {
+        <ion-card class="line-card">
+          <ion-card-content>
+            <ion-skeleton-text animated style="width: 40%; height: 16px; border-radius: 6px"></ion-skeleton-text>
+            <ion-skeleton-text animated style="width: 65%; height: 13px; margin-top: 8px; border-radius: 6px"></ion-skeleton-text>
+            <ion-skeleton-text animated style="width: 100%; height: 44px; margin-top: 12px; border-radius: 10px"></ion-skeleton-text>
+          </ion-card-content>
+        </ion-card>
+      }
+    </div>
+  }
+
+  <!-- Error State -->
+  @if (!isLoading && loadError) {
+    <div class="error-state">
+      <div class="error-icon-wrap">
+        <ion-icon name="cloud-offline-outline"></ion-icon>
+      </div>
+      <h3>{{ 'transferLine.loadErrorTitle' | translate }}</h3>
+      <p>{{ 'transferLine.loadErrorBody' | translate }}</p>
+      <ion-button (click)="loadLines()" fill="outline" class="retry-btn">
+        <ion-icon slot="start" name="refresh-outline"></ion-icon>
+        {{ 'common.retry' | translate }}
+      </ion-button>
+    </div>
+  }
+
+  @if (!isLoading && !loadError) {
+    <div class="page-body">
+
+      <!-- Order Banner -->
+      <ion-card class="context-card">
+        <div class="context-hero">
+          <div class="to-info">
+            <p class="to-label">{{ 'salesLine.salesOrder' | translate }}</p>
+            <p class="to-number">{{ salesId }}</p>
+          </div>
+          <ion-badge [color]="config.destructive ? 'danger' : 'primary'" class="status-pill">
+            {{ 'salesLine.' + config.action + '.label' | translate }}
+          </ion-badge>
+        </div>
+      </ion-card>
+
+      @if (lineEntries.length === 0) {
+        <div class="empty-lines">
+          <ion-icon name="checkmark-circle-outline" color="success"></ion-icon>
+          <p>{{ 'transferLine.noOpenLines' | translate }}</p>
+        </div>
+      }
+
+      <!-- Line Cards -->
+      @for (entry of lineEntries; track entry.lineNum) {
+        <ion-card class="line-card">
+          <ion-card-content>
+            <div class="line-header">
+              <div class="line-item-info">
+                <span class="line-number">{{ 'transferLine.line' | translate }} {{ entry.lineNum }}</span>
+                <span class="item-number">{{ entry.line.ItemNumber }}</span>
+                @if (entry.line.ProductName) {
+                  <span class="product-name">{{ entry.line.ProductName }}</span>
+                }
+              </div>
+              <div class="line-qty-info">
+                <span class="remain-label">{{ 'transferLine.remaining' | translate }}</span>
+                <span class="remain-qty">{{ entry.remainQty }} {{ entry.line.SalesUnitSymbol || '' }}</span>
+              </div>
+            </div>
+
+            @if (config.input === 'none') {
+              <!-- Cancel remainder: tick the lines to cancel -->
+              <ion-item lines="none" class="select-row">
+                <ion-checkbox [(ngModel)]="entry.selected" justify="start" labelPlacement="end">
+                  {{ 'salesLine.cancelThisLine' | translate: { qty: entry.remainQty } }}
+                </ion-checkbox>
+              </ion-item>
+            } @else {
+              <div class="qty-input-row">
+                <div class="qty-label-row">
+                  <span class="input-label">{{ 'transferLine.quantity' | translate }}</span>
+                  <button type="button" class="max-btn" (click)="setMaxQty(entry)">
+                    {{ 'transferLine.max' | translate }} ({{ entry.remainQty }})
+                  </button>
+                </div>
+                <ion-input
+                  type="number"
+                  [(ngModel)]="entry.qty"
+                  [min]="0"
+                  step="0.001"
+                  [placeholder]="'placeholder.enterQuantity' | translate"
+                  class="qty-input"
+                  [class.invalid]="!isQtyValid(entry)">
+                </ion-input>
+                @if (!isQtyValid(entry)) {
+                  <p class="field-error">
+                    <ion-icon name="alert-circle-outline"></ion-icon>
+                    {{ 'transferLine.qtyInvalid' | translate }}
+                  </p>
+                }
+              </div>
+
+              @if (config.input === 'qtyDims') {
+                <!-- Pick: where the stock comes from -->
+                <div class="dims-grid">
+                  @for (field of dimensionFields; track field) {
+                    <label class="dim-field">
+                      <span class="dim-label">{{ 'salesLine.dims.' + field | translate }}</span>
+                      <ion-input
+                        [(ngModel)]="entry.dims[field]"
+                        type="text"
+                        autocapitalize="characters"
+                        [placeholder]="'salesLine.dims.' + field | translate"
+                        class="dim-input">
+                      </ion-input>
+                    </label>
+                  }
+                </div>
+              }
+            }
+          </ion-card-content>
+        </ion-card>
+      }
+
+      <!-- The one action this screen exists for -->
+      @if (lineEntries.length > 0) {
+        <div class="submit-wrap">
+          <ion-button
+            expand="block"
+            class="submit-btn"
+            [class.destructive]="config.destructive"
+            (click)="submit()"
+            [disabled]="!isFormValid || isSubmitting">
+            @if (isSubmitting) {
+              <ion-spinner name="crescent" slot="start"></ion-spinner>
+            } @else {
+              <ion-icon slot="start" [name]="config.icon"></ion-icon>
+            }
+            {{ 'salesLine.' + config.action + '.label' | translate }}
+            @if (includedCount > 0) {
+              ({{ includedCount }})
+            }
+          </ion-button>
+        </div>
+      }
+
+    </div>
+  }
+
+</ion-content>

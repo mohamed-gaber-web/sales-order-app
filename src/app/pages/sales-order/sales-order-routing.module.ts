@@ -17,6 +17,31 @@ const routes: Routes = [
     loadChildren: () => import('./list/sales-order-list.module').then(m => m.SalesOrderListModule)
   },
   {
+    path: 'line-reservation',
+    data: { action: 'reserve' },
+    loadChildren: () => import('./line-action/sales-line-action.module').then(m => m.SalesLineActionModule)
+  },
+  {
+    path: 'line-pick',
+    data: { action: 'pick' },
+    loadChildren: () => import('./line-action/sales-line-action.module').then(m => m.SalesLineActionModule)
+  },
+  {
+    path: 'line-registration',
+    data: { action: 'register' },
+    loadChildren: () => import('./line-action/sales-line-action.module').then(m => m.SalesLineActionModule)
+  },
+  {
+    path: 'line-cancel-remainder',
+    data: { action: 'cancelRemainder' },
+    loadChildren: () => import('./line-action/sales-line-action.module').then(m => m.SalesLineActionModule)
+  },
+  {
+    path: 'line-cancel-partial',
+    data: { action: 'cancelPartial' },
+    loadChildren: () => import('./line-action/sales-line-action.module').then(m => m.SalesLineActionModule)
+  },
+  {
     path: 'create',
     loadChildren: () => import('./form/sales-order-form.module').then(m => m.SalesOrderFormModule)
   },

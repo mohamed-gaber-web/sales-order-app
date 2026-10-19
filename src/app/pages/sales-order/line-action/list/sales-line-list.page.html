@@ -1,0 +1,137 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/sales-order/list" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ 'salesLine.' + config.action + '.title' | translate }}</ion-title>
+  </ion-toolbar>
+  <ion-toolbar>
+    <ion-searchbar
+      [(ngModel)]="searchTerm"
+      (ionInput)="onSearchChange()"
+      [placeholder]="'salesLine.searchPlaceholder' | translate"
+      debounce="300"
+      animated="true"
+      class="custom-searchbar">
+    </ion-searchbar>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="orders-content">
+  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+    <ion-refresher-content pullingIcon="chevron-down-outline" refreshingSpinner="crescent">
+    </ion-refresher-content>
+  </ion-refresher>
+
+  <!-- Web Page Header (desktop only) -->
+  <div class="web-page-header">
+    <div class="web-page-header-inner">
+      <div class="web-title-group">
+        <h1 class="web-page-title">{{ 'salesLine.' + config.action + '.title' | translate }}</h1>
+        @if (!isLoading) {
+          <span class="web-count-chip">{{ filteredOrders.length }}</span>
+        }
+      </div>
+      <div class="web-actions">
+        <ion-searchbar
+          [(ngModel)]="searchTerm"
+          (ionInput)="onSearchChange()"
+          [placeholder]="'salesLine.searchPlaceholder' | translate"
+          debounce="300"
+          animated="false"
+          class="web-searchbar">
+        </ion-searchbar>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading Skeleton -->
+  @if (isLoading) {
+    <div class="orders-list">
+      @for (i of [1, 2, 3, 4, 5]; track i) {
+        <ion-card class="order-card skeleton-card">
+          <ion-card-content>
+            <ion-skeleton-text animated style="width: 45%; height: 18px; border-radius: 6px"></ion-skeleton-text>
+            <ion-skeleton-text animated style="width: 65%; height: 13px; margin-top: 8px; border-radius: 6px"></ion-skeleton-text>
+            <ion-skeleton-text animated style="width: 80%; height: 12px; margin-top: 8px; border-radius: 6px"></ion-skeleton-text>
+          </ion-card-content>
+        </ion-card>
+      }
+    </div>
+  }
+
+  <!-- Orders List -->
+  @if (!isLoading && filteredOrders.length > 0) {
+    <div class="orders-list">
+      @for (order of filteredOrders; track order.SalesId) {
+        <ion-card class="order-card" button (click)="openOrder(order.SalesId)">
+          <div class="card-layout">
+            <div class="status-strip" style="background: var(--ion-color-primary)"></div>
+            <div class="card-body">
+              <div class="card-top">
+                <span class="order-number">{{ order.SalesId }}</span>
+                @if (order.SalesTable_SalesStatus) {
+                  <ion-badge color="primary" class="status-badge">{{ order.SalesTable_SalesStatus }}</ion-badge>
+                }
+              </div>
+              <div class="card-route">
+                <ion-icon name="person-outline" class="route-icon"></ion-icon>
+                <span class="warehouse-from">{{ order.SalesTable_SalesName || order.CustAccount || '—' }}</span>
+              </div>
+              <div class="card-fields">
+                <div class="field-item">
+                  <span class="field-label">{{ 'field.customer' | translate }}</span>
+                  <span class="field-value">{{ order.CustAccount || '—' }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </ion-card>
+      }
+    </div>
+  }
+
+  <!-- Searching Spinner -->
+  @if (isSearching) {
+    <div class="searching-state">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>{{ 'msg.searchingOrders' | translate }}</p>
+    </div>
+  }
+
+  <!-- Empty State -->
+  @if (!isLoading && !isSearching && filteredOrders.length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon-wrap">
+        <ion-icon [name]="config.icon"></ion-icon>
+      </div>
+      <h3>{{ 'salesLine.emptyTitle' | translate }}</h3>
+      <p>
+        @if (searchTerm) {
+          {{ 'transferLine.noResults' | translate: { term: searchTerm } }}
+        } @else {
+          {{ (config.returnsOnly ? 'salesLine.returnsEmpty' : 'salesLine.listEmpty') | translate }}
+        }
+      </p>
+    </div>
+  }
+
+  <!-- Web Load More (desktop only) -->
+  @if (!isLoading && hasMore) {
+    <div class="web-load-more">
+      <ion-button (click)="loadMore()" [disabled]="isLoadingMore" class="web-load-more-btn" fill="outline">
+        @if (isLoadingMore) {
+          <ion-spinner name="crescent" slot="start"></ion-spinner>
+        } @else {
+          <ion-icon slot="start" name="chevron-down-outline"></ion-icon>
+        }
+        {{ 'transferLine.loadMore' | translate }}
+      </ion-button>
+    </div>
+  }
+
+  <!-- Mobile Infinite Scroll -->
+  <ion-infinite-scroll (ionInfinite)="loadMore($event)" [disabled]="!hasMore">
+    <ion-infinite-scroll-content loadingSpinner="crescent"></ion-infinite-scroll-content>
+  </ion-infinite-scroll>
+</ion-content>

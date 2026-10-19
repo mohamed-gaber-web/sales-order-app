@@ -9,6 +9,9 @@ import {
   SalesOrderHeaderV3Response,
   CreatePackingSlipRequest,
   PackingSlipResponse,
+  SalesLineAction,
+  SalesLineActionRequest,
+  SalesLineActionResponse,
 } from '../../models/sales-order.model';
 import {
   CreateSalesOrderLineDto,
@@ -24,6 +27,17 @@ export interface CreateOrderWithLinesResult {
 }
 
 export const SALES_PAGE_SIZE = 10;
+
+const SALES_SERVICE_PATH = '/api/services/GP_salesOrderAPIServiceGroup/GP_salesOrderAPIService';
+
+// Both cancel variants are one D365 operation; the Qty in the body tells them apart.
+const SALES_LINE_OPERATIONS: Record<SalesLineAction, string> = {
+  reserve: 'salesLineReservation',
+  pick: 'salesLinePick',
+  register: 'salesLineRegistration',
+  cancelRemainder: 'salesLineCancel',
+  cancelPartial: 'salesLineCancel',
+};
 
 const SALES_FILTER =
   "dataAreaId eq 'usmf' and RemainInventPhysical gt 0 " +
@@ -209,6 +223,14 @@ export class SalesOrderService {
   createPackingSlip(payload: CreatePackingSlipRequest): Observable<PackingSlipResponse> {
     return this.api.post<PackingSlipResponse>(
       '/api/services/GP_CreatePackingSlipServiceGroup/GP_CreatePackingSlipService/createPackingSlip',
+      payload
+    );
+  }
+
+  /** Reserve, pick, register or cancel one sales line. */
+  salesLineAction(action: SalesLineAction, payload: SalesLineActionRequest): Observable<SalesLineActionResponse> {
+    return this.api.post<SalesLineActionResponse>(
+      `${SALES_SERVICE_PATH}/${SALES_LINE_OPERATIONS[action]}`,
       payload
     );
   }

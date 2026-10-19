@@ -117,7 +117,12 @@
       "erpIntegration": "ERP Integration",
       "transferReservation": "Transfer Reservation",
       "transferPick": "Transfer Pick",
-      "transferRegistration": "Transfer Registration"
+      "transferRegistration": "Transfer Registration",
+      "salesLineReservation": "Sales Reservation",
+      "salesLinePick": "Sales Pick",
+      "salesLineRegistration": "Return Registration",
+      "salesLineCancelRemainder": "Cancel Remainder",
+      "salesLineCancelPartial": "Cancel Partial"
     },
     "tabs": {
       "home": "Home",
@@ -383,7 +388,7 @@
     "searchPo": "Search PO number or vendor...",
     "searchSites": "Search sites...",
     "searchWarehouses": "Search warehouses...",
-    "productReceipt": "Optional — generated if blank"
+    "productReceipt": "Product Receipt"
   },
   "transferLine": {
     "line": "Line",
@@ -420,5 +425,48 @@
     "listEmpty": "No open transfer orders",
     "qtyInvalid": "Enter 0 or more. 0 skips this line.",
     "failed": "{{action}} failed. Try again."
+  },
+  "salesLine": {
+    "salesOrder": "Sales Order",
+    "searchPlaceholder": "Search order or customer...",
+    "emptyTitle": "No Sales Orders",
+    "listEmpty": "No open sales orders",
+    "returnsEmpty": "No open return orders",
+    "confirmCancel": "Cancel {{count}} line(s) on {{order}}? This cannot be undone.",
+    "cancelThisLine": "Cancel the remaining {{qty}}",
+    "reserve": {
+      "label": "Reserve",
+      "title": "Sales Reservation",
+      "running": "Reserving lines..."
+    },
+    "pick": {
+      "label": "Pick",
+      "title": "Sales Pick",
+      "running": "Picking lines..."
+    },
+    "register": {
+      "label": "Register",
+      "title": "Return Registration",
+      "running": "Registering lines..."
+    },
+    "cancelRemainder": {
+      "label": "Cancel Remainder",
+      "title": "Cancel Remainder",
+      "running": "Cancelling lines..."
+    },
+    "cancelPartial": {
+      "label": "Cancel Partial",
+      "title": "Cancel Partial",
+      "running": "Cancelling lines..."
+    },
+    "dims": {
+      "InventSiteId": "Site",
+      "InventLocationId": "Warehouse",
+      "WMSLocationId": "Location",
+      "InventBatchId": "Batch",
+      "InventSerialId": "Serial",
+      "LicensePlateId": "License plate"
+    },
+    "confirmCancelQty": "Cancel {{qty}} on line {{line}} of {{order}}? This cannot be undone."
   }
 }
