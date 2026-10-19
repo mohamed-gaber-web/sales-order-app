@@ -81,7 +81,9 @@ export class PurchaseOrderReceivePage implements OnInit {
       receiptQty: [
         this.remainingQty,
         [Validators.required, Validators.min(0.001), Validators.max(this.remainingQty)]
-      ]
+      ],
+      // Free text, e.g. the vendor's delivery note number. Blank falls back to a generated ID.
+      productReceiptId: ['']
     });
   }
 
@@ -89,7 +91,7 @@ export class PurchaseOrderReceivePage implements OnInit {
     this.form.patchValue({ receiptQty: this.remainingQty });
   }
 
-  /** The create-receipt call requires a packing slip / receipt ID — generated silently since the user no longer enters one. */
+  /** The create-receipt call requires a packing slip / receipt ID — generated when the user leaves the field blank. */
   private generatePackingSlipId(): string {
     return `RCP-${this.poNumber}-${this.lineNumber}-${Date.now()}`;
   }
@@ -98,8 +100,8 @@ export class PurchaseOrderReceivePage implements OnInit {
     if (this.form.invalid || this.isSubmitting) return;
     this.isSubmitting = true;
 
-    const { receiptQty } = this.form.value as { receiptQty: number };
-    const packingSlipId = this.generatePackingSlipId();
+    const { receiptQty, productReceiptId } = this.form.value as { receiptQty: number; productReceiptId: string };
+    const packingSlipId = (productReceiptId ?? '').trim() || this.generatePackingSlipId();
 
     const loading = await this.loadingCtrl.create({
       message: 'Recording receipt...',

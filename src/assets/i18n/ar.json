@@ -329,7 +329,8 @@
     "totalQty": "إجمالي الكمية",
     "totalQuantity": "إجمالي الكمية",
     "unit": "الوحدة",
-    "warehouse": "المستودع"
+    "warehouse": "المستودع",
+    "productReceipt": "إيصال الاستلام"
   },
   "doc": {
     "assembly": "التجميع",
@@ -381,7 +382,8 @@
     "searchOrScanPo": "ابحث أو امسح أمر شراء",
     "searchPo": "ابحث برقم أمر الشراء أو المورد…",
     "searchSites": "ابحث في المواقع…",
-    "searchWarehouses": "ابحث في المستودعات…"
+    "searchWarehouses": "ابحث في المستودعات…",
+    "productReceipt": "اختياري — يُنشأ تلقائيًا إذا تُرك فارغًا"
   },
   "transferLine": {
     "line": "السطر",

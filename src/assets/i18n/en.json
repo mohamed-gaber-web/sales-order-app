@@ -329,7 +329,8 @@
     "totalQty": "Total Qty",
     "totalQuantity": "Total quantity",
     "unit": "Unit",
-    "warehouse": "Warehouse"
+    "warehouse": "Warehouse",
+    "productReceipt": "Product Receipt"
   },
   "doc": {
     "assembly": "Assembly",
@@ -381,7 +382,8 @@
     "searchOrScanPo": "Search or Scan a PO",
     "searchPo": "Search PO number or vendor...",
     "searchSites": "Search sites...",
-    "searchWarehouses": "Search warehouses..."
+    "searchWarehouses": "Search warehouses...",
+    "productReceipt": "Optional — generated if blank"
   },
   "transferLine": {
     "line": "Line",
