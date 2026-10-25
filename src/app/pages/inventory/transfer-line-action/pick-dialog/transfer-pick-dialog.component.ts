@@ -181,13 +181,23 @@ export class TransferPickDialogComponent implements OnInit {
       e !== entry && e.serialId === entry.serialId && e.line.itemNumber === entry.line.itemNumber);
   }
 
+  // An item that has serial numbers can't be picked without one. A skipped line needs none.
+  isSerialMissing(entry: PickEntry): boolean {
+    return qtyOf(entry) > 0 && !entry.serialId && (this.serialsByItem[entry.line.itemNumber]?.length ?? 0) > 0;
+  }
+
   get isFormValid(): boolean {
-    return this.entries.every(e => this.isQtyValid(e) && this.isSerialValid(e))
+    return this.entries.every(e => this.isQtyValid(e) && this.isSerialValid(e) && !this.isSerialMissing(e))
       && this.entries.some(e => qtyOf(e) > 0);
   }
 
+  /** Pick waits for the site and for every item's serials, so a required serial can't be skipped by a fast tap. */
+  get isLoadingRequired(): boolean {
+    return this.isLoadingSite || this.loadingSerialItems.size > 0;
+  }
+
   confirm() {
-    if (!this.isFormValid || this.isLoadingSite) return;
+    if (!this.isFormValid || this.isLoadingRequired) return;
     const results: TransferPickResult[] = this.entries
       .filter(e => qtyOf(e) > 0)
       .map(e => ({

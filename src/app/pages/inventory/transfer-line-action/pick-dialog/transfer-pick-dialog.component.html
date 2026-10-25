@@ -105,6 +105,9 @@
               <ion-select-option [value]="serial">{{ serial }}</ion-select-option>
             }
           </ion-select>
+          @if (serialsByItem[entry.line.itemNumber]?.length === 0) {
+            <span class="field-hint">{{ 'transferLine.noSerialsForItem' | translate }}</span>
+          }
           @if (serialErrorItems.has(entry.line.itemNumber)) {
             <button type="button" class="field-retry" (click)="loadSerials(entry.line.itemNumber)">
               {{ 'transferLine.serialsError' | translate }} {{ 'common.retry' | translate }}
@@ -128,6 +131,12 @@
         </div>
       </div>
 
+      @if (isSerialMissing(entry)) {
+        <p class="field-error">
+          <ion-icon name="alert-circle-outline"></ion-icon>
+          {{ 'transferLine.serialRequired' | translate }}
+        </p>
+      }
       @if (!isSerialValid(entry)) {
         <p class="field-error">
           <ion-icon name="alert-circle-outline"></ion-icon>
@@ -146,7 +155,7 @@
 
 <ion-footer class="ion-no-border">
   <ion-toolbar>
-    <ion-button expand="block" class="confirm-btn" (click)="confirm()" [disabled]="!isFormValid || isLoadingSite">
+    <ion-button expand="block" class="confirm-btn" (click)="confirm()" [disabled]="!isFormValid || isLoadingRequired">
       <ion-icon slot="start" name="hand-left-outline"></ion-icon>
       {{ 'transferLine.pick.label' | translate }}
     </ion-button>

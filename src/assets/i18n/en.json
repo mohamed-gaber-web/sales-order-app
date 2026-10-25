@@ -437,7 +437,9 @@
     "serial": "Serial number",
     "noSerial": "None",
     "serialsError": "Couldn't load serial numbers.",
-    "serialInvalid": "A serial number is one unit: set quantity 1 and use it on one line only."
+    "serialInvalid": "A serial number is one unit: set quantity 1 and use it on one line only.",
+    "noSerialsForItem": "This item has no serial numbers.",
+    "serialRequired": "This item has serial numbers. Choose one, or set quantity 0 to skip the line."
   },
   "salesLine": {
     "salesOrder": "Sales Order",
