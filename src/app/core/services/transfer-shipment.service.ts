@@ -19,6 +19,10 @@ export const TS_PAGE_SIZE = 10;
 
 const TRANSFER_SERVICE_PATH = '/api/services/GP_transferOrderAPIServiceGroup/GP_transferOrderAPIService';
 
+// Line reservation, pick and registration live on the portal service, not the
+// transfer order service; D365 answers 404 on the transfer order service.
+const TRANSFER_LINE_SERVICE_PATH = '/api/services/GP_portalServiceGroup/GP_portalService';
+
 const TRANSFER_LINE_OPERATIONS: Record<TransferLineAction, string> = {
   reserve: 'transferLineReservation',
   pick: 'transferLinePick',
@@ -145,7 +149,7 @@ export class TransferShipmentService {
   // Reservation, pick and registration all take one line per call.
   transferLineAction(action: TransferLineAction, payload: TransferLineActionRequest): Observable<TransferActionResponse> {
     return this.api.post<TransferActionResponse>(
-      `${TRANSFER_SERVICE_PATH}/${TRANSFER_LINE_OPERATIONS[action]}`,
+      `${TRANSFER_LINE_SERVICE_PATH}/${TRANSFER_LINE_OPERATIONS[action]}`,
       payload
     );
   }
