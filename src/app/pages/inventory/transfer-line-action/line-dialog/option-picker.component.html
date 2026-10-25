@@ -1,0 +1,51 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-title>{{ title }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" (click)="dismiss()" [attr.aria-label]="'common.close' | translate">
+        <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+  <div class="picker-search">
+    <ds-search [placeholder]="'common.search' | translate" [debounceMs]="150" (query)="search($event)"></ds-search>
+  </div>
+</ion-header>
+
+<ion-content>
+  <ul class="options" role="listbox" [attr.aria-label]="title">
+    @if (!term) {
+      <li>
+        <button type="button" class="option" role="option" [attr.aria-selected]="selected === ''" (click)="choose('')">
+          <span class="option-text">
+            <span class="option-label is-none">{{ noneLabel }}</span>
+          </span>
+          @if (selected === '') {
+            <ion-icon name="checkmark" class="option-check"></ion-icon>
+          }
+        </button>
+      </li>
+    }
+    @for (option of shown; track option.value) {
+      <li>
+        <button type="button" class="option" role="option" [attr.aria-selected]="selected === option.value" (click)="choose(option.value)">
+          <span class="option-text">
+            <span class="option-label">{{ option.label }}</span>
+            @if (option.detail) {
+              <span class="option-detail">{{ option.detail }}</span>
+            }
+          </span>
+          @if (selected === option.value) {
+            <ion-icon name="checkmark" class="option-check"></ion-icon>
+          }
+        </button>
+      </li>
+    }
+  </ul>
+
+  @if (filtered.length === 0) {
+    <p class="picker-note">{{ 'transferLine.noMatches' | translate }}</p>
+  } @else if (filtered.length > shown.length) {
+    <p class="picker-note">{{ 'transferLine.showingFirst' | translate: { shown: shown.length, total: filtered.length } }}</p>
+  }
+</ion-content>

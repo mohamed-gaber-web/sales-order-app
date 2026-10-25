@@ -8,9 +8,9 @@ import { TransferLineAction } from '../../../models/inventory.model';
 import { TRANSFER_LINE_ACTIONS, remainingQty } from '../../inventory/transfer-line-action/transfer-line-action.config';
 import { TransferOrderHeader, TransferOrderLine } from '../../../models/transfer-order.model';
 import {
-  TransferPickDialogComponent,
-  TransferPickResult,
-} from '../../inventory/transfer-line-action/pick-dialog/transfer-pick-dialog.component';
+  TransferLineDialogComponent,
+  TransferLineResult,
+} from '../../inventory/transfer-line-action/line-dialog/transfer-line-dialog.component';
 
 @Component({
   selector: 'app-transfer-order-detail',
@@ -155,52 +155,29 @@ export class TransferOrderDetailPage implements OnInit {
 
   private async promptLineAction(line: TransferOrderLine, action: TransferLineAction) {
     const label = this.translate.instant(`transferLine.${action}.label`);
-    const remaining = remainingQty(line, TRANSFER_LINE_ACTIONS[action].side);
+    const side = TRANSFER_LINE_ACTIONS[action].side;
+    const remaining = remainingQty(line, side);
     const startQty = remaining > 0 ? remaining : this.safeNum(line.TransferQuantity);
 
-    // Pick also has to say which license plate the stock comes from.
-    if (action === 'pick') {
-      const modal = await this.modalCtrl.create({
-        component: TransferPickDialogComponent,
-        componentProps: {
-          lines: [{ lineNum: line.LineNumber, itemNumber: line.ItemNumber, unitId: line.UnitId, qty: startQty }],
-          warehouseId: this.order?.ShippingWarehouseId,
-        },
-      });
-      await modal.present();
-      const { data, role } = await modal.onWillDismiss<TransferPickResult[]>();
-      const pick = data?.[0];
-      if (role === 'confirm' && pick) this.executeLineAction(line, action, pick.qty, label, pick);
-      return;
-    }
-
-    const alert = await this.alertCtrl.create({
-      header: label,
-      subHeader: `${line.ItemNumber} — ${this.translate.instant('transferLine.line')} ${line.LineNumber}`,
-      inputs: [
-        {
-          name: 'qty',
-          type: 'number',
-          placeholder: this.translate.instant('transferLine.quantity'),
-          value: startQty,
-          min: 0.001,
-        }
-      ],
-      buttons: [
-        { text: this.translate.instant('common.cancel'), role: 'cancel' },
-        {
-          text: label,
-          handler: (data) => {
-            const qty = Number(data.qty);
-            if (!qty || qty <= 0) return false;
-            this.executeLineAction(line, action, qty, label);
-            return true;
-          }
-        }
-      ]
+    const modal = await this.modalCtrl.create({
+      component: TransferLineDialogComponent,
+      componentProps: {
+        action,
+        orderNumber: this.transferOrderNumber,
+        lines: [{
+          lineNum: line.LineNumber,
+          itemNumber: line.ItemNumber,
+          unitId: line.UnitId,
+          qty: startQty,
+          remainQty: remaining,
+        }],
+        warehouseId: side === 'ship' ? this.order?.ShippingWarehouseId : this.order?.ReceivingWarehouseId,
+      },
     });
-    await alert.present();
-    await alert.onWillDismiss();
+    await modal.present();
+    const { data, role } = await modal.onWillDismiss<TransferLineResult[]>();
+    const result = data?.[0];
+    if (role === 'confirm' && result) this.executeLineAction(line, action, result.qty, label, result);
   }
 
   private async executeLineAction(
@@ -208,7 +185,7 @@ export class TransferOrderDetailPage implements OnInit {
     action: TransferLineAction,
     qty: number,
     label: string,
-    dims?: Pick<TransferPickResult, 'inventSiteId' | 'inventLocationId' | 'wmsLocationId' | 'inventBatchId' | 'inventSerialId' | 'licensePlateId'>,
+    dims?: Omit<TransferLineResult, 'lineNum' | 'qty'>,
   ) {
     const loading = await this.loadingCtrl.create({
       message: this.translate.instant(`transferLine.${action}.running`),

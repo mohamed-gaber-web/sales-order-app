@@ -10,10 +10,10 @@ import { TransferOrderHeader, TransferOrderLine } from '../../../../models/trans
 import { TransferLineAction } from '../../../../models/inventory.model';
 import { TRANSFER_LINE_ACTIONS, TransferLineActionConfig, remainingQty } from '../transfer-line-action.config';
 import {
-  TransferPickDialogComponent,
-  TransferPickLine,
-  TransferPickResult,
-} from '../pick-dialog/transfer-pick-dialog.component';
+  TransferLineDialogComponent,
+  TransferLineInput,
+  TransferLineResult,
+} from '../line-dialog/transfer-line-dialog.component';
 
 interface LineEntry {
   line: TransferOrderLine;
@@ -119,25 +119,27 @@ export class TransferLineActionPage implements OnInit {
     // Claimed before any await, so a double tap can't open two dialogs or send twice.
     this.isSubmitting = true;
 
-    const picks: TransferPickResult[] = this.lineEntries
+    // Every action also says where the stock is: location, batch, serial, license plate.
+    const lines: TransferLineInput[] = this.lineEntries
       .filter(e => qtyOf(e) > 0)
-      .map(e => ({ lineNum: e.line.LineNumber, qty: qtyOf(e), inventSiteId: '', inventLocationId: '', wmsLocationId: '', inventBatchId: '', inventSerialId: '', licensePlateId: '' }));
-
-    if (this.config.action !== 'pick') {
-      this.runLines(picks);
-      return;
-    }
-
-    // Pick also has to say which license plate the stock comes from.
-    const lines: TransferPickLine[] = this.lineEntries
-      .filter(e => qtyOf(e) > 0)
-      .map(e => ({ lineNum: e.line.LineNumber, itemNumber: e.line.ItemNumber, unitId: e.line.UnitId, qty: qtyOf(e) }));
+      .map(e => ({
+        lineNum: e.line.LineNumber,
+        itemNumber: e.line.ItemNumber,
+        unitId: e.line.UnitId,
+        qty: qtyOf(e),
+        remainQty: e.remainQty,
+      }));
     const modal = await this.modalCtrl.create({
-      component: TransferPickDialogComponent,
-      componentProps: { lines, warehouseId: this.header?.ShippingWarehouseId },
+      component: TransferLineDialogComponent,
+      componentProps: {
+        action: this.config.action,
+        orderNumber: this.toNumber,
+        lines,
+        warehouseId: this.config.side === 'ship' ? this.header?.ShippingWarehouseId : this.header?.ReceivingWarehouseId,
+      },
     });
     await modal.present();
-    const { data, role } = await modal.onWillDismiss<TransferPickResult[]>();
+    const { data, role } = await modal.onWillDismiss<TransferLineResult[]>();
     if (role === 'confirm' && data?.length) this.runLines(data);
     else this.isSubmitting = false;
   }
@@ -145,7 +147,7 @@ export class TransferLineActionPage implements OnInit {
   // D365 takes one line per call: send them in order, and keep going past a
   // failed line so the operator sees every line that needs attention at once.
   // The caller has already set isSubmitting.
-  private async runLines(picks: TransferPickResult[]) {
+  private async runLines(picks: TransferLineResult[]) {
     const action = this.config.action;
     const loading = await this.loadingCtrl.create({
       message: this.translate.instant(`transferLine.${action}.running`),

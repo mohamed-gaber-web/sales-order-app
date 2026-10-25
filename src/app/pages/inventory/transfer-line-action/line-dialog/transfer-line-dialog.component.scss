@@ -1,0 +1,337 @@
+// ── Context strip ───────────────────────────────────────────
+.context-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ds-space-2) var(--ds-space-7);
+  margin: 0;
+  padding: var(--ds-space-2) var(--ds-space-5) var(--ds-space-3);
+  background: var(--ion-toolbar-background, var(--ds-bg-1));
+  border-bottom: 1px solid var(--ds-line);
+}
+
+.ctx {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  dt {
+    font-size: var(--ds-text-xs);
+    font-weight: var(--ds-weight-semibold);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ds-txt-2);
+  }
+
+  dd {
+    margin: 0;
+    font-size: var(--ds-text-md);
+    font-weight: var(--ds-weight-semibold);
+    color: var(--ds-txt-0);
+  }
+}
+
+.ctx-skeleton {
+  width: 40px;
+  height: 14px;
+  margin: 2px 0;
+}
+
+.mono {
+  font-family: var(--ds-font-mono);
+}
+
+// ── Lines ───────────────────────────────────────────────────
+ion-content {
+  --background: var(--ds-bg-0);
+}
+
+.lines {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-3);
+  padding: var(--ds-space-3);
+}
+
+.line-card {
+  padding: var(--ds-space-5);
+  background: var(--ds-bg-1);
+  border: 1px solid var(--ds-line);
+  border-radius: var(--ds-radius-lg);
+  transition: opacity var(--ds-motion-base) var(--ds-ease-out);
+
+  // A line at 0 is skipped: still editable, visibly out of the action.
+  &.is-skipped {
+    opacity: 0.6;
+  }
+}
+
+.line-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--ds-space-3);
+  margin-bottom: var(--ds-space-5);
+}
+
+.line-id {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+
+  .item {
+    font-size: var(--ds-text-lg);
+    font-weight: var(--ds-weight-bold);
+    color: var(--ds-txt-0);
+    overflow-wrap: anywhere;
+  }
+
+  .line-no {
+    font-size: var(--ds-text-sm);
+    color: var(--ds-txt-2);
+  }
+}
+
+.remain {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  flex-shrink: 0;
+
+  .remain-label {
+    font-size: var(--ds-text-sm);
+    color: var(--ds-txt-2);
+  }
+
+  .remain-value {
+    font-size: var(--ds-text-md);
+    font-weight: var(--ds-weight-semibold);
+    color: var(--ds-txt-0);
+  }
+}
+
+.field-label {
+  display: block;
+  margin-bottom: var(--ds-space-1);
+  font-size: var(--ds-text-sm);
+  font-weight: var(--ds-weight-semibold);
+  color: var(--ds-txt-2);
+}
+
+// ── Quantity ────────────────────────────────────────────────
+.qty-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-2);
+}
+
+.stepper {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  height: 48px;
+  background: var(--ds-bg-2);
+  border: 1px solid var(--ds-line);
+  border-radius: var(--ds-radius-md);
+  overflow: hidden;
+
+  &:focus-within {
+    border-color: var(--ds-navy);
+  }
+
+  &.invalid {
+    border-color: var(--ds-danger);
+  }
+}
+
+.step-btn {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 100%;
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: var(--ds-navy);
+  font-size: 20px;
+  cursor: pointer;
+
+  &:active:not(:disabled) {
+    background: var(--ds-navy-soft);
+  }
+
+  &:disabled {
+    color: var(--ds-txt-3);
+  }
+}
+
+.qty-input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  background: none;
+  border: none;
+  outline: none;
+  text-align: center;
+  font-size: var(--ds-text-xl);
+  font-weight: var(--ds-weight-semibold);
+  color: var(--ds-txt-0);
+  -moz-appearance: textfield;
+
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+}
+
+.unit {
+  padding-inline-end: var(--ds-space-1);
+  font-size: var(--ds-text-sm);
+  color: var(--ds-txt-2);
+}
+
+.max-btn {
+  height: 48px;
+  padding: 0 var(--ds-space-5);
+  background: var(--ds-navy-soft);
+  border: none;
+  border-radius: var(--ds-radius-md);
+  color: var(--ds-navy);
+  font: inherit;
+  font-size: var(--ds-text-base);
+  font-weight: var(--ds-weight-semibold);
+  cursor: pointer;
+}
+
+// ── Dimensions ──────────────────────────────────────────────
+.dims {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--ds-space-3);
+  margin-top: var(--ds-space-5);
+  padding-top: var(--ds-space-5);
+  border-top: 1px solid var(--ds-line-soft);
+}
+
+.dim {
+  min-width: 0;
+}
+
+.dim-field {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-2);
+  width: 100%;
+  height: 44px;
+  padding: 0 var(--ds-space-3);
+  background: var(--ds-bg-2);
+  border: 1px solid var(--ds-line);
+  border-radius: var(--ds-radius-md);
+  color: var(--ds-txt-2);
+  font: inherit;
+  font-size: var(--ds-text-base);
+  text-align: start;
+  cursor: pointer;
+
+  &.is-set {
+    background: var(--ds-bg-1);
+    border-color: var(--ds-navy-mid);
+    color: var(--ds-txt-0);
+    font-weight: var(--ds-weight-semibold);
+  }
+
+  &.is-error,
+  &.is-error-required {
+    border-color: var(--ds-danger);
+  }
+
+  &.is-error {
+    color: var(--ds-danger);
+  }
+
+  &:disabled {
+    cursor: default;
+    color: var(--ds-txt-3);
+    background: var(--ds-bg-3);
+  }
+}
+
+.dim-value {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.dim-skeleton {
+  width: 70%;
+  height: 12px;
+  margin: 0;
+}
+
+.dim-icon {
+  flex-shrink: 0;
+  font-size: 16px;
+}
+
+.link-btn {
+  margin-top: var(--ds-space-1);
+  padding: var(--ds-space-1) 0;
+  background: none;
+  border: none;
+  color: var(--ds-navy);
+  font: inherit;
+  font-size: var(--ds-text-sm);
+  font-weight: var(--ds-weight-semibold);
+  cursor: pointer;
+}
+
+// ── Messages ────────────────────────────────────────────────
+.field-error,
+.field-hint {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-1);
+  margin: var(--ds-space-2) 0 0;
+  font-size: var(--ds-text-sm);
+}
+
+.field-error {
+  color: var(--ds-danger);
+}
+
+.field-hint {
+  color: var(--ds-txt-2);
+}
+
+// ── Footer ──────────────────────────────────────────────────
+.footer {
+  padding: var(--ds-space-3) var(--ds-space-5) calc(var(--ds-space-3) + env(safe-area-inset-bottom));
+  background: var(--ds-bg-1);
+  border-top: 1px solid var(--ds-line);
+}
+
+// Navy reads as near-black on the dark palette; lift interactive text to the primary text colour.
+:host-context(body.ion-palette-dark) {
+  .step-btn,
+  .max-btn,
+  .link-btn {
+    color: var(--ds-txt-0);
+  }
+
+  .dim-field.is-set,
+  .stepper:focus-within {
+    border-color: var(--ds-txt-2);
+  }
+}
+
+// One column on narrow phones, so ids aren't cut to a few characters.
+@media (max-width: 359px) {
+  .dims {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
