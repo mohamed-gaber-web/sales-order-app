@@ -6,6 +6,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { TransferLineListPage } from './list/transfer-line-list.page';
 import { TransferLineActionPage } from './action/transfer-line-action.page';
+import { TransferPickDialogModule } from './pick-dialog/transfer-pick-dialog.module';
 
 // One module serves Reservation, Pick and Registration; the parent route's
 // `data.action` decides which one this instance is.
@@ -15,7 +16,7 @@ const routes: Routes = [
 ];
 
 @NgModule({
-  imports: [CommonModule, FormsModule, IonicModule, RouterModule.forChild(routes), TranslatePipe],
+  imports: [CommonModule, FormsModule, IonicModule, RouterModule.forChild(routes), TranslatePipe, TransferPickDialogModule],
   declarations: [TransferLineListPage, TransferLineActionPage],
 })
 export class TransferLineActionModule {}

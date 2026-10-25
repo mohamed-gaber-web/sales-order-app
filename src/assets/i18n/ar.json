@@ -424,7 +424,20 @@
     "max": "الحد الأقصى",
     "listEmpty": "لا توجد أوامر تحويل مفتوحة",
     "qtyInvalid": "أدخل 0 أو أكثر. القيمة 0 تتخطى هذا السطر.",
-    "failed": "فشل {{action}}. حاول مرة أخرى."
+    "failed": "فشل {{action}}. حاول مرة أخرى.",
+    "licensePlate": "لوحة الترخيص",
+    "noLicensePlate": "بدون",
+    "licensePlatesError": "تعذر تحميل لوحات الترخيص.",
+    "location": "الموقع",
+    "noLocation": "بدون",
+    "locationsError": "تعذر تحميل المواقع.",
+    "batch": "الدفعة",
+    "noBatch": "بدون",
+    "batchesError": "تعذر تحميل الدفعات.",
+    "serial": "الرقم التسلسلي",
+    "noSerial": "بدون",
+    "serialsError": "تعذر تحميل الأرقام التسلسلية.",
+    "serialInvalid": "الرقم التسلسلي وحدة واحدة: اجعل الكمية 1 واستخدمه في سطر واحد فقط."
   },
   "salesLine": {
     "salesOrder": "أمر بيع",

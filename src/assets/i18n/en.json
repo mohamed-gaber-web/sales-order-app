@@ -424,7 +424,20 @@
     "max": "Max",
     "listEmpty": "No open transfer orders",
     "qtyInvalid": "Enter 0 or more. 0 skips this line.",
-    "failed": "{{action}} failed. Try again."
+    "failed": "{{action}} failed. Try again.",
+    "licensePlate": "License plate",
+    "noLicensePlate": "None",
+    "licensePlatesError": "Couldn't load license plates.",
+    "location": "Location",
+    "noLocation": "None",
+    "locationsError": "Couldn't load locations.",
+    "batch": "Batch",
+    "noBatch": "None",
+    "batchesError": "Couldn't load batches.",
+    "serial": "Serial number",
+    "noSerial": "None",
+    "serialsError": "Couldn't load serial numbers.",
+    "serialInvalid": "A serial number is one unit: set quantity 1 and use it on one line only."
   },
   "salesLine": {
     "salesOrder": "Sales Order",

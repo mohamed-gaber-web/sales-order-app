@@ -1,6 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { LoadingController, ToastController } from '@ionic/angular';
+import { LoadingController, ModalController, ToastController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 import { from, of } from 'rxjs';
 import { catchError, concatMap, map, toArray } from 'rxjs/operators';
@@ -9,6 +9,11 @@ import { TenantConfigStore } from '../../../../core/tenant/tenant-config.store';
 import { TransferOrderHeader, TransferOrderLine } from '../../../../models/transfer-order.model';
 import { TransferLineAction } from '../../../../models/inventory.model';
 import { TRANSFER_LINE_ACTIONS, TransferLineActionConfig, remainingQty } from '../transfer-line-action.config';
+import {
+  TransferPickDialogComponent,
+  TransferPickLine,
+  TransferPickResult,
+} from '../pick-dialog/transfer-pick-dialog.component';
 
 interface LineEntry {
   line: TransferOrderLine;
@@ -39,6 +44,7 @@ export class TransferLineActionPage implements OnInit {
   private route = inject(ActivatedRoute);
   private loadingCtrl = inject(LoadingController);
   private toastCtrl = inject(ToastController);
+  private modalCtrl = inject(ModalController);
   private translate = inject(TranslateService);
   private transferShipmentService = inject(TransferShipmentService);
 
@@ -108,11 +114,38 @@ export class TransferLineActionPage implements OnInit {
     );
   }
 
-  // D365 takes one line per call: send them in order, and keep going past a
-  // failed line so the operator sees every line that needs attention at once.
   async submit() {
     if (!this.isFormValid || this.isSubmitting) return;
+    // Claimed before any await, so a double tap can't open two dialogs or send twice.
+    this.isSubmitting = true;
 
+    const picks: TransferPickResult[] = this.lineEntries
+      .filter(e => qtyOf(e) > 0)
+      .map(e => ({ lineNum: e.line.LineNumber, qty: qtyOf(e), inventSiteId: '', inventLocationId: '', wmsLocationId: '', inventBatchId: '', inventSerialId: '', licensePlateId: '' }));
+
+    if (this.config.action !== 'pick') {
+      this.runLines(picks);
+      return;
+    }
+
+    // Pick also has to say which license plate the stock comes from.
+    const lines: TransferPickLine[] = this.lineEntries
+      .filter(e => qtyOf(e) > 0)
+      .map(e => ({ lineNum: e.line.LineNumber, itemNumber: e.line.ItemNumber, unitId: e.line.UnitId, qty: qtyOf(e) }));
+    const modal = await this.modalCtrl.create({
+      component: TransferPickDialogComponent,
+      componentProps: { lines, warehouseId: this.header?.ShippingWarehouseId },
+    });
+    await modal.present();
+    const { data, role } = await modal.onWillDismiss<TransferPickResult[]>();
+    if (role === 'confirm' && data?.length) this.runLines(data);
+    else this.isSubmitting = false;
+  }
+
+  // D365 takes one line per call: send them in order, and keep going past a
+  // failed line so the operator sees every line that needs attention at once.
+  // The caller has already set isSubmitting.
+  private async runLines(picks: TransferPickResult[]) {
     const action = this.config.action;
     const loading = await this.loadingCtrl.create({
       message: this.translate.instant(`transferLine.${action}.running`),
@@ -121,31 +154,31 @@ export class TransferLineActionPage implements OnInit {
     await loading.present();
     this.isSubmitting = true;
 
-    from(this.lineEntries.filter(e => qtyOf(e) > 0)).pipe(
-      concatMap(entry =>
+    from(picks).pipe(
+      concatMap(pick =>
         this.transferShipmentService.transferLineAction(action, {
           _request: {
             DataAreaId: this.dataAreaId.toUpperCase(),
             OrderId: this.toNumber,
-            LineNum: entry.line.LineNumber,
-            Qty: qtyOf(entry),
-            InventSiteId: '',
-            InventLocationId: '',
-            WMSLocationId: '',
-            InventBatchId: '',
-            InventSerialId: '',
-            LicensePlateId: '',
+            LineNum: pick.lineNum,
+            Qty: pick.qty,
+            InventSiteId: pick.inventSiteId,
+            InventLocationId: pick.inventLocationId,
+            WMSLocationId: pick.wmsLocationId,
+            InventBatchId: pick.inventBatchId,
+            InventSerialId: pick.inventSerialId,
+            LicensePlateId: pick.licensePlateId,
           },
         }).pipe(
           map((res): LineResult => ({
-            lineNum: entry.line.LineNumber,
+            lineNum: pick.lineNum,
             ok: res.Success,
             message: res.ErrorMessage || res.DebugMessage,
           })),
           catchError((err: unknown) => {
             const e = err as { error?: { Message?: string; message?: string }; message?: string };
             return of<LineResult>({
-              lineNum: entry.line.LineNumber,
+              lineNum: pick.lineNum,
               ok: false,
               message: e?.error?.Message ?? e?.error?.message ?? e?.message,
             });

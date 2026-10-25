@@ -9,6 +9,10 @@ import {
   TransferActionResponse,
   TransferLineAction,
   TransferLineActionRequest,
+  D365LicensePlate,
+  D365WmsLocation,
+  D365ItemBatch,
+  D365ItemSerialNumber,
 } from '../../models/inventory.model';
 
 export const TS_PAGE_SIZE = 10;
@@ -88,6 +92,54 @@ export class TransferShipmentService {
       `${TRANSFER_SERVICE_PATH}/receiveTransferOrder`,
       payload
     );
+  }
+
+  // License plates the picker can choose from; its LicensePlateNumber is what
+  // transferLinePick takes as LicensePlateId.
+  getLicensePlates(): Observable<D365LicensePlate[]> {
+    return this.api.get<ODataResponse<D365LicensePlate>>(
+      '/data/LicensePlates',
+      { '$select': 'LicensePlateNumber', '$orderby': 'LicensePlateNumber' }
+    ).pipe(map(res => res.value));
+  }
+
+  // A transfer order carries no site; its shipping warehouse's operational site
+  // is what transferLinePick takes as InventSiteId. '' when the warehouse isn't found.
+  getWarehouseSiteId(warehouseId: string): Observable<string> {
+    return this.api.get<ODataResponse<{ WarehouseId: string; OperationalSiteId?: string }>>('/data/Warehouses', {
+      '$select': 'WarehouseId,OperationalSiteId',
+      '$filter': `WarehouseId eq '${warehouseId.replace(/'/g, "''")}'`,
+    }).pipe(map(res => res.value[0]?.OperationalSiteId ?? ''));
+  }
+
+  // Warehouse locations the picker can choose from; its wMSLocationId is what
+  // transferLinePick takes as WMSLocationId. Narrowed to one warehouse when given.
+  getWmsLocations(warehouseId?: string): Observable<D365WmsLocation[]> {
+    const params: Record<string, string> = {
+      '$select': 'inventLocationId,wMSLocationId',
+      '$orderby': 'wMSLocationId',
+    };
+    if (warehouseId) params['$filter'] = `inventLocationId eq '${warehouseId.replace(/'/g, "''")}'`;
+    return this.api.get<ODataResponse<D365WmsLocation>>('/data/WMSLocationBiEntities', params)
+      .pipe(map(res => res.value));
+  }
+
+  // One item's batches; its BatchNumber is what transferLinePick takes as InventBatchId.
+  getItemBatches(itemNumber: string): Observable<D365ItemBatch[]> {
+    return this.api.get<ODataResponse<D365ItemBatch>>('/data/ItemBatches', {
+      '$select': 'ItemNumber,BatchNumber',
+      '$filter': `ItemNumber eq '${itemNumber.replace(/'/g, "''")}'`,
+      '$orderby': 'BatchNumber',
+    }).pipe(map(res => res.value));
+  }
+
+  // One item's serial numbers; its SerialNumber is what transferLinePick takes as InventSerialId.
+  getItemSerialNumbers(itemNumber: string): Observable<D365ItemSerialNumber[]> {
+    return this.api.get<ODataResponse<D365ItemSerialNumber>>('/data/ItemSerialNumbers', {
+      '$select': 'ItemNumber,SerialNumber',
+      '$filter': `ItemNumber eq '${itemNumber.replace(/'/g, "''")}'`,
+      '$orderby': 'SerialNumber',
+    }).pipe(map(res => res.value));
   }
 
   // Reservation, pick and registration all take one line per call.

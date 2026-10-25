@@ -180,6 +180,29 @@ export interface TransferLineActionRequest {
 
 export type TransferLineAction = 'reserve' | 'pick' | 'register';
 
+// A row of the D365 LicensePlates entity, as far as the pick dialog reads it.
+export interface D365LicensePlate {
+  LicensePlateNumber: string;
+}
+
+// A row of the D365 ItemBatches entity, as far as the pick dialog reads it.
+export interface D365ItemBatch {
+  ItemNumber: string;
+  BatchNumber: string;
+}
+
+// A row of the D365 ItemSerialNumbers entity, as far as the pick dialog reads it.
+export interface D365ItemSerialNumber {
+  ItemNumber: string;
+  SerialNumber: string;
+}
+
+// A row of the D365 WMSLocationBiEntities entity, as far as the pick dialog reads it.
+export interface D365WmsLocation {
+  inventLocationId: string;
+  wMSLocationId: string;
+}
+
 // ── Cycle Count (US-04) ──────────────────────────────────────────────────────
 
 export interface CycleCountEntry {

@@ -1,12 +1,16 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { AlertController, LoadingController, ToastController } from '@ionic/angular';
+import { AlertController, LoadingController, ModalController, ToastController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 import { TransferOrderService } from '../../../core/services/transfer-order.service';
 import { TransferShipmentService } from '../../../core/services/transfer-shipment.service';
 import { TransferLineAction } from '../../../models/inventory.model';
 import { TRANSFER_LINE_ACTIONS, remainingQty } from '../../inventory/transfer-line-action/transfer-line-action.config';
 import { TransferOrderHeader, TransferOrderLine } from '../../../models/transfer-order.model';
+import {
+  TransferPickDialogComponent,
+  TransferPickResult,
+} from '../../inventory/transfer-line-action/pick-dialog/transfer-pick-dialog.component';
 
 @Component({
   selector: 'app-transfer-order-detail',
@@ -20,6 +24,8 @@ export class TransferOrderDetailPage implements OnInit {
   lines: TransferOrderLine[] = [];
   isLoading = false;
   searchTerm = '';
+  /** A line action's prompt is open; a second tap must not open another. */
+  isPromptOpen = false;
 
   readonly lineActions = Object.values(TRANSFER_LINE_ACTIONS);
 
@@ -43,6 +49,7 @@ export class TransferOrderDetailPage implements OnInit {
     private toastCtrl: ToastController,
     private alertCtrl: AlertController,
     private loadingCtrl: LoadingController,
+    private modalCtrl: ModalController,
     private toService: TransferOrderService,
     private transferShipmentService: TransferShipmentService,
     private translate: TranslateService
@@ -137,8 +144,36 @@ export class TransferOrderDetailPage implements OnInit {
   }
 
   async runLineAction(line: TransferOrderLine, action: TransferLineAction) {
+    if (this.isPromptOpen) return;
+    this.isPromptOpen = true;
+    try {
+      await this.promptLineAction(line, action);
+    } finally {
+      this.isPromptOpen = false;
+    }
+  }
+
+  private async promptLineAction(line: TransferOrderLine, action: TransferLineAction) {
     const label = this.translate.instant(`transferLine.${action}.label`);
     const remaining = remainingQty(line, TRANSFER_LINE_ACTIONS[action].side);
+    const startQty = remaining > 0 ? remaining : this.safeNum(line.TransferQuantity);
+
+    // Pick also has to say which license plate the stock comes from.
+    if (action === 'pick') {
+      const modal = await this.modalCtrl.create({
+        component: TransferPickDialogComponent,
+        componentProps: {
+          lines: [{ lineNum: line.LineNumber, itemNumber: line.ItemNumber, unitId: line.UnitId, qty: startQty }],
+          warehouseId: this.order?.ShippingWarehouseId,
+        },
+      });
+      await modal.present();
+      const { data, role } = await modal.onWillDismiss<TransferPickResult[]>();
+      const pick = data?.[0];
+      if (role === 'confirm' && pick) this.executeLineAction(line, action, pick.qty, label, pick);
+      return;
+    }
+
     const alert = await this.alertCtrl.create({
       header: label,
       subHeader: `${line.ItemNumber} — ${this.translate.instant('transferLine.line')} ${line.LineNumber}`,
@@ -147,7 +182,7 @@ export class TransferOrderDetailPage implements OnInit {
           name: 'qty',
           type: 'number',
           placeholder: this.translate.instant('transferLine.quantity'),
-          value: remaining > 0 ? remaining : this.safeNum(line.TransferQuantity),
+          value: startQty,
           min: 0.001,
         }
       ],
@@ -165,9 +200,16 @@ export class TransferOrderDetailPage implements OnInit {
       ]
     });
     await alert.present();
+    await alert.onWillDismiss();
   }
 
-  private async executeLineAction(line: TransferOrderLine, action: TransferLineAction, qty: number, label: string) {
+  private async executeLineAction(
+    line: TransferOrderLine,
+    action: TransferLineAction,
+    qty: number,
+    label: string,
+    dims?: Pick<TransferPickResult, 'inventSiteId' | 'inventLocationId' | 'wmsLocationId' | 'inventBatchId' | 'inventSerialId' | 'licensePlateId'>,
+  ) {
     const loading = await this.loadingCtrl.create({
       message: this.translate.instant(`transferLine.${action}.running`),
       spinner: 'crescent',
@@ -180,12 +222,12 @@ export class TransferOrderDetailPage implements OnInit {
         OrderId: this.transferOrderNumber,
         LineNum: line.LineNumber,
         Qty: qty,
-        InventSiteId: '',
-        InventLocationId: '',
-        WMSLocationId: '',
-        InventBatchId: '',
-        InventSerialId: '',
-        LicensePlateId: '',
+        InventSiteId: dims?.inventSiteId ?? '',
+        InventLocationId: dims?.inventLocationId ?? '',
+        WMSLocationId: dims?.wmsLocationId ?? '',
+        InventBatchId: dims?.inventBatchId ?? '',
+        InventSerialId: dims?.inventSerialId ?? '',
+        LicensePlateId: dims?.licensePlateId ?? '',
       }
     }).subscribe({
       next: async (res) => {
