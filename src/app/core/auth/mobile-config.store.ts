@@ -9,6 +9,13 @@ import {
 } from './mobile-config.models';
 
 const CONFIG_KEY = 'gp_mobile_config';
+const LOGO_KEY = 'gp_tenant_logo';
+
+/** A tenant's logo, remembered with the tenant it belongs to. */
+interface TenantLogo {
+  slug: string;
+  dataUrl: string | null;
+}
 
 /**
  * The runtime configuration in force, as signals the whole app reads.
@@ -48,14 +55,28 @@ export class MobileConfigStore {
   /** The workspace name, known before sign-in. Empty until a config is in force. */
   readonly tenantName = computed(() => this.configState()?.tenantName ?? '');
 
+  private readonly logoState = signal<TenantLogo | null>(restoreLogo());
+
   /**
-   * The tenant's logo, set by its administrator in the portal. Null when there
-   * is none, and the app then shows the Grow Path mark alone at full width.
+   * The logo of the tenant `slug`, set by its administrator in the portal.
+   * Null when there is none, or when the logo held is another tenant's — the
+   * app then shows the Grow Path mark alone at full width.
+   *
+   * Keyed by the *signed-in* tenant, not by the bundled configuration: one
+   * build serves many workspaces, and the build's own slug says nothing about
+   * whose people are using it.
    */
-  readonly tenantLogo = computed(() => {
-    const logo = this.configState()?.logoDataUrl;
-    return isSafeLogoDataUrl(logo) ? logo : null;
-  });
+  logoFor(slug: string | null | undefined): string | null {
+    const logo = this.logoState();
+    return slug && logo?.slug === slug ? logo.dataUrl : null;
+  }
+
+  /** Remembers a tenant's logo. Persisted, so it is there on an offline launch. */
+  setLogo(slug: string, dataUrl: string | null): void {
+    const logo: TenantLogo = { slug, dataUrl: isSafeLogoDataUrl(dataUrl) ? dataUrl : null };
+    this.logoState.set(logo);
+    write(LOGO_KEY, JSON.stringify(logo));
+  }
 
   readonly tenantSlug = computed(
     () => this.configState()?.tenantSlug ?? environment.tenantSlug
@@ -101,6 +122,20 @@ function restore(): MobileConfig | null {
     if (!raw) return null;
     const parsed: unknown = JSON.parse(raw);
     return isMobileConfig(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function restoreLogo(): TenantLogo | null {
+  try {
+    const raw = localStorage.getItem(LOGO_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<TenantLogo>;
+    // Re-checked: the cached copy is user-writable.
+    return typeof parsed.slug === 'string'
+      ? { slug: parsed.slug, dataUrl: isSafeLogoDataUrl(parsed.dataUrl) ? parsed.dataUrl : null }
+      : null;
   } catch {
     return null;
   }

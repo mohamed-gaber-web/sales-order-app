@@ -203,23 +203,47 @@ describe('mobile config bootstrap', () => {
   });
 
   describe('tenant logo', () => {
+    const LOGO = 'data:image/png;base64,iVBORw0KGgo=';
+
+    beforeEach(() => localStorage.removeItem('gp_tenant_logo'));
+
     it('is null without one, so Grow Path keeps the full width', () => {
       const { store } = setup(false);
+      store.setLogo('circle-k', null);
+      expect(store.logoFor('circle-k')).toBeNull();
+    });
+
+    it('shows the signed-in tenant its own logo, and no other tenant', () => {
+      const { store } = setup(false);
+      store.setLogo('circle-k', LOGO);
+      expect(store.logoFor('circle-k')).toBe(LOGO);
+      expect(store.logoFor('test2')).toBeNull();
+      expect(store.logoFor(null)).toBeNull();
+    });
+
+    it('drops a tampered logo', () => {
+      const { store } = setup(false);
+      store.setLogo('circle-k', 'javascript:alert(1)');
+      expect(store.logoFor('circle-k')).toBeNull();
+    });
+
+    it('fetches the signed-in tenant logo without adopting its API address', async () => {
+      const { store, service } = setup(false);
+      const httpMock = TestBed.inject(HttpTestingController);
       store.set(config());
-      expect(store.tenantLogo()).toBeNull();
-    });
 
-    it('carries the logo the portal set', () => {
-      const { store } = setup(false);
-      const logo = 'data:image/png;base64,iVBORw0KGgo=';
-      store.set(config({ logoDataUrl: logo }));
-      expect(store.tenantLogo()).toBe(logo);
-    });
+      const pending = service.refreshTenantLogo('circle-k');
+      const req = httpMock.expectOne(r => r.params.get('slug') === 'circle-k');
+      req.flush(
+        config({
+          tenantSlug: 'circle-k',
+          apiBaseUrl: 'https://elsewhere.example.com',
+          logoDataUrl: LOGO,
+        }),
+      );
+      await pending;
 
-    it('drops a tampered logo but keeps the rest of the configuration', () => {
-      const { store } = setup(false);
-      store.set(config({ logoDataUrl: 'javascript:alert(1)' }));
-      expect(store.tenantLogo()).toBeNull();
+      expect(store.logoFor('circle-k')).toBe(LOGO);
       expect(store.apiBaseUrl()).toBe('https://acme-api.example.com');
     });
   });

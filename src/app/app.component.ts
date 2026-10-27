@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, computed, effect, inject, signal } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { ToastController } from '@ionic/angular';
 import { filter, takeUntil } from 'rxjs/operators';
@@ -6,6 +6,7 @@ import { Subject } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
 import {
   LanguageService,
+  MobileConfigService,
   MobileConfigStore,
   PortalSessionStore,
   SETUP_REQUIRED_ROUTE,
@@ -31,6 +32,7 @@ export class AppComponent implements OnInit, OnDestroy {
   private readonly userAuth = inject(UserAuthService);
   private readonly session = inject(PortalSessionStore);
   private readonly mobileConfig = inject(MobileConfigStore);
+  private readonly mobileConfigService = inject(MobileConfigService);
 
   private destroy$ = new Subject<void>();
   currentUrl = '';
@@ -99,13 +101,19 @@ export class AppComponent implements OnInit, OnDestroy {
   readonly workspaceName = this.session.workspaceName;
 
   /**
-   * The tenant's own logo, uploaded in the admin portal. When there is one it
-   * sits beside a smaller Grow Path mark; when there is not, Grow Path keeps the
-   * full width it always had. Comes from the cached bootstrap configuration, so
-   * it is there on an offline launch and on the splash screen.
+   * The signed-in tenant's logo, uploaded in the admin portal. When there is one
+   * it sits beside a smaller Grow Path mark; when there is not, Grow Path keeps
+   * the full width it always had. Cached on the device, so it is there on an
+   * offline launch and on the splash screen.
    */
-  readonly tenantLogo = this.mobileConfig.tenantLogo;
-  readonly tenantName = this.mobileConfig.tenantName;
+  readonly tenantLogo = computed(() => this.mobileConfig.logoFor(this.session.tenant()?.slug));
+  readonly tenantName = this.workspaceName;
+
+  /** Re-fetches the logo whenever the signed-in tenant changes — sign-in or restore. */
+  private readonly logoRefresh = effect(() => {
+    const slug = this.session.tenant()?.slug;
+    if (slug) void this.mobileConfigService.refreshTenantLogo(slug);
+  });
 
   isAuthPage(): boolean { return this.currentUrl.startsWith('/auth'); }
 

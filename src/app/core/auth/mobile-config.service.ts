@@ -83,6 +83,21 @@ export class MobileConfigService {
   }
 
   /**
+   * Fetches the signed-in tenant's logo and remembers it.
+   *
+   * Only the logo is taken from the response. The rest of that tenant's
+   * configuration — its API address above all — is not adopted here: where
+   * this build sends its requests is decided by `bootstrap()`, and a sign-in
+   * must not be able to redirect it. A failure keeps the logo already cached.
+   */
+  async refreshTenantLogo(slug: string): Promise<void> {
+    const response = await this.request(slug);
+    if (response && typeof response === 'object') {
+      this.store.setLogo(slug, (response as Partial<MobileConfig>).logoDataUrl ?? null);
+    }
+  }
+
+  /**
    * One bootstrap request. Resolves to null on any failure.
    *
    * A 404 means an unknown, archived or suspended tenant — all answered
@@ -90,6 +105,17 @@ export class MobileConfigService {
    * app keeps whatever configuration it already had.
    */
   private async fetch(slug: string): Promise<MobileConfig | null> {
+    const response = await this.request(slug);
+    if (response === null) return null;
+    if (!isMobileConfig(response)) {
+      console.warn('Mobile config did not match its contract; keeping the current one.');
+      return null;
+    }
+    return response;
+  }
+
+  /** The raw bootstrap response for `slug`, or null on any failure. */
+  private async request(slug: string): Promise<unknown> {
     // The bundled base on native; the proxy prefix on web, where the dev server
     // and Vercel both forward it and no CORS preflight happens.
     const url = this.isNative
@@ -97,17 +123,11 @@ export class MobileConfigService {
       : `${PORTAL_WEB_PREFIX}${MOBILE_CONFIG_PATH}`;
 
     try {
-      const response = await firstValueFrom(
+      return await firstValueFrom(
         this.http
           .get<unknown>(url, { params: new HttpParams().set('slug', slug) })
           .pipe(timeout(BOOTSTRAP_TIMEOUT_MS))
       );
-
-      if (!isMobileConfig(response)) {
-        console.warn('Mobile config did not match its contract; keeping the current one.');
-        return null;
-      }
-      return response;
     } catch {
       return null;
     }
