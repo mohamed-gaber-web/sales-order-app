@@ -54,7 +54,7 @@ export class TransferLineActionPage implements OnInit {
 
   toNumber = '';
   // The tenant's company; the loaded header's own dataAreaId replaces it.
-  dataAreaId = inject(TenantConfigStore).dataAreaId() ?? 'usmf';
+  dataAreaId = inject(TenantConfigStore).currentDataAreaId();
   header: TransferOrderHeader | null = null;
   lineEntries: LineEntry[] = [];
 

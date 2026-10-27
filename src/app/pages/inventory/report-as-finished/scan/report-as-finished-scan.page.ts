@@ -6,6 +6,7 @@ import { ProductionOrder, ReportAsFinishedLineResult } from '../../../../models/
 import { FinishedGoodsLabelData } from '../../../../core/services/pdf.service';
 import { ScannerModalComponent } from '../../scanner/scanner-modal.component';
 import { FinishedGoodsLabelModalComponent } from '../label-preview/finished-goods-label-modal.component';
+import { TenantConfigStore } from '../../../../core/tenant/tenant-config.store';
 
 interface ReportCartItem {
   order: ProductionOrder;
@@ -28,6 +29,8 @@ interface ConfirmedItem {
   standalone: false,
 })
 export class ReportAsFinishedScanPage {
+  private readonly tenantConfig = inject(TenantConfigStore);
+
   searchTerm = '';
   showDropdown = false;
   isSearching = false;
@@ -245,7 +248,7 @@ export class ReportAsFinishedScanPage {
 
     this.rafService.reportAsFinished({
       lines: items.map(i => ({
-        dataAreaId: i.order.dataAreaId ?? 'usmf',
+        dataAreaId: i.order.dataAreaId ?? this.tenantConfig.currentDataAreaId(),
         productionOrderNumber: i.order.ProductionOrderNumber,
         itemNumber: i.order.ItemNumber,
         reportedQty: i.qty,

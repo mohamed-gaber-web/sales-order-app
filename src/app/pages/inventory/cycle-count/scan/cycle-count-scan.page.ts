@@ -13,6 +13,7 @@ import {
 } from '../../../../models/inventory.model';
 import { ScannerModalComponent } from '../../scanner/scanner-modal.component';
 import { CycleCountLabelModalComponent } from '../label-preview/cycle-count-label-modal.component';
+import { TenantConfigStore } from '../../../../core/tenant/tenant-config.store';
 
 interface CountHeaderState {
   siteId: string;
@@ -34,7 +35,11 @@ interface ConfirmedItem {
   standalone: false,
 })
 export class CycleCountScanPage implements OnInit {
-  private readonly dataAreaId = 'usmf';
+  private readonly tenantConfig = inject(TenantConfigStore);
+
+  private get dataAreaId(): string {
+    return this.tenantConfig.currentDataAreaId();
+  }
 
   header: CountHeaderState = { siteId: '', warehouseId: '', description: '', countedBy: '' };
 

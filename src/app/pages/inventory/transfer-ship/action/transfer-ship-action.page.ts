@@ -1,8 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LoadingController, ToastController } from '@ionic/angular';
 import { TransferShipmentService } from '../../../../core/services/transfer-shipment.service';
 import { TransferOrderHeader, TransferOrderLine } from '../../../../models/transfer-order.model';
+import { TenantConfigStore } from '../../../../core/tenant/tenant-config.store';
 
 interface ShipLineEntry {
   line: TransferOrderLine;
@@ -17,8 +18,10 @@ interface ShipLineEntry {
   standalone: false,
 })
 export class TransferShipActionPage implements OnInit {
+  private readonly tenantConfig = inject(TenantConfigStore);
+
   toNumber = '';
-  dataAreaId = 'usmf';
+  dataAreaId = this.tenantConfig.currentDataAreaId();
   header: TransferOrderHeader | null = null;
   lineEntries: ShipLineEntry[] = [];
 

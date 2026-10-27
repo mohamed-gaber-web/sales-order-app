@@ -1,9 +1,10 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, ViewChild, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { IonInfiniteScroll, ToastController } from '@ionic/angular';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { ProductionIssueService } from '../../../../core/services/production-issue.service';
+import { TenantConfigStore } from '../../../../core/tenant/tenant-config.store';
 
 export interface ProductionOrder {
   ProductionOrderNumber: string;
@@ -22,6 +23,11 @@ export interface ProductionOrder {
   standalone: false,
 })
 export class ProductionIssueListPage {
+  private readonly tenantConfig = inject(TenantConfigStore);
+  get company(): string {
+    return this.tenantConfig.currentDataAreaId();
+  }
+
   @ViewChild(IonInfiniteScroll) infiniteScroll!: IonInfiniteScroll;
 
   orders: ProductionOrder[] = [];
@@ -136,7 +142,7 @@ export class ProductionIssueListPage {
           itemName: order.ItemName,
           orderedQuantity: order.OrderedQuantity,
           warehouseId: order.WarehouseId,
-          dataAreaId: order.dataAreaId ?? 'usmf',
+          dataAreaId: order.dataAreaId ?? this.tenantConfig.currentDataAreaId(),
           status: order.ProductionOrderStatus,
         }
       }

@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { ModalController, ToastController } from '@ionic/angular';
 import { ProjectItemJournalService, PIJJournalTable } from '../../../../core/services/project-item-journal.service';
+import { TenantConfigStore } from '../../../../core/tenant/tenant-config.store';
 
 @Component({
   selector: 'app-new-journal-modal',
@@ -9,6 +10,11 @@ import { ProjectItemJournalService, PIJJournalTable } from '../../../../core/ser
   standalone: false,
 })
 export class NewJournalModalComponent {
+  private readonly tenantConfig = inject(TenantConfigStore);
+  get company(): string {
+    return this.tenantConfig.currentDataAreaId();
+  }
+
   journalId: string;
   description = 'Project item journal — created via mobile';
   isCreating = false;
@@ -36,7 +42,7 @@ export class NewJournalModalComponent {
     this.isCreating = true;
     this.retried = false;
     const body: Partial<PIJJournalTable> = {
-      dataAreaId: 'usmf',
+      dataAreaId: this.tenantConfig.currentDataAreaId(),
       JournalId: this.journalId,
       JournalName: 'ProjItem',
       PostingDetailLevel: 'Detail',

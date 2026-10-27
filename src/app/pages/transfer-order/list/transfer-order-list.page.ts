@@ -1,10 +1,11 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, ViewChild, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { IonInfiniteScroll, ToastController } from '@ionic/angular';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { TransferOrderService } from '../../../core/services/transfer-order.service';
 import { TransferOrderHeader } from '../../../models/transfer-order.model';
+import { TenantConfigStore } from '../../../core/tenant/tenant-config.store';
 
 @Component({
   selector: 'app-transfer-order-list',
@@ -13,6 +14,11 @@ import { TransferOrderHeader } from '../../../models/transfer-order.model';
   standalone: false
 })
 export class TransferOrderListPage {
+  private readonly tenantConfig = inject(TenantConfigStore);
+  get company(): string {
+    return this.tenantConfig.currentDataAreaId();
+  }
+
   @ViewChild(IonInfiniteScroll) infiniteScroll!: IonInfiniteScroll;
 
   orders: TransferOrderHeader[] = [];
@@ -23,7 +29,6 @@ export class TransferOrderListPage {
   isLoadingMore = false;
   isSearching = false;
   totalCount = 0;
-  company = 'usmf';
   private allDataLoaded = false;
 
   private searchSubject = new Subject<string>();

@@ -5,6 +5,7 @@ import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { ProjectItemRequirementsService, PIRProject } from '../../../../core/services/project-item-requirements.service';
 import { FormatService } from '../../../../core';
+import { TenantConfigStore } from '../../../../core/tenant/tenant-config.store';
 
 type FilterId = 'all' | 'inProcess' | 'completed' | 'recent';
 
@@ -15,6 +16,11 @@ type FilterId = 'all' | 'inProcess' | 'completed' | 'recent';
   standalone: false,
 })
 export class ProjectItemRequirementsListPage {
+  private readonly tenantConfig = inject(TenantConfigStore);
+  get company(): string {
+    return this.tenantConfig.currentDataAreaId();
+  }
+
   private readonly format = inject(FormatService);
   @ViewChild(IonInfiniteScroll) infiniteScroll!: IonInfiniteScroll;
 

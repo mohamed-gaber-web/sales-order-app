@@ -1,8 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LoadingController, ToastController } from '@ionic/angular';
 import { ProductionIssueService } from '../../../../core/services/production-issue.service';
+import { TenantConfigStore } from '../../../../core/tenant/tenant-config.store';
 
 @Component({
   selector: 'app-production-issue-form',
@@ -11,11 +12,13 @@ import { ProductionIssueService } from '../../../../core/services/production-iss
   standalone: false,
 })
 export class ProductionIssueFormPage implements OnInit {
+  private readonly tenantConfig = inject(TenantConfigStore);
+
   orderNumber = '';
   itemName?: string;
   orderedQuantity?: number;
   status?: string;
-  dataAreaId = 'usmf';
+  dataAreaId = this.tenantConfig.currentDataAreaId();
 
   form!: FormGroup;
   isSubmitting = false;
@@ -38,7 +41,7 @@ export class ProductionIssueFormPage implements OnInit {
     const itemNumber = state?.['itemNumber'] ?? '';
     this.itemName = state?.['itemName'];
     this.orderedQuantity = state?.['orderedQuantity'];
-    this.dataAreaId = state?.['dataAreaId'] ?? 'usmf';
+    this.dataAreaId = state?.['dataAreaId'] ?? this.tenantConfig.currentDataAreaId();
     this.status = state?.['status'];
     const warehouseId = state?.['warehouseId'] ?? '';
 

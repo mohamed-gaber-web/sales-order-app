@@ -1,8 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LoadingController, ToastController } from '@ionic/angular';
 import { ProjectIssuanceService } from '../../../../core/services/project-issuance.service';
+import { TenantConfigStore } from '../../../../core/tenant/tenant-config.store';
 
 @Component({
   selector: 'app-project-issuance-line-detail',
@@ -11,10 +12,12 @@ import { ProjectIssuanceService } from '../../../../core/services/project-issuan
   standalone: false,
 })
 export class ProjectIssuanceLineDetailPage implements OnInit {
+  private readonly tenantConfig = inject(TenantConfigStore);
+
   projectId = '';
   lineNumber = 0;
   projectName = '';
-  dataAreaId = 'usmf';
+  dataAreaId = this.tenantConfig.currentDataAreaId();
 
   itemNumber = '';
   productName = '';
@@ -46,7 +49,7 @@ export class ProjectIssuanceLineDetailPage implements OnInit {
     const nav = this.router.getCurrentNavigation();
     const state = nav?.extras?.state ?? history.state;
     this.projectName        = state?.['projectName']        ?? '';
-    this.dataAreaId         = state?.['dataAreaId']         ?? 'usmf';
+    this.dataAreaId         = state?.['dataAreaId']         ?? this.tenantConfig.currentDataAreaId();
     this.itemNumber         = state?.['itemNumber']         ?? '';
     this.productName        = state?.['productName']        ?? '';
     this.salesCategory      = state?.['salesCategory']      ?? '';

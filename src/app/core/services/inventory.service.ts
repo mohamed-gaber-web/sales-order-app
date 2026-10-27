@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map, shareReplay } from 'rxjs/operators';
 import { ApiService } from './api.service';
@@ -9,6 +9,7 @@ import {
   InventoryProduct,
   WarehouseLocation,
 } from '../../models/inventory.model';
+import { TenantConfigStore } from '../tenant/tenant-config.store';
 
 export const INV_PAGE_SIZE = 20;
 
@@ -16,6 +17,8 @@ const PRODUCT_SELECT = 'ProductNumber,ProductName,ProductSearchName,ProductType'
 
 @Injectable({ providedIn: 'root' })
 export class InventoryService {
+  private tenant = inject(TenantConfigStore);
+
   constructor(private api: ApiService) {}
 
   // ── Warehouses ─────────────────────────────────────────────────────────────
@@ -193,7 +196,7 @@ export class InventoryService {
   blockLocation(
     warehouseId: string,
     locationId: string,
-    dataAreaId = 'usmf'
+    dataAreaId = this.tenant.currentDataAreaId()
   ): Observable<unknown> {
     return this.api.patch(
       `/data/WMSLocations(dataAreaId='${dataAreaId}',WarehouseId='${warehouseId}',LocationId='${locationId}')`,
@@ -204,7 +207,7 @@ export class InventoryService {
   unblockLocation(
     warehouseId: string,
     locationId: string,
-    dataAreaId = 'usmf'
+    dataAreaId = this.tenant.currentDataAreaId()
   ): Observable<unknown> {
     return this.api.patch(
       `/data/WMSLocations(dataAreaId='${dataAreaId}',WarehouseId='${warehouseId}',LocationId='${locationId}')`,

@@ -11,9 +11,7 @@ import {
   TransferJournalRequest,
   TransferJournalResult,
 } from '../../models/transfer-journal.model';
-
-/** Company every transfer journal is created in. Single place to change for another legal entity. */
-export const TRANSFER_JOURNAL_DATA_AREA_ID = 'usmf';
+import { TenantConfigStore } from '../tenant/tenant-config.store';
 
 /**
  * The transfer journal name configured in D365 (Inventory management > Setup >
@@ -53,13 +51,19 @@ interface WarehouseLocationRow {
 export class TransferJournalService {
   private api = inject(ApiService);
   private inventory = inject(InventoryService);
+  private tenant = inject(TenantConfigStore);
+
+  /** Company every transfer journal is created in — the tenant's own. */
+  private get dataAreaId(): string {
+    return this.tenant.currentDataAreaId();
+  }
 
   /** Locations belonging to a warehouse, for the From/To pickers. */
   getLocations(warehouseId: string): Observable<WarehouseLocation[]> {
     const safe = warehouseId.replace(/'/g, "''");
     return this.api.get<ODataResponse<WarehouseLocationRow>>(LOCATION_ENTITY, {
       'cross-company': 'true',
-      '$filter': `dataAreaId eq '${TRANSFER_JOURNAL_DATA_AREA_ID}' and WarehouseId eq '${safe}'`,
+      '$filter': `dataAreaId eq '${this.dataAreaId}' and WarehouseId eq '${safe}'`,
       '$select': 'dataAreaId,WarehouseId,WarehouseLocationId',
       '$orderby': 'WarehouseLocationId asc',
       '$top': '500',
@@ -124,7 +128,7 @@ export class TransferJournalService {
     return this.nextJournalNumber(attempt).pipe(
       concatMap((journalNumber) => {
         const header: TransferJournalHeaderEntity = {
-          dataAreaId: TRANSFER_JOURNAL_DATA_AREA_ID,
+          dataAreaId: this.dataAreaId,
           JournalNumber: journalNumber,
           JournalNameId: TRANSFER_JOURNAL_NAME_ID,
           Description: 'Mobile transfer journal',
@@ -151,7 +155,7 @@ export class TransferJournalService {
   private nextJournalNumber(offset: number): Observable<string> {
     return this.api.get<ODataResponse<JournalPoolRow>>(JOURNAL_POOL_ENTITY, {
       'cross-company': 'true',
-      '$filter': `dataAreaId eq '${TRANSFER_JOURNAL_DATA_AREA_ID}'`,
+      '$filter': `dataAreaId eq '${this.dataAreaId}'`,
       '$select': 'JournalId',
       '$orderby': 'JournalId desc',
       '$top': String(JOURNAL_POOL_SIZE),
@@ -178,7 +182,7 @@ export class TransferJournalService {
     return from(request.items.map((item, index) => ({ item, lineNumber: index + 1 }))).pipe(
       concatMap(({ item, lineNumber }) => {
         const line: TransferJournalLineEntity = {
-          dataAreaId: TRANSFER_JOURNAL_DATA_AREA_ID,
+          dataAreaId: this.dataAreaId,
           JournalNumber: journalNumber,
           LineNumber: lineNumber,
           ItemNumber: item.itemNumber,

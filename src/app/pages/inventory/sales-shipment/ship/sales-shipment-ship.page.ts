@@ -8,6 +8,7 @@ import { SalesShipmentService } from '../../../../core/services/sales-shipment.s
 import { SalesOrderLineService } from '../../../../core/services/sales-order-line.service';
 import { SalesShipmentHeader } from '../../../../models/inventory.model';
 import { PdfService, PackingSlipPdfData } from '../../../../core/services/pdf.service';
+import { TenantConfigStore } from '../../../../core/tenant/tenant-config.store';
 
 type ShipMode = 'all' | 'select';
 
@@ -45,6 +46,9 @@ function shipSelectionValidator(control: AbstractControl): ValidationErrors | nu
   standalone: false,
 })
 export class SalesShipmentShipPage implements OnInit {
+  private readonly tenantConfig = inject(TenantConfigStore);
+  readonly companies = this.tenantConfig.companies;
+
   soNumber = '';
   order: SalesShipmentHeader | null = null;
   form!: FormGroup;
@@ -76,7 +80,7 @@ export class SalesShipmentShipPage implements OnInit {
 
     this.form = this.fb.group({
       packingSlipId: ['', [Validators.required, Validators.minLength(1)]],
-      dataAreaId:    ['usmf', Validators.required],
+      dataAreaId:    [this.tenantConfig.currentDataAreaId(), Validators.required],
       shipMode:      ['all' as ShipMode, Validators.required],
       lines:         this.fb.array([]),
     }, { validators: shipSelectionValidator });

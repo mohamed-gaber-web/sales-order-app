@@ -1,9 +1,10 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable, forkJoin, map } from 'rxjs';
 import { ApiService } from './api.service';
 import { ODataResponse } from '../models/lookup.models';
 import { TransferOrderHeader, TransferOrderLine } from '../../models/transfer-order.model';
 import { TransferShipRequest, TransferReceiveRequest, TransferActionResponse } from '../../models/inventory.model';
+import { TenantConfigStore } from '../tenant/tenant-config.store';
 
 export const TO_PAGE_SIZE = 10;
 
@@ -11,6 +12,8 @@ const TO_FILTER = "TransferOrderStatus ne Microsoft.Dynamics.DataEntities.Invent
 
 @Injectable({ providedIn: 'root' })
 export class TransferOrderService {
+  private tenant = inject(TenantConfigStore);
+
   constructor(private api: ApiService) {}
 
   getOrderHeaders(skip = 0): Observable<ODataResponse<TransferOrderHeader>> {
@@ -37,7 +40,7 @@ export class TransferOrderService {
     );
   }
 
-  getOrderHeader(transferOrderNumber: string, dataAreaId = 'usmf'): Observable<TransferOrderHeader> {
+  getOrderHeader(transferOrderNumber: string, dataAreaId = this.tenant.currentDataAreaId()): Observable<TransferOrderHeader> {
     return this.api.get<TransferOrderHeader>(
       `/data/TransferOrderHeaders(dataAreaId='${dataAreaId}',TransferOrderNumber='${transferOrderNumber}')`
     );
@@ -50,7 +53,7 @@ export class TransferOrderService {
     );
   }
 
-  getOrderWithLines(transferOrderNumber: string, dataAreaId = 'usmf'): Observable<{ header: TransferOrderHeader; lines: TransferOrderLine[] }> {
+  getOrderWithLines(transferOrderNumber: string, dataAreaId = this.tenant.currentDataAreaId()): Observable<{ header: TransferOrderHeader; lines: TransferOrderLine[] }> {
     return forkJoin({
       header: this.getOrderHeader(transferOrderNumber, dataAreaId),
       linesResp: this.getOrderLines(transferOrderNumber),

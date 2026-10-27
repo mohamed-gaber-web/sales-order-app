@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { ModalController, ToastController } from '@ionic/angular';
 import {
@@ -9,6 +9,7 @@ import {
   PIJCategory,
 } from '../../../../core/services/project-item-journal.service';
 import { ProjectPickerModalComponent } from './project-picker-modal.component';
+import { TenantConfigStore } from '../../../../core/tenant/tenant-config.store';
 
 @Component({
   selector: 'app-pij-new-line',
@@ -17,6 +18,8 @@ import { ProjectPickerModalComponent } from './project-picker-modal.component';
   standalone: false,
 })
 export class ProjectItemJournalNewLinePage {
+  private readonly tenantConfig = inject(TenantConfigStore);
+
   journalId = '';
   journalName = '';
 
@@ -170,7 +173,7 @@ export class ProjectItemJournalNewLinePage {
     this.isSaving = true;
 
     const body: Partial<PIJJournalTrans> = {
-      dataAreaId: 'usmf',
+      dataAreaId: this.tenantConfig.currentDataAreaId(),
       JournalId: this.journalId,
       ProjectId: this.projectId.trim(),
       ItemId: this.itemId.trim(),

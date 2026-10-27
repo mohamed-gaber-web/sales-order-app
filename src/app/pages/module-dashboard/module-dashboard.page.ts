@@ -118,8 +118,7 @@ export class ModuleDashboardPage {
   private async load(force: boolean, moduleKey: string, period: DashboardPeriod, today: string): Promise<void> {
     const def = findDashboard(moduleKey);
     if (!def) return;
-    // The app's other screens still scope to 'usmf' when the tenant has not named a company.
-    const company = this.tenant.dataAreaId() ?? 'usmf';
+    const company = this.tenant.currentDataAreaId();
     const key = `${moduleKey}:${period}:${today}:${company}`;
     const hit = cache.get(key);
     if (!force && hit && Date.now() - hit.at.getTime() < CACHE_MS) {

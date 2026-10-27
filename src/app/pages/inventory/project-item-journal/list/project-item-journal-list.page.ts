@@ -1,10 +1,11 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { ModalController, ToastController } from '@ionic/angular';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { ProjectItemJournalService, PIJJournalTable } from '../../../../core/services/project-item-journal.service';
 import { NewJournalModalComponent } from './new-journal-modal.component';
+import { TenantConfigStore } from '../../../../core/tenant/tenant-config.store';
 
 @Component({
   selector: 'app-pij-list',
@@ -13,6 +14,11 @@ import { NewJournalModalComponent } from './new-journal-modal.component';
   standalone: false,
 })
 export class ProjectItemJournalListPage {
+  private readonly tenantConfig = inject(TenantConfigStore);
+  get company(): string {
+    return this.tenantConfig.currentDataAreaId();
+  }
+
   journals: PIJJournalTable[] = [];
   filteredJournals: PIJJournalTable[] = [];
   searchTerm = '';

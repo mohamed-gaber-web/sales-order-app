@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LoadingController, ToastController } from '@ionic/angular';
@@ -6,6 +6,7 @@ import { TimeoutError } from 'rxjs';
 import { PurchaseOrderService } from '../../../core/services/purchase-order.service';
 import { PurchaseOrderHeader, PurchaseOrderLine } from '../../../models/purchase-order.model';
 import { PdfService, ReceiptPdfData } from '../../../core/services/pdf.service';
+import { TenantConfigStore } from '../../../core/tenant/tenant-config.store';
 
 @Component({
   selector: 'app-purchase-order-receive',
@@ -14,6 +15,8 @@ import { PdfService, ReceiptPdfData } from '../../../core/services/pdf.service';
   standalone: false
 })
 export class PurchaseOrderReceivePage implements OnInit {
+  private readonly tenantConfig = inject(TenantConfigStore);
+
   poNumber = '';
   lineNumber = 0;
   line: PurchaseOrderLine | null = null;
@@ -111,7 +114,7 @@ export class PurchaseOrderReceivePage implements OnInit {
 
     this.poService.createProductReceipt({
       _request: {
-        DataAreaId: (this.po?.dataAreaId as string ?? 'usmf').toUpperCase(),
+        DataAreaId: (this.po?.dataAreaId as string ?? this.tenantConfig.currentDataAreaId()).toUpperCase(),
         purchaseOrderID: this.poNumber,
         productReceiptId: packingSlipId,
         purchaseLineNum: [this.lineNumber],
@@ -125,7 +128,7 @@ export class PurchaseOrderReceivePage implements OnInit {
           this.receiptPdfData = {
             poNumber: this.poNumber,
             lineNumber: this.lineNumber,
-            dataAreaId: (this.po?.dataAreaId as string ?? 'usmf'),
+            dataAreaId: (this.po?.dataAreaId as string ?? this.tenantConfig.currentDataAreaId()),
             packingSlipId,
             receiptQty: receiptQty,
             itemNumber: this.line?.ItemNumber ?? '',

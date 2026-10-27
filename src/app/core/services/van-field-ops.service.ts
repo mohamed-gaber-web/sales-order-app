@@ -1,6 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { delay, Observable, of } from 'rxjs';
 import { ApiService } from './api.service';
+import { TenantConfigStore } from '../tenant/tenant-config.store';
 
 // ── Request / result shapes (IKK Foods van sales spec §5–7) ─────────────────
 
@@ -68,9 +69,6 @@ export interface DayCloseResult {
 
 // ── Customer payment journal (standard OData, not the ISV service) ──────────
 
-/** The company every van sales call still hardcodes. See CLAUDE.md. */
-const DATA_AREA_ID = 'usmf';
-
 /** The journal name a customer payment batch is opened under. */
 const PAYMENT_JOURNAL_NAME = 'CustPay';
 
@@ -107,6 +105,7 @@ const SCAFFOLD_LATENCY_MS = 700;
 @Injectable({ providedIn: 'root' })
 export class VanFieldOpsService {
   private api = inject(ApiService);
+  private tenant = inject(TenantConfigStore);
 
   /**
    * Collection + settlement in one transaction.
@@ -119,7 +118,7 @@ export class VanFieldOpsService {
   postPayment(req: CollectionRequest): Observable<CollectionResult> {
     // return this.api.post<CollectionResult>(
     //   '/api/services/GPVanSalesGroup/GPCollectionService/postPayment',
-    //   { _request: { DataAreaId: DATA_AREA_ID, DeviceTransactionId: newGuid(),
+    //   { _request: { DataAreaId: this.tenant.currentDataAreaId(), DeviceTransactionId: newGuid(),
     //     CustomerAccount: req.customerAccount, Method: req.method, Amount: req.amount,
     //     Cheque: null, Settle: req.settle.map(s => ({ InvoiceId: s.invoiceId, Amount: s.amount })) } });
     const settled = req.settle.reduce((sum, s) => sum + s.amount, 0);
@@ -188,7 +187,7 @@ export class VanFieldOpsService {
     description = 'Payment from external system'
   ): Observable<PaymentJournalHeader> {
     const header: PaymentJournalHeaderRequest = {
-      dataAreaId: DATA_AREA_ID,
+      dataAreaId: this.tenant.currentDataAreaId(),
       JournalName: PAYMENT_JOURNAL_NAME,
       Description: description,
     };

@@ -58,7 +58,7 @@ export class SalesLineActionPage implements OnInit {
   private translate = inject(TranslateService);
   private salesOrderService = inject(SalesOrderService);
   private orderLineService = inject(SalesOrderLineService);
-  private tenantDataAreaId = inject(TenantConfigStore).dataAreaId() ?? 'usmf';
+  private tenantDataAreaId = inject(TenantConfigStore).currentDataAreaId();
 
   readonly config: SalesLineActionConfig = SALES_LINE_ACTIONS[
     this.route.snapshot.data['action'] as SalesLineAction

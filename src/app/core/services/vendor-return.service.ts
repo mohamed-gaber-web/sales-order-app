@@ -1,9 +1,10 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiService } from './api.service';
 import { ODataResponse } from '../models/lookup.models';
 import { PurchaseOrderHeader } from '../../models/purchase-order.model';
 import { VendorReturnPayload } from '../../models/inventory.model';
+import { TenantConfigStore } from '../tenant/tenant-config.store';
 
 export const VR_PAGE_SIZE = 10;
 
@@ -13,6 +14,8 @@ const VR_FILTER =
 
 @Injectable({ providedIn: 'root' })
 export class VendorReturnService {
+  private tenant = inject(TenantConfigStore);
+
   constructor(private api: ApiService) {}
 
   getEligibleOrders(skip = 0): Observable<ODataResponse<PurchaseOrderHeader>> {
@@ -39,7 +42,7 @@ export class VendorReturnService {
     );
   }
 
-  getOrderWithLines(poNumber: string, dataAreaId = 'usmf'): Observable<PurchaseOrderHeader> {
+  getOrderWithLines(poNumber: string, dataAreaId = this.tenant.currentDataAreaId()): Observable<PurchaseOrderHeader> {
     return this.api.get<PurchaseOrderHeader>(
       `/data/PurchaseOrderHeadersV2(dataAreaId='${dataAreaId}',PurchaseOrderNumber='${poNumber}')`,
       { '$expand': 'PurchaseOrderLinesV2' }

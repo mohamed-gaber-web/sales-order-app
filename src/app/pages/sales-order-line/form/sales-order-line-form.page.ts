@@ -11,6 +11,7 @@ import {
 } from '../../../core/services/sales-order-line.service';
 import { InventoryService } from '../../../core/services/inventory.service';
 import { InventoryProduct } from '../../../models/inventory.model';
+import { TenantConfigStore } from '../../../core/tenant/tenant-config.store';
 
 @Component({
   selector: 'app-sales-order-line-form',
@@ -19,6 +20,8 @@ import { InventoryProduct } from '../../../models/inventory.model';
   standalone: false,
 })
 export class SalesOrderLineFormPage implements OnInit {
+  private readonly tenantConfig = inject(TenantConfigStore);
+
   private inventoryService = inject(InventoryService);
 
   lineForm: FormGroup;
@@ -276,7 +279,7 @@ export class SalesOrderLineFormPage implements OnInit {
     await loading.present();
 
     const payload = {
-      dataAreaId: 'usmf',
+      dataAreaId: this.tenantConfig.currentDataAreaId(),
       ...this.lineForm.getRawValue(),
     };
 

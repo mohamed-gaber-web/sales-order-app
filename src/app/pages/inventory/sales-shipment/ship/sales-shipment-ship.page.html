@@ -155,9 +155,9 @@
         <p class="form-label">Company (Data Area) *</p>
         <ion-item lines="none" class="input-item">
           <ion-select formControlName="dataAreaId" interface="action-sheet">
-            <ion-select-option value="usmf">USMF</ion-select-option>
-            <ion-select-option value="ussi">USSI</ion-select-option>
-            <ion-select-option value="gbsi">GBSI</ion-select-option>
+            @for (company of companies(); track company.id) {
+              <ion-select-option [value]="company.dataAreaId">{{ company.dataAreaId | uppercase }}</ion-select-option>
+            }
           </ion-select>
         </ion-item>
       </div>

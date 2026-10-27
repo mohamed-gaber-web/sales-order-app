@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AlertController, LoadingController, ModalController, ToastController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
@@ -11,6 +11,7 @@ import {
   TransferLineDialogComponent,
   TransferLineResult,
 } from '../../inventory/transfer-line-action/line-dialog/transfer-line-dialog.component';
+import { TenantConfigStore } from '../../../core/tenant/tenant-config.store';
 
 @Component({
   selector: 'app-transfer-order-detail',
@@ -19,6 +20,8 @@ import {
   standalone: false
 })
 export class TransferOrderDetailPage implements OnInit {
+  private readonly tenantConfig = inject(TenantConfigStore);
+
   transferOrderNumber = '';
   order: TransferOrderHeader | null = null;
   lines: TransferOrderLine[] = [];
@@ -195,7 +198,7 @@ export class TransferOrderDetailPage implements OnInit {
 
     this.transferShipmentService.transferLineAction(action, {
       _request: {
-        DataAreaId: (this.order?.dataAreaId as string ?? 'usmf').toUpperCase(),
+        DataAreaId: (this.order?.dataAreaId as string ?? this.tenantConfig.currentDataAreaId()).toUpperCase(),
         OrderId: this.transferOrderNumber,
         LineNum: line.LineNumber,
         Qty: qty,
@@ -240,7 +243,7 @@ export class TransferOrderDetailPage implements OnInit {
 
     this.toService.shipTransferOrder({
       _request: {
-        DataAreaId: (this.order?.dataAreaId as string ?? 'usmf').toUpperCase(),
+        DataAreaId: (this.order?.dataAreaId as string ?? this.tenantConfig.currentDataAreaId()).toUpperCase(),
         transferOrderID: this.transferOrderNumber,
         transferLineNum: [line.LineNumber],
         transferQTY: [qty],
@@ -281,7 +284,7 @@ export class TransferOrderDetailPage implements OnInit {
 
     this.toService.receiveTransferOrder({
       _request: {
-        DataAreaId: (this.order?.dataAreaId as string ?? 'usmf').toUpperCase(),
+        DataAreaId: (this.order?.dataAreaId as string ?? this.tenantConfig.currentDataAreaId()).toUpperCase(),
         transferOrderID: this.transferOrderNumber,
         transferLineNum: [line.LineNumber],
         transferQTY: [qty],

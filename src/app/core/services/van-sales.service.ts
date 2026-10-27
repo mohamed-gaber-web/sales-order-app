@@ -6,6 +6,7 @@ import { ODataResponse } from '../models/lookup.models';
 import { SalesOrderService } from './sales-order.service';
 import { Warehouse } from '../../models/inventory.model';
 import { VanCartLine, VanCheckoutDetails, VanProduct, VanSaleResult } from '../../models/van-sales.model';
+import { TenantConfigStore } from '../tenant/tenant-config.store';
 
 /** Products fetched per server page. One page is ~9 KB. */
 export const VAN_PAGE_SIZE = 24;
@@ -22,8 +23,6 @@ const SEARCH_SELECT = 'ProductNumber,ProductName,ProductSearchName';
  * column on this entity (it is on ProductsV2) — selecting it fails the request.
  */
 const RELEASED_SELECT = 'ItemNumber,SalesPrice,SalesUnitSymbol,ProductSearchName';
-
-const DATA_AREA_ID = 'usmf';
 
 interface ProductsV2Row {
   ProductNumber: string;
@@ -69,6 +68,11 @@ export interface VanProductPage {
 export class VanSalesService {
   private api = inject(ApiService);
   private salesOrderService = inject(SalesOrderService);
+  private tenant = inject(TenantConfigStore);
+
+  private get dataAreaId(): string {
+    return this.tenant.currentDataAreaId();
+  }
 
   private sellableAll$?: Observable<VanProduct[]>;
   private searchIndex$?: Observable<VanProduct[]>;
@@ -92,7 +96,7 @@ export class VanSalesService {
     return this.api
       .get<ODataResponse<ReleasedProductRow>>('/data/ReleasedProductsV2', {
         '$select': RELEASED_SELECT,
-        '$filter': `dataAreaId eq '${DATA_AREA_ID}'`,
+        '$filter': `dataAreaId eq '${this.dataAreaId}'`,
         '$orderby': 'ItemNumber asc',
         '$top': String(top),
         '$skip': String(skip),
@@ -142,7 +146,7 @@ export class VanSalesService {
     return this.api
       .get<ODataResponse<ReleasedProductRow>>('/data/ReleasedProductsV2', {
         '$select': RELEASED_SELECT,
-        '$filter': `dataAreaId eq '${DATA_AREA_ID}' and (${clause})`,
+        '$filter': `dataAreaId eq '${this.dataAreaId}' and (${clause})`,
         '$top': String(ids.length),
       })
       .pipe(
@@ -247,7 +251,7 @@ export class VanSalesService {
       this.sellableAll$ = this.api
         .get<ODataResponse<ReleasedProductRow>>('/data/ReleasedProductsV2', {
           '$select': RELEASED_SELECT,
-          '$filter': `dataAreaId eq '${DATA_AREA_ID}'`,
+          '$filter': `dataAreaId eq '${this.dataAreaId}'`,
           '$orderby': 'ItemNumber asc',
         })
         .pipe(
@@ -393,7 +397,7 @@ export class VanSalesService {
     return this.salesOrderService
       .createOrderWithLines(
         {
-          dataAreaId: DATA_AREA_ID,
+          dataAreaId: this.dataAreaId,
           SalesOrderNumber: orderNumber,
           CurrencyCode: details.currencyCode,
           OrderingCustomerAccountNumber: details.customerAccount,

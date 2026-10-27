@@ -6,6 +6,7 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { PurchaseOrderService } from '../../../core/services/purchase-order.service';
 import { PurchaseOrderHeader } from '../../../models/purchase-order.model';
 import { ScannerModalComponent } from '../../inventory/scanner/scanner-modal.component';
+import { TenantConfigStore } from '../../../core/tenant/tenant-config.store';
 
 @Component({
   selector: 'app-purchase-order-list',
@@ -14,6 +15,11 @@ import { ScannerModalComponent } from '../../inventory/scanner/scanner-modal.com
   standalone: false
 })
 export class PurchaseOrderListPage {
+  private readonly tenantConfig = inject(TenantConfigStore);
+  get company(): string {
+    return this.tenantConfig.currentDataAreaId();
+  }
+
   @ViewChild(IonInfiniteScroll) infiniteScroll!: IonInfiniteScroll;
 
   orders: PurchaseOrderHeader[] = [];
@@ -24,7 +30,6 @@ export class PurchaseOrderListPage {
   isLoadingMore = false;
   isSearching = false;
   totalCount = 0;
-  company = 'usmf';
   private allDataLoaded = false;
 
   private searchSubject = new Subject<string>();

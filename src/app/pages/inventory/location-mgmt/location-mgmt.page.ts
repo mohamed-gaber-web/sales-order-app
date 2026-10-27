@@ -1,10 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActionSheetController, AlertController, LoadingController, ToastController } from '@ionic/angular';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { InventoryService } from '../../../core/services/inventory.service';
 import { Warehouse, WarehouseLocation } from '../../../models/inventory.model';
+import { TenantConfigStore } from '../../../core/tenant/tenant-config.store';
 
 @Component({
   selector: 'app-location-mgmt',
@@ -13,6 +14,8 @@ import { Warehouse, WarehouseLocation } from '../../../models/inventory.model';
   standalone: false,
 })
 export class LocationMgmtPage implements OnInit {
+  private readonly tenantConfig = inject(TenantConfigStore);
+
   // Warehouse picker
   warehouses: Warehouse[] = [];
   selectedWarehouse: Warehouse | null = null;
@@ -190,7 +193,7 @@ export class LocationMgmtPage implements OnInit {
       LocationProfileId: locationProfileId ?? '',
       LocationType: locationType ?? 'Picking',
       IsBlocked: false,
-      dataAreaId: this.selectedWarehouse.dataAreaId ?? 'usmf',
+      dataAreaId: this.selectedWarehouse.dataAreaId ?? this.tenantConfig.currentDataAreaId(),
     };
     this.inventorySvc.createLocation(payload).subscribe({
       next: () => {

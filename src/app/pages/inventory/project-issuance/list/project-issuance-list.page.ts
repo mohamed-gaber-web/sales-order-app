@@ -1,9 +1,10 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, ViewChild, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { IonInfiniteScroll, ToastController } from '@ionic/angular';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { ProjectIssuanceService, Project } from '../../../../core/services/project-issuance.service';
+import { TenantConfigStore } from '../../../../core/tenant/tenant-config.store';
 
 type FilterId = 'all' | 'inProcess' | 'created' | 'finished';
 
@@ -20,6 +21,8 @@ interface FilterChip {
   standalone: false,
 })
 export class ProjectIssuanceListPage {
+  private readonly tenantConfig = inject(TenantConfigStore);
+
   @ViewChild(IonInfiniteScroll) infiniteScroll!: IonInfiniteScroll;
 
   projects: Project[] = [];
@@ -43,7 +46,7 @@ export class ProjectIssuanceListPage {
   private searchSubject = new Subject<string>();
 
   get company(): string {
-    return this.projects[0]?.dataAreaId ?? 'usmf';
+    return this.projects[0]?.dataAreaId ?? this.tenantConfig.currentDataAreaId();
   }
 
   get displayedProjects(): Project[] {

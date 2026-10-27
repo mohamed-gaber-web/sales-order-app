@@ -1,9 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LoadingController, ToastController } from '@ionic/angular';
 import { VendorReturnService } from '../../../../core/services/vendor-return.service';
 import { PurchaseOrderHeader, PurchaseOrderLine } from '../../../../models/purchase-order.model';
+import { TenantConfigStore } from '../../../../core/tenant/tenant-config.store';
 
 export const REASON_CODES: { label: string; value: string }[] = [
   { label: 'Defective',      value: 'Defective' },
@@ -20,8 +21,10 @@ export const REASON_CODES: { label: string; value: string }[] = [
   standalone: false,
 })
 export class VendorReturnsFormPage implements OnInit {
+  private readonly tenantConfig = inject(TenantConfigStore);
+
   poNumber = '';
-  dataAreaId = 'usmf';
+  dataAreaId = this.tenantConfig.currentDataAreaId();
   order?: PurchaseOrderHeader;
   isLoading = false;
   isSubmitting = false;

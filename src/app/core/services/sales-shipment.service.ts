@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiService } from './api.service';
 import { ODataResponse } from '../models/lookup.models';
@@ -7,6 +7,7 @@ import {
   CreatePackingSlipRequest,
   CreatePackingSlipResponse,
 } from '../../models/inventory.model';
+import { TenantConfigStore } from '../tenant/tenant-config.store';
 
 export const SS_PAGE_SIZE = 10;
 
@@ -16,13 +17,19 @@ const SS_FILTER =
 
 @Injectable({ providedIn: 'root' })
 export class SalesShipmentService {
+  private tenant = inject(TenantConfigStore);
+
+  private get dataAreaId(): string {
+    return this.tenant.currentDataAreaId();
+  }
+
   constructor(private api: ApiService) {}
 
   getShippableOrders(skip = 0): Observable<ODataResponse<SalesShipmentHeader>> {
     return this.api.get<ODataResponse<SalesShipmentHeader>>(
       '/data/GP_SalesHeaderAndLineData',
       {
-        '$filter': `dataAreaId eq 'usmf' and ${SS_FILTER}`,
+        '$filter': `dataAreaId eq '${this.dataAreaId}' and ${SS_FILTER}`,
         '$top': String(SS_PAGE_SIZE),
         '$skip': String(skip),
         '$count': 'true',
@@ -35,14 +42,14 @@ export class SalesShipmentService {
     return this.api.get<ODataResponse<SalesShipmentHeader>>(
       '/data/GP_SalesHeaderAndLineData',
       {
-        '$filter': `dataAreaId eq 'usmf' and ${SS_FILTER}`,
+        '$filter': `dataAreaId eq '${this.dataAreaId}' and ${SS_FILTER}`,
         '$count': 'true',
         '$orderby': 'SalesOrderNumber desc',
       }
     );
   }
 
-  getOrderWithLines(soNumber: string, dataAreaId = 'usmf'): Observable<SalesShipmentHeader> {
+  getOrderWithLines(soNumber: string, dataAreaId = this.dataAreaId): Observable<SalesShipmentHeader> {
     return this.api.get<SalesShipmentHeader>(
       `/data/SalesOrderHeadersV3(dataAreaId='${dataAreaId}',SalesOrderNumber='${soNumber}')`,
       { '$expand': 'SalesOrderLines' }

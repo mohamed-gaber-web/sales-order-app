@@ -1,6 +1,7 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiService } from './api.service';
+import { TenantConfigStore } from '../tenant/tenant-config.store';
 
 export interface PIRProject {
   ProjectID: string;
@@ -49,7 +50,11 @@ export interface PickingListRequest {
 
 @Injectable({ providedIn: 'root' })
 export class ProjectItemRequirementsService {
-  private readonly DATA_AREA = 'usmf';
+  private tenant = inject(TenantConfigStore);
+
+  private get DATA_AREA(): string {
+    return this.tenant.currentDataAreaId();
+  }
 
   constructor(private api: ApiService) {}
 

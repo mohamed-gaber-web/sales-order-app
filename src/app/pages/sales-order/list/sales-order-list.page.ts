@@ -1,10 +1,11 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, ViewChild, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { IonInfiniteScroll, ToastController } from '@ionic/angular';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { SalesOrderService } from '../../../core/services/sales-order.service';
 import { SalesOrderHeaderResponse } from '../../../models/sales-order.model';
+import { TenantConfigStore } from '../../../core/tenant/tenant-config.store';
 
 @Component({
   selector: 'app-sales-order-list',
@@ -13,6 +14,11 @@ import { SalesOrderHeaderResponse } from '../../../models/sales-order.model';
   standalone: false
 })
 export class SalesOrderListPage {
+  private readonly tenantConfig = inject(TenantConfigStore);
+  get company(): string {
+    return this.tenantConfig.currentDataAreaId();
+  }
+
   @ViewChild(IonInfiniteScroll) infiniteScroll!: IonInfiniteScroll;
 
   orders: SalesOrderHeaderResponse[] = [];
@@ -23,7 +29,6 @@ export class SalesOrderListPage {
   isLoadingMore = false;
   isSearching = false;
   totalCount = 0;
-  company = 'usmf';
   isReturnMode = false;
   private allDataLoaded = false;
 

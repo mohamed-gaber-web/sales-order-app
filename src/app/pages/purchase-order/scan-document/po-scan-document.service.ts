@@ -14,6 +14,7 @@ import {
   ScannedOrderLine,
   ScannedPurchaseOrder,
 } from '../../../models/po-document-scan.model';
+import { TenantConfigStore } from '../../../core/tenant/tenant-config.store';
 
 /** Quantities are carried to three decimals everywhere else in the receipt flow. */
 const QTY_PRECISION = 1000;
@@ -33,6 +34,8 @@ const MIN_DESCRIPTION_MATCH_LENGTH = 6;
  */
 @Injectable()
 export class PoScanDocumentService {
+  private readonly tenantConfig = inject(TenantConfigStore);
+
   private readonly capture = inject(ImageCaptureService);
   private readonly ocr = inject(DocumentOcrService);
   private readonly poService = inject(PurchaseOrderService);
@@ -241,7 +244,7 @@ export class PoScanDocumentService {
       const response = await firstValueFrom(
         this.poService.createProductReceipt({
           _request: {
-            DataAreaId: ((order.dataAreaId as string) ?? 'usmf').toUpperCase(),
+            DataAreaId: ((order.dataAreaId as string) ?? this.tenantConfig.currentDataAreaId()).toUpperCase(),
             purchaseOrderID: poNumber,
             productReceiptId: packingSlipId,
             purchaseLineNum: rows.map((row) => row.poLine?.LineNumber ?? 0),

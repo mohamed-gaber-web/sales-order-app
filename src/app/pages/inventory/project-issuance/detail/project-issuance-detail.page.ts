@@ -1,7 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ActionSheetController, ToastController } from '@ionic/angular';
 import { ProjectIssuanceService, ItemRequirement } from '../../../../core/services/project-issuance.service';
+import { TenantConfigStore } from '../../../../core/tenant/tenant-config.store';
 
 @Component({
   selector: 'app-project-issuance-detail',
@@ -10,11 +11,13 @@ import { ProjectIssuanceService, ItemRequirement } from '../../../../core/servic
   standalone: false,
 })
 export class ProjectIssuanceDetailPage implements OnInit {
+  private readonly tenantConfig = inject(TenantConfigStore);
+
   projectId = '';
   projectName = '';
   customerAccount = '';
   projectStage = '';
-  dataAreaId = 'usmf';
+  dataAreaId = this.tenantConfig.currentDataAreaId();
 
   requirements: ItemRequirement[] = [];
   filteredRequirements: ItemRequirement[] = [];
@@ -50,7 +53,7 @@ export class ProjectIssuanceDetailPage implements OnInit {
     this.projectName = state?.['projectName'] ?? '';
     this.customerAccount = state?.['customerAccount'] ?? '';
     this.projectStage = state?.['projectStage'] ?? '';
-    this.dataAreaId = state?.['dataAreaId'] ?? 'usmf';
+    this.dataAreaId = state?.['dataAreaId'] ?? this.tenantConfig.currentDataAreaId();
   }
 
   ionViewWillEnter() {

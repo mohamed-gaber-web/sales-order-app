@@ -76,6 +76,17 @@ export class TenantConfigStore {
   });
 
   /**
+   * `dataAreaId` for building a request, read at call time.
+   *
+   * Empty rather than a guessed company when none is known yet: a request for
+   * no company fails visibly, while the old `'usmf'` fallback quietly read
+   * another legal entity — which, for every tenant that is not USMF, is wrong.
+   */
+  currentDataAreaId(): string {
+    return this.dataAreaId() ?? '';
+  }
+
+  /**
    * The company id for the `x-d365-company` header.
    *
    * Only needed once a tenant has more than one environment; with one, the API

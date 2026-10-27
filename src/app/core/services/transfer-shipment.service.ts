@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable, forkJoin, map } from 'rxjs';
 import { ApiService } from './api.service';
 import { ODataResponse } from '../models/lookup.models';
@@ -14,6 +14,7 @@ import {
   D365ItemBatch,
   D365ItemSerialNumber,
 } from '../../models/inventory.model';
+import { TenantConfigStore } from '../tenant/tenant-config.store';
 
 export const TS_PAGE_SIZE = 10;
 
@@ -31,6 +32,8 @@ const TRANSFER_LINE_OPERATIONS: Record<TransferLineAction, string> = {
 
 @Injectable({ providedIn: 'root' })
 export class TransferShipmentService {
+  private tenant = inject(TenantConfigStore);
+
   constructor(private api: ApiService) {}
 
   // Orders ready to ship (status = Open / Created)
@@ -74,7 +77,7 @@ export class TransferShipmentService {
 
   getOrderWithLines(
     transferOrderNumber: string,
-    dataAreaId = 'usmf'
+    dataAreaId = this.tenant.currentDataAreaId()
   ): Observable<{ header: TransferOrderHeader; lines: TransferOrderLine[] }> {
     return forkJoin({
       header: this.api.get<TransferOrderHeader>(

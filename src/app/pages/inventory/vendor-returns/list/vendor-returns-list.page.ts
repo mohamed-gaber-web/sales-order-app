@@ -1,10 +1,11 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, ViewChild, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { IonInfiniteScroll, ToastController } from '@ionic/angular';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { VendorReturnService } from '../../../../core/services/vendor-return.service';
 import { PurchaseOrderHeader } from '../../../../models/purchase-order.model';
+import { TenantConfigStore } from '../../../../core/tenant/tenant-config.store';
 
 @Component({
   selector: 'app-vendor-returns-list',
@@ -13,6 +14,11 @@ import { PurchaseOrderHeader } from '../../../../models/purchase-order.model';
   standalone: false,
 })
 export class VendorReturnsListPage {
+  private readonly tenantConfig = inject(TenantConfigStore);
+  get company(): string {
+    return this.tenantConfig.currentDataAreaId();
+  }
+
   @ViewChild(IonInfiniteScroll) infiniteScroll!: IonInfiniteScroll;
 
   orders: PurchaseOrderHeader[] = [];

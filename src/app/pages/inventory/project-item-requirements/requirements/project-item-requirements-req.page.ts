@@ -9,6 +9,7 @@ import {
   PIRItemRequirement,
   PickingListRequest
 } from '../../../../core/services/project-item-requirements.service';
+import { TenantConfigStore } from '../../../../core/tenant/tenant-config.store';
 
 type StatusFilter = 'all' | 'backorder' | 'partial' | 'closed';
 
@@ -24,6 +25,8 @@ interface SelectedLine {
   standalone: false,
 })
 export class ProjectItemRequirementsReqPage implements OnInit {
+  private readonly tenantConfig = inject(TenantConfigStore);
+
   private readonly format = inject(FormatService);
   projectId = '';
   projectName = '';
@@ -218,7 +221,7 @@ export class ProjectItemRequirementsReqPage implements OnInit {
     const salesOrderID = lines[0].req.SalesId;
 
     const request: PickingListRequest = {
-      DataAreaId: 'USMF',
+      DataAreaId: this.tenantConfig.currentDataAreaId().toUpperCase(),
       SalesOrderID: salesOrderID,
       packingSlipId: '',
       salesLineNum: lines.map(l => l.req.LineNum),

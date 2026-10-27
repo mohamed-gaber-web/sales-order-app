@@ -7,6 +7,7 @@ import { PurchaseOrderHeader, PurchaseOrderLine } from '../../../models/purchase
 import { ReceiptLabelData } from '../../../core/services/pdf.service';
 import { ScannerModalComponent } from '../../inventory/scanner/scanner-modal.component';
 import { LabelPreviewModalComponent } from '../../purchase-order/label-preview/label-preview-modal.component';
+import { TenantConfigStore } from '../../../core/tenant/tenant-config.store';
 
 interface RegisterCartItem {
   line: PurchaseOrderLine;
@@ -31,6 +32,8 @@ interface ConfirmedItem {
   standalone: false,
 })
 export class PurchaseOrderScanRegisterPage implements OnInit {
+  private readonly tenantConfig = inject(TenantConfigStore);
+
   poNumber = '';
   po: PurchaseOrderHeader | null = null;
 
@@ -322,7 +325,7 @@ export class PurchaseOrderScanRegisterPage implements OnInit {
     // const purchaseLineNum = items.map(i => i.line.LineNumber);
     // this.poService.createProductReceipt({
     //   _request: {
-    //     DataAreaId: ((this.po?.dataAreaId as string) ?? 'usmf').toUpperCase(),
+    //     DataAreaId: ((this.po?.dataAreaId as string) ?? this.tenantConfig.currentDataAreaId()).toUpperCase(),
     //     purchaseOrderID: this.poNumber,
     //     productReceiptId: registrationId,
     //     purchaseLineNum,
@@ -333,7 +336,7 @@ export class PurchaseOrderScanRegisterPage implements OnInit {
 
     this.poService.registerPurchaseOrder({
       _request: {
-        DataAreaId: (this.po?.dataAreaId as string) ?? 'usmf',
+        DataAreaId: (this.po?.dataAreaId as string) ?? this.tenantConfig.currentDataAreaId(),
         PurchaseOrderId: this.poNumber,
         Lines: items.map(i => ({
           LineNumber: i.line.LineNumber,

@@ -19,6 +19,7 @@ import {
   initialQty,
   lineDimensions,
 } from '../../sales-order/line-action/sales-line-action.config';
+import { TenantConfigStore } from '../../../core/tenant/tenant-config.store';
 
 @Component({
   selector: 'app-sales-order-line-detail',
@@ -27,6 +28,8 @@ import {
   standalone: false,
 })
 export class SalesOrderLineDetailPage implements OnInit {
+  private readonly tenantConfig = inject(TenantConfigStore);
+
   private readonly format = inject(FormatService);
   salesOrderNumber = '';
   allLines: SalesOrderLineResponse[] = [];
@@ -158,7 +161,7 @@ export class SalesOrderLineDetailPage implements OnInit {
     });
     await loading.present();
 
-    const dataAreaId = (line.dataAreaId ?? 'usmf').toUpperCase();
+    const dataAreaId = (line.dataAreaId ?? this.tenantConfig.currentDataAreaId()).toUpperCase();
     const lineNum = line.LineNumber ?? lineIndex + 1;
 
     this.salesOrderService.createPackingSlip({
@@ -319,7 +322,7 @@ export class SalesOrderLineDetailPage implements OnInit {
     await loading.present();
 
     this.salesOrderService.salesLineAction(action, buildSalesLineRequest(action, {
-      dataAreaId: line.dataAreaId ?? 'usmf',
+      dataAreaId: line.dataAreaId ?? this.tenantConfig.currentDataAreaId(),
       orderId: this.salesOrderNumber,
       lineNum,
       qty,
@@ -427,7 +430,7 @@ export class SalesOrderLineDetailPage implements OnInit {
     });
     await loading.present();
 
-    const dataAreaId = (selected[0].line.dataAreaId ?? 'usmf').toUpperCase();
+    const dataAreaId = (selected[0].line.dataAreaId ?? this.tenantConfig.currentDataAreaId()).toUpperCase();
 
     this.salesOrderService.createPackingSlip({
       _request: {

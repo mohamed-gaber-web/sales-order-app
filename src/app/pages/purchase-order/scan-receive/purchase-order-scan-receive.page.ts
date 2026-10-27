@@ -7,6 +7,7 @@ import { PurchaseOrderHeader, PurchaseOrderLine } from '../../../models/purchase
 import { ReceiptLabelData } from '../../../core/services/pdf.service';
 import { ScannerModalComponent } from '../../inventory/scanner/scanner-modal.component';
 import { LabelPreviewModalComponent } from '../label-preview/label-preview-modal.component';
+import { TenantConfigStore } from '../../../core/tenant/tenant-config.store';
 
 interface ReceiptCartItem {
   line: PurchaseOrderLine;
@@ -31,6 +32,8 @@ interface ConfirmedItem {
   standalone: false,
 })
 export class PurchaseOrderScanReceivePage implements OnInit {
+  private readonly tenantConfig = inject(TenantConfigStore);
+
   poNumber = '';
   po: PurchaseOrderHeader | null = null;
 
@@ -315,7 +318,7 @@ export class PurchaseOrderScanReceivePage implements OnInit {
 
     this.poService.createProductReceipt({
       _request: {
-        DataAreaId: ((this.po?.dataAreaId as string) ?? 'usmf').toUpperCase(),
+        DataAreaId: ((this.po?.dataAreaId as string) ?? this.tenantConfig.currentDataAreaId()).toUpperCase(),
         purchaseOrderID: this.poNumber,
         productReceiptId: packingSlipId,
         purchaseLineNum,

@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { catchError, from, map, Observable, of, switchMap, timeout } from 'rxjs';
 import { ApiService } from './api.service';
 import { AuthService } from './auth.service';
@@ -13,6 +13,7 @@ import {
   RegisterPurchaseOrderResponse,
 } from '../../models/purchase-order.model';
 import { testPurchaseOrderEnv } from '../../../environments/test-purchase-order-env';
+import { TenantConfigStore } from '../tenant/tenant-config.store';
 
 export const PO_PAGE_SIZE = 10;
 
@@ -36,6 +37,8 @@ const TEST_PO_COMPANY = '007';
 
 @Injectable({ providedIn: 'root' })
 export class PurchaseOrderService {
+  private tenant = inject(TenantConfigStore);
+
   constructor(private api: ApiService, private authService: AuthService) { }
 
   /**
@@ -87,7 +90,7 @@ export class PurchaseOrderService {
 
   /** The company reads should be scoped to for the given env. */
   private companyFor(useMainEnv: boolean): string {
-    return !useMainEnv && testPurchaseOrderEnv.useTestPurchaseOrderEnv ? TEST_PO_COMPANY : 'usmf';
+    return !useMainEnv && testPurchaseOrderEnv.useTestPurchaseOrderEnv ? TEST_PO_COMPANY : this.tenant.currentDataAreaId();
   }
 
   /**

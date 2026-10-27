@@ -1,8 +1,9 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiService } from './api.service';
 import { ODataResponse } from '../models/lookup.models';
 import { CycleCountJournalHeader, CycleCountJournalLine } from '../../models/inventory.model';
+import { TenantConfigStore } from '../tenant/tenant-config.store';
 
 /**
  * The counting journal name configured in D365 (Inventory management > Setup >
@@ -13,7 +14,11 @@ export const CYCLE_COUNT_JOURNAL_NAME = 'ICnt';
 
 @Injectable({ providedIn: 'root' })
 export class CycleCountService {
-  private readonly dataAreaId = 'usmf';
+  private tenant = inject(TenantConfigStore);
+
+  private get dataAreaId(): string {
+    return this.tenant.currentDataAreaId();
+  }
 
   constructor(private api: ApiService) {}
 

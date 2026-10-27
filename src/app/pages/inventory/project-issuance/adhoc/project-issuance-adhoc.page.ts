@@ -1,8 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LoadingController, ToastController } from '@ionic/angular';
 import { ProjectIssuanceService } from '../../../../core/services/project-issuance.service';
+import { TenantConfigStore } from '../../../../core/tenant/tenant-config.store';
 
 const LINE_PROPERTIES = ['Billable', 'Non-Billable', 'Complimentary', 'Internal'];
 
@@ -13,9 +14,11 @@ const LINE_PROPERTIES = ['Billable', 'Non-Billable', 'Complimentary', 'Internal'
   standalone: false,
 })
 export class ProjectIssuanceAdhocPage implements OnInit {
+  private readonly tenantConfig = inject(TenantConfigStore);
+
   projectId = '';
   projectName = '';
-  dataAreaId = 'usmf';
+  dataAreaId = this.tenantConfig.currentDataAreaId();
   isProjectFixed = false;
 
   form!: FormGroup;
@@ -39,7 +42,7 @@ export class ProjectIssuanceAdhocPage implements OnInit {
     const nav = this.router.getCurrentNavigation();
     const state = nav?.extras?.state ?? history.state;
     this.projectName = state?.['projectName'] ?? '';
-    this.dataAreaId  = state?.['dataAreaId']  ?? 'usmf';
+    this.dataAreaId  = state?.['dataAreaId']  ?? this.tenantConfig.currentDataAreaId();
 
     this.form = this.fb.group({
       projectIdField: [this.projectId, this.isProjectFixed ? [] : [Validators.required]],

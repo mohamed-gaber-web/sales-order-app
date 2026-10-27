@@ -1,6 +1,7 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable, of, delay } from 'rxjs';
 import { ApiService } from './api.service';
+import { TenantConfigStore } from '../tenant/tenant-config.store';
 
 export interface Project {
   ProjectID: string;
@@ -88,9 +89,11 @@ const MOCK_REQUIREMENTS: Record<string, ItemRequirement[]> = {
 
 @Injectable({ providedIn: 'root' })
 export class ProjectIssuanceService {
+  private tenant = inject(TenantConfigStore);
+
   constructor(private api: ApiService) {}
 
-  getProjects(skip = 0, dataAreaId = 'usmf'): Observable<{ value: Project[]; '@odata.count': number }> {
+  getProjects(skip = 0, dataAreaId = this.tenant.currentDataAreaId()): Observable<{ value: Project[]; '@odata.count': number }> {
     // TODO: replace with real API call when available:
     // return this.api.get('/data/Projects', {
     //   '$filter': `dataAreaId eq '${dataAreaId}' and ProjectStage eq Microsoft.Dynamics.DataEntities.ProjStatus'InProcess'`,
@@ -102,11 +105,11 @@ export class ProjectIssuanceService {
     return of({ value: page, '@odata.count': MOCK_PROJECTS.length }).pipe(delay(600));
   }
 
-  getAllProjects(dataAreaId = 'usmf'): Observable<{ value: Project[] }> {
+  getAllProjects(dataAreaId = this.tenant.currentDataAreaId()): Observable<{ value: Project[] }> {
     return of({ value: MOCK_PROJECTS }).pipe(delay(400));
   }
 
-  getItemRequirements(projectId: string, dataAreaId = 'usmf'): Observable<{ value: ItemRequirement[] }> {
+  getItemRequirements(projectId: string, dataAreaId = this.tenant.currentDataAreaId()): Observable<{ value: ItemRequirement[] }> {
     // TODO: replace with real API call:
     // return this.api.get('/data/ProjectItemRequirements', {
     //   '$filter': `dataAreaId eq '${dataAreaId}' and ProjectID eq '${projectId}' and RemainingQuantity gt 0`,

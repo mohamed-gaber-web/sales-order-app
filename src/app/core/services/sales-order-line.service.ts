@@ -1,7 +1,8 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiService } from './api.service';
 import { ODataResponse } from '../models/lookup.models';
+import { TenantConfigStore } from '../tenant/tenant-config.store';
 
 // ── Lookup interfaces ──────────────────────────────────────
 export interface Site {
@@ -62,6 +63,8 @@ export interface CreateSalesOrderLineDto {
 
 @Injectable({ providedIn: 'root' })
 export class SalesOrderLineService {
+  private tenant = inject(TenantConfigStore);
+
   constructor(private api: ApiService) {}
 
   getOrderLines(
@@ -70,7 +73,7 @@ export class SalesOrderLineService {
     return this.api.get<ODataResponse<SalesOrderLineResponse>>(
       '/data/SalesOrderLines',
       {
-        '$filter': `SalesOrderNumber eq '${salesOrderNumber}' and dataAreaId eq 'usmf'`,
+        '$filter': `SalesOrderNumber eq '${salesOrderNumber}' and dataAreaId eq '${this.tenant.currentDataAreaId()}'`,
         '$count': 'true',
         '$orderby': 'LineCreationSequenceNumber desc',
       }

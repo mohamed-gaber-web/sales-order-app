@@ -17,6 +17,7 @@ import {
   CreateSalesOrderLineDto,
   SalesOrderLineService,
 } from './sales-order-line.service';
+import { TenantConfigStore } from '../tenant/tenant-config.store';
 
 /** Line payload for createOrderWithLines — order number/company come from the header */
 export type ScanOrderLineDto = Omit<CreateSalesOrderLineDto, 'dataAreaId' | 'SalesOrderNumber'>;
@@ -40,12 +41,11 @@ const SALES_LINE_OPERATIONS: Record<SalesLineAction, string> = {
 };
 
 const SALES_FILTER =
-  "dataAreaId eq 'usmf' and RemainInventPhysical gt 0 " +
+  "RemainInventPhysical gt 0 " +
   "and SalesTable_SalesStatus eq Microsoft.Dynamics.DataEntities.SalesStatus'Backorder' " +
   "and SalesStatus eq Microsoft.Dynamics.DataEntities.SalesStatus'Backorder'";
 const RETURN_FILTER =
-  "dataAreaId eq 'usmf' " +
-  "and (SalesType eq Microsoft.Dynamics.DataEntities.SalesType'ReturnItem' or RemainInventPhysical lt 0) " +
+  "(SalesType eq Microsoft.Dynamics.DataEntities.SalesType'ReturnItem' or RemainInventPhysical lt 0) " +
   "and SalesTable_SalesStatus eq Microsoft.Dynamics.DataEntities.SalesStatus'Backorder' " +
   "and SalesStatus eq Microsoft.Dynamics.DataEntities.SalesStatus'Backorder'";
 const SALES_SELECT =
@@ -101,6 +101,11 @@ function nextDay(date: Date): Date {
 export class SalesOrderService {
   private api = inject(ApiService);
   private orderLineService = inject(SalesOrderLineService);
+  private tenant = inject(TenantConfigStore);
+
+  private get companyFilter(): string {
+    return `dataAreaId eq '${this.tenant.currentDataAreaId()}'`;
+  }
 
   getOrderHeaders(skip = 0, returnsOnly = false): Observable<ODataResponse<SalesOrderHeaderResponse>> {
     return this.api.get<ODataResponse<SalesOrderHeaderResponse>>(
@@ -109,7 +114,7 @@ export class SalesOrderService {
         '$top': String(SALES_PAGE_SIZE),
         '$skip': String(skip),
         '$count': 'true',
-        '$filter': returnsOnly ? RETURN_FILTER : SALES_FILTER,
+        '$filter': `${this.companyFilter} and ${returnsOnly ? RETURN_FILTER : SALES_FILTER}`,
         '$select': SALES_SELECT,
         '$orderby': 'SalesId desc',
       }
@@ -156,7 +161,7 @@ export class SalesOrderService {
         '$skip': String(skip),
         '$count': 'true',
         '$filter':
-          `dataAreaId eq 'usmf'` +
+          this.companyFilter +
           ` and OrderCreationDateTime ge ${from.toISOString()}` +
           ` and OrderCreationDateTime lt ${to.toISOString()}`,
         '$select': SALES_TODAY_SELECT,
@@ -170,7 +175,7 @@ export class SalesOrderService {
       '/data/GP_SalesHeaderAndLineData',
       {
         '$count': 'true',
-        '$filter': returnsOnly ? RETURN_FILTER : SALES_FILTER,
+        '$filter': `${this.companyFilter} and ${returnsOnly ? RETURN_FILTER : SALES_FILTER}`,
         '$select': SALES_SELECT,
         '$orderby': 'SalesId desc',
       }

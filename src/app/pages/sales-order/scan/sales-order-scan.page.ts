@@ -13,6 +13,7 @@ import {
 } from '../../../core/services/sales-order-line.service';
 import { SalesOrderService } from '../../../core/services/sales-order.service';
 import { ScannerModalComponent } from '../../inventory/scanner/scanner-modal.component';
+import { TenantConfigStore } from '../../../core/tenant/tenant-config.store';
 
 /** One scanned line being built before submission (view state only) */
 interface ScanLine {
@@ -37,6 +38,8 @@ interface ScanLine {
   standalone: false,
 })
 export class SalesOrderScanPage implements OnInit {
+  private readonly tenantConfig = inject(TenantConfigStore);
+
   private fb = inject(FormBuilder);
   private router = inject(Router);
   private modalCtrl = inject(ModalController);
@@ -222,7 +225,7 @@ export class SalesOrderScanPage implements OnInit {
 
     const form = this.headerForm.value;
     const header = {
-      dataAreaId: 'usmf',
+      dataAreaId: this.tenantConfig.currentDataAreaId(),
       SalesOrderNumber: form.SalesOrderNumber,
       CurrencyCode: form.CurrencyCode,
       OrderingCustomerAccountNumber: form.OrderingCustomerAccountNumber,

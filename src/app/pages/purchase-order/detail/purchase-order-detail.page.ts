@@ -7,6 +7,7 @@ import { AlertController, LoadingController, ModalController, ToastController } 
 import { PurchaseOrderService } from '../../../core/services/purchase-order.service';
 import { PurchaseOrderHeader, PurchaseOrderLine } from '../../../models/purchase-order.model';
 import { ScannerModalComponent } from '../../inventory/scanner/scanner-modal.component';
+import { TenantConfigStore } from '../../../core/tenant/tenant-config.store';
 
 @Component({
   selector: 'app-purchase-order-detail',
@@ -15,6 +16,8 @@ import { ScannerModalComponent } from '../../inventory/scanner/scanner-modal.com
   standalone: false
 })
 export class PurchaseOrderDetailPage implements OnInit {
+  private readonly tenantConfig = inject(TenantConfigStore);
+
   poNumber = '';
   po: PurchaseOrderHeader | null = null;
   isLoading = false;
@@ -187,7 +190,7 @@ export class PurchaseOrderDetailPage implements OnInit {
 
     this.poService.createProductReceipt({
       _request: {
-        DataAreaId: ((this.po?.dataAreaId as string) ?? 'usmf').toUpperCase(),
+        DataAreaId: ((this.po?.dataAreaId as string) ?? this.tenantConfig.currentDataAreaId()).toUpperCase(),
         purchaseOrderID: this.poNumber,
         productReceiptId: packingSlipId,
         purchaseLineNum: selected.map((l) => l.LineNumber),
