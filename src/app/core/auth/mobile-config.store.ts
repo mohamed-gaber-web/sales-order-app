@@ -5,6 +5,7 @@ import {
   MobileConfigSource,
   isBelowMinimum,
   isMobileConfig,
+  isSafeLogoDataUrl,
 } from './mobile-config.models';
 
 const CONFIG_KEY = 'gp_mobile_config';
@@ -46,6 +47,15 @@ export class MobileConfigStore {
 
   /** The workspace name, known before sign-in. Empty until a config is in force. */
   readonly tenantName = computed(() => this.configState()?.tenantName ?? '');
+
+  /**
+   * The tenant's logo, set by its administrator in the portal. Null when there
+   * is none, and the app then shows the Grow Path mark alone at full width.
+   */
+  readonly tenantLogo = computed(() => {
+    const logo = this.configState()?.logoDataUrl;
+    return isSafeLogoDataUrl(logo) ? logo : null;
+  });
 
   readonly tenantSlug = computed(
     () => this.configState()?.tenantSlug ?? environment.tenantSlug

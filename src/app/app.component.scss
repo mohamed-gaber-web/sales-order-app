@@ -37,6 +37,31 @@
   margin-bottom: 28px;
   box-shadow: 0 12px 48px rgba(0, 0, 0, 0.4), 0 4px 16px rgba(0, 0, 0, 0.2);
   padding: 16px 24px;
+
+  // With a tenant logo: both marks side by side, Grow Path made smaller to share
+  // the box. The box grows to fit rather than squeezing either logo.
+  &.co-branded {
+    width: auto;
+    min-width: 200px;
+    gap: 16px;
+
+    .splash-logo {
+      width: 104px;
+      flex-shrink: 0;
+    }
+
+    .tenant-logo {
+      max-width: 120px;
+      max-height: 56px;
+      object-fit: contain;
+    }
+
+    .logo-divider {
+      width: 1px;
+      align-self: stretch;
+      background: rgba(0, 37, 89, 0.15);
+    }
+  }
 }
 
 .splash-logo {
@@ -124,10 +149,33 @@ ion-menu {
       justify-content: center;
       margin: 0 auto 10px;
 
-      img {
+      .gp-logo {
         width: 180px;
         height: auto;
         object-fit: contain;
+      }
+
+      // With a tenant logo: Grow Path shrinks and the tenant's mark sits beside
+      // it. Without one, nothing here applies and Grow Path keeps its 180px.
+      &.co-branded {
+        gap: 12px;
+
+        .gp-logo {
+          width: 96px;
+          flex-shrink: 0;
+        }
+
+        .tenant-logo {
+          max-width: 120px;
+          max-height: 44px;
+          object-fit: contain;
+        }
+
+        .logo-divider {
+          width: 1px;
+          height: 32px;
+          background: var(--ion-color-step-200, rgba(0, 0, 0, 0.12));
+        }
       }
     }
 
@@ -483,4 +531,12 @@ ion-menu {
       }
     }
   }
+}
+
+// A tenant logo is usually drawn for a light background; on the dark menu it
+// gets a white backing so dark ink does not vanish into it.
+:host-context(body.ion-palette-dark) ion-menu .menu-header .tenant-logo {
+  background: #ffffff;
+  border-radius: 6px;
+  padding: 4px 6px;
 }

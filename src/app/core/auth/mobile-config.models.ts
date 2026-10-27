@@ -31,6 +31,13 @@ export interface MobileConfig {
   userAuth: MobileUserAuth | null;
   /** The oldest build this tenant will serve. Null means no floor. */
   minimumAppVersion: string | null;
+  /**
+   * The tenant's own logo as a `data:` URL, shown beside the Grow Path mark.
+   *
+   * Optional because an older API does not send it and an older cache does not
+   * hold it; both mean "no logo", which is what null means too.
+   */
+  logoDataUrl?: string | null;
   /** When the configuration last changed, so a client can cache and re-check. */
   updatedAt: string;
 }
@@ -81,6 +88,20 @@ export function isSafeApiBaseUrl(value: string): boolean {
   } catch {
     return false;
   }
+}
+
+/**
+ * True for a logo this app will draw: a base64 PNG, JPEG or WebP `data:` URL.
+ *
+ * The API accepts nothing else, but the cached copy is user-writable, so it is
+ * re-checked. Deliberately *not* part of `isMobileConfig`: a bad logo is a
+ * reason to show Grow Path alone, never a reason to throw away the API URL.
+ */
+export function isSafeLogoDataUrl(value: unknown): value is string {
+  return (
+    typeof value === 'string' &&
+    /^data:image\/(?:png|jpeg|webp);base64,[A-Za-z0-9+/]+={0,2}$/.test(value)
+  );
 }
 
 /**

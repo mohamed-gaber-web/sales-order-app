@@ -4,8 +4,12 @@
   @if (showSplash) {
     <div class="splash-overlay" [class.fade-out]="splashFading">
       <div class="splash-content">
-        <div class="splash-logo-wrap">
+        <div class="splash-logo-wrap" [class.co-branded]="tenantLogo()">
           <img src="assets/icon/grow-path-logo.svg" alt="Grow Path" class="splash-logo" />
+          @if (tenantLogo(); as logo) {
+            <span class="logo-divider" aria-hidden="true"></span>
+            <img [src]="logo" [alt]="tenantName()" class="tenant-logo" />
+          }
         </div>
         <h1 class="splash-title">Grow Path</h1>
         <p class="splash-subtitle">{{ 'app.tagline' | translate }}</p>
@@ -28,8 +32,12 @@
       <ion-header class="ion-no-border">
         <ion-toolbar>
           <div class="menu-header">
-            <div class="app-logo">
-              <img src="assets/icon/grow-path-logo.svg" alt="Grow Path" />
+            <div class="app-logo" [class.co-branded]="tenantLogo()">
+              <img src="assets/icon/grow-path-logo.svg" alt="Grow Path" class="gp-logo" />
+              @if (tenantLogo(); as logo) {
+                <span class="logo-divider" aria-hidden="true"></span>
+                <img [src]="logo" [alt]="tenantName()" class="tenant-logo" />
+              }
             </div>
             <p class="app-tagline">{{ 'app.tagline' | translate }}</p>
           </div>

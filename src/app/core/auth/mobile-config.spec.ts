@@ -6,7 +6,13 @@ import { environment } from '../../../environments/environment';
 import { MobileConfigService } from './mobile-config.service';
 import { MobileConfigStore } from './mobile-config.store';
 import { PortalApiService } from './portal-api.service';
-import { MobileConfig, isBelowMinimum, isMobileConfig, isSafeApiBaseUrl } from './mobile-config.models';
+import {
+  MobileConfig,
+  isBelowMinimum,
+  isMobileConfig,
+  isSafeApiBaseUrl,
+  isSafeLogoDataUrl,
+} from './mobile-config.models';
 
 const CONFIG_KEY = 'gp_mobile_config';
 
@@ -185,6 +191,36 @@ describe('mobile config bootstrap', () => {
       expect(isMobileConfig(config())).toBeTrue();
       expect(isMobileConfig({ ...config(), tenantName: undefined })).toBeFalse();
       expect(isMobileConfig(null)).toBeFalse();
+    });
+
+    it('draws only raster data: URLs as a tenant logo', () => {
+      expect(isSafeLogoDataUrl('data:image/png;base64,iVBORw0KGgo=')).toBeTrue();
+      expect(isSafeLogoDataUrl('data:image/webp;base64,UklGRg==')).toBeTrue();
+      expect(isSafeLogoDataUrl('data:image/svg+xml;base64,PHN2Zz4=')).toBeFalse();
+      expect(isSafeLogoDataUrl('https://evil.example/logo.png')).toBeFalse();
+      expect(isSafeLogoDataUrl(null)).toBeFalse();
+    });
+  });
+
+  describe('tenant logo', () => {
+    it('is null without one, so Grow Path keeps the full width', () => {
+      const { store } = setup(false);
+      store.set(config());
+      expect(store.tenantLogo()).toBeNull();
+    });
+
+    it('carries the logo the portal set', () => {
+      const { store } = setup(false);
+      const logo = 'data:image/png;base64,iVBORw0KGgo=';
+      store.set(config({ logoDataUrl: logo }));
+      expect(store.tenantLogo()).toBe(logo);
+    });
+
+    it('drops a tampered logo but keeps the rest of the configuration', () => {
+      const { store } = setup(false);
+      store.set(config({ logoDataUrl: 'javascript:alert(1)' }));
+      expect(store.tenantLogo()).toBeNull();
+      expect(store.apiBaseUrl()).toBe('https://acme-api.example.com');
     });
   });
 });
