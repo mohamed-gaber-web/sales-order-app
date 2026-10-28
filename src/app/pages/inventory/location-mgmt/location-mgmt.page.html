@@ -33,6 +33,7 @@
   <div class="filter-bar">
     <ion-select
       class="wh-select"
+      [value]="selectedWarehouse?.WarehouseId"
       placeholder="Select warehouse…"
       interface="action-sheet"
       (ionChange)="onWarehouseChange($event)">

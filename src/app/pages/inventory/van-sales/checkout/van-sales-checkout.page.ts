@@ -16,6 +16,7 @@ import { Customer } from '../../../../core/models/lookup.models';
 import { Warehouse } from '../../../../models/inventory.model';
 import { VanSaleResult } from '../../../../models/van-sales.model';
 import { VanSalesLabelModalComponent } from '../label/van-sales-label-modal.component';
+import { TenantConfigStore } from '../../../../core/tenant/tenant-config.store';
 
 const DEFAULT_CURRENCY = 'USD';
 
@@ -29,6 +30,7 @@ type Picker = 'customer' | 'warehouse' | null;
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class VanSalesCheckoutPage implements OnInit {
+  private readonly tenantConfig = inject(TenantConfigStore);
   private router = inject(Router);
   private modalCtrl = inject(ModalController);
   private loadingCtrl = inject(LoadingController);
@@ -92,7 +94,13 @@ export class VanSalesCheckoutPage implements OnInit {
     }
     this.preselectVisitCustomer();
     this.vanSales.getWarehouses().subscribe({
-      next: (list) => this.warehouses.set(list),
+      next: (list) => {
+        this.warehouses.set(list);
+        if (!this.warehouse()) {
+          const assigned = this.tenantConfig.pickDefaultWarehouse(list);
+          if (assigned) this.warehouse.set(assigned);
+        }
+      },
       error: () => this.warehouses.set([]),
     });
   }

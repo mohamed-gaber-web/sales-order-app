@@ -198,3 +198,50 @@ describe('setupRequiredGuard', () => {
     expect(router.createUrlTree).toHaveBeenCalledWith(['/dashboard']);
   });
 });
+
+describe('TenantConfigStore default warehouse', () => {
+  const MAIN = { WarehouseId: '11', WarehouseName: 'Main' };
+  const NORTH = { WarehouseId: '22', WarehouseName: 'North' };
+
+  function withCompany(dataAreaId: string): TenantConfigStore {
+    const { store } = makeStore();
+    store.set({ connections: [connection()], companies: [company({ dataAreaId })], modules: [] });
+    return store;
+  }
+
+  it('picks the assigned warehouse from a screen list in the same company', () => {
+    const store = withCompany('usmf');
+    store.setDefaultWarehouse({
+      companyId: 'co-1', companyName: 'USMF', dataAreaId: 'USMF', warehouseId: '22', name: 'North',
+    });
+    // Case-insensitive: D365 is not consistent about dataAreaId case.
+    expect(store.pickDefaultWarehouse([MAIN, NORTH])).toBe(NORTH);
+  });
+
+  it('never preselects a same-numbered warehouse in another company', () => {
+    const store = withCompany('usmf');
+    store.setDefaultWarehouse({
+      companyId: 'co-2', companyName: 'Other', dataAreaId: 'demf', warehouseId: '11', name: 'Main',
+    });
+    expect(store.defaultWarehouseId()).toBeNull();
+    expect(store.pickDefaultWarehouse([MAIN])).toBeUndefined();
+  });
+
+  it('picks nothing when the warehouse is not in the list, or none is assigned', () => {
+    const store = withCompany('usmf');
+    expect(store.pickDefaultWarehouse([MAIN])).toBeUndefined();
+    store.setDefaultWarehouse({
+      companyId: 'co-1', companyName: 'USMF', dataAreaId: 'usmf', warehouseId: '99', name: 'Gone',
+    });
+    expect(store.pickDefaultWarehouse([MAIN, NORTH])).toBeUndefined();
+  });
+
+  it('forgets the warehouse on sign-out, so the next user starts clean', () => {
+    const store = withCompany('usmf');
+    store.setDefaultWarehouse({
+      companyId: 'co-1', companyName: 'USMF', dataAreaId: 'usmf', warehouseId: '11', name: 'Main',
+    });
+    store.clear();
+    expect(store.defaultWarehouse()).toBeNull();
+  });
+});

@@ -68,6 +68,26 @@ export interface TenantCompany {
 }
 
 /** A module this tenant is entitled to. Drives which navigation entries exist. */
+/**
+ * The D365 warehouse the signed-in user works in, from `GET /me`.
+ *
+ * Assigned by the tenant's administrator in the portal. A default, never a
+ * restriction: screens start on it and the user can still pick another.
+ */
+export interface UserDefaultWarehouse {
+  companyId: string;
+  companyName: string;
+  dataAreaId: string;
+  warehouseId: string;
+  name: string;
+}
+
+/** `GET /me`. */
+export interface PortalMe {
+  userId: string;
+  defaultWarehouse: UserDefaultWarehouse | null;
+}
+
 export interface TenantModule {
   key: string;
   description: string;

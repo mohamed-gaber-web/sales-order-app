@@ -94,6 +94,10 @@ export class SalesOrderLineFormPage implements OnInit {
         this.filteredSites = this.sites;
         this.allWarehouses = warehousesRes.value;
         this.filteredWarehouses = this.allWarehouses;
+        if (!this.lineForm.value.ShippingWarehouseId) {
+          const assigned = this.tenantConfig.pickDefaultWarehouse(this.allWarehouses);
+          if (assigned) this.lineForm.patchValue({ ShippingWarehouseId: assigned.WarehouseId });
+        }
         this.isLoading = false;
       },
       error: async () => {

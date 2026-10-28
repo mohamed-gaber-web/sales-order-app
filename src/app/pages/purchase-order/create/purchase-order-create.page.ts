@@ -157,6 +157,10 @@ export class PurchaseOrderCreatePage implements OnInit {
       next: ([vendors, warehousesRes]) => {
         this.vendors = vendors;
         this.warehouses = warehousesRes.value;
+        if (!this.headerForm.value.ReceivingWarehouseId) {
+          const assigned = this.tenantConfig.pickDefaultWarehouse(this.warehouses);
+          if (assigned) this.selectWarehouse(assigned);
+        }
         this.isLoading = false;
       },
       error: () => {

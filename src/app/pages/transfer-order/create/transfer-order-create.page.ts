@@ -137,6 +137,11 @@ export class TransferOrderCreatePage implements OnInit {
       next: (res) => {
         this.warehouses = res.value;
         this.filteredWarehouses = this.warehouses;
+        // The "from" side: stock usually leaves the warehouse the user works in.
+        if (!this.headerForm.value.ShippingWarehouseId) {
+          const assigned = this.tenantConfig.pickDefaultWarehouse(this.warehouses);
+          if (assigned) this.headerForm.patchValue({ ShippingWarehouseId: assigned.WarehouseId });
+        }
         this.isLoading = false;
       },
       error: () => {

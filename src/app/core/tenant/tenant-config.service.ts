@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { PortalApiService } from '../auth';
 import { TenantConfigStore } from './tenant-config.store';
-import { TenantCompany, TenantConnection, TenantModule } from './tenant-config.models';
+import { PortalMe, TenantCompany, TenantConnection, TenantModule } from './tenant-config.models';
 
 /**
  * Loads the signed-in tenant's configuration from the admin portal.
@@ -45,6 +45,24 @@ export class TenantConfigService {
     } catch (error) {
       console.error('Could not load tenant configuration:', error);
       this.store.markLoaded();
+    }
+
+    await this.loadMe();
+  }
+
+  /**
+   * The signed-in user's own details — today, their default warehouse.
+   *
+   * Separate from the load above on purpose: an API from before `/me` existed
+   * answers 404, and that must cost the user their preselected warehouse, not
+   * the whole tenant configuration.
+   */
+  private async loadMe(): Promise<void> {
+    try {
+      const me = await this.api.get<PortalMe>('/me');
+      this.store.setDefaultWarehouse(me?.defaultWarehouse ?? null);
+    } catch {
+      this.store.setDefaultWarehouse(null);
     }
   }
 }

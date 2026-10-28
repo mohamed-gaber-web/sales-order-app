@@ -6,6 +6,7 @@ import { SalesOrderLineService, Site, Warehouse } from '../../../../core/service
 import { TransferJournalService } from '../../../../core/services/transfer-journal.service';
 import { WarehouseLocation } from '../../../../models/inventory.model';
 import { TransferRoute } from '../../../../models/transfer-journal.model';
+import { TenantConfigStore } from '../../../../core/tenant/tenant-config.store';
 
 type Side = 'from' | 'to';
 
@@ -40,6 +41,7 @@ function emptySideState(): SideState {
   standalone: false,
 })
 export class TransferJournalFromToPage implements OnInit {
+  private readonly tenantConfig = inject(TenantConfigStore);
   from: SideState = emptySideState();
   to: SideState = emptySideState();
 
@@ -69,6 +71,11 @@ export class TransferJournalFromToPage implements OnInit {
         this.to.filteredSites = this.sites;
         this.from.filteredWarehouses = this.allWarehouses;
         this.to.filteredWarehouses = this.allWarehouses;
+        // Stock usually leaves the warehouse the user works in.
+        if (!this.from.warehouseId) {
+          const assigned = this.tenantConfig.pickDefaultWarehouse(this.allWarehouses);
+          if (assigned) this.selectWarehouse('from', assigned);
+        }
         this.isLoadingLookups = false;
       },
       error: async () => {

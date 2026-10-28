@@ -107,6 +107,10 @@ export class SalesOrderScanPage implements OnInit {
         this.filteredSites = this.sites;
         this.allWarehouses = warehousesRes.value;
         this.filteredWarehouses = this.allWarehouses;
+        if (!this.headerForm.value.ShippingWarehouseId) {
+          const assigned = this.tenantConfig.pickDefaultWarehouse(this.allWarehouses);
+          if (assigned) this.headerForm.patchValue({ ShippingWarehouseId: assigned.WarehouseId });
+        }
         this.isLoading = false;
       },
       error: async () => {

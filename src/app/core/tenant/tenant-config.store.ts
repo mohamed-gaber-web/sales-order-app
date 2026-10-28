@@ -5,6 +5,7 @@ import {
   TenantConnection,
   TenantModule,
   findErpBlocker,
+  UserDefaultWarehouse,
 } from './tenant-config.models';
 
 /**
@@ -27,6 +28,7 @@ export class TenantConfigStore {
   private readonly companiesState = signal<TenantCompany[]>([]);
   private readonly modulesState = signal<TenantModule[]>([]);
   private readonly loadedState = signal(false);
+  private readonly defaultWarehouseState = signal<UserDefaultWarehouse | null>(null);
 
   readonly connections = this.connectionsState.asReadonly();
   readonly companies = this.companiesState.asReadonly();
@@ -100,6 +102,39 @@ export class TenantConfigStore {
       : null;
   });
 
+  /** The signed-in user's warehouse, as assigned in the portal. */
+  readonly defaultWarehouse = this.defaultWarehouseState.asReadonly();
+
+  /**
+   * The user's warehouse id, but only in the company the app is working in.
+   *
+   * Warehouse ids repeat across D365 legal entities — `11` exists in many — so
+   * a warehouse assigned in one company must not preselect a namesake in
+   * another.
+   */
+  readonly defaultWarehouseId = computed(() => {
+    const warehouse = this.defaultWarehouseState();
+    const current = this.dataAreaId();
+    return warehouse && current && warehouse.dataAreaId.toLowerCase() === current.toLowerCase()
+      ? warehouse.warehouseId
+      : null;
+  });
+
+  /**
+   * The user's warehouse from a screen's own list, or undefined.
+   *
+   * Every screen calls this only when nothing is selected yet, so it fills an
+   * empty field and never overrides a choice.
+   */
+  pickDefaultWarehouse<T extends { WarehouseId: string }>(list: readonly T[] | null | undefined): T | undefined {
+    const id = this.defaultWarehouseId();
+    return id ? list?.find(warehouse => warehouse.WarehouseId === id) : undefined;
+  }
+
+  setDefaultWarehouse(warehouse: UserDefaultWarehouse | null): void {
+    this.defaultWarehouseState.set(warehouse);
+  }
+
   /** True when the tenant is entitled to a module. Unknown modules are off. */
   hasModule(key: string): boolean {
     return this.modulesState().some(module => module.key === key && module.enabled);
@@ -127,5 +162,6 @@ export class TenantConfigStore {
     this.companiesState.set([]);
     this.modulesState.set([]);
     this.loadedState.set(false);
+    this.defaultWarehouseState.set(null);
   }
 }

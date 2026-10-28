@@ -4,6 +4,7 @@ import { ToastController } from '@ionic/angular';
 import { forkJoin } from 'rxjs';
 import { CycleCountService } from '../../../../core/services/cycle-count.service';
 import { SalesOrderLineService, Site, Warehouse } from '../../../../core/services/sales-order-line.service';
+import { TenantConfigStore } from '../../../../core/tenant/tenant-config.store';
 
 @Component({
   selector: 'app-cycle-count-start',
@@ -12,6 +13,7 @@ import { SalesOrderLineService, Site, Warehouse } from '../../../../core/service
   standalone: false,
 })
 export class CycleCountStartPage implements OnInit {
+  private readonly tenantConfig = inject(TenantConfigStore);
   siteId = '';
   siteName = '';
   warehouseId = '';
@@ -73,6 +75,12 @@ export class CycleCountStartPage implements OnInit {
       (w) => w.WarehouseId === lastWarehouseId && (!lastSite || !w.OperationalSiteId || w.OperationalSiteId === lastSite.SiteId)
     );
     if (lastWarehouse) this.selectWarehouse(lastWarehouse, false);
+
+    // Nothing remembered on this device: start on the user's own warehouse.
+    if (!this.warehouseId) {
+      const assigned = this.tenantConfig.pickDefaultWarehouse(this.allWarehouses);
+      if (assigned) this.selectWarehouse(assigned, false);
+    }
   }
 
   // ── Site picker ─────────────────────────────────────────────

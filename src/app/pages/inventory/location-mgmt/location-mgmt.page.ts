@@ -52,6 +52,14 @@ export class LocationMgmtPage implements OnInit {
   ngOnInit() {
     this.inventorySvc.getWarehouses().subscribe(res => {
       this.warehouses = res.value ?? [];
+      // Start on the user's own warehouse, so its locations are already listed.
+      if (!this.selectedWarehouse) {
+        const assigned = this.tenantConfig.pickDefaultWarehouse(this.warehouses);
+        if (assigned) {
+          this.selectedWarehouse = assigned;
+          this.resetAndLoad();
+        }
+      }
     });
 
     this.search$
