@@ -1,12 +1,13 @@
 import { Component, computed, inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { LoadingController, ToastController } from '@ionic/angular';
+import { LoadingController, ModalController, ToastController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 import { forkJoin, from, Observable, of } from 'rxjs';
 import { catchError, concatMap, map, switchMap, toArray } from 'rxjs/operators';
 import { PurchaseOrderService } from '../../../core/services/purchase-order.service';
-import { InventoryService } from '../../../core/services/inventory.service';
+import { InventoryService, ScannedItem } from '../../../core/services/inventory.service';
+import { ScannerModalComponent } from '../../inventory/scanner/scanner-modal.component';
 import { LookupService } from '../../../core/services/lookup.service';
 import { ProductVariant, SalesOrderLineService, Warehouse } from '../../../core/services/sales-order-line.service';
 import { TenantConfigStore } from '../../../core/tenant/tenant-config.store';
@@ -63,6 +64,7 @@ export class PurchaseOrderCreatePage implements OnInit {
   private readonly router = inject(Router);
   private readonly loadingCtrl = inject(LoadingController);
   private readonly toastCtrl = inject(ToastController);
+  private readonly modalCtrl = inject(ModalController);
   private readonly translate = inject(TranslateService);
   private readonly poService = inject(PurchaseOrderService);
   private readonly inventoryService = inject(InventoryService);
@@ -117,6 +119,7 @@ export class PurchaseOrderCreatePage implements OnInit {
   variants: ProductVariant[] = [];
   isLoadingVariants = false;
   variantsFailed = false;
+  isResolvingScan = false;
 
   get canAddLine(): boolean {
     const v = this.lineForm.getRawValue();
@@ -224,7 +227,8 @@ export class PurchaseOrderCreatePage implements OnInit {
     const trimmed = term.trim();
     // Editing the item after picking one discards that item's variants,
     // otherwise item A's size could be posted against item B.
-    if (trimmed !== this.selectedItem) this.clearItemSelection();
+    if (trimmed === this.selectedItem) return; // already picked (or just scanned) — nothing to search
+    this.clearItemSelection();
 
     const seq = ++this.itemSearchSeq;
     if (trimmed.length < 2) {
@@ -249,12 +253,52 @@ export class PurchaseOrderCreatePage implements OnInit {
     });
   }
 
-  selectItem(product: InventoryProduct) {
+  selectItem(product: InventoryProduct, preselect?: ScannedItem['variant']) {
     this.lineForm.patchValue({ ItemNumber: product.ProductNumber });
     this.selectedItem = product.ProductNumber;
     this.showItemDropdown = false;
     this.itemResults = [];
-    this.loadVariants(product.ProductNumber);
+    this.loadVariants(product.ProductNumber, preselect);
+  }
+
+  // ── Scan ──────────────────────────────────────────────────
+  async scanItem() {
+    const modal = await this.modalCtrl.create({
+      component: ScannerModalComponent,
+      cssClass: 'scanner-modal',
+      breakpoints: [0, 0.75, 1],
+      initialBreakpoint: 0.75,
+    });
+    await modal.present();
+    const { data } = await modal.onWillDismiss<string>();
+    if (data) this.applyScan(data);
+  }
+
+  /** A keyboard-wedge scanner types the code and presses Enter into the item field. */
+  onItemEnter(event: Event) {
+    event.preventDefault();
+    const typed = String(this.lineForm.get('ItemNumber')?.value ?? '').trim();
+    if (typed && typed !== this.selectedItem) this.applyScan(typed);
+  }
+
+  private applyScan(code: string) {
+    this.isResolvingScan = true;
+    this.showItemDropdown = false;
+    this.itemSearchSeq++; // drop any search still in flight for the typed text
+    this.inventoryService.findItemByScan(code).subscribe({
+      next: (hit) => {
+        this.isResolvingScan = false;
+        if (hit) {
+          this.selectItem(hit.product, hit.variant);
+        } else {
+          this.showToast(this.translate.instant('poCreate.scanNoMatch', { code }), 'warning');
+        }
+      },
+      error: () => {
+        this.isResolvingScan = false;
+        this.showToast(this.translate.instant('poCreate.scanNoMatch', { code }), 'warning');
+      },
+    });
   }
 
   onItemInputBlur() {
@@ -267,7 +311,7 @@ export class PurchaseOrderCreatePage implements OnInit {
   }
 
   /** Variants are offered as the combinations D365 actually has, not four independent lists. */
-  private loadVariants(itemNumber: string) {
+  private loadVariants(itemNumber: string, preselect?: ScannedItem['variant']) {
     this.isLoadingVariants = true;
     this.variantsFailed = false;
     this.variants = [];
@@ -277,6 +321,11 @@ export class PurchaseOrderCreatePage implements OnInit {
         if (this.selectedItem !== itemNumber) return; // item changed while loading
         this.variants = res.value;
         this.isLoadingVariants = false;
+        if (preselect) {
+          // A scanned barcode names one variant — pick it so the operator only confirms.
+          const index = this.variants.findIndex((v) => VARIANT_FIELDS.every((f) => (v[f] ?? '') === preselect[f]));
+          if (index >= 0) this.lineForm.patchValue({ VariantIndex: index });
+        }
       },
       error: () => {
         if (this.selectedItem !== itemNumber) return;

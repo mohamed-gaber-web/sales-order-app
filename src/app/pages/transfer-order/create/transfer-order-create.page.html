@@ -118,10 +118,15 @@
               [placeholder]="'transferCreate.searchItems' | translate"
               [debounce]="300"
               (ionInput)="onItemNumberInput($any($event).detail.value || '')"
+              (keydown.enter)="onItemEnter($event)"
               (ionBlur)="onItemInputBlur()">
             </ion-input>
-            @if (isLoadingVariants) {
+            @if (isLoadingVariants || isResolvingScan) {
               <ion-spinner slot="end" name="dots"></ion-spinner>
+            } @else {
+              <ion-button slot="end" fill="clear" (click)="scanItem()" [aria-label]="'common.scanQrBarcode' | translate">
+                <ion-icon slot="icon-only" name="scan-outline"></ion-icon>
+              </ion-button>
             }
           </ion-item>
 

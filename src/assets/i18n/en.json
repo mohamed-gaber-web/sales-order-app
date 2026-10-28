@@ -509,7 +509,8 @@
     "lineFailed": "D365 rejected this line.",
     "noLinesCreated": "No line could be created, so the transfer was not saved. Fix the lines and try again.",
     "retryLines": "Add Lines to Transfer",
-    "openOrder": "Open Transfer"
+    "openOrder": "Open Transfer",
+    "scanNoMatch": "No item found for “{{code}}”. Scan again or search by name."
   },
   "poCreate": {
     "title": "New Purchase Order",
@@ -535,6 +536,7 @@
     "loadFailed": "Couldn't load vendors and warehouses. Check your connection and try again.",
     "selectCurrency": "Select currency",
     "deliveryDate": "Delivery date",
-    "warehouseNoSite": "Warehouse {{warehouse}} has no site in D365, so it can't receive this order. Pick another warehouse."
+    "warehouseNoSite": "Warehouse {{warehouse}} has no site in D365, so it can't receive this order. Pick another warehouse.",
+    "scanNoMatch": "No item found for “{{code}}”. Scan again or search by name."
   }
 }
