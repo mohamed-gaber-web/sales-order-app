@@ -442,6 +442,17 @@
 
     .web-actions { display: flex; align-items: center; gap: 12px; }
 
+    .web-create-btn {
+      --background: linear-gradient(90deg, var(--gp-accent) 0%, var(--gp-accent-end) 100%);
+      --border-radius: var(--gp-radius-md);
+      --box-shadow: 0 4px 14px rgba(var(--ion-color-secondary-rgb), 0.3);
+      font-weight: 700;
+      font-size: 14px;
+      text-transform: none;
+      height: 40px;
+      letter-spacing: -0.01em;
+    }
+
     .web-searchbar {
       --background: var(--gp-bg);
       --border-radius: 12px;

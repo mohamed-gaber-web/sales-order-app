@@ -489,5 +489,26 @@
       "LicensePlateId": "License plate"
     },
     "confirmCancelQty": "Cancel {{qty}} on line {{line}} of {{order}}? This cannot be undone."
+  },
+  "transferCreate": {
+    "title": "New Transfer",
+    "route": "Route",
+    "selectWarehouse": "Select warehouse",
+    "sameWarehouse": "Ship from and ship to must be different warehouses.",
+    "searchItems": "Type to search items...",
+    "noLines": "Add at least one line to create the transfer.",
+    "submit": "Create Transfer",
+    "creating": "Creating transfer...",
+    "created": "Transfer {{number}} created.",
+    "linesFailed": "Transfer {{number}} created, but {{failed}} of {{count}} line(s) failed. Fix or remove them, then try again.",
+    "failed": "Couldn't create transfer. Try again.",
+    "loadFailed": "Couldn't load warehouses. Check your connection and try again.",
+    "pickItem": "Pick the item from the search results.",
+    "variant": "Variant",
+    "selectVariant": "Select variant",
+    "lineFailed": "D365 rejected this line.",
+    "noLinesCreated": "No line could be created, so the transfer was not saved. Fix the lines and try again.",
+    "retryLines": "Add Lines to Transfer",
+    "openOrder": "Open Transfer"
   }
 }

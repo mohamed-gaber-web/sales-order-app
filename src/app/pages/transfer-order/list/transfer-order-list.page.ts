@@ -193,6 +193,10 @@ export class TransferOrderListPage {
     );
   }
 
+  createOrder() {
+    this.router.navigate(['/transfer-order/create']);
+  }
+
   openDetail(transferOrderNumber: string) {
     this.router.navigate(['/transfer-order/detail', transferOrderNumber]);
   }

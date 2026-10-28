@@ -2,7 +2,12 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, forkJoin, map } from 'rxjs';
 import { ApiService } from './api.service';
 import { ODataResponse } from '../models/lookup.models';
-import { TransferOrderHeader, TransferOrderLine } from '../../models/transfer-order.model';
+import {
+  TransferOrderHeader,
+  TransferOrderLine,
+  CreateTransferOrderHeaderDto,
+  CreateTransferOrderLineDto,
+} from '../../models/transfer-order.model';
 import { TransferShipRequest, TransferReceiveRequest, TransferActionResponse } from '../../models/inventory.model';
 import { TenantConfigStore } from '../tenant/tenant-config.store';
 
@@ -62,6 +67,22 @@ export class TransferOrderService {
         header,
         lines: linesResp.value,
       }))
+    );
+  }
+
+  /** D365 numbers the order from its number sequence and returns it in the response. */
+  createOrderHeader(dto: CreateTransferOrderHeaderDto): Observable<TransferOrderHeader> {
+    return this.api.post<TransferOrderHeader>('/data/TransferOrderHeaders', dto);
+  }
+
+  createOrderLine(dto: CreateTransferOrderLineDto): Observable<TransferOrderLine> {
+    return this.api.post<TransferOrderLine>('/data/TransferOrderLines', dto);
+  }
+
+  /** Used only to roll back a header none of whose lines could be created. */
+  deleteOrderHeader(transferOrderNumber: string, dataAreaId = this.tenant.currentDataAreaId()): Observable<void> {
+    return this.api.delete<void>(
+      `/data/TransferOrderHeaders(dataAreaId='${dataAreaId}',TransferOrderNumber='${transferOrderNumber}')`
     );
   }
 

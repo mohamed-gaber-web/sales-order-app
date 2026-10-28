@@ -1,0 +1,70 @@
+// Layout, sections, dropdowns and inputs come from the sales-order-line form
+// stylesheet (see styleUrls); only the pending-line list is specific here.
+
+.add-line-btn {
+  margin-top: 8px;
+  text-transform: none;
+  font-weight: 600;
+}
+
+.lines-empty {
+  margin: 0;
+  color: var(--ion-color-medium);
+  font-size: 14px;
+}
+
+.pending-lines {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.pending-line {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--gp-border, #e5e7eb);
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.pending-line-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pending-line-item {
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--gp-navy, #002559);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pending-line-variant {
+  font-size: 13px;
+  color: var(--ion-color-medium);
+}
+
+.pending-line-qty {
+  font-weight: 700;
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+}
+
+.pending-line.has-error .pending-line-item {
+  color: var(--ion-color-danger);
+}
+
+.pending-line-error {
+  font-size: 13px;
+  color: var(--ion-color-danger);
+  white-space: normal;
+}

@@ -12,6 +12,10 @@ const routes: Routes = [
     loadChildren: () => import('./list/transfer-order-list.module').then(m => m.TransferOrderListModule)
   },
   {
+    path: 'create',
+    loadChildren: () => import('./create/transfer-order-create.module').then(m => m.TransferOrderCreateModule)
+  },
+  {
     path: 'detail/:transferId',
     loadChildren: () => import('./detail/transfer-order-detail.module').then(m => m.TransferOrderDetailModule)
   }

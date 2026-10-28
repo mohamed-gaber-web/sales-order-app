@@ -1,0 +1,252 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/transfer-order/list"></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ createdOrderNumber || ('transferCreate.title' | translate) }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="form-content">
+  @if (isLoading) {
+    <div class="loading-container">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>{{ 'msg.loadingOptions' | translate }}</p>
+    </div>
+  } @else if (loadFailed) {
+    <ds-empty-state
+      icon="cloud-offline-outline"
+      [title]="'transferLine.loadErrorTitle' | translate"
+      [message]="'transferCreate.loadFailed' | translate"
+      [buttonLabel]="'common.retry' | translate"
+      (buttonClick)="loadWarehouses()">
+    </ds-empty-state>
+  } @else {
+    <!-- Web Page Header (desktop only) -->
+    <div class="web-form-header">
+      <div class="web-form-header-inner">
+        <div class="web-breadcrumb">
+          <a (click)="goBack()" class="breadcrumb-link">{{ 'doc.transferOrders' | translate }}</a>
+          <ion-icon name="chevron-forward-outline"></ion-icon>
+          <span>{{ createdOrderNumber || ('transferCreate.title' | translate) }}</span>
+        </div>
+        <h1 class="web-form-title">{{ createdOrderNumber || ('transferCreate.title' | translate) }}</h1>
+      </div>
+    </div>
+
+    <div class="form-wrapper">
+
+      <!-- Route -->
+      <form [formGroup]="headerForm" class="form-section">
+        <div class="section-header">
+          <ion-icon name="swap-horizontal-outline"></ion-icon>
+          <h3>{{ 'transferCreate.route' | translate }}</h3>
+        </div>
+
+        <ion-list lines="none">
+          <div class="field-row">
+            <ion-item class="form-item" [button]="!createdOrderNumber" (click)="togglePicker('ShippingWarehouseId')">
+              <ion-input
+                [label]="('transferLine.from' | translate) + ' *'"
+                labelPlacement="stacked"
+                [placeholder]="'transferCreate.selectWarehouse' | translate"
+                [value]="warehouseLabel(headerForm.get('ShippingWarehouseId')?.value)"
+                [readonly]="true"
+                style="pointer-events: none;">
+              </ion-input>
+            </ion-item>
+
+            <ion-item class="form-item" [button]="!createdOrderNumber" (click)="togglePicker('ReceivingWarehouseId')">
+              <ion-input
+                [label]="('transferLine.to' | translate) + ' *'"
+                labelPlacement="stacked"
+                [placeholder]="'transferCreate.selectWarehouse' | translate"
+                [value]="warehouseLabel(headerForm.get('ReceivingWarehouseId')?.value)"
+                [readonly]="true"
+                style="pointer-events: none;">
+              </ion-input>
+            </ion-item>
+          </div>
+
+          @if (openPicker) {
+            <div class="select-dropdown">
+              <ion-searchbar
+                [placeholder]="'placeholder.searchWarehouses' | translate"
+                [debounce]="100"
+                [value]="warehouseSearch"
+                (ionInput)="onWarehouseSearch($any($event).detail.value || '')">
+              </ion-searchbar>
+              <div class="select-dropdown-list">
+                @for (wh of filteredWarehouses; track wh.WarehouseId) {
+                  <div
+                    class="select-dropdown-item"
+                    [class.active]="headerForm.get(openPicker)?.value === wh.WarehouseId"
+                    (click)="selectWarehouse(wh)">
+                    <ion-icon name="checkmark-outline" class="check-icon"></ion-icon>
+                    <span>{{ wh.WarehouseName ? wh.WarehouseId + ' – ' + wh.WarehouseName : wh.WarehouseId }}</span>
+                  </div>
+                }
+                @if (filteredWarehouses.length === 0) {
+                  <div class="select-dropdown-empty">{{ 'transferLine.noMatches' | translate }}</div>
+                }
+              </div>
+            </div>
+          }
+
+          @if (headerForm.hasError('sameWarehouse')) {
+            <div class="variant-message empty">
+              <ion-icon name="information-circle-outline"></ion-icon>
+              <span>{{ 'transferCreate.sameWarehouse' | translate }}</span>
+            </div>
+          }
+        </ion-list>
+      </form>
+
+      <!-- Add line -->
+      <form [formGroup]="lineForm" class="form-section" (ngSubmit)="addLine()">
+        <div class="section-header">
+          <ion-icon name="cube-outline"></ion-icon>
+          <h3>{{ 'common.addLine' | translate }}</h3>
+        </div>
+
+        <ion-list lines="none">
+          <ion-item class="form-item">
+            <ion-input
+              formControlName="ItemNumber"
+              [label]="('field.itemNumber' | translate) + ' *'"
+              labelPlacement="stacked"
+              [placeholder]="'transferCreate.searchItems' | translate"
+              [debounce]="300"
+              (ionInput)="onItemNumberInput($any($event).detail.value || '')"
+              (ionBlur)="onItemInputBlur()">
+            </ion-input>
+            @if (isLoadingVariants) {
+              <ion-spinner slot="end" name="dots"></ion-spinner>
+            }
+          </ion-item>
+
+          @if (showItemDropdown) {
+            <div class="select-dropdown">
+              <div class="select-dropdown-close">
+                <ion-button fill="clear" size="small" color="medium" (click)="showItemDropdown = false" [aria-label]="'common.closeResults' | translate">
+                  <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+                </ion-button>
+              </div>
+              <div class="select-dropdown-list">
+                @if (isSearchingItems) {
+                  <div class="select-dropdown-empty">{{ 'common.loading' | translate }}</div>
+                } @else {
+                  @for (product of itemResults; track product.ProductNumber) {
+                    <div
+                      class="select-dropdown-item"
+                      [class.active]="selectedItem === product.ProductNumber"
+                      (click)="selectItem(product)">
+                      <ion-icon name="checkmark-outline" class="check-icon"></ion-icon>
+                      <span>{{ product.ProductName ? product.ProductNumber + ' – ' + product.ProductName : product.ProductNumber }}</span>
+                    </div>
+                  }
+                  @if (itemResults.length === 0) {
+                    <div class="select-dropdown-empty">{{ 'transferLine.noMatches' | translate }}</div>
+                  }
+                }
+              </div>
+            </div>
+          }
+
+          @if (itemNotPicked) {
+            <div class="variant-message empty">
+              <ion-icon name="information-circle-outline"></ion-icon>
+              <span>{{ 'transferCreate.pickItem' | translate }}</span>
+            </div>
+          }
+
+          @if (variantsFailed) {
+            <div class="variant-message empty" (click)="retryVariants()">
+              <ion-icon name="refresh-outline"></ion-icon>
+              <span>{{ 'transferLine.loadFailed' | translate }}</span>
+            </div>
+          }
+
+          @if (variants.length > 0) {
+            <ion-item class="form-item">
+              <ion-select
+                formControlName="VariantIndex"
+                [label]="('transferCreate.variant' | translate) + ' *'"
+                labelPlacement="stacked"
+                interface="popover"
+                [placeholder]="'transferCreate.selectVariant' | translate">
+                @for (v of variants; track $index) {
+                  <ion-select-option [value]="$index">{{ variantLabel(v) }}</ion-select-option>
+                }
+              </ion-select>
+            </ion-item>
+          }
+
+          <ion-item class="form-item">
+            <ion-input
+              formControlName="TransferQuantity"
+              [label]="('field.quantity' | translate) + ' *'"
+              labelPlacement="stacked"
+              type="number"
+              inputmode="decimal"
+              min="0.01"
+              step="1">
+            </ion-input>
+          </ion-item>
+
+          <ion-button expand="block" fill="outline" type="submit" [disabled]="!canAddLine" class="add-line-btn">
+            <ion-icon slot="start" name="add-outline"></ion-icon>
+            {{ 'common.addLine' | translate }}
+          </ion-button>
+        </ion-list>
+      </form>
+
+      <!-- Pending lines -->
+      <div class="form-section">
+        <div class="section-header">
+          <ion-icon name="list-outline"></ion-icon>
+          <h3>{{ 'field.lines' | translate }} · {{ lines.length }}</h3>
+        </div>
+
+        @if (lines.length === 0) {
+          <p class="lines-empty">{{ 'transferCreate.noLines' | translate }}</p>
+        } @else {
+          <ul class="pending-lines">
+            @for (line of lines; track $index) {
+              <li class="pending-line" [class.has-error]="!!line.error">
+                <div class="pending-line-main">
+                  <span class="pending-line-item">{{ line.ItemNumber }}</span>
+                  @if (variantLabel(line)) {
+                    <span class="pending-line-variant">{{ variantLabel(line) }}</span>
+                  }
+                  @if (line.error) {
+                    <span class="pending-line-error">{{ line.error }}</span>
+                  }
+                </div>
+                <span class="pending-line-qty">{{ line.TransferQuantity }}</span>
+                <ion-button fill="clear" color="medium" size="small" (click)="removeLine($index)" [aria-label]="'common.removeItem' | translate">
+                  <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+                </ion-button>
+              </li>
+            }
+          </ul>
+        }
+      </div>
+
+    </div>
+  }
+</ion-content>
+
+@if (!isLoading && !loadFailed) {
+  <ion-footer class="ion-no-border">
+    <ds-cta-bar
+      [label]="createdOrderNumber ? ('transferCreate.retryLines' | translate) : ('transferCreate.submit' | translate)"
+      icon="checkmark-outline"
+      [loading]="isSubmitting"
+      [disabled]="!canSubmit"
+      [secondaryLabel]="createdOrderNumber ? ('transferCreate.openOrder' | translate) : ''"
+      (secondaryClick)="openOrder()"
+      (ctaClick)="onSubmit()">
+    </ds-cta-bar>
+  </ion-footer>
+}

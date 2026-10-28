@@ -29,3 +29,20 @@ export interface TransferOrderLine {
   ProductColorId?: string;
   ProductSizeId?: string;
 }
+
+export interface CreateTransferOrderHeaderDto {
+  dataAreaId: string;
+  ShippingWarehouseId: string;
+  ReceivingWarehouseId: string;
+}
+
+export interface CreateTransferOrderLineDto {
+  dataAreaId: string;
+  TransferOrderNumber: string;
+  ItemNumber: string;
+  ProductConfigurationId: string;
+  ProductSizeId: string;
+  ProductColorId: string;
+  ProductStyleId: string;
+  TransferQuantity: number;
+}

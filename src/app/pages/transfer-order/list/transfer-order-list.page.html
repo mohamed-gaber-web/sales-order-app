@@ -4,6 +4,11 @@
       <ion-menu-button></ion-menu-button>
     </ion-buttons>
     <ion-title>{{ 'doc.transferOrders' | translate }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="createOrder()" [attr.aria-label]="'transferCreate.title' | translate">
+        <ion-icon slot="icon-only" name="add-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
   <ion-toolbar class="search-toolbar">
     <ds-search
@@ -38,6 +43,10 @@
           animated="false"
           class="web-searchbar">
         </ion-searchbar>
+        <ion-button (click)="createOrder()" class="web-create-btn">
+          <ion-icon slot="start" name="add-outline"></ion-icon>
+          {{ 'transferCreate.title' | translate }}
+        </ion-button>
       </div>
     </div>
   </div>
