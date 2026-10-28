@@ -510,5 +510,31 @@
     "noLinesCreated": "No line could be created, so the transfer was not saved. Fix the lines and try again.",
     "retryLines": "Add Lines to Transfer",
     "openOrder": "Open Transfer"
+  },
+  "poCreate": {
+    "title": "New Purchase Order",
+    "vendorSection": "Vendor & Receiving",
+    "vendor": "Vendor",
+    "selectVendor": "Select vendor",
+    "searchVendors": "Search vendors...",
+    "receivingWarehouse": "Receiving warehouse",
+    "searchItems": "Type to search items...",
+    "pickItem": "Pick the item from the search results.",
+    "variant": "Variant",
+    "selectVariant": "Select variant",
+    "noLines": "Add at least one line to create the purchase order.",
+    "submit": "Create Purchase Order",
+    "creating": "Creating purchase order...",
+    "created": "Purchase order {{number}} created.",
+    "linesFailed": "Purchase order {{number}} created, but {{failed}} of {{count}} line(s) failed. Fix or remove them, then try again.",
+    "lineFailed": "D365 rejected this line.",
+    "noLinesCreated": "No line could be created, so the purchase order was not saved. Fix the lines and try again.",
+    "failed": "Couldn't create purchase order. Try again.",
+    "retryLines": "Add Lines to Order",
+    "openOrder": "Open Purchase Order",
+    "loadFailed": "Couldn't load vendors and warehouses. Check your connection and try again.",
+    "selectCurrency": "Select currency",
+    "deliveryDate": "Delivery date",
+    "warehouseNoSite": "Warehouse {{warehouse}} has no site in D365, so it can't receive this order. Pick another warehouse."
   }
 }

@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { catchError, from, map, Observable, of, switchMap, timeout } from 'rxjs';
+import { catchError, EMPTY, expand, from, map, Observable, of, reduce, switchMap, timeout } from 'rxjs';
 import { ApiService } from './api.service';
 import { AuthService } from './auth.service';
 import { ODataResponse } from '../models/lookup.models';
@@ -11,11 +11,16 @@ import {
   CreateProductReceiptResponse,
   RegisterPurchaseOrderRequest,
   RegisterPurchaseOrderResponse,
+  Vendor,
+  CreatePurchaseOrderHeaderDto,
+  CreatePurchaseOrderLineDto,
 } from '../../models/purchase-order.model';
 import { testPurchaseOrderEnv } from '../../../environments/test-purchase-order-env';
 import { TenantConfigStore } from '../tenant/tenant-config.store';
 
 export const PO_PAGE_SIZE = 10;
+
+const VENDOR_PAGE_SIZE = 1000;
 
 // D365 custom-action services (createProductReceipt) can legitimately run slow —
 // long enough to give a real slow response a chance, short enough that the loading
@@ -155,6 +160,51 @@ export class PurchaseOrderService {
         '$orderby': 'PurchaseOrderNumber desc',
         '$expand': 'PurchaseOrderLinesV2',
       }
+    );
+  }
+
+  // ── Create ─────────────────────────────────────────────────
+  // Writes go to the tenant's own environment, never the temporary sandbox.
+
+  /**
+   * Every vendor, searched in memory by the caller: this D365 environment
+   * rejects OData string functions (contains/startswith), so search cannot be
+   * done server-side.
+   *
+   * Paged with $skip rather than @odata.nextLink — the link is an absolute D365
+   * URL and would bypass the portal. Deliberately not cached on this
+   * root service: a cache here would outlive sign-out and show the next
+   * tenant's user someone else's vendors.
+   */
+  getVendors(): Observable<Vendor[]> {
+    const page = (skip: number) =>
+      this.api.get<ODataResponse<Vendor>>('/data/VendorsV3', {
+        '$select': 'VendorAccountNumber,VendorOrganizationName,CurrencyCode,LanguageId',
+        '$orderby': 'VendorAccountNumber asc',
+        '$top': String(VENDOR_PAGE_SIZE),
+        '$skip': String(skip),
+      }).pipe(map((res) => ({ skip, rows: res.value })));
+
+    return page(0).pipe(
+      expand(({ skip, rows }) => (rows.length === VENDOR_PAGE_SIZE ? page(skip + VENDOR_PAGE_SIZE) : EMPTY)),
+      reduce((all, { rows }) => all.concat(rows), [] as Vendor[])
+    );
+  }
+
+  /** D365 numbers the order from its number sequence and returns it in the response. */
+  createOrderHeader(dto: CreatePurchaseOrderHeaderDto): Observable<PurchaseOrderHeader> {
+    return this.api.post<PurchaseOrderHeader>('/data/PurchaseOrderHeadersV2', dto);
+  }
+
+  createOrderLine(dto: CreatePurchaseOrderLineDto): Observable<PurchaseOrderLine> {
+    return this.api.post<PurchaseOrderLine>('/data/PurchaseOrderLinesV2', dto);
+  }
+
+  /** Used only to roll back a header none of whose lines could be created. */
+  deleteOrderHeader(poNumber: string, dataAreaId: string): Observable<void> {
+    const key = (v: string) => encodeURIComponent(v.replace(/'/g, "''"));
+    return this.api.delete<void>(
+      `/data/PurchaseOrderHeadersV2(dataAreaId='${key(dataAreaId)}',PurchaseOrderNumber='${key(poNumber)}')`
     );
   }
 

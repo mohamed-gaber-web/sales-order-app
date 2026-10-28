@@ -333,7 +333,7 @@ export class TransferOrderCreatePage implements OnInit {
           this.lines = failed.map((r) => ({ ...r.line, error: r.error || this.translate.instant('transferCreate.lineFailed') }));
 
           if (!isRetry && failed.length === results.length) {
-            this.rollBackHeader(orderNumber, loading);
+            this.rollBackHeader(orderNumber, dataAreaId, loading);
             return;
           }
 
@@ -363,8 +363,8 @@ export class TransferOrderCreatePage implements OnInit {
     );
   }
 
-  private rollBackHeader(orderNumber: string, loading: HTMLIonLoadingElement) {
-    this.toService.deleteOrderHeader(orderNumber).subscribe({
+  private rollBackHeader(orderNumber: string, dataAreaId: string, loading: HTMLIonLoadingElement) {
+    this.toService.deleteOrderHeader(orderNumber, dataAreaId).subscribe({
       next: async () => {
         await this.finish(loading);
         this.showToast(this.translate.instant('transferCreate.noLinesCreated'), 'danger');

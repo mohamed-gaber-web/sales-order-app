@@ -8,6 +8,9 @@
       <ion-button (click)="scanOrder()">
         <ion-icon slot="icon-only" name="scan-outline"></ion-icon>
       </ion-button>
+      <ion-button (click)="createOrder()" [attr.aria-label]="'poCreate.title' | translate">
+        <ion-icon slot="icon-only" name="add-outline"></ion-icon>
+      </ion-button>
     </ion-buttons>
   </ion-toolbar>
   <ion-toolbar class="search-toolbar">
@@ -43,6 +46,10 @@
           animated="false"
           class="web-searchbar">
         </ion-searchbar>
+        <ion-button (click)="createOrder()" class="web-create-btn">
+          <ion-icon slot="start" name="add-outline"></ion-icon>
+          {{ 'poCreate.title' | translate }}
+        </ion-button>
       </div>
     </div>
   </div>

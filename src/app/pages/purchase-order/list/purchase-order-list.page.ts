@@ -209,6 +209,10 @@ export class PurchaseOrderListPage {
     );
   }
 
+  createOrder() {
+    this.router.navigate(['/purchase-order/create']);
+  }
+
   openDetail(poNumber: string) {
     this.router.navigate(['/purchase-order/detail', poNumber]);
   }

@@ -99,3 +99,36 @@ export interface RegisterPurchaseOrderResponse {
   RegisteredLineCount?: number;
   RegisteredLines?: Record<string, unknown>[] | null;
 }
+
+// ── Create ──────────────────────────────────────────────────
+export interface Vendor {
+  VendorAccountNumber: string;
+  VendorOrganizationName?: string;
+  CurrencyCode?: string;
+  LanguageId?: string;
+}
+
+export interface CreatePurchaseOrderHeaderDto {
+  dataAreaId: string;
+  OrderVendorAccountNumber: string;
+  InvoiceVendorAccountNumber: string;
+  CurrencyCode: string;
+  LanguageId: string;
+  DefaultReceivingSiteId: string;
+  DefaultReceivingWarehouseId: string;
+  /** ISO timestamp, e.g. 2026-11-05T12:00:00Z. */
+  RequestedDeliveryDate: string;
+}
+
+export interface CreatePurchaseOrderLineDto {
+  dataAreaId: string;
+  PurchaseOrderNumber: string;
+  ItemNumber: string;
+  ProductConfigurationId: string;
+  ProductSizeId: string;
+  ProductColorId: string;
+  ProductStyleId: string;
+  OrderedPurchaseQuantity: number;
+  ReceivingWarehouseId: string;
+  ReceivingSiteId: string;
+}

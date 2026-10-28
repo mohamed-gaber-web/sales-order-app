@@ -80,9 +80,10 @@ export class TransferOrderService {
   }
 
   /** Used only to roll back a header none of whose lines could be created. */
-  deleteOrderHeader(transferOrderNumber: string, dataAreaId = this.tenant.currentDataAreaId()): Observable<void> {
+  deleteOrderHeader(transferOrderNumber: string, dataAreaId: string): Observable<void> {
+    const key = (v: string) => encodeURIComponent(v.replace(/'/g, "''"));
     return this.api.delete<void>(
-      `/data/TransferOrderHeaders(dataAreaId='${dataAreaId}',TransferOrderNumber='${transferOrderNumber}')`
+      `/data/TransferOrderHeaders(dataAreaId='${key(dataAreaId)}',TransferOrderNumber='${key(transferOrderNumber)}')`
     );
   }
 
