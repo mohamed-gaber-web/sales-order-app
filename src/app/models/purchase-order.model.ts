@@ -104,30 +104,41 @@ export interface RegisterPurchaseOrderResponse {
 export interface Vendor {
   VendorAccountNumber: string;
   VendorOrganizationName?: string;
-  LanguageId?: string;
 }
 
+/** POST /data/PurchaseOrderHeadersV2. D365 fills the rest from the vendor. */
 export interface CreatePurchaseOrderHeaderDto {
   dataAreaId: string;
   OrderVendorAccountNumber: string;
-  InvoiceVendorAccountNumber: string;
-  CurrencyCode: string;
-  LanguageId: string;
-  DefaultReceivingSiteId: string;
-  DefaultReceivingWarehouseId: string;
   /** ISO timestamp, e.g. 2026-11-05T12:00:00Z. */
-  RequestedDeliveryDate: string;
+  AccountingDate: string;
+  CurrencyCode: string;
 }
 
+/** POST /data/PurchaseOrderLinesV2. */
 export interface CreatePurchaseOrderLineDto {
   dataAreaId: string;
   PurchaseOrderNumber: string;
+  LineNumber: number;
   ItemNumber: string;
   ProductConfigurationId: string;
   ProductSizeId: string;
   ProductColorId: string;
   ProductStyleId: string;
+  ProductVersionId: string;
+  ItemBatchNumber: string;
+  ItemSerialNumber: string;
   OrderedPurchaseQuantity: number;
-  ReceivingWarehouseId: string;
   ReceivingSiteId: string;
+  ReceivingWarehouseId: string;
+  /** Left out when none is given, so D365 uses the warehouse's default receipt location. */
+  ReceivingWarehouseLocationId?: string;
+  /** Left out when none is given, so D365 prices the line from the vendor's agreement. */
+  PurchasePrice?: number;
+  PurchasePriceQuantity: number;
+  LineDiscountAmount: number;
+  LineDiscountPercentage: number;
+  /** ISO timestamps. */
+  RequestedDeliveryDate: string;
+  RequestedShippingDate: string;
 }

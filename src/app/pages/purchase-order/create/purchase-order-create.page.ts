@@ -11,15 +11,18 @@ import { ScannerModalComponent } from '../../inventory/scanner/scanner-modal.com
 import { ProductVariant, SalesOrderLineService, Warehouse } from '../../../core/services/sales-order-line.service';
 import { TenantConfigStore } from '../../../core/tenant/tenant-config.store';
 import { InventoryProduct } from '../../../models/inventory.model';
-import { CreatePurchaseOrderLineDto, Vendor } from '../../../models/purchase-order.model';
+import { Vendor } from '../../../models/purchase-order.model';
+import {
+  buildHeaderPayload,
+  buildLinePayload,
+  PO_CURRENCY,
+  PurchaseOrderLineInput,
+  PurchaseOrderReceiving,
+} from './purchase-order-payload';
 
-type LineFields = Pick<
-  CreatePurchaseOrderLineDto,
-  'ItemNumber' | 'ProductConfigurationId' | 'ProductSizeId' | 'ProductColorId' | 'ProductStyleId' | 'OrderedPurchaseQuantity'
->;
 type Picker = 'vendor' | 'warehouse';
 
-interface PendingLine extends LineFields {
+interface PendingLine extends PurchaseOrderLineInput {
   /** D365's reason, set when this line was rejected on the last submit. */
   error?: string;
 }
@@ -30,12 +33,6 @@ interface LineResult {
 }
 
 const VARIANT_FIELDS = ['ProductConfigurationId', 'ProductSizeId', 'ProductColorId', 'ProductStyleId'] as const;
-
-/** Every purchase order is raised in Egyptian pounds, whatever the vendor's own currency. */
-const PO_CURRENCY = 'EGP';
-
-/** Used when the vendor record carries no language of its own. */
-const DEFAULT_LANGUAGE_ID = 'en-us';
 
 /** Enough to find a vendor by typing; the full list can run to thousands. */
 const VENDOR_RESULTS = 50;
@@ -79,6 +76,7 @@ export class PurchaseOrderCreatePage implements OnInit {
   readonly headerForm: FormGroup = this.fb.group({
     OrderVendorAccountNumber: ['', Validators.required],
     ReceivingWarehouseId: ['', Validators.required],
+    ReceivingWarehouseLocationId: [''],
     RequestedDeliveryDate: [isoDate(7), Validators.required],
   });
 
@@ -86,9 +84,17 @@ export class PurchaseOrderCreatePage implements OnInit {
     ItemNumber: ['', Validators.required],
     VariantIndex: [null as number | null],
     OrderedPurchaseQuantity: [1, [Validators.required, Validators.min(0.01)]],
+    PurchasePrice: [null as number | null, Validators.min(0)],
   });
 
   lines: PendingLine[] = [];
+
+  /**
+   * D365 takes the line number from the request. Assigned when a line is
+   * added and kept through a retry, so a line accepted on the first submit
+   * and one retried later can never claim the same number.
+   */
+  private nextLineNumber = 1;
 
   /**
    * Set once D365 has accepted the header but some lines are still pending.
@@ -338,7 +344,7 @@ export class PurchaseOrderCreatePage implements OnInit {
     this.lineForm.patchValue({ VariantIndex: null }, { emitEvent: false });
   }
 
-  variantLabel(v: Partial<LineFields>): string {
+  variantLabel(v: Partial<PurchaseOrderLineInput>): string {
     return VARIANT_FIELDS.map((f) => v[f]).filter((x) => !!x).join(' · ');
   }
 
@@ -350,8 +356,11 @@ export class PurchaseOrderCreatePage implements OnInit {
     }
     const v = this.lineForm.getRawValue();
     const variant = v.VariantIndex !== null ? this.variants[v.VariantIndex] : undefined;
+    const price = v.PurchasePrice;
     const line: PendingLine = {
+      LineNumber: this.nextLineNumber++,
       ItemNumber: this.selectedItem!,
+      PurchasePrice: price === null || price === '' || price === undefined ? null : Number(price),
       OrderedPurchaseQuantity: Number(v.OrderedPurchaseQuantity),
       ProductConfigurationId: variant?.ProductConfigurationId ?? '',
       ProductSizeId: variant?.ProductSizeId ?? '',
@@ -359,7 +368,7 @@ export class PurchaseOrderCreatePage implements OnInit {
       ProductStyleId: variant?.ProductStyleId ?? '',
     };
     this.lines = [...this.lines, line];
-    this.lineForm.reset({ ItemNumber: '', VariantIndex: null, OrderedPurchaseQuantity: 1 });
+    this.lineForm.reset({ ItemNumber: '', VariantIndex: null, OrderedPurchaseQuantity: 1, PurchasePrice: null });
     this.clearItemSelection();
   }
 
@@ -370,8 +379,8 @@ export class PurchaseOrderCreatePage implements OnInit {
   // ── Submit ────────────────────────────────────────────────
   /**
    * Header first — D365 assigns the order number — then each line in turn,
-   * one at a time so D365 numbers them in the order they were added. Every
-   * line receives into the header's warehouse and that warehouse's site.
+   * one at a time, in the order they were added. Every line receives into the
+   * chosen warehouse, its site and (if given) location, on the delivery date.
    *
    * Lines that fail stay on the form with D365's reason so they can be fixed
    * and retried against the same order. If not one line made it in, the
@@ -391,28 +400,20 @@ export class PurchaseOrderCreatePage implements OnInit {
     await loading.present();
 
     const dataAreaId = this.tenantConfig.currentDataAreaId();
-    const { OrderVendorAccountNumber, ReceivingWarehouseId, RequestedDeliveryDate } =
+    const { OrderVendorAccountNumber, ReceivingWarehouseId, ReceivingWarehouseLocationId, RequestedDeliveryDate } =
       this.headerForm.getRawValue();
-    const vendor = this.vendors.find((v) => v.VendorAccountNumber === OrderVendorAccountNumber);
-    const ReceivingSiteId =
-      this.warehouses.find((w) => w.WarehouseId === ReceivingWarehouseId)?.OperationalSiteId ?? '';
-    const receiving = { ReceivingWarehouseId, ReceivingSiteId };
+    const receiving: PurchaseOrderReceiving = {
+      ReceivingWarehouseId,
+      ReceivingSiteId: this.warehouses.find((w) => w.WarehouseId === ReceivingWarehouseId)?.OperationalSiteId ?? '',
+      ReceivingWarehouseLocationId: ReceivingWarehouseLocationId ?? '',
+      deliveryDate: RequestedDeliveryDate,
+    };
 
     const isRetry = !!this.createdOrderNumber;
     const orderNumber$: Observable<string> = this.createdOrderNumber
       ? of(this.createdOrderNumber)
       : this.poService
-          .createOrderHeader({
-            dataAreaId,
-            OrderVendorAccountNumber,
-            InvoiceVendorAccountNumber: OrderVendorAccountNumber,
-            CurrencyCode: PO_CURRENCY,
-            LanguageId: vendor?.LanguageId || DEFAULT_LANGUAGE_ID,
-            DefaultReceivingSiteId: ReceivingSiteId,
-            DefaultReceivingWarehouseId: ReceivingWarehouseId,
-            // Midday UTC keeps the calendar date the same in every time zone.
-            RequestedDeliveryDate: `${RequestedDeliveryDate}T12:00:00Z`,
-          })
+          .createOrderHeader(buildHeaderPayload(dataAreaId, OrderVendorAccountNumber, isoDate()))
           .pipe(map((created) => created.PurchaseOrderNumber));
 
     orderNumber$
@@ -463,12 +464,11 @@ export class PurchaseOrderCreatePage implements OnInit {
   private postLine(
     dataAreaId: string,
     orderNumber: string,
-    receiving: Pick<CreatePurchaseOrderLineDto, 'ReceivingWarehouseId' | 'ReceivingSiteId'>,
+    receiving: PurchaseOrderReceiving,
     line: PendingLine
   ): Observable<LineResult> {
-    const { error: _previous, ...fields } = line;
     return this.poService
-      .createOrderLine({ dataAreaId, PurchaseOrderNumber: orderNumber, ...receiving, ...fields })
+      .createOrderLine(buildLinePayload(dataAreaId, orderNumber, receiving, line))
       .pipe(
         map(() => ({ line, error: null })),
         catchError((err) => of({ line, error: d365Message(err) }))

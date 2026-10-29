@@ -519,6 +519,10 @@
     "scanNoMatch": "No item found for “{{code}}”. Scan again or search by name."
   },
   "poCreate": {
+    "receivingLocation": "Receiving location",
+    "receivingLocationHint": "Warehouse's default if left blank",
+    "unitPrice": "Unit price",
+    "unitPriceHint": "Vendor's price if left blank",
     "title": "New Purchase Order",
     "vendorSection": "Vendor & Receiving",
     "vendor": "Vendor",

@@ -228,7 +228,7 @@ export class PurchaseOrderService {
     return forkJoin([byNumber$, byVendor$, byItem$]).pipe(
       map((groups) => {
         const seen = new Map<string, PurchaseOrderHeader>();
-        for (const po of groups.flat()) seen.set(po.PurchaseOrderNumber, po);
+        for (const po of ([] as PurchaseOrderHeader[]).concat(...groups)) seen.set(po.PurchaseOrderNumber, po);
         return [...seen.values()]
           .sort((a, b) => b.PurchaseOrderNumber.localeCompare(a.PurchaseOrderNumber))
           .slice(0, SEARCH_LIMIT);
@@ -247,7 +247,7 @@ export class PurchaseOrderService {
           '$top': String(chunk.length),
         }).pipe(map((res) => res.value))
       )
-    ).pipe(map((pages) => pages.flat()));
+    ).pipe(map((pages) => ([] as PurchaseOrderHeader[]).concat(...pages)));
   }
 
   /** All open (Confirmed + Backorder) orders with their lines expanded — used for cross-order item/barcode lookup. */
@@ -279,7 +279,7 @@ export class PurchaseOrderService {
   getVendors(): Observable<Vendor[]> {
     const page = (skip: number) =>
       this.api.get<ODataResponse<Vendor>>('/data/VendorsV3', {
-        '$select': 'VendorAccountNumber,VendorOrganizationName,LanguageId',
+        '$select': 'VendorAccountNumber,VendorOrganizationName',
         '$orderby': 'VendorAccountNumber asc',
         '$top': String(VENDOR_PAGE_SIZE),
         '$skip': String(skip),
