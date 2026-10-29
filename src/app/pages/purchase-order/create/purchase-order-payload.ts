@@ -30,16 +30,24 @@ export function d365Date(isoDay: string): string {
   return `${isoDay}T12:00:00Z`;
 }
 
+/**
+ * The header body. The receiving warehouse and its site go on the header
+ * too: D365 does not derive them from the lines, so an order created without
+ * them shows an empty warehouse.
+ */
 export function buildHeaderPayload(
   dataAreaId: string,
   vendorAccount: string,
-  accountingDay: string
+  accountingDay: string,
+  receiving: Pick<PurchaseOrderReceiving, 'ReceivingSiteId' | 'ReceivingWarehouseId'>
 ): CreatePurchaseOrderHeaderDto {
   return {
     dataAreaId,
     OrderVendorAccountNumber: vendorAccount,
     AccountingDate: d365Date(accountingDay),
     CurrencyCode: PO_CURRENCY,
+    DefaultReceivingSiteId: receiving.ReceivingSiteId,
+    DefaultReceivingWarehouseId: receiving.ReceivingWarehouseId,
   };
 }
 

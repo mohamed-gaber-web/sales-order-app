@@ -18,12 +18,14 @@ describe('purchase order payloads', () => {
     PurchasePrice: 79.99,
   };
 
-  it('builds the header from the tenant company, the vendor and today, in EGP', () => {
-    expect(buildHeaderPayload('007', 'US-102', '2026-10-29')).toEqual({
+  it('builds the header from the tenant company, the vendor, today and the receiving warehouse, in EGP', () => {
+    expect(buildHeaderPayload('007', 'US-102', '2026-10-29', receiving)).toEqual({
       dataAreaId: '007',
       OrderVendorAccountNumber: 'US-102',
       AccountingDate: '2026-10-29T12:00:00Z',
       CurrencyCode: 'EGP',
+      DefaultReceivingSiteId: '1',
+      DefaultReceivingWarehouseId: '11',
     });
   });
 

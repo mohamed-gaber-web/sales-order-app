@@ -113,6 +113,9 @@ export interface CreatePurchaseOrderHeaderDto {
   /** ISO timestamp, e.g. 2026-11-05T12:00:00Z. */
   AccountingDate: string;
   CurrencyCode: string;
+  /** The order's receiving site and warehouse — without them the header's warehouse stays empty. */
+  DefaultReceivingSiteId: string;
+  DefaultReceivingWarehouseId: string;
 }
 
 /** POST /data/PurchaseOrderLinesV2. */

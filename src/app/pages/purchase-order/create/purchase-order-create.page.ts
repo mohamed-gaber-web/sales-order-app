@@ -413,7 +413,7 @@ export class PurchaseOrderCreatePage implements OnInit {
     const orderNumber$: Observable<string> = this.createdOrderNumber
       ? of(this.createdOrderNumber)
       : this.poService
-          .createOrderHeader(buildHeaderPayload(dataAreaId, OrderVendorAccountNumber, isoDate()))
+          .createOrderHeader(buildHeaderPayload(dataAreaId, OrderVendorAccountNumber, isoDate(), receiving))
           .pipe(map((created) => created.PurchaseOrderNumber));
 
     orderNumber$
