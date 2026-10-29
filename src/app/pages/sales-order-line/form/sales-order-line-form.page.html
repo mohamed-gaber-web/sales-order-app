@@ -203,6 +203,8 @@
               </ion-input>
               @if (isLoadingVariants) {
                 <ion-spinner slot="end" name="dots"></ion-spinner>
+              } @else {
+                <app-scan-button slot="end" (scanned)="onItemScanned($event)"></app-scan-button>
               }
             </ion-item>
 

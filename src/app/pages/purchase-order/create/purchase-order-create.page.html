@@ -69,17 +69,13 @@
           </div>
 
           <div class="field-row">
-            <ion-item class="form-item">
-              <ion-select
-                formControlName="CurrencyCode"
-                [label]="('field.currency' | translate) + ' *'"
+            <ion-item class="form-item readonly-item">
+              <ion-input
+                [label]="'field.currency' | translate"
                 labelPlacement="stacked"
-                interface="popover"
-                [placeholder]="'poCreate.selectCurrency' | translate">
-                @for (c of currencies(); track c.CurrencyCode) {
-                  <ion-select-option [value]="c.CurrencyCode">{{ c.CurrencyCode }}{{ c.Name ? ' – ' + c.Name : '' }}</ion-select-option>
-                }
-              </ion-select>
+                [value]="currencyCode"
+                [readonly]="true">
+              </ion-input>
             </ion-item>
 
             <ion-item class="form-item">

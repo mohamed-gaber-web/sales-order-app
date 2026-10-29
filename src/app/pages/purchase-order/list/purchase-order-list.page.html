@@ -62,7 +62,7 @@
     <div class="hero-stats">
       <div class="hero-stat">
         <span class="hero-stat-value">{{ totalCount }}</span>
-        <span class="hero-stat-label">{{ 'doc.openOrders' | translate }}</span>
+        <span class="hero-stat-label">{{ 'doc.orders' | translate }}</span>
       </div>
       <div class="hero-stat-sep"></div>
       <div class="hero-stat">
@@ -149,7 +149,7 @@
     <ds-empty-state
       icon="cube-outline"
       title="No Purchase Orders"
-      [message]="searchTerm ? 'No results for &quot;' + searchTerm + '&quot;' : 'No open purchase orders found'">
+      [message]="searchTerm ? 'No results for &quot;' + searchTerm + '&quot;' : 'No purchase orders found'">
     </ds-empty-state>
   }
 

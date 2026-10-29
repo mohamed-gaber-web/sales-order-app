@@ -28,7 +28,8 @@
     "receive": "Receive",
     "removeItem": "Remove item",
     "scanQrBarcode": "Scan QR / Barcode",
-    "ship": "Ship"
+    "ship": "Ship",
+    "scanNoItem": "No item matches “{{code}}”. Check the item number before saving."
   },
   "language": {
     "label": "Language",
@@ -534,7 +535,6 @@
     "retryLines": "Add Lines to Order",
     "openOrder": "Open Purchase Order",
     "loadFailed": "Couldn't load vendors and warehouses. Check your connection and try again.",
-    "selectCurrency": "Select currency",
     "deliveryDate": "Delivery date",
     "warehouseNoSite": "Warehouse {{warehouse}} has no site in D365, so it can't receive this order. Pick another warehouse.",
     "scanNoMatch": "No item found for “{{code}}”. Scan again or search by name."

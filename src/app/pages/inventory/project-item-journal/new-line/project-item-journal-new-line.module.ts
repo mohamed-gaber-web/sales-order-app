@@ -1,4 +1,5 @@
 import { NgModule } from '@angular/core';
+import { ScannerModalModule } from '../../scanner/scanner-modal.module';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
@@ -8,7 +9,7 @@ import { ProjectItemJournalNewLinePage } from './project-item-journal-new-line.p
 import { ProjectPickerModalComponent } from './project-picker-modal.component';
 
 @NgModule({
-  imports: [
+  imports: [ScannerModalModule, 
     CommonModule,
     FormsModule,
     IonicModule,

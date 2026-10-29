@@ -104,7 +104,6 @@ export interface RegisterPurchaseOrderResponse {
 export interface Vendor {
   VendorAccountNumber: string;
   VendorOrganizationName?: string;
-  CurrencyCode?: string;
   LanguageId?: string;
 }
 

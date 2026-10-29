@@ -93,11 +93,14 @@
 
     <div class="field-row" [class.field-invalid]="submitted && !itemId.trim()">
       <label class="field-label">Item ID <span class="required-star">*</span></label>
-      <ion-input
-        [(ngModel)]="itemId"
-        placeholder="Scan or type item ID"
-        class="field-input ds-mono-input">
-      </ion-input>
+      <div class="scan-field">
+        <ion-input
+          [(ngModel)]="itemId"
+          placeholder="Scan or type item ID"
+          class="field-input ds-mono-input">
+        </ion-input>
+        <app-scan-button (scanned)="itemId = $event"></app-scan-button>
+      </div>
       @if (submitted && !itemId.trim()) {
         <p class="field-error-msg">Item ID is required.</p>
       }

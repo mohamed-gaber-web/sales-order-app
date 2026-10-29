@@ -1,4 +1,4 @@
-import { Component, computed, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { LoadingController, ModalController, ToastController } from '@ionic/angular';
@@ -8,7 +8,6 @@ import { catchError, concatMap, map, switchMap, toArray } from 'rxjs/operators';
 import { PurchaseOrderService } from '../../../core/services/purchase-order.service';
 import { InventoryService, ScannedItem } from '../../../core/services/inventory.service';
 import { ScannerModalComponent } from '../../inventory/scanner/scanner-modal.component';
-import { LookupService } from '../../../core/services/lookup.service';
 import { ProductVariant, SalesOrderLineService, Warehouse } from '../../../core/services/sales-order-line.service';
 import { TenantConfigStore } from '../../../core/tenant/tenant-config.store';
 import { InventoryProduct } from '../../../models/inventory.model';
@@ -31,6 +30,9 @@ interface LineResult {
 }
 
 const VARIANT_FIELDS = ['ProductConfigurationId', 'ProductSizeId', 'ProductColorId', 'ProductStyleId'] as const;
+
+/** Every purchase order is raised in Egyptian pounds, whatever the vendor's own currency. */
+const PO_CURRENCY = 'EGP';
 
 /** Used when the vendor record carries no language of its own. */
 const DEFAULT_LANGUAGE_ID = 'en-us';
@@ -70,14 +72,12 @@ export class PurchaseOrderCreatePage implements OnInit {
   private readonly inventoryService = inject(InventoryService);
   private readonly orderLineService = inject(SalesOrderLineService);
   private readonly tenantConfig = inject(TenantConfigStore);
-  private readonly lookupService = inject(LookupService);
 
-  readonly currencies = computed(() => this.lookupService.currencies());
+  readonly currencyCode = PO_CURRENCY;
   readonly today = isoDate();
 
   readonly headerForm: FormGroup = this.fb.group({
     OrderVendorAccountNumber: ['', Validators.required],
-    CurrencyCode: ['', Validators.required],
     ReceivingWarehouseId: ['', Validators.required],
     RequestedDeliveryDate: [isoDate(7), Validators.required],
   });
@@ -151,9 +151,7 @@ export class PurchaseOrderCreatePage implements OnInit {
   loadLookups() {
     this.isLoading = true;
     this.loadFailed = false;
-    // Currencies normally arrive at startup; reload only if that load failed.
-    const currencies$ = this.lookupService.currencies().length ? of(undefined) : this.lookupService.loadCurrencies();
-    forkJoin([this.poService.getVendors(), this.orderLineService.getWarehouses(), currencies$]).subscribe({
+    forkJoin([this.poService.getVendors(), this.orderLineService.getWarehouses()]).subscribe({
       next: ([vendors, warehousesRes]) => {
         this.vendors = vendors;
         this.warehouses = warehousesRes.value;
@@ -198,14 +196,7 @@ export class PurchaseOrderCreatePage implements OnInit {
   }
 
   selectVendor(vendor: Vendor) {
-    this.headerForm.patchValue({
-      OrderVendorAccountNumber: vendor.VendorAccountNumber,
-      // The vendor's own currency is the usual choice; it stays editable. Only
-      // one the select can show, or the form would hold a value nobody sees.
-      ...(this.currencies().some((c) => c.CurrencyCode === vendor.CurrencyCode)
-        ? { CurrencyCode: vendor.CurrencyCode }
-        : {}),
-    });
+    this.headerForm.patchValue({ OrderVendorAccountNumber: vendor.VendorAccountNumber });
     this.openPicker = null;
   }
 
@@ -400,7 +391,7 @@ export class PurchaseOrderCreatePage implements OnInit {
     await loading.present();
 
     const dataAreaId = this.tenantConfig.currentDataAreaId();
-    const { OrderVendorAccountNumber, CurrencyCode, ReceivingWarehouseId, RequestedDeliveryDate } =
+    const { OrderVendorAccountNumber, ReceivingWarehouseId, RequestedDeliveryDate } =
       this.headerForm.getRawValue();
     const vendor = this.vendors.find((v) => v.VendorAccountNumber === OrderVendorAccountNumber);
     const ReceivingSiteId =
@@ -415,7 +406,7 @@ export class PurchaseOrderCreatePage implements OnInit {
             dataAreaId,
             OrderVendorAccountNumber,
             InvoiceVendorAccountNumber: OrderVendorAccountNumber,
-            CurrencyCode,
+            CurrencyCode: PO_CURRENCY,
             LanguageId: vendor?.LanguageId || DEFAULT_LANGUAGE_ID,
             DefaultReceivingSiteId: ReceivingSiteId,
             DefaultReceivingWarehouseId: ReceivingWarehouseId,

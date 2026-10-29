@@ -1,4 +1,5 @@
 import { NgModule } from '@angular/core';
+import { ScannerModalModule } from '../../inventory/scanner/scanner-modal.module';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
@@ -14,7 +15,7 @@ const routes: Routes = [
 ];
 
 @NgModule({
-  imports: [
+  imports: [ScannerModalModule, 
     CommonModule,
     FormsModule,
     ReactiveFormsModule,

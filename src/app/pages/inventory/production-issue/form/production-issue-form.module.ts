@@ -1,4 +1,5 @@
 import { NgModule } from '@angular/core';
+import { ScannerModalModule } from '../../scanner/scanner-modal.module';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
@@ -9,7 +10,7 @@ import { DesignSystemModule } from '../../../../shared/design-system/design-syst
 const routes: Routes = [{ path: '', component: ProductionIssueFormPage }];
 
 @NgModule({
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, IonicModule, RouterModule.forChild(routes), DesignSystemModule],
+  imports: [ScannerModalModule, CommonModule, FormsModule, ReactiveFormsModule, IonicModule, RouterModule.forChild(routes), DesignSystemModule],
   declarations: [ProductionIssueFormPage]
 })
 export class ProductionIssueFormModule {}

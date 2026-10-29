@@ -77,7 +77,7 @@ export class PurchaseOrderListPage {
     this.isLoading = true;
     this.orders = [];
     this.totalCount = 0;
-    this.poService.getOrderHeaders(0).subscribe({
+    this.poService.getOrderHeaders(0, false).subscribe({
       next: (res) => {
         this.orders = this.deduplicate(res.value);
         this.filteredOrders = [...this.orders];
@@ -106,7 +106,7 @@ export class PurchaseOrderListPage {
       return;
     }
     this.isLoadingMore = true;
-    this.poService.getOrderHeaders(this.orders.length).subscribe({
+    this.poService.getOrderHeaders(this.orders.length, false).subscribe({
       next: (res) => {
         this.orders = this.deduplicate([...this.orders, ...res.value]);
         this.filteredOrders = [...this.orders];
@@ -133,7 +133,7 @@ export class PurchaseOrderListPage {
   loadMoreWeb() {
     if (!this.hasMore || this.isLoadingMore) return;
     this.isLoadingMore = true;
-    this.poService.getOrderHeaders(this.orders.length).subscribe({
+    this.poService.getOrderHeaders(this.orders.length, false).subscribe({
       next: (res) => {
         this.orders = this.deduplicate([...this.orders, ...res.value]);
         this.filteredOrders = [...this.orders];
@@ -176,7 +176,7 @@ export class PurchaseOrderListPage {
     }
 
     this.isSearching = true;
-    this.poService.getAllOrderHeaders().subscribe({
+    this.poService.getAllOrderHeaders(false, false).subscribe({
       next: (res) => {
         this.allOrders = this.deduplicate(res.value);
         this.allDataLoaded = true;
@@ -222,7 +222,7 @@ export class PurchaseOrderListPage {
     this.allOrders = [];
     this.orders = [];
     this.totalCount = 0;
-    this.poService.getOrderHeaders(0).subscribe({
+    this.poService.getOrderHeaders(0, false).subscribe({
       next: (res) => {
         this.orders = this.deduplicate(res.value);
         this.filteredOrders = [...this.orders];

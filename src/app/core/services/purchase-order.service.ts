@@ -93,6 +93,19 @@ export class PurchaseOrderService {
     return this.poFilterFor();
   }
 
+  /**
+   * The status filter, or none at all when `confirmedOnly` is off. The purchase
+   * order list shows every order — drafts created in the app included — while
+   * the receiving pickers keep to confirmed, open ones, because D365 cannot
+   * receive against anything else.
+   */
+  private statusParams(confirmedOnly: boolean, useMainEnv = false): Record<string, string> {
+    if (confirmedOnly) return { '$filter': this.poFilterFor(useMainEnv) };
+    return !useMainEnv && testPurchaseOrderEnv.useTestPurchaseOrderEnv
+      ? { '$filter': `dataAreaId eq '${TEST_PO_COMPANY}'` }
+      : {};
+  }
+
   /** The company reads should be scoped to for the given env. */
   private companyFor(useMainEnv: boolean): string {
     return !useMainEnv && testPurchaseOrderEnv.useTestPurchaseOrderEnv ? TEST_PO_COMPANY : this.tenant.currentDataAreaId();
@@ -125,25 +138,25 @@ export class PurchaseOrderService {
     return this.api.post<T>(path, body);
   }
 
-  getOrderHeaders(skip = 0): Observable<ODataResponse<PurchaseOrderHeader>> {
+  getOrderHeaders(skip = 0, confirmedOnly = true): Observable<ODataResponse<PurchaseOrderHeader>> {
     return this.getData<ODataResponse<PurchaseOrderHeader>>(
       '/data/PurchaseOrderHeadersV2',
       {
         '$top': String(PO_PAGE_SIZE),
         '$skip': String(skip),
         '$count': 'true',
-        '$filter': this.poFilter,
+        ...this.statusParams(confirmedOnly),
         '$orderby': 'PurchaseOrderNumber desc',
       }
     );
   }
 
-  getAllOrderHeaders(useMainEnv = false): Observable<ODataResponse<PurchaseOrderHeader>> {
+  getAllOrderHeaders(useMainEnv = false, confirmedOnly = true): Observable<ODataResponse<PurchaseOrderHeader>> {
     return this.getData<ODataResponse<PurchaseOrderHeader>>(
       '/data/PurchaseOrderHeadersV2',
       {
         '$count': 'true',
-        '$filter': this.poFilterFor(useMainEnv),
+        ...this.statusParams(confirmedOnly, useMainEnv),
         '$orderby': 'PurchaseOrderNumber desc',
       },
       useMainEnv
@@ -179,7 +192,7 @@ export class PurchaseOrderService {
   getVendors(): Observable<Vendor[]> {
     const page = (skip: number) =>
       this.api.get<ODataResponse<Vendor>>('/data/VendorsV3', {
-        '$select': 'VendorAccountNumber,VendorOrganizationName,CurrencyCode,LanguageId',
+        '$select': 'VendorAccountNumber,VendorOrganizationName,LanguageId',
         '$orderby': 'VendorAccountNumber asc',
         '$top': String(VENDOR_PAGE_SIZE),
         '$skip': String(skip),

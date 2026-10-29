@@ -176,6 +176,15 @@ export class SalesOrderLineFormPage implements OnInit {
     this.searchProductVariants();
   }
 
+  /** The scan button hands over an item number already resolved from the barcode. */
+  onItemScanned(itemNumber: string) {
+    this.itemSearchSeq++; // drop any search still in flight for typed text
+    this.lineForm.patchValue({ ItemNumber: itemNumber });
+    this.showItemDropdown = false;
+    this.itemResults = [];
+    this.searchProductVariants();
+  }
+
   closeItemDropdown() {
     this.showItemDropdown = false;
   }
