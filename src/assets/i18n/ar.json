@@ -371,9 +371,13 @@
   "msg": {
     "labelSaved": "تم حفظ الملصق في ملفاتك.",
     "loadMoreFailed": "تعذّر تحميل مزيد من الأوامر.",
+    "loadOrdersFailedMessage": "تحقق من الاتصال وحاول مرة أخرى.",
+    "loadOrdersFailedTitle": "تعذّر تحميل الأوامر",
     "loadingOptions": "جارٍ تحميل الخيارات…",
     "refreshFailed": "فشل التحديث. حاول مرة أخرى.",
     "searchFailed": "فشل البحث. حاول مرة أخرى.",
+    "searchFailedMessage": "تحقق من الاتصال وابحث مرة أخرى.",
+    "searchFailedTitle": "لم يكتمل البحث",
     "searchingOrders": "جارٍ البحث في كل الأوامر…",
     "searchingPurchaseOrders": "جارٍ البحث في أوامر الشراء…",
     "siteRequired": "الموقع مطلوب.",
@@ -387,6 +391,7 @@
     "searchItems": "ابحث برقم الصنف أو الاسم…",
     "searchOrScanPo": "ابحث أو امسح أمر شراء",
     "searchPo": "ابحث برقم أمر الشراء أو المورد…",
+    "searchPoOrItem": "ابحث برقم أمر الشراء أو المورد أو رقم الصنف…",
     "searchSites": "ابحث في المواقع…",
     "searchWarehouses": "ابحث في المستودعات…",
     "productReceipt": "إيصال الاستلام"

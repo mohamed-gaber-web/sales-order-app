@@ -371,9 +371,13 @@
   "msg": {
     "labelSaved": "Label saved to your files.",
     "loadMoreFailed": "Could not load more orders.",
+    "loadOrdersFailedMessage": "Check your connection and try again.",
+    "loadOrdersFailedTitle": "Couldn't load orders",
     "loadingOptions": "Loading form options...",
     "refreshFailed": "Refresh failed. Try again.",
     "searchFailed": "Search failed. Try again.",
+    "searchFailedMessage": "Check your connection and search again.",
+    "searchFailedTitle": "Search didn't finish",
     "searchingOrders": "Searching all orders...",
     "searchingPurchaseOrders": "Searching purchase orders...",
     "siteRequired": "Site is required.",
@@ -387,6 +391,7 @@
     "searchItems": "Search item number or name...",
     "searchOrScanPo": "Search or Scan a PO",
     "searchPo": "Search PO number or vendor...",
+    "searchPoOrItem": "Search PO number, vendor or item number...",
     "searchSites": "Search sites...",
     "searchWarehouses": "Search warehouses...",
     "productReceipt": "Product Receipt"

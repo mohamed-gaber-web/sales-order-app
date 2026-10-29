@@ -1,7 +1,7 @@
 import { Component, inject, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { IonInfiniteScroll, ModalController, ToastController } from '@ionic/angular';
-import { Subject } from 'rxjs';
+import { Subject, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { PurchaseOrderService } from '../../../core/services/purchase-order.service';
 import { PurchaseOrderHeader } from '../../../models/purchase-order.model';
@@ -23,14 +23,15 @@ export class PurchaseOrderListPage {
   @ViewChild(IonInfiniteScroll) infiniteScroll!: IonInfiniteScroll;
 
   orders: PurchaseOrderHeader[] = [];
-  allOrders: PurchaseOrderHeader[] = [];
   filteredOrders: PurchaseOrderHeader[] = [];
   searchTerm = '';
   isLoading = false;
   isLoadingMore = false;
   isSearching = false;
+  searchFailed = false;
+  loadFailed = false;
   totalCount = 0;
-  private allDataLoaded = false;
+  private searchSub?: Subscription;
 
   private searchSubject = new Subject<string>();
   private modalCtrl = inject(ModalController);
@@ -53,8 +54,6 @@ export class PurchaseOrderListPage {
   }
 
   ionViewWillEnter() {
-    this.allDataLoaded = false;
-    this.allOrders = [];
     this.loadOrders();
   }
 
@@ -75,6 +74,7 @@ export class PurchaseOrderListPage {
 
   loadOrders() {
     this.isLoading = true;
+    this.loadFailed = false;
     this.orders = [];
     this.totalCount = 0;
     this.poService.getOrderHeaders(0, false).subscribe({
@@ -87,15 +87,9 @@ export class PurchaseOrderListPage {
           this.infiniteScroll.disabled = !this.hasMore;
         }
       },
-      error: async () => {
+      error: () => {
         this.isLoading = false;
-        const toast = await this.toastCtrl.create({
-          message: 'Couldn\'t load orders. Pull down to refresh.',
-          buttons: [{ text: 'Dismiss', role: 'cancel' }],
-          color: 'danger',
-          position: 'bottom'
-        });
-        await toast.present();
+        this.loadFailed = true;
       }
     });
   }
@@ -161,8 +155,22 @@ export class PurchaseOrderListPage {
     this.searchSubject.next(this.searchTerm.trim());
   }
 
+  /** Runs the search for the current term again — the failed state's button. */
+  retrySearch() {
+    this.handleSearch(this.searchTerm.trim());
+  }
+
+  /**
+   * Searched on the server — order number, vendor and item number — never by
+   * downloading every order. A newer term cancels the request still in
+   * flight, so a slow answer can't overwrite a newer one.
+   */
   private handleSearch(term: string) {
+    this.searchSub?.unsubscribe();
+    this.searchFailed = false;
+
     if (!term) {
+      this.isSearching = false;
       this.filteredOrders = [...this.orders];
       if (this.infiniteScroll) {
         this.infiniteScroll.disabled = !this.hasMore;
@@ -170,43 +178,20 @@ export class PurchaseOrderListPage {
       return;
     }
 
-    if (this.allDataLoaded) {
-      this.filterLocally(term);
-      return;
-    }
-
     this.isSearching = true;
-    this.poService.getAllOrderHeaders(false, false).subscribe({
-      next: (res) => {
-        this.allOrders = this.deduplicate(res.value);
-        this.allDataLoaded = true;
+    if (this.infiniteScroll) {
+      this.infiniteScroll.disabled = true;
+    }
+    this.searchSub = this.poService.searchOrders(term).subscribe({
+      next: (orders) => {
         this.isSearching = false;
-        this.filterLocally(term);
-        if (this.infiniteScroll) {
-          this.infiniteScroll.disabled = true;
-        }
+        this.filteredOrders = orders;
       },
-      error: async () => {
+      error: () => {
         this.isSearching = false;
-        const toast = await this.toastCtrl.create({
-          message: 'Search failed. Try again.',
-          buttons: [{ text: 'Dismiss', role: 'cancel' }],
-          color: 'danger',
-          position: 'bottom'
-        });
-        await toast.present();
+        this.searchFailed = true;
       }
     });
-  }
-
-  private filterLocally(term: string) {
-    const t = term.toLowerCase();
-    const vendor = (order: PurchaseOrderHeader) =>
-      ((order.OrderVendorAccountNumber ?? order.VendorAccountNumber ?? '') as string).toLowerCase();
-    this.filteredOrders = this.allOrders.filter((order) =>
-      order.PurchaseOrderNumber.toLowerCase().includes(t) ||
-      vendor(order).includes(t)
-    );
   }
 
   createOrder() {
@@ -218,19 +203,16 @@ export class PurchaseOrderListPage {
   }
 
   doRefresh(event: CustomEvent) {
-    this.allDataLoaded = false;
-    this.allOrders = [];
     this.orders = [];
     this.totalCount = 0;
     this.poService.getOrderHeaders(0, false).subscribe({
       next: (res) => {
+        this.loadFailed = false;
         this.orders = this.deduplicate(res.value);
-        this.filteredOrders = [...this.orders];
         this.totalCount = res['@odata.count'] ?? res.value.length;
         (event.target as HTMLIonRefresherElement).complete();
-        if (this.infiniteScroll) {
-          this.infiniteScroll.disabled = !this.hasMore;
-        }
+        // Re-runs an active search rather than replacing its results.
+        this.handleSearch(this.searchTerm.trim());
       },
       error: async () => {
         (event.target as HTMLIonRefresherElement).complete();

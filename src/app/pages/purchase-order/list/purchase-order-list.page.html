@@ -15,7 +15,7 @@
   </ion-toolbar>
   <ion-toolbar class="search-toolbar">
     <ds-search
-      [placeholder]="'placeholder.searchPo' | translate"
+      [placeholder]="'placeholder.searchPoOrItem' | translate"
       [debounceMs]="300"
       (query)="onQueryChange($event)">
     </ds-search>
@@ -41,7 +41,7 @@
         <ion-searchbar
           [(ngModel)]="searchTerm"
           (ionInput)="onSearchChange()"
-          [placeholder]="'placeholder.searchPo' | translate"
+          [placeholder]="'placeholder.searchPoOrItem' | translate"
           debounce="300"
           animated="false"
           class="web-searchbar">
@@ -88,7 +88,7 @@
   }
 
   <!-- Orders List -->
-  @if (!isLoading && filteredOrders.length > 0) {
+  @if (!isLoading && !loadFailed && !isSearching && !searchFailed && filteredOrders.length > 0) {
     <div class="orders-list">
       @for (order of filteredOrders; track order.PurchaseOrderNumber) {
         <ion-card class="order-card" button (click)="openDetail(order.PurchaseOrderNumber)">
@@ -144,8 +144,30 @@
     </div>
   }
 
+  <!-- Search failed -->
+  @if (searchFailed) {
+    <ds-empty-state
+      icon="cloud-offline-outline"
+      [title]="'msg.searchFailedTitle' | translate"
+      [message]="'msg.searchFailedMessage' | translate"
+      [buttonLabel]="'common.retry' | translate"
+      (buttonClick)="retrySearch()">
+    </ds-empty-state>
+  }
+
+  <!-- Load failed -->
+  @if (loadFailed && !isLoading && !isSearching && !searchFailed && !searchTerm.trim()) {
+    <ds-empty-state
+      icon="cloud-offline-outline"
+      [title]="'msg.loadOrdersFailedTitle' | translate"
+      [message]="'msg.loadOrdersFailedMessage' | translate"
+      [buttonLabel]="'common.retry' | translate"
+      (buttonClick)="loadOrders()">
+    </ds-empty-state>
+  }
+
   <!-- Empty State -->
-  @if (!isLoading && !isSearching && filteredOrders.length === 0) {
+  @if (!isLoading && !isSearching && !searchFailed && !(loadFailed && !searchTerm.trim()) && filteredOrders.length === 0) {
     <ds-empty-state
       icon="cube-outline"
       title="No Purchase Orders"
@@ -154,7 +176,7 @@
   }
 
   <!-- Web Load More (desktop only) -->
-  @if (!isLoading && hasMore) {
+  @if (!isLoading && !loadFailed && hasMore) {
     <div class="web-load-more">
       <ion-button
         (click)="loadMoreWeb()"

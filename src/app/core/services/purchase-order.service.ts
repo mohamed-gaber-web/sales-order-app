@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { catchError, EMPTY, expand, from, map, Observable, of, reduce, switchMap, timeout } from 'rxjs';
+import { catchError, EMPTY, expand, forkJoin, from, map, Observable, of, reduce, switchMap, timeout } from 'rxjs';
 import { ApiService } from './api.service';
 import { AuthService } from './auth.service';
 import { ODataResponse } from '../models/lookup.models';
@@ -38,6 +38,30 @@ const PO_FILTER =
  * tapping an order from another company 404s on the entity-key GET.
  */
 const TEST_PO_COMPANY = '007';
+
+/** The most orders one search returns. */
+const SEARCH_LIMIT = 50;
+
+function odataString(value: string): string {
+  return value.replace(/'/g, "''");
+}
+
+/**
+ * "field starts with value" as a key range, for an environment that rejects
+ * startswith(): `field ge 'AB' and field lt 'AC'`. The bound bumps the last
+ * character; a trailing 9 or Z can't be bumped safely under SQL collation
+ * (punctuation sorts unpredictably), so those cap with a run of Z's instead.
+ */
+function prefixFilter(field: string, value: string): string {
+  const v = value.toUpperCase();
+  const last = v.slice(-1);
+  const lower = `${field} ge '${odataString(v)}'`;
+  if (/[0-8A-Y]/.test(last)) {
+    const bumped = v.slice(0, -1) + String.fromCharCode(last.charCodeAt(0) + 1);
+    return `${lower} and ${field} lt '${odataString(bumped)}'`;
+  }
+  return `${lower} and ${field} le '${odataString(v + 'ZZZZZZZZZZZZZZZZZZZZ')}'`;
+}
 
 
 @Injectable({ providedIn: 'root' })
@@ -161,6 +185,69 @@ export class PurchaseOrderService {
       },
       useMainEnv
     );
+  }
+
+  /**
+   * Orders of any status whose number or vendor account starts with the term,
+   * or that have a line for an item starting with it — newest first, at most
+   * SEARCH_LIMIT. Every query is capped server-side: the header table is far
+   * too large (75k+ rows) to download and filter on the device, which is what
+   * timed out at the gateway (504).
+   *
+   * This D365 environment rejects contains/startswith, so "starts with" is a
+   * key range (`ge 'PO-1' and lt 'PO-2'`), which the index can serve. Should a
+   * range be refused, that part falls back to an exact match.
+   */
+  searchOrders(term: string): Observable<PurchaseOrderHeader[]> {
+    const t = term.trim();
+    const company = testPurchaseOrderEnv.useTestPurchaseOrderEnv ? `dataAreaId eq '${TEST_PO_COMPANY}' and ` : '';
+    const headers = (filter: string, top = SEARCH_LIMIT) =>
+      this.getData<ODataResponse<PurchaseOrderHeader>>('/data/PurchaseOrderHeadersV2', {
+        '$filter': company + filter,
+        '$top': String(top),
+        '$orderby': 'PurchaseOrderNumber desc',
+      }).pipe(map((res) => res.value));
+    const startsWith = (field: string) => (fetch: (filter: string) => Observable<PurchaseOrderHeader[]>) =>
+      fetch(prefixFilter(field, t)).pipe(catchError(() => fetch(`${field} eq '${odataString(t)}'`)));
+
+    const byNumber$ = startsWith('PurchaseOrderNumber')((f) => headers(f));
+    const byVendor$ = startsWith('OrderVendorAccountNumber')((f) => headers(f));
+
+    const lineOrderNumbers = (filter: string) =>
+      this.getData<ODataResponse<Pick<PurchaseOrderLine, 'PurchaseOrderNumber'>>>('/data/PurchaseOrderLinesV2', {
+        '$filter': company + filter,
+        '$select': 'PurchaseOrderNumber',
+        '$top': String(SEARCH_LIMIT * 4),
+        '$orderby': 'PurchaseOrderNumber desc',
+      }).pipe(map((res) => [...new Set(res.value.map((l) => l.PurchaseOrderNumber))].slice(0, SEARCH_LIMIT)));
+    const byItem$ = lineOrderNumbers(prefixFilter('ItemNumber', t)).pipe(
+      catchError(() => lineOrderNumbers(`ItemNumber eq '${odataString(t)}'`)),
+      switchMap((numbers) => (numbers.length ? this.headersByNumber(numbers, company) : of([])))
+    );
+
+    return forkJoin([byNumber$, byVendor$, byItem$]).pipe(
+      map((groups) => {
+        const seen = new Map<string, PurchaseOrderHeader>();
+        for (const po of groups.flat()) seen.set(po.PurchaseOrderNumber, po);
+        return [...seen.values()]
+          .sort((a, b) => b.PurchaseOrderNumber.localeCompare(a.PurchaseOrderNumber))
+          .slice(0, SEARCH_LIMIT);
+      })
+    );
+  }
+
+  /** Headers for known order numbers, a few per request to keep the URL short. */
+  private headersByNumber(numbers: string[], company: string): Observable<PurchaseOrderHeader[]> {
+    const chunks: string[][] = [];
+    for (let i = 0; i < numbers.length; i += 15) chunks.push(numbers.slice(i, i + 15));
+    return forkJoin(
+      chunks.map((chunk) =>
+        this.getData<ODataResponse<PurchaseOrderHeader>>('/data/PurchaseOrderHeadersV2', {
+          '$filter': company + '(' + chunk.map((n) => `PurchaseOrderNumber eq '${odataString(n)}'`).join(' or ') + ')',
+          '$top': String(chunk.length),
+        }).pipe(map((res) => res.value))
+      )
+    ).pipe(map((pages) => pages.flat()));
   }
 
   /** All open (Confirmed + Backorder) orders with their lines expanded — used for cross-order item/barcode lookup. */
