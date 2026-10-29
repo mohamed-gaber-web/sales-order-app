@@ -17,6 +17,7 @@ import {
 } from '../../models/purchase-order.model';
 import { testPurchaseOrderEnv } from '../../../environments/test-purchase-order-env';
 import { TenantConfigStore } from '../tenant/tenant-config.store';
+import { odataString, prefixFilter } from './odata-filter';
 
 export const PO_PAGE_SIZE = 10;
 
@@ -41,27 +42,6 @@ const TEST_PO_COMPANY = '007';
 
 /** The most orders one search returns. */
 const SEARCH_LIMIT = 50;
-
-function odataString(value: string): string {
-  return value.replace(/'/g, "''");
-}
-
-/**
- * "field starts with value" as a key range, for an environment that rejects
- * startswith(): `field ge 'AB' and field lt 'AC'`. The bound bumps the last
- * character; a trailing 9 or Z can't be bumped safely under SQL collation
- * (punctuation sorts unpredictably), so those cap with a run of Z's instead.
- */
-function prefixFilter(field: string, value: string): string {
-  const v = value.toUpperCase();
-  const last = v.slice(-1);
-  const lower = `${field} ge '${odataString(v)}'`;
-  if (/[0-8A-Y]/.test(last)) {
-    const bumped = v.slice(0, -1) + String.fromCharCode(last.charCodeAt(0) + 1);
-    return `${lower} and ${field} lt '${odataString(bumped)}'`;
-  }
-  return `${lower} and ${field} le '${odataString(v + 'ZZZZZZZZZZZZZZZZZZZZ')}'`;
-}
 
 
 @Injectable({ providedIn: 'root' })

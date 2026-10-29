@@ -1,7 +1,8 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable, of, throwError } from 'rxjs';
-import { catchError, map, shareReplay, switchMap } from 'rxjs/operators';
+import { forkJoin, Observable, of } from 'rxjs';
+import { catchError, map, switchMap, timeout } from 'rxjs/operators';
 import { ApiService } from './api.service';
+import { odataString, prefixFilter } from './odata-filter';
 import { ODataResponse } from '../models/lookup.models';
 import {
   Warehouse,
@@ -38,6 +39,13 @@ interface ReleasedProductRow {
   ProductName?: string;
   ProductDescription?: string;
 }
+
+/**
+ * How long the name search may take before only the item-number matches are
+ * shown. contains() can't use an index, so on a large catalogue it may be
+ * slow; the number search beside it is a key range and stays fast.
+ */
+const NAME_SEARCH_TIMEOUT_MS = 8000;
 
 /** The item number is what order lines and on-hand use, so it becomes the product's number. */
 function toInventoryProduct(row: ReleasedProductRow): InventoryProduct {
@@ -151,24 +159,58 @@ export class InventoryService {
   }
 
   /**
-   * Substring search by number, name or description, filtered in memory over
-   * a cached one-time load: this D365 environment rejects every OData string
-   * function (contains/startswith → "not Queryable"), so server-side search is
-   * not possible — only eq filters work.
+   * Set once D365 refuses contains(), so later searches skip straight to the
+   * item-number search instead of paying for a failed request each time.
+   */
+  private nameSearchUnsupported = false;
+
+  /**
+   * Items matching the term, searched on the server and capped at `limit`.
+   *
+   * Never by downloading the catalogue: a company's released products run
+   * to far more rows than the gateway will wait for (it answered 504).
+   *
+   * Item numbers that start with the term come first — a key range, which
+   * the index serves quickly. Then items whose number or name contains it,
+   * where D365 allows contains(); some environments refuse it, and a slow
+   * one is cut off after NAME_SEARCH_TIMEOUT_MS, so either way the
+   * item-number matches still show.
    */
   searchProducts(term: string, limit = 50): Observable<InventoryProduct[]> {
-    const lower = term.toLowerCase();
-    return this.getAllProductsCached().pipe(
-      map((products) =>
-        products
-          .filter(
-            (p) =>
-              p.ProductNumber.toLowerCase().includes(lower) ||
-              (p.ProductName ?? '').toLowerCase().includes(lower) ||
-              (p.ProductDescription ?? '').toLowerCase().includes(lower)
-          )
-          .slice(0, limit)
-      )
+    const t = term.trim();
+    if (!t) return of([]);
+
+    const byNumber$ = this.getReleased({
+      ...this.releasedParams(prefixFilter('ItemNumber', t)),
+      '$top': String(limit),
+      '$orderby': 'ItemNumber asc',
+    }).pipe(map((res) => res.value));
+
+    const safe = odataString(t);
+    const byName$: Observable<InventoryProduct[]> = this.nameSearchUnsupported
+      ? of([])
+      : this.getReleased({
+          ...this.releasedParams(`(contains(ItemNumber,'${safe}') or contains(ProductName,'${safe}'))`),
+          '$top': String(limit),
+        }).pipe(
+          timeout(NAME_SEARCH_TIMEOUT_MS),
+          map((res) => res.value),
+          catchError((err) => {
+            // A 400 means the function itself is refused; a timeout or outage
+            // says nothing about support, so the next search tries again.
+            if (err?.status === 400 || err?.status === 501) this.nameSearchUnsupported = true;
+            return of([]);
+          })
+        );
+
+    return forkJoin([byNumber$, byName$]).pipe(
+      map(([numbers, names]) => {
+        const seen = new Map<string, InventoryProduct>();
+        for (const p of [...numbers, ...names]) {
+          if (!seen.has(p.ProductNumber)) seen.set(p.ProductNumber, p);
+        }
+        return [...seen.values()].slice(0, limit);
+      })
     );
   }
 
@@ -223,34 +265,6 @@ export class InventoryService {
     return this.getProductByNumber(code.trim()).pipe(
       switchMap((res) => (res.value[0] ? of({ product: res.value[0] }) : byBarcode$))
     );
-  }
-
-  getAllProducts(): Observable<ODataResponse<InventoryProduct>> {
-    return this.getReleased({ ...this.releasedParams(), '$orderby': 'ItemNumber asc' });
-  }
-
-  private allProducts$?: Observable<InventoryProduct[]>;
-  private allProductsCompany = '';
-
-  /**
-   * Every item of the current company, loaded once and shared between
-   * subscribers. Keyed by company, so switching company (or tenant) never
-   * offers the previous one's items.
-   */
-  getAllProductsCached(): Observable<InventoryProduct[]> {
-    const company = this.tenant.currentDataAreaId();
-    if (!this.allProducts$ || this.allProductsCompany !== company) {
-      this.allProductsCompany = company;
-      this.allProducts$ = this.getAllProducts().pipe(
-        map((res) => res.value),
-        shareReplay(1),
-        catchError((err) => {
-          this.allProducts$ = undefined; // failed load isn't cached — next call retries
-          return throwError(() => err);
-        })
-      );
-    }
-    return this.allProducts$;
   }
 
   // ── Warehouse Locations ─────────────────────────────────────────────────────
