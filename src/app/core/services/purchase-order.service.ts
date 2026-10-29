@@ -174,9 +174,9 @@ export class PurchaseOrderService {
    * too large (75k+ rows) to download and filter on the device, which is what
    * timed out at the gateway (504).
    *
-   * This D365 environment rejects contains/startswith, so "starts with" is a
-   * key range (`ge 'PO-1' and lt 'PO-2'`), which the index can serve. Should a
-   * range be refused, that part falls back to an exact match.
+   * D365 rejects contains/startswith and ge/lt on strings, so "starts with" is
+   * its wildcard eq (`PurchaseOrderNumber eq 'PO-1*'`), which an index can
+   * serve. Should that be refused, that part falls back to an exact match.
    */
   searchOrders(term: string): Observable<PurchaseOrderHeader[]> {
     const t = term.trim();

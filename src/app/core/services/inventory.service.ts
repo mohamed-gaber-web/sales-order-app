@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { forkJoin, Observable, of } from 'rxjs';
 import { catchError, map, switchMap, timeout } from 'rxjs/operators';
 import { ApiService } from './api.service';
-import { odataString, prefixFilter } from './odata-filter';
+import { containsFilter, odataString, prefixFilter } from './odata-filter';
 import { ODataResponse } from '../models/lookup.models';
 import {
   Warehouse,
@@ -42,8 +42,8 @@ interface ReleasedProductRow {
 
 /**
  * How long the name search may take before only the item-number matches are
- * shown. contains() can't use an index, so on a large catalogue it may be
- * slow; the number search beside it is a key range and stays fast.
+ * shown. A leading wildcard can't use an index, so on a large catalogue it may
+ * be slow; the starts-with number search beside it stays fast.
  */
 const NAME_SEARCH_TIMEOUT_MS = 8000;
 
@@ -159,7 +159,7 @@ export class InventoryService {
   }
 
   /**
-   * Set once D365 refuses contains(), so later searches skip straight to the
+   * Set once D365 refuses the name search, so later searches skip straight to the
    * item-number search instead of paying for a failed request each time.
    */
   private nameSearchUnsupported = false;
@@ -170,33 +170,37 @@ export class InventoryService {
    * Never by downloading the catalogue: a company's released products run
    * to far more rows than the gateway will wait for (it answered 504).
    *
-   * Item numbers that start with the term come first — a key range, which
-   * the index serves quickly. Then items whose number or name contains it,
-   * where D365 allows contains(); some environments refuse it, and a slow
-   * one is cut off after NAME_SEARCH_TIMEOUT_MS, so either way the
-   * item-number matches still show.
+   * Item numbers that start with the term come first (`ItemNumber eq '622*'`,
+   * which an index serves quickly), then items whose number or name contains
+   * it (`eq '*622*'`). D365 accepts only these wildcard eq filters — not
+   * contains/startswith, nor ge/lt on strings. The contains search is cut off
+   * after NAME_SEARCH_TIMEOUT_MS if slow, and if the starts-with search is
+   * refused it falls back to an exact match, so something always comes back.
    */
   searchProducts(term: string, limit = 50): Observable<InventoryProduct[]> {
     const t = term.trim();
     if (!t) return of([]);
 
-    const byNumber$ = this.getReleased({
-      ...this.releasedParams(prefixFilter('ItemNumber', t)),
-      '$top': String(limit),
-      '$orderby': 'ItemNumber asc',
-    }).pipe(map((res) => res.value));
+    const numbers = (filter: string) =>
+      this.getReleased({
+        ...this.releasedParams(filter),
+        '$top': String(limit),
+        '$orderby': 'ItemNumber asc',
+      }).pipe(map((res) => res.value));
+    const byNumber$ = numbers(prefixFilter('ItemNumber', t)).pipe(
+      catchError(() => numbers(`ItemNumber eq '${odataString(t)}'`))
+    );
 
-    const safe = odataString(t);
     const byName$: Observable<InventoryProduct[]> = this.nameSearchUnsupported
       ? of([])
       : this.getReleased({
-          ...this.releasedParams(`(contains(ItemNumber,'${safe}') or contains(ProductName,'${safe}'))`),
+          ...this.releasedParams(`(${containsFilter('ItemNumber', t)} or ${containsFilter('ProductName', t)})`),
           '$top': String(limit),
         }).pipe(
           timeout(NAME_SEARCH_TIMEOUT_MS),
           map((res) => res.value),
           catchError((err) => {
-            // A 400 means the function itself is refused; a timeout or outage
+            // A 400 means the filter itself is refused; a timeout or outage
             // says nothing about support, so the next search tries again.
             if (err?.status === 400 || err?.status === 501) this.nameSearchUnsupported = true;
             return of([]);

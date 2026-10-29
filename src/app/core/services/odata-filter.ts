@@ -4,20 +4,31 @@ export function odataString(value: string): string {
 }
 
 /**
- * "field starts with value" as a key range, for an environment that rejects
- * startswith(): `field ge 'AB' and field lt 'AC'`. Unlike a function call,
- * a range can be served from the field's index, so it stays fast on large
- * tables. The bound bumps the last character; a trailing 9 or Z can't be
- * bumped safely under SQL collation (punctuation sorts unpredictably), so
- * those cap with a run of Z's instead.
+ * The term as a D365 wildcard pattern body. `*` is D365's wildcard and has no
+ * escape, so one typed by the user is dropped rather than left to widen the
+ * match.
+ */
+function wildcardBody(value: string): string {
+  return odataString(value.replace(/\*/g, ''));
+}
+
+/**
+ * "field starts with value", in the form D365 accepts: `field eq 'AB*'`.
+ *
+ * D365 rejects the OData string functions (startswith/contains) and also
+ * range comparisons on strings (`ge`/`lt` answer 400). What it does take is a
+ * `*` wildcard inside `eq`, which it runs as SQL LIKE 'AB%' — an index can
+ * still serve a leading-text match, so it stays fast on large tables.
  */
 export function prefixFilter(field: string, value: string): string {
-  const v = value.toUpperCase();
-  const last = v.slice(-1);
-  const lower = `${field} ge '${odataString(v)}'`;
-  if (/[0-8A-Y]/.test(last)) {
-    const bumped = v.slice(0, -1) + String.fromCharCode(last.charCodeAt(0) + 1);
-    return `${lower} and ${field} lt '${odataString(bumped)}'`;
-  }
-  return `${lower} and ${field} le '${odataString(v + 'ZZZZZZZZZZZZZZZZZZZZ')}'`;
+  return `${field} eq '${wildcardBody(value)}*'`;
+}
+
+/**
+ * "field contains value": `field eq '*AB*'`, D365's LIKE '%AB%'. A leading
+ * wildcard can't use an index, so on a large table this is the slower of the
+ * two — callers cap or time-box it.
+ */
+export function containsFilter(field: string, value: string): string {
+  return `${field} eq '*${wildcardBody(value)}*'`;
 }
