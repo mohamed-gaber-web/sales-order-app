@@ -71,6 +71,15 @@
           <div class="field-row">
             <ion-item class="form-item readonly-item">
               <ion-input
+                [label]="'field.site' | translate"
+                labelPlacement="stacked"
+                [value]="receivingSiteId || '—'"
+                [readonly]="true">
+              </ion-input>
+            </ion-item>
+
+            <ion-item class="form-item readonly-item">
+              <ion-input
                 [label]="'field.currency' | translate"
                 labelPlacement="stacked"
                 [value]="currencyCode"

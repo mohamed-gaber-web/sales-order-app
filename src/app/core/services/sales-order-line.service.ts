@@ -102,6 +102,23 @@ export class SalesOrderLineService {
     return this.api.get<ODataResponse<Warehouse>>('/data/Warehouses', params);
   }
 
+  /**
+   * Every warehouse of the company the app works in, with its site.
+   *
+   * `cross-company` plus a dataAreaId filter: without it D365 lists the service
+   * principal's default company, which is not always the tenant's — and then
+   * the warehouse the portal assigned the user (always in the tenant's company)
+   * is not in the list to preselect, and the sites are another company's.
+   */
+  getCompanyWarehouses(): Observable<ODataResponse<Warehouse>> {
+    const company = this.tenant.currentDataAreaId().replace(/'/g, "''");
+    return this.api.get<ODataResponse<Warehouse>>('/data/Warehouses', {
+      'cross-company': 'true',
+      '$filter': `dataAreaId eq '${company}'`,
+      '$orderby': 'WarehouseId asc',
+    });
+  }
+
   getProductVariants(
     productNumber: string
   ): Observable<ODataResponse<ProductVariant>> {

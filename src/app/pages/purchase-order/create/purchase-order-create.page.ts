@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, effect, inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { LoadingController, ModalController, ToastController } from '@ionic/angular';
@@ -72,6 +72,16 @@ export class PurchaseOrderCreatePage implements OnInit {
 
   readonly currencyCode = PO_CURRENCY;
   readonly today = isoDate();
+
+  /**
+   * The user's own warehouse arrives from the portal separately from the
+   * tenant configuration, so it can land after this page has loaded its
+   * lists. Re-checked whenever it changes, not only once on load.
+   */
+  private readonly preselectAssignedWarehouse = effect(() => {
+    this.tenantConfig.defaultWarehouseId();
+    this.applyAssignedWarehouse();
+  });
 
   readonly headerForm: FormGroup = this.fb.group({
     OrderVendorAccountNumber: ['', Validators.required],
@@ -157,14 +167,11 @@ export class PurchaseOrderCreatePage implements OnInit {
   loadLookups() {
     this.isLoading = true;
     this.loadFailed = false;
-    forkJoin([this.poService.getVendors(), this.orderLineService.getWarehouses()]).subscribe({
+    forkJoin([this.poService.getVendors(), this.orderLineService.getCompanyWarehouses()]).subscribe({
       next: ([vendors, warehousesRes]) => {
         this.vendors = vendors;
         this.warehouses = warehousesRes.value;
-        if (!this.headerForm.value.ReceivingWarehouseId) {
-          const assigned = this.tenantConfig.pickDefaultWarehouse(this.warehouses);
-          if (assigned) this.selectWarehouse(assigned);
-        }
+        this.applyAssignedWarehouse();
         this.isLoading = false;
       },
       error: () => {
@@ -172,6 +179,23 @@ export class PurchaseOrderCreatePage implements OnInit {
         this.loadFailed = true;
       },
     });
+  }
+
+  /**
+   * Starts the order on the user's own warehouse, as assigned in the portal.
+   * A default, never a lock: it only fills an empty field, never replaces a
+   * pick, and never touches an order already created.
+   */
+  private applyAssignedWarehouse() {
+    if (this.createdOrderNumber || this.headerForm.getRawValue().ReceivingWarehouseId) return;
+    const assigned = this.tenantConfig.pickDefaultWarehouse(this.warehouses);
+    if (assigned) this.selectWarehouse(assigned);
+  }
+
+  /** The site the order receives into: the chosen warehouse's own site. */
+  get receivingSiteId(): string {
+    const id = this.headerForm.getRawValue().ReceivingWarehouseId;
+    return this.warehouses.find((w) => w.WarehouseId === id)?.OperationalSiteId ?? '';
   }
 
   // ── Vendor / warehouse pickers ────────────────────────────
