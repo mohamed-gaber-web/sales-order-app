@@ -24,7 +24,29 @@ export interface ScannedItem {
   };
 }
 
-const PRODUCT_SELECT = 'ProductNumber,ProductName,ProductSearchName,ProductType';
+/**
+ * Items come from the released products of the company the app works in.
+ * `cross-company` plus a dataAreaId filter, because without it D365 answers
+ * for the service principal's default company, which may not be this one.
+ */
+const RELEASED_PRODUCTS = '/data/ReleasedProductCreationsV2';
+const RELEASED_PRODUCT_SELECT = 'ItemNumber,ProductNumber,ProductName,ProductDescription';
+
+interface ReleasedProductRow {
+  ItemNumber: string;
+  ProductNumber?: string;
+  ProductName?: string;
+  ProductDescription?: string;
+}
+
+/** The item number is what order lines and on-hand use, so it becomes the product's number. */
+function toInventoryProduct(row: ReleasedProductRow): InventoryProduct {
+  return {
+    ProductNumber: row.ItemNumber,
+    ProductName: row.ProductName || row.ProductDescription,
+    ProductDescription: row.ProductDescription,
+  };
+}
 
 @Injectable({ providedIn: 'root' })
 export class InventoryService {
@@ -101,28 +123,38 @@ export class InventoryService {
   }
 
   // ── Products ───────────────────────────────────────────────────────────────
-  // Field names verified against the live entity: ProductSearchName is the
-  // filterable name column; SearchName/UnitSymbol do not exist on ProductsV2
-  // and make the whole request fail.
+
+  /** Query params for released products of the current company, plus any extra filter. */
+  private releasedParams(extraFilter?: string): Record<string, string> {
+    const company = this.tenant.currentDataAreaId().replace(/'/g, "''");
+    return {
+      'cross-company': 'true',
+      '$filter': `dataAreaId eq '${company}'` + (extraFilter ? ` and ${extraFilter}` : ''),
+      '$select': RELEASED_PRODUCT_SELECT,
+    };
+  }
+
+  private getReleased(params: Record<string, string>): Observable<ODataResponse<InventoryProduct>> {
+    return this.api
+      .get<ODataResponse<ReleasedProductRow>>(RELEASED_PRODUCTS, params)
+      .pipe(map((res) => ({ ...res, value: res.value.map(toInventoryProduct) })));
+  }
 
   getProducts(skip = 0): Observable<ODataResponse<InventoryProduct>> {
-    return this.api.get<ODataResponse<InventoryProduct>>(
-      '/data/ProductsV2',
-      {
-        '$top': String(INV_PAGE_SIZE),
-        '$skip': String(skip),
-        '$count': 'true',
-        '$select': PRODUCT_SELECT,
-        '$orderby': 'ProductNumber asc',
-      }
-    );
+    return this.getReleased({
+      ...this.releasedParams(),
+      '$top': String(INV_PAGE_SIZE),
+      '$skip': String(skip),
+      '$count': 'true',
+      '$orderby': 'ItemNumber asc',
+    });
   }
 
   /**
-   * Substring search by number or name, filtered in memory over a cached
-   * one-time load: this D365 environment rejects every OData string function
-   * (contains/startswith → "not Queryable"), so server-side search is not
-   * possible — only eq filters work.
+   * Substring search by number, name or description, filtered in memory over
+   * a cached one-time load: this D365 environment rejects every OData string
+   * function (contains/startswith → "not Queryable"), so server-side search is
+   * not possible — only eq filters work.
    */
   searchProducts(term: string, limit = 50): Observable<InventoryProduct[]> {
     const lower = term.toLowerCase();
@@ -133,23 +165,17 @@ export class InventoryService {
             (p) =>
               p.ProductNumber.toLowerCase().includes(lower) ||
               (p.ProductName ?? '').toLowerCase().includes(lower) ||
-              (p.ProductSearchName ?? '').toLowerCase().includes(lower)
+              (p.ProductDescription ?? '').toLowerCase().includes(lower)
           )
           .slice(0, limit)
       )
     );
   }
 
-  getProductByNumber(productNumber: string): Observable<ODataResponse<InventoryProduct>> {
-    const safe = productNumber.replace(/'/g, "''");
-    return this.api.get<ODataResponse<InventoryProduct>>(
-      '/data/ProductsV2',
-      {
-        '$filter': `ProductNumber eq '${safe}'`,
-        '$top': '1',
-        '$select': PRODUCT_SELECT,
-      }
-    );
+  /** One item by its item number, in the current company. */
+  getProductByNumber(itemNumber: string): Observable<ODataResponse<InventoryProduct>> {
+    const safe = itemNumber.replace(/'/g, "''");
+    return this.getReleased({ ...this.releasedParams(`ItemNumber eq '${safe}'`), '$top': '1' });
   }
 
   /**
@@ -200,21 +226,21 @@ export class InventoryService {
   }
 
   getAllProducts(): Observable<ODataResponse<InventoryProduct>> {
-    return this.api.get<ODataResponse<InventoryProduct>>(
-      '/data/ProductsV2',
-      {
-        '$count': 'true',
-        '$select': PRODUCT_SELECT,
-        '$orderby': 'ProductNumber asc',
-      }
-    );
+    return this.getReleased({ ...this.releasedParams(), '$orderby': 'ItemNumber asc' });
   }
 
   private allProducts$?: Observable<InventoryProduct[]>;
+  private allProductsCompany = '';
 
-  /** Full product list, loaded once per session and shared between subscribers. */
+  /**
+   * Every item of the current company, loaded once and shared between
+   * subscribers. Keyed by company, so switching company (or tenant) never
+   * offers the previous one's items.
+   */
   getAllProductsCached(): Observable<InventoryProduct[]> {
-    if (!this.allProducts$) {
+    const company = this.tenant.currentDataAreaId();
+    if (!this.allProducts$ || this.allProductsCompany !== company) {
+      this.allProductsCompany = company;
       this.allProducts$ = this.getAllProducts().pipe(
         map((res) => res.value),
         shareReplay(1),

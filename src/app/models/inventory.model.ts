@@ -48,6 +48,7 @@ export interface InventoryOnHand {
 export interface InventoryProduct {
   ProductNumber: string;
   ProductName?: string;
+  ProductDescription?: string;
   ProductSearchName?: string;
   ProductType?: string;
   ProductSubType?: string;
