@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { forkJoin, Observable, of } from 'rxjs';
 import { catchError, map, switchMap, timeout } from 'rxjs/operators';
 import { ApiService } from './api.service';
-import { containsFilter, odataString, prefixFilter } from './odata-filter';
+import { containsFilter, odataString } from './odata-filter';
 import { ODataResponse } from '../models/lookup.models';
 import {
   Warehouse,
@@ -42,8 +42,7 @@ interface ReleasedProductRow {
 
 /**
  * How long the name search may take before only the item-number matches are
- * shown. A leading wildcard can't use an index, so on a large catalogue it may
- * be slow; the starts-with number search beside it stays fast.
+ * shown, so a slow name search never holds back the number results.
  */
 const NAME_SEARCH_TIMEOUT_MS = 8000;
 
@@ -170,31 +169,28 @@ export class InventoryService {
    * Never by downloading the catalogue: a company's released products run
    * to far more rows than the gateway will wait for (it answered 504).
    *
-   * Item numbers that start with the term come first (`ItemNumber eq '622*'`,
-   * which an index serves quickly), then items whose number or name contains
-   * it (`eq '*622*'`). D365 accepts only these wildcard eq filters — not
-   * contains/startswith, nor ge/lt on strings. The contains search is cut off
-   * after NAME_SEARCH_TIMEOUT_MS if slow, and if the starts-with search is
+   * Item numbers containing the term — `ItemNumber eq '*6221*'`, D365's
+   * wildcard eq, the one form it accepts (not contains/startswith, nor ge/lt
+   * on strings) — plus items whose name contains it. The name search is cut
+   * off after NAME_SEARCH_TIMEOUT_MS if slow, and if the number search is
    * refused it falls back to an exact match, so something always comes back.
+   * Sorted here rather than with $orderby: numbers that start with the term
+   * first, then the rest in order.
    */
   searchProducts(term: string, limit = 50): Observable<InventoryProduct[]> {
     const t = term.trim();
     if (!t) return of([]);
 
     const numbers = (filter: string) =>
-      this.getReleased({
-        ...this.releasedParams(filter),
-        '$top': String(limit),
-        '$orderby': 'ItemNumber asc',
-      }).pipe(map((res) => res.value));
-    const byNumber$ = numbers(prefixFilter('ItemNumber', t)).pipe(
+      this.getReleased({ ...this.releasedParams(filter), '$top': String(limit) }).pipe(map((res) => res.value));
+    const byNumber$ = numbers(containsFilter('ItemNumber', t)).pipe(
       catchError(() => numbers(`ItemNumber eq '${odataString(t)}'`))
     );
 
     const byName$: Observable<InventoryProduct[]> = this.nameSearchUnsupported
       ? of([])
       : this.getReleased({
-          ...this.releasedParams(`(${containsFilter('ItemNumber', t)} or ${containsFilter('ProductName', t)})`),
+          ...this.releasedParams(containsFilter('ProductName', t)),
           '$top': String(limit),
         }).pipe(
           timeout(NAME_SEARCH_TIMEOUT_MS),
@@ -207,13 +203,17 @@ export class InventoryService {
           })
         );
 
+    const lower = t.toLowerCase();
+    const rank = (p: InventoryProduct) => (p.ProductNumber.toLowerCase().startsWith(lower) ? 0 : 1);
     return forkJoin([byNumber$, byName$]).pipe(
       map(([numbers, names]) => {
         const seen = new Map<string, InventoryProduct>();
-        for (const p of [...numbers, ...names]) {
-          if (!seen.has(p.ProductNumber)) seen.set(p.ProductNumber, p);
-        }
-        return [...seen.values()].slice(0, limit);
+        for (const p of numbers) seen.set(p.ProductNumber, p);
+        const byNumber = [...seen.values()].sort(
+          (a, b) => rank(a) - rank(b) || a.ProductNumber.localeCompare(b.ProductNumber)
+        );
+        const byName = names.filter((p) => !seen.has(p.ProductNumber));
+        return [...byNumber, ...byName].slice(0, limit);
       })
     );
   }
