@@ -349,7 +349,10 @@ ion-header ion-toolbar {
 
 // Receive button
 .confirm-banner {
-  margin: 0 16px 16px;
+  margin: 16px 16px 0;
+
+  // Ionic's own button margin would inset it from the cards above and below.
+  .confirm-btn { margin: 0; }
 
   .confirm-hint {
     margin: 0 0 8px;
@@ -433,6 +436,11 @@ ion-header ion-toolbar {
 @media (min-width: 992px) {
   .header-card {
     margin: 28px auto 0;
+    max-width: 860px;
+  }
+
+  .confirm-banner {
+    margin: 20px auto 0;
     max-width: 860px;
   }
 
