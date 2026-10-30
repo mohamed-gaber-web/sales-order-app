@@ -42,12 +42,8 @@ const PO_FILTER =
  */
 const TEST_PO_COMPANY = '007';
 
-/**
- * D365 custom service that confirms a purchase order.
- * TODO: verify the service group / service names against the deployed D365 service.
- */
-const PO_CONFIRM_ACTION =
-  '/api/services/GP_PurchOrderConfirmServiceGroup/GP_PurchOrderConfirmService/purchOrderConfirm';
+/** D365 custom service that confirms a purchase order. */
+const PO_CONFIRM_ACTION = '/api/services/GP_portalServiceGroup/GP_portalService/purchOrderConfirm';
 
 /** The most orders one search returns. */
 const SEARCH_LIMIT = 50;
