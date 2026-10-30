@@ -277,7 +277,7 @@ export class PurchaseOrderDetailPage implements OnInit {
 
     this.poService.confirmOrder({
       _request: {
-        UserId: this.session.user()?.email ?? '',
+        UserId: this.session.user()?.id ?? '',
         DataAreaId: ((this.po.dataAreaId as string) ?? this.tenantConfig.currentDataAreaId()).toUpperCase(),
         PurchId: this.poNumber,
         ConfirmDate: this.today(),
