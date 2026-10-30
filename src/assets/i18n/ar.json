@@ -521,8 +521,6 @@
   "poCreate": {
     "receivingLocation": "موقع الاستلام",
     "receivingLocationHint": "الموقع الافتراضي للمستودع إن تُرك فارغًا",
-    "unitPrice": "سعر الوحدة",
-    "unitPriceHint": "سعر المورد إن تُرك فارغًا",
     "title": "أمر شراء جديد",
     "vendorSection": "المورد والاستلام",
     "vendor": "المورد",

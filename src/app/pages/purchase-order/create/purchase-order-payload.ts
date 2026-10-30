@@ -12,8 +12,6 @@ export interface PurchaseOrderLineInput {
   ProductColorId: string;
   ProductStyleId: string;
   OrderedPurchaseQuantity: number;
-  /** Null when left blank. */
-  PurchasePrice: number | null;
 }
 
 /** Where and when every line of the order is received. */
@@ -52,9 +50,9 @@ export function buildHeaderPayload(
 }
 
 /**
- * The line body. Price and receipt location are only sent when given: an
- * empty value would override what D365 would otherwise default from the
- * vendor's trade agreement and the warehouse's receipt location.
+ * The line body. No price is sent, so D365 prices the line from the vendor's
+ * trade agreement. The receipt location is only sent when given: an empty
+ * value would override the warehouse's default receipt location.
  */
 export function buildLinePayload(
   dataAreaId: string,
@@ -80,7 +78,6 @@ export function buildLinePayload(
     ReceivingSiteId: receiving.ReceivingSiteId,
     ReceivingWarehouseId: receiving.ReceivingWarehouseId,
     ...(location ? { ReceivingWarehouseLocationId: location } : {}),
-    ...(line.PurchasePrice !== null ? { PurchasePrice: line.PurchasePrice } : {}),
     PurchasePriceQuantity: 1,
     LineDiscountAmount: 0,
     LineDiscountPercentage: 0,

@@ -94,7 +94,6 @@ export class PurchaseOrderCreatePage implements OnInit {
     ItemNumber: ['', Validators.required],
     VariantIndex: [null as number | null],
     OrderedPurchaseQuantity: [1, [Validators.required, Validators.min(0.01)]],
-    PurchasePrice: [null as number | null, Validators.min(0)],
   });
 
   lines: PendingLine[] = [];
@@ -380,11 +379,9 @@ export class PurchaseOrderCreatePage implements OnInit {
     }
     const v = this.lineForm.getRawValue();
     const variant = v.VariantIndex !== null ? this.variants[v.VariantIndex] : undefined;
-    const price = v.PurchasePrice;
     const line: PendingLine = {
       LineNumber: this.nextLineNumber++,
       ItemNumber: this.selectedItem!,
-      PurchasePrice: price === null || price === '' || price === undefined ? null : Number(price),
       OrderedPurchaseQuantity: Number(v.OrderedPurchaseQuantity),
       ProductConfigurationId: variant?.ProductConfigurationId ?? '',
       ProductSizeId: variant?.ProductSizeId ?? '',
@@ -392,7 +389,7 @@ export class PurchaseOrderCreatePage implements OnInit {
       ProductStyleId: variant?.ProductStyleId ?? '',
     };
     this.lines = [...this.lines, line];
-    this.lineForm.reset({ ItemNumber: '', VariantIndex: null, OrderedPurchaseQuantity: 1, PurchasePrice: null });
+    this.lineForm.reset({ ItemNumber: '', VariantIndex: null, OrderedPurchaseQuantity: 1 });
     this.clearItemSelection();
   }
 

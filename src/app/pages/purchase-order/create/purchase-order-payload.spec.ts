@@ -15,7 +15,6 @@ describe('purchase order payloads', () => {
     ProductColorId: '',
     ProductStyleId: '',
     OrderedPurchaseQuantity: 3,
-    PurchasePrice: 79.99,
   };
 
   it('builds the header from the tenant company, the vendor, today and the receiving warehouse, in EGP', () => {
@@ -46,7 +45,6 @@ describe('purchase order payloads', () => {
       ReceivingSiteId: '1',
       ReceivingWarehouseId: '11',
       ReceivingWarehouseLocationId: '11',
-      PurchasePrice: 79.99,
       PurchasePriceQuantity: 1,
       LineDiscountAmount: 0,
       LineDiscountPercentage: 0,
@@ -55,16 +53,12 @@ describe('purchase order payloads', () => {
     });
   });
 
-  it('leaves out a blank price and location so D365 defaults them', () => {
-    const body = buildLinePayload('007', '00000375', { ...receiving, ReceivingWarehouseLocationId: '  ' }, {
-      ...line,
-      PurchasePrice: null,
-    });
-    expect('PurchasePrice' in body).toBeFalse();
-    expect('ReceivingWarehouseLocationId' in body).toBeFalse();
+  it('never sends a price, so D365 prices the line from the vendor agreement', () => {
+    expect('PurchasePrice' in buildLinePayload('007', '00000375', receiving, line)).toBeFalse();
   });
 
-  it('keeps a price of zero', () => {
-    expect(buildLinePayload('007', '1', receiving, { ...line, PurchasePrice: 0 }).PurchasePrice).toBe(0);
+  it('leaves out a blank location so D365 defaults it', () => {
+    const body = buildLinePayload('007', '00000375', { ...receiving, ReceivingWarehouseLocationId: '  ' }, line);
+    expect('ReceivingWarehouseLocationId' in body).toBeFalse();
   });
 });

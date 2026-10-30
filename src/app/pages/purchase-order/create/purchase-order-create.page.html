@@ -253,19 +253,6 @@
             </ion-input>
           </ion-item>
 
-          <ion-item class="form-item">
-            <ion-input
-              formControlName="PurchasePrice"
-              [label]="('poCreate.unitPrice' | translate) + ' (' + currencyCode + ')'"
-              labelPlacement="stacked"
-              [placeholder]="'poCreate.unitPriceHint' | translate"
-              type="number"
-              inputmode="decimal"
-              min="0"
-              step="0.01">
-            </ion-input>
-          </ion-item>
-
           <ion-button expand="block" fill="outline" type="submit" [disabled]="!canAddLine" class="add-line-btn">
             <ion-icon slot="start" name="add-outline"></ion-icon>
             {{ 'common.addLine' | translate }}
@@ -290,9 +277,6 @@
                   <span class="pending-line-item">{{ line.ItemNumber }}</span>
                   @if (variantLabel(line)) {
                     <span class="pending-line-variant">{{ variantLabel(line) }}</span>
-                  }
-                  @if (line.PurchasePrice !== null) {
-                    <span class="pending-line-variant">{{ line.PurchasePrice | number: '1.2-2' }} {{ currencyCode }}</span>
                   }
                   @if (line.error) {
                     <span class="pending-line-error">{{ line.error }}</span>
