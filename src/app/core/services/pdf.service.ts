@@ -113,6 +113,36 @@ export interface PurchaseReceiptPdfData {
   lines: PurchaseReceiptLine[];
 }
 
+/** A purchase order as confirmed — printed on A4. */
+export interface PurchaseConfirmationPdfData {
+  poNumber: string;
+  dataAreaId: string;
+  vendor?: string;
+  confirmDate: Date;
+  lines: PurchaseReceiptLine[];
+}
+
+/**
+ * What differs between the A4 purchase documents (receipt, confirmation).
+ * The page layout itself is shared.
+ */
+interface PurchaseDocLayout {
+  heading: string;
+  /** Header meta row naming the document, e.g. Receipt ID. */
+  idLabel: string;
+  id: string;
+  date: Date;
+  dataAreaId: string;
+  poNumber: string;
+  vendor?: string;
+  detailsTitle: string;
+  /** Exactly two fields, shown side by side. */
+  details: [[string, string], [string, string]];
+  stamp: string;
+  filename: string;
+  lines: PurchaseReceiptLine[];
+}
+
 /** A4 in PDF points (72 dpi). */
 const A4_W = 595;
 const A4_H = 842;
@@ -613,16 +643,53 @@ export class PdfService {
     ctx.fillRect(0, H - 18, W, 18);
   }
 
-  // ── Purchase Receipt (several lines, A4, paginated) ───────
+  // ── Purchase documents (receipt, confirmation — A4, paginated) ──
+
+  printPurchaseReceipt(data: PurchaseReceiptPdfData): Promise<void> {
+    return this.printPurchaseDocument({
+      heading: 'PRODUCT RECEIPT',
+      idLabel: 'Receipt ID',
+      id: data.packingSlipId,
+      date: data.receiptDate,
+      dataAreaId: data.dataAreaId,
+      poNumber: data.poNumber,
+      vendor: data.vendor,
+      detailsTitle: 'RECEIPT DETAILS',
+      details: [['Product Receipt', data.packingSlipId], ['Lines Received', String(data.lines.length)]],
+      stamp: 'Product Receipt Posted',
+      filename: `receipt-${data.packingSlipId}.pdf`,
+      lines: data.lines,
+    });
+  }
+
+  printPurchaseConfirmation(data: PurchaseConfirmationPdfData): Promise<void> {
+    const confirmedOn = data.confirmDate.toLocaleDateString('en-GB', {
+      day: '2-digit', month: 'short', year: 'numeric'
+    });
+    return this.printPurchaseDocument({
+      heading: 'PURCHASE ORDER CONFIRMATION',
+      idLabel: 'Order',
+      id: data.poNumber,
+      date: data.confirmDate,
+      dataAreaId: data.dataAreaId,
+      poNumber: data.poNumber,
+      vendor: data.vendor,
+      detailsTitle: 'CONFIRMATION DETAILS',
+      details: [['Confirmed On', confirmedOn], ['Lines', String(data.lines.length)]],
+      stamp: 'Purchase Order Confirmed',
+      filename: `po-confirmation-${data.poNumber}.pdf`,
+      lines: data.lines,
+    });
+  }
 
   /**
-   * Prints the receipt on A4. On the web this opens the browser's print dialog.
-   * Android's WebView ignores window.print(), so the installed app hands the PDF
-   * to the share sheet instead, where it can go to a print service.
+   * Prints on A4. On the web this opens the browser's print dialog. Android's
+   * WebView ignores window.print(), so the installed app hands the PDF to the
+   * share sheet instead, where it can go to a print service.
    */
-  async printPurchaseReceipt(data: PurchaseReceiptPdfData): Promise<void> {
-    const pages = this.renderPurchaseReceiptPages(data);
-    const filename = `receipt-${data.packingSlipId}.pdf`;
+  private async printPurchaseDocument(doc: PurchaseDocLayout): Promise<void> {
+    const pages = this.renderPurchaseDocPages(doc);
+    const filename = doc.filename;
     if (Capacitor.isNativePlatform()) {
       const jpegs = await Promise.all(pages.map((c) => this.canvasToJpeg(c)));
       const blob = this.buildA4Pdf(jpegs.map((jpeg, i) => ({ jpeg, w: pages[i].width, h: pages[i].height })));
@@ -633,7 +700,7 @@ export class PdfService {
   }
 
   /** Splits the lines across A4 pages, keeping the closing stamp off a page of its own. */
-  private paginatePurchaseReceipt(lines: PurchaseReceiptLine[]): PurchaseReceiptLine[][] {
+  private paginatePurchaseDoc(lines: PurchaseReceiptLine[]): PurchaseReceiptLine[][] {
     const pages: PurchaseReceiptLine[][] = [];
     let rest = lines;
     do {
@@ -650,8 +717,8 @@ export class PdfService {
     return pages;
   }
 
-  private renderPurchaseReceiptPages(data: PurchaseReceiptPdfData): HTMLCanvasElement[] {
-    const chunks = this.paginatePurchaseReceipt(data.lines);
+  private renderPurchaseDocPages(doc: PurchaseDocLayout): HTMLCanvasElement[] {
+    const chunks = this.paginatePurchaseDoc(doc.lines);
     return chunks.map((lines, i) => {
       const S = 2;
       const canvas = document.createElement('canvas');
@@ -660,14 +727,14 @@ export class PdfService {
       const ctx = canvas.getContext('2d');
       if (!ctx) throw new Error('Canvas not supported');
       ctx.scale(S, S);
-      this.drawPurchaseReceiptPage(ctx, data, lines, i + 1, chunks.length);
+      this.drawPurchaseDocPage(ctx, doc, lines, i + 1, chunks.length);
       return canvas;
     });
   }
 
-  private drawPurchaseReceiptPage(
+  private drawPurchaseDocPage(
     ctx: CanvasRenderingContext2D,
-    data: PurchaseReceiptPdfData,
+    doc: PurchaseDocLayout,
     lines: PurchaseReceiptLine[],
     page: number,
     pageCount: number
@@ -696,9 +763,9 @@ export class PdfService {
 
     ctx.fillStyle = lightBlue;
     ctx.font = '13px Arial,Helvetica,sans-serif';
-    ctx.fillText('PRODUCT RECEIPT', margin, 66);
+    ctx.fillText(doc.heading, margin, 66);
 
-    const dateStr = data.receiptDate.toLocaleDateString('en-GB', {
+    const dateStr = doc.date.toLocaleDateString('en-GB', {
       day: '2-digit', month: 'short', year: 'numeric'
     });
     const labelRight = W - margin - 95;
@@ -712,9 +779,9 @@ export class PdfService {
       ctx.fillText(value, W - margin, ry);
       ctx.textAlign = 'left';
     };
-    metaRow('Receipt ID', data.packingSlipId, 36);
+    metaRow(doc.idLabel, doc.id, 36);
     metaRow('Date', dateStr, 54);
-    metaRow('Company', data.dataAreaId.toUpperCase(), 72);
+    metaRow('Company', doc.dataAreaId.toUpperCase(), 72);
 
     ctx.fillStyle = orange;
     ctx.fillRect(0, 108, W, 5);
@@ -751,14 +818,14 @@ export class PdfService {
     if (page === 1) {
       // ── PURCHASE ORDER ─────────────────────────────────────
       section('PURCHASE ORDER');
-      field('Purchase Order', data.poNumber, margin);
-      if (data.vendor) field('Vendor', data.vendor, midX);
+      field('Purchase Order', doc.poNumber, margin);
+      if (doc.vendor) field('Vendor', doc.vendor, midX);
       y += 32 + 12;
 
-      // ── RECEIPT DETAILS ────────────────────────────────────
-      section('RECEIPT DETAILS');
-      field('Product Receipt', data.packingSlipId, margin);
-      field('Lines Received', String(data.lines.length), midX);
+      // ── Document details ───────────────────────────────────
+      section(doc.detailsTitle);
+      field(doc.details[0][0], doc.details[0][1], margin);
+      field(doc.details[1][0], doc.details[1][1], midX);
       y += 32 + 12;
     }
 
@@ -844,7 +911,7 @@ export class PdfService {
       ctx.fillText('STATUS', margin + 68, y + 20);
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 16px Arial,Helvetica,sans-serif';
-      ctx.fillText('Product Receipt Posted', margin + 68, y + 42);
+      ctx.fillText(doc.stamp, margin + 68, y + 42);
     }
 
     // ── Footer ────────────────────────────────────────────────
@@ -856,7 +923,7 @@ export class PdfService {
     ctx.textAlign = 'center';
     ctx.fillText(`Page ${page} of ${pageCount}`, W / 2, H - 23);
     ctx.textAlign = 'right';
-    ctx.fillText(data.receiptDate.toLocaleString(), W - margin, H - 23);
+    ctx.fillText(doc.date.toLocaleString(), W - margin, H - 23);
     ctx.textAlign = 'left';
 
     ctx.fillStyle = orange;

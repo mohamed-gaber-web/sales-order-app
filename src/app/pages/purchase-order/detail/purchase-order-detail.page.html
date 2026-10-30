@@ -91,15 +91,20 @@
       </div>
     }
 
-    @if (lastReceipt) {
+    @if (printable; as doc) {
       <div class="receipt-banner">
         <div class="receipt-banner-text">
           <ion-icon name="checkmark-circle" color="success"></ion-icon>
           <div>
-            <p class="receipt-title">Receipt recorded</p>
-            <p class="receipt-sub">{{ lastReceipt.packingSlipId }} · {{ lastReceipt.lines.length }} lines</p>
+            @if (doc.kind === 'receipt') {
+              <p class="receipt-title">Receipt recorded</p>
+              <p class="receipt-sub">{{ doc.data.packingSlipId }} · {{ doc.data.lines.length }} lines</p>
+            } @else {
+              <p class="receipt-title">Order confirmed</p>
+              <p class="receipt-sub">Ready to receive · {{ doc.data.lines.length }} lines</p>
+            }
           </div>
-          <ion-button fill="clear" size="small" class="receipt-close" (click)="dismissReceipt()" aria-label="Dismiss">
+          <ion-button fill="clear" size="small" class="receipt-close" (click)="dismissPrintable()" aria-label="Dismiss">
             <ion-icon slot="icon-only" name="close-outline"></ion-icon>
           </ion-button>
         </div>
@@ -107,9 +112,9 @@
           expand="block"
           class="print-btn"
           [disabled]="isPrinting"
-          (click)="printReceipt()">
+          (click)="printDocument()">
           <ion-icon slot="start" name="print-outline"></ion-icon>
-          Print receipt
+          {{ doc.kind === 'receipt' ? 'Print receipt' : 'Print confirmation' }}
         </ion-button>
       </div>
     }

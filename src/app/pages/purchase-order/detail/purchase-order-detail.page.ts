@@ -9,7 +9,17 @@ import { PurchaseOrderHeader, PurchaseOrderLine } from '../../../models/purchase
 import { ScannerModalComponent } from '../../inventory/scanner/scanner-modal.component';
 import { TenantConfigStore } from '../../../core/tenant/tenant-config.store';
 import { PortalSessionStore } from '../../../core/auth/portal-session.store';
-import { PdfService, PurchaseReceiptPdfData } from '../../../core/services/pdf.service';
+import {
+  PdfService,
+  PurchaseConfirmationPdfData,
+  PurchaseReceiptLine,
+  PurchaseReceiptPdfData,
+} from '../../../core/services/pdf.service';
+
+/** A document just produced on this screen, kept so it can be printed. */
+type Printable =
+  | { kind: 'receipt'; data: PurchaseReceiptPdfData }
+  | { kind: 'confirmation'; data: PurchaseConfirmationPdfData };
 
 @Component({
   selector: 'app-purchase-order-detail',
@@ -28,8 +38,7 @@ export class PurchaseOrderDetailPage implements OnInit {
   isSubmitting = false;
   isConfirming = false;
   isPrinting = false;
-  /** The receipt just recorded from this screen, kept so it can be printed. */
-  lastReceipt: PurchaseReceiptPdfData | null = null;
+  printable: Printable | null = null;
   selectedLines = new Map<number, PurchaseOrderLine>();
   private destroyRef = inject(DestroyRef);
 
@@ -72,7 +81,7 @@ export class PurchaseOrderDetailPage implements OnInit {
    * the barcode flow) shows the stale pre-receipt quantities and progress bar.
    */
   ionViewWillEnter() {
-    this.lastReceipt = null;
+    this.printable = null;
     if (this.poNumber) {
       this.loadDetail();
     }
@@ -227,19 +236,16 @@ export class PurchaseOrderDetailPage implements OnInit {
         next: async (res) => {
           if (res.Success) {
             // Captured before the reload, which replaces the lines with their new remaining quantities.
-            this.lastReceipt = {
-              poNumber: this.poNumber,
-              packingSlipId,
-              dataAreaId: (this.po?.dataAreaId as string) ?? this.tenantConfig.currentDataAreaId(),
-              vendor: (this.po?.OrderVendorAccountNumber ?? this.po?.VendorAccountNumber) as string | undefined,
-              receiptDate: new Date(),
-              lines: selected.map((l) => ({
-                lineNumber: l.LineNumber,
-                itemNumber: l.ItemNumber,
-                productName: l.ProductName,
-                quantity: this.getRemainingQty(l),
-                unit: l.PurchaseUnitSymbol,
-              })),
+            this.printable = {
+              kind: 'receipt',
+              data: {
+                poNumber: this.poNumber,
+                packingSlipId,
+                dataAreaId: (this.po?.dataAreaId as string) ?? this.tenantConfig.currentDataAreaId(),
+                vendor: this.vendor,
+                receiptDate: new Date(),
+                lines: this.printLines(selected, (l) => this.getRemainingQty(l)),
+              },
             };
             this.loadDetail();
           } else {
@@ -279,20 +285,40 @@ export class PurchaseOrderDetailPage implements OnInit {
       });
   }
 
-  async printReceipt() {
-    if (!this.lastReceipt || this.isPrinting) return;
+  async printDocument() {
+    const doc = this.printable;
+    if (!doc || this.isPrinting) return;
     this.isPrinting = true;
     try {
-      await this.pdfService.printPurchaseReceipt(this.lastReceipt);
+      if (doc.kind === 'receipt') {
+        await this.pdfService.printPurchaseReceipt(doc.data);
+      } else {
+        await this.pdfService.printPurchaseConfirmation(doc.data);
+      }
     } catch {
-      await this.showToast('Could not print the receipt. Try again.', 'danger');
+      await this.showToast('Could not print. Try again.', 'danger');
     } finally {
       this.isPrinting = false;
     }
   }
 
-  dismissReceipt() {
-    this.lastReceipt = null;
+  dismissPrintable() {
+    this.printable = null;
+  }
+
+  /** The order's lines as they stand, for a printed document. */
+  private printLines(lines: PurchaseOrderLine[], qty: (l: PurchaseOrderLine) => number): PurchaseReceiptLine[] {
+    return lines.map((l) => ({
+      lineNumber: l.LineNumber,
+      itemNumber: l.ItemNumber,
+      productName: l.ProductName,
+      quantity: qty(l),
+      unit: l.PurchaseUnitSymbol,
+    }));
+  }
+
+  private get vendor(): string | undefined {
+    return (this.po?.OrderVendorAccountNumber ?? this.po?.VendorAccountNumber) as string | undefined;
   }
 
   async confirmOrder() {
@@ -327,7 +353,17 @@ export class PurchaseOrderDetailPage implements OnInit {
             await this.showToast(serverMsg ? `Confirm failed: ${serverMsg}` : 'Confirm failed. Try again.', 'danger');
             return;
           }
-          await this.showToast('Order confirmed. Ready to receive.', 'success');
+          // Captured before the reload replaces the order.
+          this.printable = {
+            kind: 'confirmation',
+            data: {
+              poNumber: this.poNumber,
+              dataAreaId: (this.po?.dataAreaId as string) ?? this.tenantConfig.currentDataAreaId(),
+              vendor: this.vendor,
+              confirmDate: new Date(),
+              lines: this.printLines(this.po?.PurchaseOrderLinesV2 ?? [], (l) => this.getTotalQty(l)),
+            },
+          };
           this.loadDetail();
         },
         error: async (err: unknown) => {
