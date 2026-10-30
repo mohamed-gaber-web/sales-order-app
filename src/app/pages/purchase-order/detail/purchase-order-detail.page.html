@@ -91,6 +91,29 @@
       </div>
     }
 
+    @if (lastReceipt) {
+      <div class="receipt-banner">
+        <div class="receipt-banner-text">
+          <ion-icon name="checkmark-circle" color="success"></ion-icon>
+          <div>
+            <p class="receipt-title">Receipt recorded</p>
+            <p class="receipt-sub">{{ lastReceipt.packingSlipId }} · {{ lastReceipt.lines.length }} lines</p>
+          </div>
+          <ion-button fill="clear" size="small" class="receipt-close" (click)="dismissReceipt()" aria-label="Dismiss">
+            <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+          </ion-button>
+        </div>
+        <ion-button
+          expand="block"
+          class="print-btn"
+          [disabled]="isPrinting"
+          (click)="printReceipt()">
+          <ion-icon slot="start" name="print-outline"></ion-icon>
+          Print receipt
+        </ion-button>
+      </div>
+    }
+
     <!-- Lines Section -->
     <div class="lines-section">
       <div class="lines-header">

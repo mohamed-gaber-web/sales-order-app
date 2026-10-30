@@ -9,6 +9,7 @@ import { PurchaseOrderHeader, PurchaseOrderLine } from '../../../models/purchase
 import { ScannerModalComponent } from '../../inventory/scanner/scanner-modal.component';
 import { TenantConfigStore } from '../../../core/tenant/tenant-config.store';
 import { PortalSessionStore } from '../../../core/auth/portal-session.store';
+import { PdfService, PurchaseReceiptPdfData } from '../../../core/services/pdf.service';
 
 @Component({
   selector: 'app-purchase-order-detail',
@@ -26,6 +27,9 @@ export class PurchaseOrderDetailPage implements OnInit {
   searchTerm = '';
   isSubmitting = false;
   isConfirming = false;
+  isPrinting = false;
+  /** The receipt just recorded from this screen, kept so it can be printed. */
+  lastReceipt: PurchaseReceiptPdfData | null = null;
   selectedLines = new Map<number, PurchaseOrderLine>();
   private destroyRef = inject(DestroyRef);
 
@@ -56,6 +60,7 @@ export class PurchaseOrderDetailPage implements OnInit {
   private loadingCtrl = inject(LoadingController);
   private modalCtrl = inject(ModalController);
   private poService = inject(PurchaseOrderService);
+  private pdfService = inject(PdfService);
 
   ngOnInit() {
     this.poNumber = this.route.snapshot.paramMap.get('poNumber') ?? '';
@@ -67,6 +72,7 @@ export class PurchaseOrderDetailPage implements OnInit {
    * the barcode flow) shows the stale pre-receipt quantities and progress bar.
    */
   ionViewWillEnter() {
+    this.lastReceipt = null;
     if (this.poNumber) {
       this.loadDetail();
     }
@@ -220,13 +226,21 @@ export class PurchaseOrderDetailPage implements OnInit {
       .subscribe({
         next: async (res) => {
           if (res.Success) {
-            const toast = await this.toastCtrl.create({
-              message: `Receipt recorded for ${selected.length} lines.`,
-              buttons: [{ text: 'Dismiss', role: 'cancel' }],
-              color: 'success',
-              position: 'bottom',
-            });
-            await toast.present();
+            // Captured before the reload, which replaces the lines with their new remaining quantities.
+            this.lastReceipt = {
+              poNumber: this.poNumber,
+              packingSlipId,
+              dataAreaId: (this.po?.dataAreaId as string) ?? this.tenantConfig.currentDataAreaId(),
+              vendor: (this.po?.OrderVendorAccountNumber ?? this.po?.VendorAccountNumber) as string | undefined,
+              receiptDate: new Date(),
+              lines: selected.map((l) => ({
+                lineNumber: l.LineNumber,
+                itemNumber: l.ItemNumber,
+                productName: l.ProductName,
+                quantity: this.getRemainingQty(l),
+                unit: l.PurchaseUnitSymbol,
+              })),
+            };
             this.loadDetail();
           } else {
             const serverMsg = (res.ErrorMessage || res.DebugMessage || '').trim();
@@ -263,6 +277,22 @@ export class PurchaseOrderDetailPage implements OnInit {
           await toast.present();
         },
       });
+  }
+
+  async printReceipt() {
+    if (!this.lastReceipt || this.isPrinting) return;
+    this.isPrinting = true;
+    try {
+      await this.pdfService.printPurchaseReceipt(this.lastReceipt);
+    } catch {
+      await this.showToast('Could not print the receipt. Try again.', 'danger');
+    } finally {
+      this.isPrinting = false;
+    }
+  }
+
+  dismissReceipt() {
+    this.lastReceipt = null;
   }
 
   async confirmOrder() {

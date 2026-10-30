@@ -95,6 +95,37 @@ export interface PackingSlipPdfData {
   lines?: PackingSlipLine[];
 }
 
+export interface PurchaseReceiptLine {
+  lineNumber: number;
+  itemNumber: string;
+  productName?: string;
+  quantity: number;
+  unit?: string;
+}
+
+/** One product receipt covering several purchase order lines — printed on A4. */
+export interface PurchaseReceiptPdfData {
+  poNumber: string;
+  packingSlipId: string;
+  dataAreaId: string;
+  vendor?: string;
+  receiptDate: Date;
+  lines: PurchaseReceiptLine[];
+}
+
+/** A4 in PDF points (72 dpi). */
+const A4_W = 595;
+const A4_H = 842;
+
+// Vertical layout of the multi-line receipt. Shared by the paginator and the
+// renderer so the two cannot drift apart.
+const PR_ROW_H = 26;
+const PR_FIRST_PAGE_TABLE_Y = 294;   // after header, PURCHASE ORDER and RECEIPT DETAILS
+const PR_NEXT_PAGE_TABLE_Y = 130;    // after header only
+const PR_TABLE_HEAD_H = 38 + 26;     // section band + column headers
+const PR_STAMP_H = 6 + 80;           // gap + confirmation stamp
+const PR_CONTENT_BOTTOM = A4_H - 46; // clear of the footer band
+
 // No external dependencies — uses Canvas API + inline minimal PDF builder.
 @Injectable({ providedIn: 'root' })
 export class PdfService {
@@ -580,6 +611,362 @@ export class PdfService {
 
     ctx.fillStyle = orange;
     ctx.fillRect(0, H - 18, W, 18);
+  }
+
+  // ── Purchase Receipt (several lines, A4, paginated) ───────
+
+  /**
+   * Prints the receipt on A4. On the web this opens the browser's print dialog.
+   * Android's WebView ignores window.print(), so the installed app hands the PDF
+   * to the share sheet instead, where it can go to a print service.
+   */
+  async printPurchaseReceipt(data: PurchaseReceiptPdfData): Promise<void> {
+    const pages = this.renderPurchaseReceiptPages(data);
+    const filename = `receipt-${data.packingSlipId}.pdf`;
+    if (Capacitor.isNativePlatform()) {
+      const jpegs = await Promise.all(pages.map((c) => this.canvasToJpeg(c)));
+      const blob = this.buildA4Pdf(jpegs.map((jpeg, i) => ({ jpeg, w: pages[i].width, h: pages[i].height })));
+      await this.sharePdfBlob(blob, filename);
+      return;
+    }
+    await this.printImages(pages.map((c) => c.toDataURL('image/png')), filename);
+  }
+
+  /** Splits the lines across A4 pages, keeping the closing stamp off a page of its own. */
+  private paginatePurchaseReceipt(lines: PurchaseReceiptLine[]): PurchaseReceiptLine[][] {
+    const pages: PurchaseReceiptLine[][] = [];
+    let rest = lines;
+    do {
+      const top = pages.length === 0 ? PR_FIRST_PAGE_TABLE_Y : PR_NEXT_PAGE_TABLE_Y;
+      const room = PR_CONTENT_BOTTOM - top - PR_TABLE_HEAD_H;
+      const capacity = Math.floor(room / PR_ROW_H);
+      const capacityWithStamp = Math.floor((room - PR_STAMP_H) / PR_ROW_H);
+      // Fits with the stamp: last page. Otherwise leave at least one line for
+      // the next page, so the stamp never sits alone.
+      const take = rest.length <= capacityWithStamp ? rest.length : Math.min(capacity, rest.length - 1);
+      pages.push(rest.slice(0, take));
+      rest = rest.slice(take);
+    } while (rest.length);
+    return pages;
+  }
+
+  private renderPurchaseReceiptPages(data: PurchaseReceiptPdfData): HTMLCanvasElement[] {
+    const chunks = this.paginatePurchaseReceipt(data.lines);
+    return chunks.map((lines, i) => {
+      const S = 2;
+      const canvas = document.createElement('canvas');
+      canvas.width = A4_W * S;
+      canvas.height = A4_H * S;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) throw new Error('Canvas not supported');
+      ctx.scale(S, S);
+      this.drawPurchaseReceiptPage(ctx, data, lines, i + 1, chunks.length);
+      return canvas;
+    });
+  }
+
+  private drawPurchaseReceiptPage(
+    ctx: CanvasRenderingContext2D,
+    data: PurchaseReceiptPdfData,
+    lines: PurchaseReceiptLine[],
+    page: number,
+    pageCount: number
+  ): void {
+    const W = A4_W;
+    const H = A4_H;
+    const margin = 30;
+    const contentW = W - margin * 2;
+    const midX = margin + contentW / 2;
+    const navy = '#002559';
+    const orange = '#F24C1A';
+    const lightBlue = 'rgba(160,190,225,0.9)';
+    const muted = '#828da8';
+    const dark = '#121c30';
+
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, W, H);
+
+    // ── Header ─────────────────────────────────────────────
+    ctx.fillStyle = navy;
+    ctx.fillRect(0, 0, W, 108);
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 26px Arial,Helvetica,sans-serif';
+    ctx.fillText('GROW PATH', margin, 44);
+
+    ctx.fillStyle = lightBlue;
+    ctx.font = '13px Arial,Helvetica,sans-serif';
+    ctx.fillText('PRODUCT RECEIPT', margin, 66);
+
+    const dateStr = data.receiptDate.toLocaleDateString('en-GB', {
+      day: '2-digit', month: 'short', year: 'numeric'
+    });
+    const labelRight = W - margin - 95;
+    const metaRow = (label: string, value: string, ry: number) => {
+      ctx.textAlign = 'right';
+      ctx.fillStyle = lightBlue;
+      ctx.font = '11px Arial,Helvetica,sans-serif';
+      ctx.fillText(label, labelRight, ry);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 11px Arial,Helvetica,sans-serif';
+      ctx.fillText(value, W - margin, ry);
+      ctx.textAlign = 'left';
+    };
+    metaRow('Receipt ID', data.packingSlipId, 36);
+    metaRow('Date', dateStr, 54);
+    metaRow('Company', data.dataAreaId.toUpperCase(), 72);
+
+    ctx.fillStyle = orange;
+    ctx.fillRect(0, 108, W, 5);
+
+    let y = 130;
+
+    const section = (title: string) => {
+      ctx.fillStyle = '#f4f6fb';
+      ctx.fillRect(margin, y, contentW, 28);
+      ctx.fillStyle = navy;
+      ctx.fillRect(margin, y, 4, 28);
+      ctx.fillStyle = navy;
+      ctx.font = 'bold 9.5px Arial,Helvetica,sans-serif';
+      ctx.fillText(title, margin + 14, y + 18);
+      y += 38;
+    };
+
+    const clampW = (text: string, font: string, maxW: number): string => {
+      ctx.font = font;
+      if (ctx.measureText(text).width <= maxW) return text;
+      let t = text;
+      while (t.length > 1 && ctx.measureText(t + '…').width > maxW) t = t.slice(0, -1);
+      return t + '…';
+    };
+
+    const field = (label: string, value: string, x: number) => {
+      ctx.fillStyle = muted;
+      ctx.font = '10px Arial,Helvetica,sans-serif';
+      ctx.fillText(label, x, y);
+      ctx.fillStyle = dark;
+      ctx.fillText(clampW(value, 'bold 13.5px Arial,Helvetica,sans-serif', contentW / 2 - 14), x, y + 18);
+    };
+
+    if (page === 1) {
+      // ── PURCHASE ORDER ─────────────────────────────────────
+      section('PURCHASE ORDER');
+      field('Purchase Order', data.poNumber, margin);
+      if (data.vendor) field('Vendor', data.vendor, midX);
+      y += 32 + 12;
+
+      // ── RECEIPT DETAILS ────────────────────────────────────
+      section('RECEIPT DETAILS');
+      field('Product Receipt', data.packingSlipId, margin);
+      field('Lines Received', String(data.lines.length), midX);
+      y += 32 + 12;
+    }
+
+    // ── LINE ITEMS ───────────────────────────────────────────
+    section(page === 1 ? 'LINE ITEMS' : 'LINE ITEMS (CONTINUED)');
+
+    const lineX = margin;
+    const itemX = margin + 44;
+    const prodX = margin + 160;
+    const qtyX = W - margin;
+    const rowFont = '11px Arial,Helvetica,sans-serif';
+    const rowBold = 'bold 11px Arial,Helvetica,sans-serif';
+
+    ctx.fillStyle = muted;
+    ctx.font = 'bold 8.5px Arial,Helvetica,sans-serif';
+    ctx.fillText('LINE', lineX, y);
+    ctx.fillText('ITEM', itemX, y);
+    ctx.fillText('PRODUCT', prodX, y);
+    ctx.textAlign = 'right';
+    ctx.fillText('QTY', qtyX, y);
+    ctx.textAlign = 'left';
+    y += 8;
+    ctx.strokeStyle = '#dbe1ec';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(margin, y);
+    ctx.lineTo(W - margin, y);
+    ctx.stroke();
+    y += 18;
+
+    for (const line of lines) {
+      ctx.fillStyle = muted;
+      ctx.font = rowFont;
+      ctx.fillText(String(line.lineNumber), lineX, y);
+
+      ctx.fillStyle = dark;
+      ctx.fillText(clampW(line.itemNumber, rowBold, prodX - itemX - 12), itemX, y);
+
+      ctx.fillStyle = '#3a4356';
+      ctx.fillText(clampW(line.productName ?? '—', rowFont, qtyX - prodX - 90), prodX, y);
+
+      const qtyStr = `${Number(line.quantity).toLocaleString('en-US', {
+        maximumFractionDigits: 3
+      })}${line.unit ? ' ' + line.unit : ''}`;
+      ctx.fillStyle = dark;
+      ctx.font = rowBold;
+      ctx.textAlign = 'right';
+      ctx.fillText(qtyStr, qtyX, y);
+      ctx.textAlign = 'left';
+
+      y += 8;
+      ctx.strokeStyle = '#eef1f7';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(margin, y);
+      ctx.lineTo(W - margin, y);
+      ctx.stroke();
+      y += 18;
+    }
+
+    // ── Confirmation stamp (last page) ───────────────────────
+    if (page === pageCount) {
+      y += 6;
+      ctx.fillStyle = navy;
+      ctx.fillRect(margin, y, contentW, 64);
+
+      const cx = margin + 38;
+      const cy = y + 32;
+      ctx.strokeStyle = '#22c55e';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.arc(cx, cy, 18, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(cx - 9, cy);
+      ctx.lineTo(cx - 2, cy + 8);
+      ctx.lineTo(cx + 10, cy - 8);
+      ctx.stroke();
+
+      ctx.fillStyle = lightBlue;
+      ctx.font = '10px Arial,Helvetica,sans-serif';
+      ctx.fillText('STATUS', margin + 68, y + 20);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 16px Arial,Helvetica,sans-serif';
+      ctx.fillText('Product Receipt Posted', margin + 68, y + 42);
+    }
+
+    // ── Footer ────────────────────────────────────────────────
+    ctx.fillStyle = '#f4f6fb';
+    ctx.fillRect(0, H - 36, W, 18);
+    ctx.fillStyle = muted;
+    ctx.font = '10px Arial,Helvetica,sans-serif';
+    ctx.fillText('Generated by Grow Path', margin, H - 23);
+    ctx.textAlign = 'center';
+    ctx.fillText(`Page ${page} of ${pageCount}`, W / 2, H - 23);
+    ctx.textAlign = 'right';
+    ctx.fillText(data.receiptDate.toLocaleString(), W - margin, H - 23);
+    ctx.textAlign = 'left';
+
+    ctx.fillStyle = orange;
+    ctx.fillRect(0, H - 18, W, 18);
+  }
+
+  /**
+   * Prints images, one A4 page each, through a hidden iframe so the app's own
+   * layout never reaches the printer.
+   */
+  private printImages(sources: string[], title: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const frame = document.createElement('iframe');
+      frame.setAttribute('aria-hidden', 'true');
+      frame.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;';
+      document.body.appendChild(frame);
+
+      const win = frame.contentWindow;
+      const doc = frame.contentDocument;
+      if (!win || !doc) {
+        frame.remove();
+        reject(new Error('Printing is not supported here'));
+        return;
+      }
+
+      doc.open();
+      doc.write(
+        '<!doctype html><html><head><style>' +
+        '@page{size:A4;margin:0}html,body{margin:0}' +
+        'img{display:block;width:210mm;height:297mm;break-after:page}img:last-child{break-after:auto}' +
+        '</style></head><body></body></html>'
+      );
+      doc.close();
+      doc.title = title;
+
+      let pending = sources.length;
+      const ready = () => {
+        if (--pending > 0) return;
+        const cleanup = () => frame.remove();
+        win.addEventListener('afterprint', cleanup, { once: true });
+        // Some mobile browsers never fire afterprint; don't leak the frame.
+        setTimeout(cleanup, 60_000);
+        win.focus();
+        win.print();
+        resolve();
+      };
+      for (const src of sources) {
+        const img = doc.createElement('img');
+        img.onload = ready;
+        img.onerror = () => {
+          frame.remove();
+          reject(new Error('Could not render the receipt'));
+        };
+        img.src = src;
+        doc.body.appendChild(img);
+      }
+    });
+  }
+
+  /** A PDF of fixed A4 pages, one full-page JPEG each. */
+  private buildA4Pdf(pages: { jpeg: Uint8Array; w: number; h: number }[]): Blob {
+    const enc = (s: string) => new TextEncoder().encode(s);
+    const parts: Uint8Array[] = [];
+    const offsets: number[] = [];
+    let pos = 0;
+    const push = (b: Uint8Array) => { parts.push(b); pos += b.length; };
+    const str = (s: string) => push(enc(s));
+
+    // Objects: 1 catalog, 2 page tree, then per page: page, content, image.
+    const objCount = 2 + pages.length * 3;
+    const pageObj = (i: number) => 3 + i * 3;
+    const draw = `q ${A4_W} 0 0 ${A4_H} 0 0 cm /Im0 Do Q`;
+
+    str('%PDF-1.4\n');
+    offsets[1] = pos;
+    str('1 0 obj\n<</Type/Catalog/Pages 2 0 R>>\nendobj\n');
+    offsets[2] = pos;
+    const kids = pages.map((_, i) => `${pageObj(i)} 0 R`).join(' ');
+    str(`2 0 obj\n<</Type/Pages/Kids[${kids}]/Count ${pages.length}>>\nendobj\n`);
+
+    pages.forEach((p, i) => {
+      const n = pageObj(i);
+      offsets[n] = pos;
+      str(
+        `${n} 0 obj\n<</Type/Page/Parent 2 0 R/MediaBox[0 0 ${A4_W} ${A4_H}]` +
+        `/Contents ${n + 1} 0 R/Resources<</XObject<</Im0 ${n + 2} 0 R>>>>>>\nendobj\n`
+      );
+      offsets[n + 1] = pos;
+      str(`${n + 1} 0 obj\n<</Length ${enc(draw).length}>>\nstream\n${draw}\nendstream\nendobj\n`);
+      offsets[n + 2] = pos;
+      str(
+        `${n + 2} 0 obj\n<</Type/XObject/Subtype/Image` +
+        `/Width ${p.w}/Height ${p.h}/ColorSpace/DeviceRGB` +
+        `/BitsPerComponent 8/Filter/DCTDecode/Length ${p.jpeg.length}>>\nstream\n`
+      );
+      push(p.jpeg);
+      str('\nendstream\nendobj\n');
+    });
+
+    const xrefPos = pos;
+    const fmtEntry = (offset: number, free: boolean) =>
+      `${String(offset).padStart(10, '0')} 00000 ${free ? 'f' : 'n'} \n`;
+    let xref = fmtEntry(0, true);
+    for (let i = 1; i <= objCount; i++) xref += fmtEntry(offsets[i], false);
+    str(`xref\n0 ${objCount + 1}\n${xref}trailer\n<</Size ${objCount + 1}/Root 1 0 R>>\nstartxref\n${xrefPos}\n%%EOF`);
+
+    const buf = new Uint8Array(parts.reduce((sum, b) => sum + b.length, 0));
+    let off = 0;
+    for (const b of parts) { buf.set(b, off); off += b.length; }
+    return new Blob([buf], { type: 'application/pdf' });
   }
 
   // ── Receipt Label (one per received item, with a Code 128 barcode) ──
