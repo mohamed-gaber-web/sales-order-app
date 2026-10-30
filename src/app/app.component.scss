@@ -25,9 +25,10 @@
   animation: splashEntrance 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
+// The ONE365 mark is wide (3:1), so the box is sized by width and grows in height.
 .splash-logo-wrap {
-  width: 200px;
-  height: 96px;
+  width: 280px;
+  max-width: calc(100vw - 48px);
   border-radius: 24px;
   background: #ffffff;
   border: none;
@@ -36,17 +37,17 @@
   justify-content: center;
   margin-bottom: 28px;
   box-shadow: 0 12px 48px rgba(0, 0, 0, 0.4), 0 4px 16px rgba(0, 0, 0, 0.2);
-  padding: 16px 24px;
+  padding: 20px 24px;
 
-  // With a tenant logo: both marks side by side, Grow Path made smaller to share
+  // With a tenant logo: both marks side by side, ONE365 made smaller to share
   // the box. The box grows to fit rather than squeezing either logo.
   &.co-branded {
     width: auto;
-    min-width: 200px;
+    min-width: 280px;
     gap: 16px;
 
     .splash-logo {
-      width: 104px;
+      width: 150px;
       flex-shrink: 0;
     }
 
@@ -68,14 +69,6 @@
   width: 100%;
   height: auto;
   display: block;
-}
-
-.splash-title {
-  font-size: 28px;
-  font-weight: 800;
-  color: #fff;
-  margin: 0 0 6px;
-  letter-spacing: -0.03em;
 }
 
 .splash-subtitle {

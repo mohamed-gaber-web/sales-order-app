@@ -5,13 +5,12 @@
     <div class="splash-overlay" [class.fade-out]="splashFading">
       <div class="splash-content">
         <div class="splash-logo-wrap" [class.co-branded]="tenantLogo()">
-          <img src="assets/icon/grow-path-logo.svg" alt="Grow Path" class="splash-logo" />
+          <img src="assets/icon/one365-logo.png" alt="ONE365, powered by GrowPath" class="splash-logo" />
           @if (tenantLogo(); as logo) {
             <span class="logo-divider" aria-hidden="true"></span>
             <img [src]="logo" [alt]="tenantName()" class="tenant-logo" />
           }
         </div>
-        <h1 class="splash-title">Grow Path</h1>
         <p class="splash-subtitle">{{ 'app.tagline' | translate }}</p>
         <div class="splash-dots">
           <span></span><span></span><span></span>
