@@ -65,24 +65,22 @@
   animation: fadeSlideDown 0.7s cubic-bezier(0.16, 1, 0.3, 1) backwards;
 }
 
+// The ONE365 mark carries the product name, on a white card because the
+// artwork has a white background.
 .brand-logo-wrap {
-  margin-bottom: 4px;
+  width: 240px;
+  max-width: calc(100vw - 48px);
+  margin: 0 0 14px;
+  padding: 14px 18px;
+  border-radius: 20px;
+  background: #ffffff;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
 }
 
-.brand-icon {
-  font-size: 52px;
-  color: var(--ds-accent);
-  margin-bottom: 12px;
-  filter: drop-shadow(0 0 20px rgba(242, 76, 26, 0.5));
-  animation: iconPulse 3s ease-in-out infinite;
-}
-
-.brand-name {
-  font-size: 36px;
-  font-weight: 800;
-  color: #fff;
-  margin: 0 0 6px;
-  letter-spacing: -0.04em;
+.brand-logo {
+  display: block;
+  width: 100%;
+  height: auto;
 }
 
 .brand-tagline {
@@ -335,15 +333,6 @@
   50% {
     transform: scale(1.15);
     opacity: 1;
-  }
-}
-
-@keyframes iconPulse {
-  0%, 100% {
-    filter: drop-shadow(0 0 16px rgba(242, 76, 26, 0.45));
-  }
-  50% {
-    filter: drop-shadow(0 0 28px rgba(242, 76, 26, 0.75));
   }
 }
 
