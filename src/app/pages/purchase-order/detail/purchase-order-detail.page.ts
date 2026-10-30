@@ -8,6 +8,7 @@ import { PurchaseOrderService } from '../../../core/services/purchase-order.serv
 import { PurchaseOrderHeader, PurchaseOrderLine } from '../../../models/purchase-order.model';
 import { ScannerModalComponent } from '../../inventory/scanner/scanner-modal.component';
 import { TenantConfigStore } from '../../../core/tenant/tenant-config.store';
+import { PortalSessionStore } from '../../../core/auth/portal-session.store';
 
 @Component({
   selector: 'app-purchase-order-detail',
@@ -17,14 +18,25 @@ import { TenantConfigStore } from '../../../core/tenant/tenant-config.store';
 })
 export class PurchaseOrderDetailPage implements OnInit {
   private readonly tenantConfig = inject(TenantConfigStore);
+  private readonly session = inject(PortalSessionStore);
 
   poNumber = '';
   po: PurchaseOrderHeader | null = null;
   isLoading = false;
   searchTerm = '';
   isSubmitting = false;
+  isConfirming = false;
   selectedLines = new Map<number, PurchaseOrderLine>();
   private destroyRef = inject(DestroyRef);
+
+  /**
+   * D365 cannot receive against an order until it is confirmed, so an order created
+   * in the app shows Confirm first and Receive only once that succeeds.
+   */
+  get needsConfirmation(): boolean {
+    const status = this.po?.DocumentApprovalStatus;
+    return !!this.po && status !== 'Confirmed' && status !== 'Finalized';
+  }
 
   get filteredLines(): PurchaseOrderLine[] {
     const lines = this.po?.PurchaseOrderLinesV2 ?? [];
@@ -83,6 +95,7 @@ export class PurchaseOrderDetailPage implements OnInit {
   }
 
   async scanToReceive() {
+    if (this.needsConfirmation) return;
     const modal = await this.modalCtrl.create({
       component: ScannerModalComponent,
       cssClass: 'scanner-modal',
@@ -250,6 +263,71 @@ export class PurchaseOrderDetailPage implements OnInit {
           await toast.present();
         },
       });
+  }
+
+  async confirmOrder() {
+    if (!this.po || this.isConfirming) return;
+    this.isConfirming = true;
+
+    const loading = await this.loadingCtrl.create({
+      message: 'Confirming order...',
+      spinner: 'crescent',
+    });
+    await loading.present();
+
+    this.poService.confirmOrder({
+      _request: {
+        UserId: this.session.user()?.email ?? '',
+        DataAreaId: ((this.po.dataAreaId as string) ?? this.tenantConfig.currentDataAreaId()).toUpperCase(),
+        PurchId: this.poNumber,
+        ConfirmDate: this.today(),
+      },
+    })
+      .pipe(
+        finalize(() => {
+          loading.dismiss();
+          this.isConfirming = false;
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: async (res) => {
+          if (res?.Success === false) {
+            const serverMsg = (res.ErrorMessage || res.DebugMessage || '').trim();
+            await this.showToast(serverMsg ? `Confirm failed: ${serverMsg}` : 'Confirm failed. Try again.', 'danger');
+            return;
+          }
+          await this.showToast('Order confirmed. Ready to receive.', 'success');
+          this.loadDetail();
+        },
+        error: async (err: unknown) => {
+          if (err instanceof TimeoutError) {
+            this.loadDetail();
+            await this.showToast('Taking longer than expected. Refreshed the order — check its status before confirming again.', 'warning');
+            return;
+          }
+          const e = err as { error?: { Message?: string; message?: string }; message?: string };
+          const msg = e?.error?.Message ?? e?.error?.message ?? e?.message;
+          await this.showToast(msg ? `Confirm failed: ${msg}` : 'Confirm failed. Check your connection and try again.', 'danger');
+        },
+      });
+  }
+
+  /** Local calendar date as yyyy-MM-dd — toISOString() would shift it to UTC. */
+  private today(): string {
+    const d = new Date();
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  }
+
+  private async showToast(message: string, color: 'success' | 'warning' | 'danger') {
+    const toast = await this.toastCtrl.create({
+      message,
+      buttons: [{ text: 'Dismiss', role: 'cancel' }],
+      color,
+      position: 'bottom',
+    });
+    await toast.present();
   }
 
   goBack() {

@@ -348,6 +348,18 @@ ion-header ion-toolbar {
 }
 
 // Receive button
+.confirm-banner {
+  margin: 0 16px 16px;
+
+  .confirm-hint {
+    margin: 0 0 8px;
+    font-size: 13px;
+    color: var(--ion-color-medium);
+  }
+}
+
+// The one primary action until the order is confirmed — same treatment as Receive.
+.confirm-btn,
 .receive-btn {
   --background: linear-gradient(90deg, var(--gp-accent) 0%, var(--gp-accent-end) 100%);
   --border-radius: 12px;

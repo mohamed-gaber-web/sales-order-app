@@ -11,6 +11,8 @@ import {
   CreateProductReceiptResponse,
   RegisterPurchaseOrderRequest,
   RegisterPurchaseOrderResponse,
+  ConfirmPurchaseOrderRequest,
+  ConfirmPurchaseOrderResponse,
   Vendor,
   CreatePurchaseOrderHeaderDto,
   CreatePurchaseOrderLineDto,
@@ -39,6 +41,13 @@ const PO_FILTER =
  * tapping an order from another company 404s on the entity-key GET.
  */
 const TEST_PO_COMPANY = '007';
+
+/**
+ * D365 custom service that confirms a purchase order.
+ * TODO: verify the service group / service names against the deployed D365 service.
+ */
+const PO_CONFIRM_ACTION =
+  '/api/services/GP_PurchOrderConfirmServiceGroup/GP_PurchOrderConfirmService/purchOrderConfirm';
 
 /** The most orders one search returns. */
 const SEARCH_LIMIT = 50;
@@ -349,6 +358,15 @@ export class PurchaseOrderService {
       '/api/services/GP_createProductReceiptServiceGroup/GP_CreateProductReceiptService/createProductReceipt',
       payload
     ).pipe(timeout(PRODUCT_RECEIPT_TIMEOUT_MS));
+  }
+
+  /**
+   * Confirms an order so it can be received. Like create, this always targets the
+   * tenant's own environment, never the temporary sandbox — the order was created there.
+   */
+  confirmOrder(payload: ConfirmPurchaseOrderRequest): Observable<ConfirmPurchaseOrderResponse> {
+    return this.api.post<ConfirmPurchaseOrderResponse>(PO_CONFIRM_ACTION, payload)
+      .pipe(timeout(PRODUCT_RECEIPT_TIMEOUT_MS));
   }
 
   /**

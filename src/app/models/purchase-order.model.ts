@@ -70,6 +70,26 @@ export interface CreateProductReceiptResponse {
   PackingSlipId?: string;
 }
 
+// ── POST: Confirm Purchase Order ────────────────────────────
+// purchOrderConfirm. An order created in the app starts unconfirmed, and D365
+// cannot receive against it until it is confirmed.
+export interface ConfirmPurchaseOrderRequest {
+  _request: {
+    /** The signed-in user. */
+    UserId: string;
+    DataAreaId: string;
+    PurchId: string;
+    /** yyyy-MM-dd */
+    ConfirmDate: string;
+  };
+}
+
+export interface ConfirmPurchaseOrderResponse {
+  Success?: boolean;
+  ErrorMessage?: string;
+  DebugMessage?: string;
+}
+
 // ── POST: Register Purchase Order (arrival registration) ────
 // GP_PORegistrationAPIService/registerPurchaseOrder. Unlike createProductReceipt this
 // takes one object per line instead of parallel arrays, and carries no receipt ID.

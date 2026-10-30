@@ -5,7 +5,7 @@
     </ion-buttons>
     <ion-title>{{ poNumber }}</ion-title>
     <ion-buttons slot="end">
-      <ion-button (click)="scanToReceive()">
+      <ion-button (click)="scanToReceive()" [disabled]="needsConfirmation">
         <ion-icon slot="icon-only" name="scan-outline"></ion-icon>
       </ion-button>
       <ion-button (click)="loadDetail()">
@@ -77,6 +77,20 @@
       </div>
     </ion-card>
 
+    @if (needsConfirmation) {
+      <div class="confirm-banner">
+        <p class="confirm-hint">Confirm this order before receiving.</p>
+        <ion-button
+          expand="block"
+          class="confirm-btn"
+          [disabled]="isConfirming"
+          (click)="confirmOrder()">
+          <ion-icon slot="start" name="checkmark-circle-outline"></ion-icon>
+          {{ 'common.confirm' | translate }}
+        </ion-button>
+      </div>
+    }
+
     <!-- Lines Section -->
     <div class="lines-section">
       <div class="lines-header">
@@ -117,7 +131,7 @@
               <!-- Top row: item number + status badge -->
               <div class="line-top">
                 <div class="line-left">
-                  @if (!isFullyReceived(line)) {
+                  @if (!needsConfirmation && !isFullyReceived(line)) {
                     <ion-checkbox
                       class="line-select"
                       [checked]="selectedLines.has(line.LineNumber)"
@@ -179,7 +193,7 @@
                 }
               </div>
 
-              @if (!isFullyReceived(line)) {
+              @if (!needsConfirmation && !isFullyReceived(line)) {
                 <ion-button
                   expand="block"
                   class="receive-btn"
@@ -213,7 +227,7 @@
 </ion-content>
 
 <!-- Multi-line receive bar -->
-<ion-footer class="ion-no-border multi-receive-footer" [class.footer-hidden]="selectedLines.size === 0">
+<ion-footer class="ion-no-border multi-receive-footer" [class.footer-hidden]="selectedLines.size === 0 || needsConfirmation">
   <ds-cta-bar
     [label]="'Receive (' + selectedLines.size + ')'"
     icon="download-outline"
