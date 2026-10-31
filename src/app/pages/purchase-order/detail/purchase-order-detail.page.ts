@@ -9,6 +9,7 @@ import { PurchaseOrderHeader, PurchaseOrderLine } from '../../../models/purchase
 import { ScannerModalComponent } from '../../inventory/scanner/scanner-modal.component';
 import { TenantConfigStore } from '../../../core/tenant/tenant-config.store';
 import { PortalSessionStore } from '../../../core/auth/portal-session.store';
+import { MobileConfigStore } from '../../../core/auth/mobile-config.store';
 import {
   PdfService,
   PurchaseConfirmationPdfData,
@@ -30,6 +31,7 @@ type Printable =
 export class PurchaseOrderDetailPage implements OnInit {
   private readonly tenantConfig = inject(TenantConfigStore);
   private readonly session = inject(PortalSessionStore);
+  private readonly mobileConfig = inject(MobileConfigStore);
 
   poNumber = '';
   po: PurchaseOrderHeader | null = null;
@@ -245,6 +247,7 @@ export class PurchaseOrderDetailPage implements OnInit {
                 vendor: this.vendor,
                 receiptDate: new Date(),
                 lines: this.printLines(selected, (l) => this.getRemainingQty(l)),
+                logo: this.tenantLogo,
               },
             };
             this.loadDetail();
@@ -311,10 +314,17 @@ export class PurchaseOrderDetailPage implements OnInit {
     return lines.map((l) => ({
       lineNumber: l.LineNumber,
       itemNumber: l.ItemNumber,
-      productName: l.ProductName,
+      productName: l.ProductName || l.LineDescription,
+      site: l.ReceivingSiteId,
+      warehouse: l.ReceivingWarehouseId,
       quantity: qty(l),
       unit: l.PurchaseUnitSymbol,
     }));
+  }
+
+  /** The workspace's own logo, set in the admin portal. */
+  private get tenantLogo(): string | null {
+    return this.mobileConfig.logoFor(this.session.tenant()?.slug);
   }
 
   private get vendor(): string | undefined {
@@ -362,6 +372,7 @@ export class PurchaseOrderDetailPage implements OnInit {
               vendor: this.vendor,
               confirmDate: new Date(),
               lines: this.printLines(this.po?.PurchaseOrderLinesV2 ?? [], (l) => this.getTotalQty(l)),
+              logo: this.tenantLogo,
             },
           };
           this.loadDetail();

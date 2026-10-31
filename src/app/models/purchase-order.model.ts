@@ -29,10 +29,13 @@ export interface PurchaseOrderLine {
   LineNumber: number;
   ItemNumber: string;
   ProductName?: string;
+  /** Where D365 PurchaseOrderLinesV2 carries the product name. */
+  LineDescription?: string;
   PurchaseQuantity: number;
   OrderedPurchaseQuantity?: number;
   RemainingPurchaseQuantity?: number;
   PurchaseUnitSymbol?: string;
+  ReceivingSiteId?: string;
   ReceivingWarehouseId?: string;
   PurchasePrice?: number;
   LineAmount?: number;

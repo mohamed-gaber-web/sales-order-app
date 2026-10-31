@@ -99,9 +99,14 @@ export interface PurchaseReceiptLine {
   lineNumber: number;
   itemNumber: string;
   productName?: string;
+  site?: string;
+  warehouse?: string;
   quantity: number;
   unit?: string;
 }
+
+/** Printed in the header when the tenant has no logo of its own. */
+const DEFAULT_DOC_LOGO = 'assets/icon/one365-logo.png';
 
 /** One product receipt covering several purchase order lines — printed on A4. */
 export interface PurchaseReceiptPdfData {
@@ -111,6 +116,8 @@ export interface PurchaseReceiptPdfData {
   vendor?: string;
   receiptDate: Date;
   lines: PurchaseReceiptLine[];
+  /** The tenant's logo as a data URL; the ONE365 logo when absent. */
+  logo?: string | null;
 }
 
 /** A purchase order as confirmed — printed on A4. */
@@ -120,6 +127,8 @@ export interface PurchaseConfirmationPdfData {
   vendor?: string;
   confirmDate: Date;
   lines: PurchaseReceiptLine[];
+  /** The tenant's logo as a data URL; the ONE365 logo when absent. */
+  logo?: string | null;
 }
 
 /**
@@ -141,6 +150,7 @@ interface PurchaseDocLayout {
   stamp: string;
   filename: string;
   lines: PurchaseReceiptLine[];
+  logo?: string | null;
 }
 
 /** A4 in PDF points (72 dpi). */
@@ -659,6 +669,7 @@ export class PdfService {
       stamp: 'Product Receipt Posted',
       filename: `receipt-${data.packingSlipId}.pdf`,
       lines: data.lines,
+      logo: data.logo,
     });
   }
 
@@ -679,6 +690,7 @@ export class PdfService {
       stamp: 'Purchase Order Confirmed',
       filename: `po-confirmation-${data.poNumber}.pdf`,
       lines: data.lines,
+      logo: data.logo,
     });
   }
 
@@ -688,7 +700,7 @@ export class PdfService {
    * share sheet instead, where it can go to a print service.
    */
   private async printPurchaseDocument(doc: PurchaseDocLayout): Promise<void> {
-    const pages = this.renderPurchaseDocPages(doc);
+    const pages = await this.renderPurchaseDocPages(doc);
     const filename = doc.filename;
     if (Capacitor.isNativePlatform()) {
       const jpegs = await Promise.all(pages.map((c) => this.canvasToJpeg(c)));
@@ -717,8 +729,9 @@ export class PdfService {
     return pages;
   }
 
-  private renderPurchaseDocPages(doc: PurchaseDocLayout): HTMLCanvasElement[] {
+  private async renderPurchaseDocPages(doc: PurchaseDocLayout): Promise<HTMLCanvasElement[]> {
     const chunks = this.paginatePurchaseDoc(doc.lines);
+    const logo = await this.loadDocLogo(doc.logo);
     return chunks.map((lines, i) => {
       const S = 2;
       const canvas = document.createElement('canvas');
@@ -727,14 +740,33 @@ export class PdfService {
       const ctx = canvas.getContext('2d');
       if (!ctx) throw new Error('Canvas not supported');
       ctx.scale(S, S);
-      this.drawPurchaseDocPage(ctx, doc, lines, i + 1, chunks.length);
+      this.drawPurchaseDocPage(ctx, doc, logo, lines, i + 1, chunks.length);
       return canvas;
     });
+  }
+
+  /**
+   * The header logo: the tenant's, else ONE365's. Both are same-origin or data
+   * URLs, so drawing them never taints the canvas. A logo that fails to load
+   * leaves the slot empty rather than failing the print.
+   */
+  private async loadDocLogo(tenantLogo?: string | null): Promise<HTMLImageElement | null> {
+    const load = (src: string) => new Promise<HTMLImageElement>((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error(`Could not load ${src}`));
+      img.src = src;
+    });
+    if (tenantLogo) {
+      try { return await load(tenantLogo); } catch { /* fall back to ONE365 */ }
+    }
+    try { return await load(DEFAULT_DOC_LOGO); } catch { return null; }
   }
 
   private drawPurchaseDocPage(
     ctx: CanvasRenderingContext2D,
     doc: PurchaseDocLayout,
+    logo: HTMLImageElement | null,
     lines: PurchaseReceiptLine[],
     page: number,
     pageCount: number
@@ -757,18 +789,42 @@ export class PdfService {
     ctx.fillStyle = navy;
     ctx.fillRect(0, 0, W, 108);
 
+    // Logo slot: a white card, since logos are drawn for light backgrounds.
+    const slotX = margin;
+    const slotY = 20;
+    const slotW = 130;
+    const slotH = 68;
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 26px Arial,Helvetica,sans-serif';
-    ctx.fillText('GROW PATH', margin, 44);
-
-    ctx.fillStyle = lightBlue;
-    ctx.font = '13px Arial,Helvetica,sans-serif';
-    ctx.fillText(doc.heading, margin, 66);
+    ctx.beginPath();
+    ctx.roundRect(slotX, slotY, slotW, slotH, 10);
+    ctx.fill();
+    if (logo) {
+      const pad = 8;
+      const scale = Math.min((slotW - pad * 2) / logo.naturalWidth, (slotH - pad * 2) / logo.naturalHeight);
+      const lw = logo.naturalWidth * scale;
+      const lh = logo.naturalHeight * scale;
+      ctx.drawImage(logo, slotX + (slotW - lw) / 2, slotY + (slotH - lh) / 2, lw, lh);
+    }
 
     const dateStr = doc.date.toLocaleDateString('en-GB', {
       day: '2-digit', month: 'short', year: 'numeric'
     });
     const labelRight = W - margin - 95;
+
+    // Heading beside the logo, shrunk to stay clear of the meta labels.
+    const headingX = slotX + slotW + 16;
+    const headingMaxW = labelRight - 70 - headingX;
+    let headingSize = 15;
+    ctx.font = `bold ${headingSize}px Arial,Helvetica,sans-serif`;
+    while (headingSize > 9 && ctx.measureText(doc.heading).width > headingMaxW) {
+      headingSize -= 0.5;
+      ctx.font = `bold ${headingSize}px Arial,Helvetica,sans-serif`;
+    }
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText(doc.heading, headingX, 52);
+    ctx.fillStyle = lightBlue;
+    ctx.font = '11px Arial,Helvetica,sans-serif';
+    ctx.fillText(doc.poNumber, headingX, 70);
     const metaRow = (label: string, value: string, ry: number) => {
       ctx.textAlign = 'right';
       ctx.fillStyle = lightBlue;
@@ -833,8 +889,10 @@ export class PdfService {
     section(page === 1 ? 'LINE ITEMS' : 'LINE ITEMS (CONTINUED)');
 
     const lineX = margin;
-    const itemX = margin + 44;
-    const prodX = margin + 160;
+    const itemX = margin + 36;
+    const prodX = margin + 126;
+    const siteX = margin + 310;
+    const whX = margin + 360;
     const qtyX = W - margin;
     const rowFont = '11px Arial,Helvetica,sans-serif';
     const rowBold = 'bold 11px Arial,Helvetica,sans-serif';
@@ -844,6 +902,8 @@ export class PdfService {
     ctx.fillText('LINE', lineX, y);
     ctx.fillText('ITEM', itemX, y);
     ctx.fillText('PRODUCT', prodX, y);
+    ctx.fillText('SITE', siteX, y);
+    ctx.fillText('WAREHOUSE', whX, y);
     ctx.textAlign = 'right';
     ctx.fillText('QTY', qtyX, y);
     ctx.textAlign = 'left';
@@ -862,10 +922,12 @@ export class PdfService {
       ctx.fillText(String(line.lineNumber), lineX, y);
 
       ctx.fillStyle = dark;
-      ctx.fillText(clampW(line.itemNumber, rowBold, prodX - itemX - 12), itemX, y);
+      ctx.fillText(clampW(line.itemNumber, rowBold, prodX - itemX - 10), itemX, y);
 
       ctx.fillStyle = '#3a4356';
-      ctx.fillText(clampW(line.productName ?? '—', rowFont, qtyX - prodX - 90), prodX, y);
+      ctx.fillText(clampW(line.productName || '—', rowFont, siteX - prodX - 10), prodX, y);
+      ctx.fillText(clampW(line.site || '—', rowFont, whX - siteX - 8), siteX, y);
+      ctx.fillText(clampW(line.warehouse || '—', rowFont, 80), whX, y);
 
       const qtyStr = `${Number(line.quantity).toLocaleString('en-US', {
         maximumFractionDigits: 3
