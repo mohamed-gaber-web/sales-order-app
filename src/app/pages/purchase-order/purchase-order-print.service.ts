@@ -31,6 +31,11 @@ export class PurchaseOrderPrintService {
     return this.mobileConfig.logoFor(this.session.tenant()?.slug);
   }
 
+  /** Printed as "Created by" — the API carries an address, not a name. */
+  get createdBy(): string | undefined {
+    return this.session.user()?.email;
+  }
+
   vendorOf(po: PurchaseOrderHeader | null | undefined): string | undefined {
     return (po?.OrderVendorAccountNumber ?? po?.VendorAccountNumber) as string | undefined;
   }
@@ -64,6 +69,7 @@ export class PurchaseOrderPrintService {
       confirmDate,
       lines: this.lines(po.PurchaseOrderLinesV2 ?? [], orderedQty),
       logo: this.logo,
+      createdBy: this.createdBy,
     };
   }
 

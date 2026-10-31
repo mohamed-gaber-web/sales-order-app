@@ -246,6 +246,7 @@ export class PurchaseOrderDetailPage implements OnInit {
                 receiptDate: new Date(),
                 lines: this.printService.lines(selected, (l) => this.getRemainingQty(l)),
                 logo: this.printService.logo,
+                createdBy: this.printService.createdBy,
               },
             };
             this.loadDetail();
