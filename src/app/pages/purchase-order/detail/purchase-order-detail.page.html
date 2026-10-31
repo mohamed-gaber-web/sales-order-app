@@ -5,6 +5,11 @@
     </ion-buttons>
     <ion-title>{{ poNumber }}</ion-title>
     <ion-buttons slot="end">
+      @if (po && !needsConfirmation) {
+        <ion-button (click)="printConfirmation()" [disabled]="isPrinting" aria-label="Print confirmation">
+          <ion-icon slot="icon-only" name="print-outline"></ion-icon>
+        </ion-button>
+      }
       <ion-button (click)="scanToReceive()" [disabled]="needsConfirmation">
         <ion-icon slot="icon-only" name="scan-outline"></ion-icon>
       </ion-button>

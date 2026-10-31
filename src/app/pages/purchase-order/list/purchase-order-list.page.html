@@ -105,6 +105,21 @@
                       [bg]="getStatusPillBg(order.PurchaseOrderStatus)">
                     </ds-pill>
                   }
+                  @if (isConfirmed(order)) {
+                    <ion-button
+                      fill="clear"
+                      size="small"
+                      class="print-btn"
+                      [disabled]="printingOrder === order.PurchaseOrderNumber"
+                      (click)="printConfirmation(order, $event)"
+                      aria-label="Print confirmation">
+                      @if (printingOrder === order.PurchaseOrderNumber) {
+                        <ion-spinner slot="icon-only" name="crescent"></ion-spinner>
+                      } @else {
+                        <ion-icon slot="icon-only" name="print-outline"></ion-icon>
+                      }
+                    </ion-button>
+                  }
                 </div>
               </div>
               <div class="card-vendor">

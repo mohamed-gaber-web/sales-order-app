@@ -125,7 +125,8 @@ export interface PurchaseConfirmationPdfData {
   poNumber: string;
   dataAreaId: string;
   vendor?: string;
-  confirmDate: Date;
+  /** Known only right after confirming in the app; a reprint shows the print date. */
+  confirmDate?: Date;
   lines: PurchaseReceiptLine[];
   /** The tenant's logo as a data URL; the ONE365 logo when absent. */
   logo?: string | null;
@@ -674,19 +675,20 @@ export class PdfService {
   }
 
   printPurchaseConfirmation(data: PurchaseConfirmationPdfData): Promise<void> {
-    const confirmedOn = data.confirmDate.toLocaleDateString('en-GB', {
+    const date = data.confirmDate ?? new Date();
+    const day = date.toLocaleDateString('en-GB', {
       day: '2-digit', month: 'short', year: 'numeric'
     });
     return this.printPurchaseDocument({
       heading: 'PURCHASE ORDER CONFIRMATION',
       idLabel: 'Order',
       id: data.poNumber,
-      date: data.confirmDate,
+      date,
       dataAreaId: data.dataAreaId,
       poNumber: data.poNumber,
       vendor: data.vendor,
       detailsTitle: 'CONFIRMATION DETAILS',
-      details: [['Confirmed On', confirmedOn], ['Lines', String(data.lines.length)]],
+      details: [[data.confirmDate ? 'Confirmed On' : 'Printed On', day], ['Lines', String(data.lines.length)]],
       stamp: 'Purchase Order Confirmed',
       filename: `po-confirmation-${data.poNumber}.pdf`,
       lines: data.lines,

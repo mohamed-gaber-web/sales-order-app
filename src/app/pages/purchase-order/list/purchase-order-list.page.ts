@@ -7,6 +7,7 @@ import { PurchaseOrderService } from '../../../core/services/purchase-order.serv
 import { PurchaseOrderHeader } from '../../../models/purchase-order.model';
 import { ScannerModalComponent } from '../../inventory/scanner/scanner-modal.component';
 import { TenantConfigStore } from '../../../core/tenant/tenant-config.store';
+import { isConfirmedOrder, PurchaseOrderPrintService } from '../purchase-order-print.service';
 
 @Component({
   selector: 'app-purchase-order-list',
@@ -35,6 +36,11 @@ export class PurchaseOrderListPage {
 
   private searchSubject = new Subject<string>();
   private modalCtrl = inject(ModalController);
+  private printService = inject(PurchaseOrderPrintService);
+
+  readonly isConfirmed = isConfirmedOrder;
+  /** The order whose confirmation is being prepared, so its button shows busy. */
+  printingOrder: string | null = null;
 
   get hasMore(): boolean {
     return !this.searchTerm.trim() && this.orders.length < this.totalCount;
@@ -196,6 +202,25 @@ export class PurchaseOrderListPage {
 
   createOrder() {
     this.router.navigate(['/purchase-order/create']);
+  }
+
+  async printConfirmation(order: PurchaseOrderHeader, event: Event) {
+    event.stopPropagation();
+    if (this.printingOrder) return;
+    this.printingOrder = order.PurchaseOrderNumber;
+    try {
+      await this.printService.printConfirmationFor(order);
+    } catch {
+      const toast = await this.toastCtrl.create({
+        message: `Could not print ${order.PurchaseOrderNumber}. Try again.`,
+        buttons: [{ text: 'Dismiss', role: 'cancel' }],
+        color: 'danger',
+        position: 'bottom',
+      });
+      await toast.present();
+    } finally {
+      this.printingOrder = null;
+    }
   }
 
   openDetail(poNumber: string) {

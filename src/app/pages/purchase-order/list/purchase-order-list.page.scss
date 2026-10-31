@@ -521,3 +521,14 @@
     padding: 32px 48px;
   }
 }
+
+// Print sits inside the tappable card; kept compact so it doesn't crowd the status pill.
+.order-card .print-btn {
+  --padding-start: 6px;
+  --padding-end: 6px;
+  margin: -6px -6px -6px 2px;
+  height: 32px;
+  --color: var(--gp-navy);
+
+  ion-spinner { width: 18px; height: 18px; }
+}

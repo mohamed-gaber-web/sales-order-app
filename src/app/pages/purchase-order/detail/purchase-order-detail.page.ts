@@ -9,13 +9,12 @@ import { PurchaseOrderHeader, PurchaseOrderLine } from '../../../models/purchase
 import { ScannerModalComponent } from '../../inventory/scanner/scanner-modal.component';
 import { TenantConfigStore } from '../../../core/tenant/tenant-config.store';
 import { PortalSessionStore } from '../../../core/auth/portal-session.store';
-import { MobileConfigStore } from '../../../core/auth/mobile-config.store';
 import {
   PdfService,
   PurchaseConfirmationPdfData,
-  PurchaseReceiptLine,
   PurchaseReceiptPdfData,
 } from '../../../core/services/pdf.service';
+import { isConfirmedOrder, PurchaseOrderPrintService } from '../purchase-order-print.service';
 
 /** A document just produced on this screen, kept so it can be printed. */
 type Printable =
@@ -31,7 +30,7 @@ type Printable =
 export class PurchaseOrderDetailPage implements OnInit {
   private readonly tenantConfig = inject(TenantConfigStore);
   private readonly session = inject(PortalSessionStore);
-  private readonly mobileConfig = inject(MobileConfigStore);
+  private readonly printService = inject(PurchaseOrderPrintService);
 
   poNumber = '';
   po: PurchaseOrderHeader | null = null;
@@ -49,8 +48,7 @@ export class PurchaseOrderDetailPage implements OnInit {
    * in the app shows Confirm first and Receive only once that succeeds.
    */
   get needsConfirmation(): boolean {
-    const status = this.po?.DocumentApprovalStatus;
-    return !!this.po && status !== 'Confirmed' && status !== 'Finalized';
+    return !!this.po && !isConfirmedOrder(this.po);
   }
 
   get filteredLines(): PurchaseOrderLine[] {
@@ -243,11 +241,11 @@ export class PurchaseOrderDetailPage implements OnInit {
               data: {
                 poNumber: this.poNumber,
                 packingSlipId,
-                dataAreaId: (this.po?.dataAreaId as string) ?? this.tenantConfig.currentDataAreaId(),
-                vendor: this.vendor,
+                dataAreaId: this.printService.dataAreaIdOf(this.po),
+                vendor: this.printService.vendorOf(this.po),
                 receiptDate: new Date(),
-                lines: this.printLines(selected, (l) => this.getRemainingQty(l)),
-                logo: this.tenantLogo,
+                lines: this.printService.lines(selected, (l) => this.getRemainingQty(l)),
+                logo: this.printService.logo,
               },
             };
             this.loadDetail();
@@ -309,26 +307,17 @@ export class PurchaseOrderDetailPage implements OnInit {
     this.printable = null;
   }
 
-  /** The order's lines as they stand, for a printed document. */
-  private printLines(lines: PurchaseOrderLine[], qty: (l: PurchaseOrderLine) => number): PurchaseReceiptLine[] {
-    return lines.map((l) => ({
-      lineNumber: l.LineNumber,
-      itemNumber: l.ItemNumber,
-      productName: l.ProductName || l.LineDescription,
-      site: l.ReceivingSiteId,
-      warehouse: l.ReceivingWarehouseId,
-      quantity: qty(l),
-      unit: l.PurchaseUnitSymbol,
-    }));
-  }
-
-  /** The workspace's own logo, set in the admin portal. */
-  private get tenantLogo(): string | null {
-    return this.mobileConfig.logoFor(this.session.tenant()?.slug);
-  }
-
-  private get vendor(): string | undefined {
-    return (this.po?.OrderVendorAccountNumber ?? this.po?.VendorAccountNumber) as string | undefined;
+  /** Reprints the confirmation of an order that is already confirmed. */
+  async printConfirmation() {
+    if (!this.po || this.needsConfirmation || this.isPrinting) return;
+    this.isPrinting = true;
+    try {
+      await this.pdfService.printPurchaseConfirmation(this.printService.confirmation(this.po));
+    } catch {
+      await this.showToast('Could not print. Try again.', 'danger');
+    } finally {
+      this.isPrinting = false;
+    }
   }
 
   async confirmOrder() {
@@ -364,17 +353,9 @@ export class PurchaseOrderDetailPage implements OnInit {
             return;
           }
           // Captured before the reload replaces the order.
-          this.printable = {
-            kind: 'confirmation',
-            data: {
-              poNumber: this.poNumber,
-              dataAreaId: (this.po?.dataAreaId as string) ?? this.tenantConfig.currentDataAreaId(),
-              vendor: this.vendor,
-              confirmDate: new Date(),
-              lines: this.printLines(this.po?.PurchaseOrderLinesV2 ?? [], (l) => this.getTotalQty(l)),
-              logo: this.tenantLogo,
-            },
-          };
+          if (this.po) {
+            this.printable = { kind: 'confirmation', data: this.printService.confirmation(this.po, new Date()) };
+          }
           this.loadDetail();
         },
         error: async (err: unknown) => {
